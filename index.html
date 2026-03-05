@@ -19,33 +19,6 @@
         .card-3d:hover { transform: translateY(-10px); background: rgba(255, 255, 255, 0.95); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05); }
         
         .app-icon-container { width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; border-radius: 1.25rem; }
-
-        /* Print Styles for Student Cards */
-        @media print {
-            body.print-codes-mode #main-content, 
-            body.print-codes-mode #auth-section, 
-            body.print-codes-mode #studentCodesModal, 
-            body.print-codes-mode .bg-animate { 
-                display: none !important; 
-            }
-            body.print-codes-mode {
-                background: white;
-            }
-            body.print-codes-mode #printCodesArea {
-                display: grid !important;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 15px;
-                padding: 10px;
-                width: 100%;
-            }
-            .student-code-card {
-                border: 2px dashed #0054a6;
-                border-radius: 12px;
-                padding: 15px;
-                break-inside: avoid;
-                page-break-inside: avoid;
-            }
-        }
     </style>
 </head>
 <body>
@@ -115,37 +88,6 @@
         </main>
     </div>
 
-    <!-- Student Codes Modal -->
-    <div id="studentCodesModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden mx-4 border border-gray-200">
-            <div class="p-4 border-b bg-blue-50 flex justify-between items-center">
-                <h2 class="kh-moul text-lg text-[#0054a6] flex items-center gap-2">
-                    <div class="p-2 bg-blue-600 text-white rounded-lg"><i data-lucide="key" class="w-5 h-5"></i></div>
-                    លេខកូដសិស្ស (សម្រាប់មាតាបិតា)
-                </h2>
-                <button onclick="closeStudentCodesModal()" class="text-gray-500 hover:bg-red-100 hover:text-red-500 p-2 rounded-full transition"><i data-lucide="x" class="w-6 h-6"></i></button>
-            </div>
-            <div class="p-4 bg-yellow-50 text-sm text-yellow-800 border-b border-yellow-100 flex gap-3 items-start">
-                <i data-lucide="info" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
-                <p>សូមចែករំលែក <b>"លេខកូដថ្នាក់"</b> (Teacher UID) និង <b>"អត្តលេខសិស្ស"</b> (Student ID) ទៅកាន់មាតាបិតារៀងៗខ្លួន ដើម្បីឱ្យពួកគាត់អាចចូលប្រើប្រាស់ Parent Portal បាន។ អ្នកអាចចុចបោះពុម្ពខាងក្រោម ដើម្បីកាត់កាតចែកសិស្សយកទៅជូនឪពុកម្តាយបាន។</p>
-            </div>
-            <div class="p-4 flex-1 overflow-y-auto bg-slate-50">
-                <div id="studentCodesList" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <!-- Populated by JS -->
-                </div>
-            </div>
-            <div class="p-4 border-t bg-white flex justify-end gap-3">
-                <button onclick="closeStudentCodesModal()" class="px-5 py-2.5 rounded-xl text-gray-600 bg-gray-100 hover:bg-gray-200 font-bold transition">បិទ</button>
-                <button onclick="printStudentCodes()" class="bg-[#0054a6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md transition transform hover:scale-105">
-                    <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ពកាតចែកអាណាព្យាបាល
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Area for printing the cards -->
-    <div id="printCodesArea" class="hidden"></div>
-
     <!-- Script បង្កើតម៉ឺនុយ -->
     <script>
         const apps = [
@@ -159,7 +101,7 @@
             { name: 'វិភាគតាមមុខវិជ្ជា', icon: 'target', url: 'data_analyses_by_subject.html', color: 'from-blue-600 to-indigo-700' },
             { name: 'រដ្ឋបាលថ្នាក់រៀន', icon: 'folder-open', url: 'Main_adr.html', color: 'from-blue-700 to-indigo-800' },
             { name: 'របាយការណ៍មាតាបិតា', icon: 'book-open-check', url: 'parent-report.html', color: 'from-sky-500 to-blue-600' },
-            { name: 'លេខកូដសិស្ស (ឪពុកម្តាយ)', icon: 'key', url: 'javascript:window.openStudentCodesModal()', color: 'from-emerald-500 to-teal-600' },
+            { name: 'លេខកូដសិស្ស (ឪពុកម្តាយ)', icon: 'key', url: 'student-codes.html', color: 'from-emerald-500 to-teal-600' },
             { name: 'បញ្ចូលពិន្ទុកិច្ចការផ្ទះ', icon: 'book-marked', url: 'enter-homework-score.html', color: 'from-indigo-500 to-indigo-600' },
             { name: 'បញ្ជីវត្តមានប្រចាំខែ', icon: 'calendar-check', url: 'attendance-1.html', color: 'from-pink-500 to-pink-600' },
             { name: 'តារាងកិត្តិយស', icon: 'award', url: 'honor-roll.html', color: 'from-rose-500 to-rose-600' },
@@ -203,7 +145,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
@@ -216,8 +157,6 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
-        const PTEC_APP_ID = "ptec-app";
 
         // UI Elements
         const authSection = document.getElementById('auth-section');
@@ -237,22 +176,18 @@
         // Track Authentication State
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // ប្រសិនបើបានចូលគណនីរួចរាល់
                 authSection.style.display = 'none';
                 mainContent.classList.remove('hidden');
                 setTimeout(() => mainContent.classList.remove('opacity-0'), 50); 
                 
-                // Show Email
                 userEmailDisplay.textContent = user.email || 'Teacher';
                 
-                // Show Teacher ID for sharing
                 currentTeacherUid = user.uid;
                 teacherUidDisplay.textContent = currentTeacherUid;
                 teacherIdContainer.classList.remove('hidden');
                 teacherIdContainer.classList.add('flex');
 
             } else {
-                // ប្រសិនបើមិនទាន់ចូលគណនី
                 mainContent.classList.add('hidden');
                 mainContent.classList.add('opacity-0');
                 authSection.style.display = 'flex';
@@ -292,7 +227,6 @@
             }
         });
 
-        // Copy Teacher ID Logic
         window.copyTeacherId = function() {
             if (!currentTeacherUid) return;
             copyFallback(currentTeacherUid, "លេខកូដថ្នាក់");
@@ -314,92 +248,6 @@
             }
             document.body.removeChild(textArea);
         }
-
-        // ============================================
-        // Student Codes Modal & Logic
-        // ============================================
-        window.openStudentCodesModal = async function() {
-            if (!currentTeacherUid) {
-                alert("សូមរង់ចាំបន្តិច ប្រព័ន្ធកំពុងរៀបចំទិន្នន័យ...");
-                return;
-            }
-            
-            const modal = document.getElementById('studentCodesModal');
-            const list = document.getElementById('studentCodesList');
-            
-            modal.classList.remove('hidden');
-            list.innerHTML = '<div class="col-span-full text-center py-10"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto text-blue-600 mb-2"></i><p class="text-sm text-gray-500 font-bold">កំពុងទាញយកទិន្នន័យសិស្ស...</p></div>';
-            lucide.createIcons();
-
-            try {
-                const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentTeacherUid, 'students');
-                const snap = await getDocs(studentsRef);
-                let students = [];
-                snap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
-                
-                if (students.length === 0) {
-                    list.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500 font-bold"><i data-lucide="users" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>មិនទាន់មានទិន្នន័យសិស្សទេ!</div>';
-                    lucide.createIcons();
-                    return;
-                }
-
-                // Sort by Name
-                students.sort((a,b) => (a.name || '').localeCompare(b.name || '', 'km'));
-
-                list.innerHTML = students.map(s => `
-                    <div class="border border-gray-200 rounded-xl p-3 bg-white flex justify-between items-center shadow-sm hover:border-blue-300 transition">
-                        <div class="flex items-center gap-3">
-                            <img src="${s.photo || `https://api.dicebear.com/7.x/notionists/svg?seed=${s.id}`}" class="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-50">
-                            <div>
-                                <p class="font-bold text-gray-800 text-sm">${s.name || 'គ្មានឈ្មោះ'}</p>
-                                <p class="text-xs text-gray-500">ID: <span class="font-mono font-bold text-[#0054a6]">${s.id}</span></p>
-                            </div>
-                        </div>
-                        <button onclick="copyFallback('${s.id}', 'អត្តលេខសិស្ស')" class="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition border border-transparent hover:border-blue-200" title="Copy អត្តលេខ">
-                            <i data-lucide="copy" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                `).join('');
-                
-                // Prepare Print Area (Hidden in UI, visible only when printing)
-                const printArea = document.getElementById('printCodesArea');
-                printArea.innerHTML = students.map(s => `
-                    <div class="student-code-card">
-                        <h3 class="kh-moul" style="margin: 0 0 10px 0; color: #0054a6; font-size: 14px; text-align: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">
-                            កាតគណនីអាណាព្យាបាល
-                        </h3>
-                        <p style="margin: 6px 0; font-size: 13px; color: #374151;">សិស្ស៖ <strong style="color: #1f2937; font-size: 14px;">${s.name || 'គ្មានឈ្មោះ'}</strong></p>
-                        <div style="background: #f8fafc; padding: 10px; border-radius: 8px; margin-top: 10px;">
-                            <p style="margin: 0 0 6px 0; font-size: 12px; color: #475569;">១. លេខកូដថ្នាក់ (Teacher UID)៖<br>
-                               <strong style="font-family: monospace; font-size: 14px; color: #0054a6;">${currentTeacherUid}</strong>
-                            </p>
-                            <p style="margin: 0; font-size: 12px; color: #475569;">២. អត្តលេខសិស្ស (Student ID)៖<br>
-                               <strong style="font-family: monospace; font-size: 15px; color: #0054a6;">${s.id}</strong>
-                            </p>
-                        </div>
-                        <p style="margin: 12px 0 0 0; font-size: 10px; color: #64748b; text-align: center;">*សូមប្រើលេខកូដទាំង២នេះ ដើម្បីចូលមើលប្រព័ន្ធ</p>
-                    </div>
-                `).join('');
-
-                lucide.createIcons();
-            } catch(e) {
-                console.error(e);
-                list.innerHTML = '<div class="col-span-full text-center py-10 text-red-500 font-bold">មានបញ្ហាក្នុងការទាញយកទិន្នន័យ</div>';
-            }
-        };
-
-        window.closeStudentCodesModal = function() {
-            document.getElementById('studentCodesModal').classList.add('hidden');
-        };
-
-        window.printStudentCodes = function() {
-            document.body.classList.add('print-codes-mode');
-            window.print();
-            setTimeout(() => {
-                document.body.classList.remove('print-codes-mode');
-            }, 500);
-        };
-
     </script>
 </body>
 </html>

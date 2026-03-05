@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>លេខកូដសិស្ស និង QR Code</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Kantumruy Pro', sans-serif; background: #f0f4f8; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        
+        /* លាក់ផ្ទាំង Print ប៉ុន្តែអនុញ្ញាតឱ្យ Browser ទាញយករូបភាព QR ទុកមុន */
+        #printCodesArea {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            opacity: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Print Styles for Student Cards */
+        @media print {
+            body.print-codes-mode #main-content { display: none !important; }
+            body.print-codes-mode { background: white; }
+            body.print-codes-mode #printCodesArea {
+                position: relative !important;
+                left: 0 !important;
+                opacity: 1 !important;
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+                padding: 10px;
+                width: 100%;
+            }
+            .student-code-card {
+                border: 2px dashed #0054a6;
+                border-radius: 12px;
+                padding: 15px;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            /* បង្ខំឱ្យ Browser Print ពណ៌ Background និងរូបភាព */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            @page { margin: 10mm; }
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="main-content" class="min-h-screen flex flex-col">
+        <!-- Navigation Bar -->
+        <nav class="sticky top-0 z-50 px-4 md:px-8 py-3 bg-white/90 backdrop-blur-lg border-b border-gray-200 shadow-sm flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button onclick="window.location.href='index.html'" class="text-gray-500 hover:text-[#0054a6] hover:bg-blue-50 p-2 rounded-xl transition flex items-center gap-2 font-bold">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i> <span class="hidden sm:inline">ត្រឡប់ក្រោយ</span>
+                </button>
+                <div class="h-6 w-px bg-gray-300"></div>
+                <h1 class="kh-moul text-lg sm:text-xl text-[#0054a6] flex items-center gap-2">
+                    <i data-lucide="key" class="w-6 h-6 text-blue-500"></i> លេខកូដសិស្ស និង QR Code
+                </h1>
+            </div>
+            
+            <button onclick="printStudentCodes()" class="bg-[#0054a6] hover:bg-blue-700 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md transition transform hover:scale-105">
+                <i data-lucide="printer" class="w-4 h-4"></i> <span class="hidden sm:inline">បោះពុម្ពកាត</span>
+            </button>
+        </nav>
+
+        <!-- Container -->
+        <div class="max-w-5xl mx-auto w-full p-4 sm:p-6 flex-1 flex flex-col">
+            <div class="p-4 bg-yellow-50 text-sm text-yellow-800 border border-yellow-200 rounded-xl mb-6 flex gap-3 items-start shadow-sm">
+                <i data-lucide="info" class="w-5 h-5 flex-shrink-0 mt-0.5 text-yellow-600"></i>
+                <p>សូមចែករំលែក <b>"លេខកូដថ្នាក់"</b> និង <b>"អត្តលេខសិស្ស"</b> ឫឱ្យមាតាបិតាស្កេន <b>"QR Code"</b> ដើម្បីឱ្យពួកគាត់អាចចូលប្រើប្រាស់ Parent Portal បាន។ អ្នកអាចចុចបោះពុម្ពខាងលើ ដើម្បីកាត់កាតចែកសិស្សយកទៅជូនឪពុកម្តាយ។</p>
+            </div>
+
+            <!-- List Area -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 flex-1 p-4 sm:p-6">
+                <div id="loading-state" class="text-center py-20 hidden">
+                    <i data-lucide="loader-2" class="w-10 h-10 animate-spin mx-auto text-blue-600 mb-4"></i>
+                    <p class="text-gray-500 font-bold">កំពុងទាញយកទិន្នន័យសិស្ស និងបង្កើត QR Code...</p>
+                </div>
+
+                <div id="studentCodesList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Data will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Area for printing the cards -->
+    <div id="printCodesArea"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const PTEC_APP_ID = "ptec-app";
+
+        let currentTeacherUid = '';
+
+        // Init Lucide icons
+        lucide.createIcons();
+
+        // Check Auth
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentTeacherUid = user.uid;
+                loadStudentData();
+            } else {
+                // If not logged in, redirect to index
+                window.location.href = 'index.html';
+            }
+        });
+
+        async function loadStudentData() {
+            const list = document.getElementById('studentCodesList');
+            const printArea = document.getElementById('printCodesArea');
+            const loading = document.getElementById('loading-state');
+            
+            list.innerHTML = '';
+            loading.classList.remove('hidden');
+
+            try {
+                const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentTeacherUid, 'students');
+                const snap = await getDocs(studentsRef);
+                let students = [];
+                snap.forEach(doc => students.push({ id: doc.id, ...doc.data() }));
+                
+                loading.classList.add('hidden');
+
+                if (students.length === 0) {
+                    list.innerHTML = '<div class="col-span-full text-center py-20 text-gray-500 font-bold"><i data-lucide="users" class="w-12 h-12 mx-auto mb-3 opacity-40"></i>មិនទាន់មានទិន្នន័យសិស្សនៅក្នុងប្រព័ន្ធទេ!</div>';
+                    lucide.createIcons();
+                    return;
+                }
+
+                // Sort by Name
+                students.sort((a,b) => (a.name || '').localeCompare(b.name || '', 'km'));
+
+                let listHtml = '';
+                let printHtml = '';
+
+                for (const s of students) {
+                    // តំណរទៅកាន់ Parent Portal ដែលមានបញ្ចូល TID និង SID
+                    const loginUrl = `https://parent-portal-phi.vercel.app?tid=${currentTeacherUid}&sid=${s.id}`;
+                    
+                    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=0054a6&data=${encodeURIComponent(loginUrl)}`;
+
+                    listHtml += `
+                        <div class="border border-gray-200 rounded-xl p-4 bg-slate-50 flex justify-between items-center shadow-sm hover:border-blue-400 hover:shadow-md transition duration-300">
+                            <div class="flex items-center gap-4">
+                                <img src="${s.photo || `https://api.dicebear.com/7.x/notionists/svg?seed=${s.id}`}" class="w-12 h-12 rounded-full border-2 border-white shadow-sm object-cover bg-gray-200">
+                                <div>
+                                    <p class="font-bold text-gray-800 text-base">${s.name || 'គ្មានឈ្មោះ'}</p>
+                                    <p class="text-sm text-gray-500">អត្តលេខ: <span class="font-mono font-bold text-[#0054a6]">${s.id}</span></p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <img src="${qrCodeUrl}" alt="QR" class="w-12 h-12 border border-gray-200 rounded-lg shadow-sm" title="QR Code សម្រាប់ស្កេនចូល">
+                                <button onclick="copyFallback('${s.id}', 'អត្តលេខសិស្ស')" class="text-blue-600 bg-white hover:bg-blue-100 p-2.5 rounded-xl transition border border-gray-200 shadow-sm" title="ចម្លងអត្តលេខសិស្ស">
+                                    <i data-lucide="copy" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                    // កែប្រែ Layout ទៅជា Table ដើម្បីការពារកុំឱ្យដាច់ពេល Print
+                    printHtml += `
+                        <div class="student-code-card">
+                            <h3 class="kh-moul" style="margin: 0 0 10px 0; color: #0054a6; font-size: 14px; text-align: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">
+                                កាតគណនីអាណាព្យាបាល
+                            </h3>
+                            <p style="margin: 6px 0; font-size: 13px; color: #374151;">សិស្ស៖ <strong style="color: #1f2937; font-size: 14px;">${s.name || 'គ្មានឈ្មោះ'}</strong></p>
+                            
+                            <table style="width: 100%; background: #f8fafc; padding: 10px; border-radius: 8px; margin-top: 10px; border-collapse: collapse; border: none;">
+                                <tr>
+                                    <td style="vertical-align: middle; padding: 8px;">
+                                        <p style="margin: 0 0 6px 0; font-size: 12px; color: #475569;">១. លេខកូដថ្នាក់ (Teacher UID)៖<br>
+                                           <strong style="font-family: monospace; font-size: 13px; color: #0054a6;">${currentTeacherUid}</strong>
+                                        </p>
+                                        <p style="margin: 0; font-size: 12px; color: #475569;">២. អត្តលេខសិស្ស (Student ID)៖<br>
+                                           <strong style="font-family: monospace; font-size: 14px; color: #0054a6;">${s.id}</strong>
+                                        </p>
+                                    </td>
+                                    <td style="width: 80px; text-align: center; vertical-align: middle; border-left: 1px dashed #cbd5e1; padding-left: 10px; padding-top: 8px; padding-bottom: 8px;">
+                                        <img src="${qrCodeUrl}" alt="QR Code" style="width: 65px; height: 65px; border-radius: 4px; border: 1px solid #e2e8f0; display: inline-block;">
+                                        <p style="font-size: 9px; color: #64748b; margin-top: 4px; font-weight: bold; margin-bottom: 0;">ស្កេនដើម្បីចូល</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="margin: 12px 0 0 0; font-size: 10px; color: #64748b; text-align: center;">*សូមស្កេន QR Code ឬប្រើលេខកូដទាំង២ ដើម្បីចូលប្រព័ន្ធ</p>
+                        </div>
+                    `;
+                }
+
+                list.innerHTML = listHtml;
+                printArea.innerHTML = printHtml;
+
+                lucide.createIcons();
+            } catch(e) {
+                console.error(e);
+                loading.classList.add('hidden');
+                list.innerHTML = '<div class="col-span-full text-center py-10 text-red-500 font-bold">មានបញ្ហាក្នុងការទាញយកទិន្នន័យ។ សូមសាកល្បងម្តងទៀត!</div>';
+            }
+        }
+
+        window.copyFallback = function(text, label = "លេខកូដ") {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                alert(`✅ បានចម្លង${label}៖ ` + text);
+            } catch (err) {
+                console.error('Copy failed', err);
+                alert('បរាជ័យក្នុងការ Copy។ សូម Copy លេខកូដដោយផ្ទាល់។');
+            }
+            document.body.removeChild(textArea);
+        };
+
+        window.printStudentCodes = function() {
+            document.body.classList.add('print-codes-mode');
+            // ពន្យាពេលបន្តិច ដើម្បីឱ្យ Browser រៀបចំ Layout Table និងរូបភាពឲ្យរួចរាល់ មុនពេលលោតផ្ទាំង Print
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    document.body.classList.remove('print-codes-mode');
+                }, 500);
+            }, 500);
+        };
+    </script>
+</body>
+</html>

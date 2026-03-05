@@ -160,7 +160,7 @@
 
                 for (const s of students) {
                     // តំណរទៅកាន់ Parent Portal ដែលមានបញ្ចូល TID និង SID
-                    const loginUrl = `https://parent-portal-phi.vercel.app?tid=${currentTeacherUid}&sid=${s.id}`;
+                    const loginUrl = `parent-portal-ub8s.vercel.app?tid=${currentTeacherUid}&sid=${s.id}`;
                     
                     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=0054a6&data=${encodeURIComponent(loginUrl)}`;
 

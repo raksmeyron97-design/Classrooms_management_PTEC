@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - បង្ហាញសៀវភៅតាមដាន (A5)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root { --primary: #0054a6; --secondary: #3b82f6; }
+        
+        body { font-family: 'Khmer OS Battambang', 'Battambang', sans-serif; background: #f0f4f8; min-height: 100vh; margin: 0; color: #1e293b; }
+        .kh-moul { font-family: 'Khmer OS Muol Light', 'Moul', cursive; }
+        .font-battambang { font-family: 'Khmer OS Battambang', 'Battambang', sans-serif; }
+        
+        /* Form Control */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            outline: none;
+            background: #f8fafc;
+            font-family: 'Khmer OS Battambang', 'Battambang', sans-serif;
+            transition: all 0.2s;
+            font-weight: 700;
+        }
+        .input-field:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(0, 84, 166, 0.1); }
+
+        /* Print Container & A5 Styling */
+        .print-container {
+            background: white;
+            width: 14.8cm;
+            min-height: 21cm;
+            margin: 2rem auto;
+            padding: 1.5cm 1cm;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .report-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+        .report-table th, .report-table td { border: 1px solid #000; padding: 4px 6px; text-align: center; vertical-align: middle; }
+        .report-table th { background-color: #eab308 !important; font-family: 'Khmer OS Muol Light', 'Moul', cursive; font-size: 11px; font-weight: normal; }
+        
+        .bg-summary { background-color: #ffffff !important; }
+        
+        @media print {
+            @page { size: A5 portrait; margin: 0; }
+            body { background: white !important; padding: 0; margin: 0; }
+            .no-print { display: none !important; }
+            .print-container { 
+                display: block !important; 
+                width: 100%;
+                height: 100%;
+                box-shadow: none !important;
+                padding: 1cm 1cm !important;
+                margin: 0 !important;
+            }
+            .report-table th { background-color: #eab308 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            html { font-size: 95%; }
+        }
+
+        .preview-mode { background: #94a3b8; padding-top: 2rem; padding-bottom: 2rem; }
+    </style>
+</head>
+<body>
+
+    <!-- Selection Screen -->
+    <div id="selectionScreen" class="min-h-screen flex flex-col pt-8 px-4 no-print relative">
+        <div class="max-w-4xl mx-auto w-full">
+            
+            <div class="flex justify-between items-center mb-6">
+                <a href="index.html" class="inline-flex items-center gap-2 text-[#0054a6] hover:text-blue-800 font-bold transition">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i> ត្រឡប់ទៅទំព័រដើម
+                </a>
+                
+                <!-- Settings Button utilizing 2_BMI.html style properties -->
+                <button onclick="window.openSignatureModal()" class="px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 text-sm bg-[#3b82f6] text-white border border-[#3b82f6] shadow-[0_4px_6px_-1px_rgba(59,130,246,0.5)] hover:bg-blue-600 transition-all">
+                    <i data-lucide="pen-tool" class="w-4 h-4"></i> កំណត់ហត្ថលេខា
+                </button>
+            </div>
+
+            <div class="glass-card p-6 md:p-10 text-center">
+                <div class="flex justify-center mb-4">
+                    <div class="p-4 bg-yellow-100 rounded-full text-yellow-600">
+                        <i data-lucide="file-text" class="w-8 h-8"></i>
+                    </div>
+                </div>
+                <h1 class="kh-moul text-xl md:text-2xl text-[#0054a6] mb-8">បង្ហាញលទ្ធផលសិក្សាតាមសិស្ស (A5)</h1>
+
+                <!-- Type Selection -->
+                <div class="mb-6 flex justify-center">
+                    <div class="inline-flex bg-gray-100 p-1 rounded-xl flex-wrap justify-center gap-1">
+                        <button onclick="window.setType('monthly')" id="btnMonthly" class="px-6 py-2.5 rounded-lg bg-white shadow text-[#0054a6] font-bold transition flex items-center gap-2">
+                            <i data-lucide="calendar" class="w-4 h-4"></i> ប្រចាំខែ
+                        </button>
+                        <button onclick="window.setType('semester')" id="btnSemester" class="px-6 py-2.5 rounded-lg text-gray-500 font-bold hover:bg-white/50 transition flex items-center gap-2">
+                            <i data-lucide="bookmark" class="w-4 h-4"></i> ប្រចាំឆមាស
+                        </button>
+                        <button onclick="window.setType('yearly')" id="btnYearly" class="px-6 py-2.5 rounded-lg text-gray-500 font-bold hover:bg-white/50 transition flex items-center gap-2">
+                            <i data-lucide="award" class="w-4 h-4 text-fuchsia-600"></i> ប្រចាំឆ្នាំ
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mb-8">
+                    <!-- Year Select -->
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-2">ឆ្នាំសិក្សា</label>
+                        <select id="yearSelect" class="input-field" onchange="window.updateMonthOptions(); window.loadStudents();">
+                            <option value="2023-2024">2023-2024</option>
+                            <option value="2024-2025">2024-2025</option>
+                            <option value="2025-2026" selected>2025-2026</option>
+                            <option value="2026-2027">2026-2027</option>
+                        </select>
+                    </div>
+
+                    <!-- Period Select -->
+                    <div id="periodInputGroup">
+                        <label class="block font-bold text-gray-700 mb-2" id="periodLabel">ជ្រើសរើសខែ</label>
+                        <select id="periodSelect" class="input-field">
+                        </select>
+                    </div>
+
+                    <!-- Student Select -->
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-2">ជ្រើសរើសសិស្ស</label>
+                        <select id="studentSelect" class="input-field">
+                            <option value="">កំពុងផ្ទុកទិន្នន័យ...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="window.generateA5Report()" class="w-full md:w-auto px-8 py-3 bg-[#0054a6] hover:bg-[#1e40af] text-white rounded-xl font-bold transition shadow-lg flex items-center justify-center gap-2 mx-auto">
+                    <i data-lucide="printer" class="w-5 h-5"></i> បង្ហាញលទ្ធផល (A5)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Preview Container -->
+    <div id="printAreaWrapper" class="hidden">
+        
+        <div class="fixed top-4 right-4 flex flex-col gap-3 z-50 no-print">
+            <button onclick="window.print()" class="bg-blue-600 text-white p-3 rounded-full shadow-xl hover:bg-blue-700 hover:scale-105 transition" title="បោះពុម្ភ">
+                <i data-lucide="printer" class="w-6 h-6"></i>
+            </button>
+            <button onclick="window.closePreview()" class="bg-slate-600 text-white p-3 rounded-full shadow-xl hover:bg-slate-700 hover:scale-105 transition" title="បិទ">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <div id="printContainer" class="print-container">
+            
+            <h1 id="out_title" class="kh-moul text-center text-[16px] mb-6 mt-4">លទ្ធផលសិក្សាខែមីនា</h1>
+
+            <!-- Info Header -->
+            <div class="flex justify-between text-[12px] font-bold mb-3 px-4">
+                <!-- Left Side: ID and Name -->
+                <div class="text-left">
+                    <div class="flex items-baseline gap-2 mb-1">
+                        <span class="w-[80px] inline-block">អត្តលេខ</span>
+                        <span id="out_id" class="font-bold text-[14px]">7100</span>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span class="w-[80px] inline-block">ឈ្មោះសិស្ស</span>
+                        <span id="out_name" class="kh-moul font-normal text-[15px]">ដុល នីសា</span>
+                    </div>
+                </div>
+                
+                <!-- Right Side: Grade and Gender -->
+                <div class="text-right flex flex-col items-end">
+                    <div class="flex items-baseline justify-between min-w-[130px] gap-2 mb-1">
+                        <span class="whitespace-nowrap">ថ្នាក់ទី</span>
+                        <span id="out_grade" class="kh-moul font-normal whitespace-nowrap">១ «ខ»</span>
+                    </div>
+                    <div class="flex items-baseline justify-between min-w-[130px] gap-2">
+                        <span class="whitespace-nowrap">ភេទ</span>
+                        <span id="out_gender" class="kh-moul font-normal">ស</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Table 7 ជួរឈរ -->
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2" class="w-[8%] border border-black">ល.រ</th>
+                        <th rowspan="2" colspan="2" class="w-[35%] border border-black">មុខវិជ្ជា</th>
+                        <th colspan="3" class="w-[42%] border border-black">ពិន្ទុ</th>
+                        <th rowspan="2" class="w-[15%] border border-black">ផ្សេងៗ</th>
+                    </tr>
+                    <tr>
+                        <th class="w-[14%] border border-black">ពិន្ទុអតិបរមា</th>
+                        <th class="w-[14%] border border-black">ពិន្ទុ</th>
+                        <th class="w-[14%] border border-black">និទ្ទេស</th>
+                    </tr>
+                </thead>
+                <tbody id="out_tbody">
+                    <!-- Dynamic Rows Here -->
+                </tbody>
+            </table>
+
+            <!-- Signatures -->
+            <div class="flex justify-between mt-4 text-[11px] px-2 text-center">
+                <div class="w-[45%] flex flex-col items-center relative">
+                    <p class="mb-1">បានឃើញ និងឯកភាព</p>
+                    <p class="kh-moul mb-1" id="out_manager_role">នាយកសាលា</p>
+                    <div class="h-16 flex items-center justify-center mb-1 relative z-10 w-full">
+                        <img id="out_manager_sig_img"​  src="" class="max-h-full object-contain hidden" style="transform-origin: center; transform: scale(1);">
+                    </div>
+                    <p class="kh-moul text-[12px]"style="margin-left: 2cm;" id="out_manager_name_val"></p>
+                </div>
+                <div class="w-[55%] flex flex-col items-center relative">
+                    <p class="mb-1 font-battambang text-[10px] text-black" id="out_long_date">ថ្ងៃ................ខែ...........ឆ្នាំ...........ព.ស ២៥៦...</p>
+                    <p class="mb-1"><span id="out_loc">................</span>, <span id="out_short_date">ថ្ងៃទី........ ខែ........... ឆ្នាំ ២០២...</span></p>
+                    <p class="font-bold mb-1">គ្រូបន្ទុកថ្នាក់</p>
+                    <div class="h-16 flex items-center justify-center mb-1 relative z-10 w-full" style="padding-left: 2cm;">
+                        <img id="out_teacher_sig_img" src="" class="max-h-full object-contain hidden" style="transform-origin: center; transform: scale(1);">
+                    </div>
+                    <p class="kh-moul text-[12px]" style="margin-left: 2cm;" id="out_teacher">ឈ្មោះគ្រូ</p>
+                </div>
+            </div>
+
+            <!-- Parent Comment -->
+            <div class="mt-4 text-[12px] px-2">
+                <p>មតិអាណាព្យាបាល <span class="inline-block border-b border-dotted border-black w-[75%]"></span></p>
+                <p class="mt-5 border-b border-dotted border-black w-full"></p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Signature Settings Modal -->
+    <div id="signatureModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col overflow-hidden">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-5 border-b border-indigo-100 bg-indigo-50/80">
+                <h3 class="flex items-center gap-2 font-bold text-indigo-900 kh-moul text-[15px]">
+                    <i data-lucide="pen-tool" class="w-5 h-5"></i> កំណត់អ្នកចុះហត្ថលេខាសម្រាប់ការបោះពុម្ព
+                </h3>
+                <button onclick="window.closeSignatureModal()" class="text-slate-400 hover:text-red-500 bg-white p-1 rounded-full shadow-sm transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50">
+                <!-- Manager Card -->
+                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col">
+                    <label class="block font-bold text-slate-700 text-sm mb-2">ឈ្មោះនាយកសាលា</label>
+                    <input type="text" id="sig_manager_name" class="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none mb-5" placeholder="វាយបញ្ចូលឈ្មោះ...">
+                    
+                    <label class="block font-bold text-slate-700 text-sm mb-2">រូបភាពហត្ថលេខា / ត្រា (បើមាន)</label>
+                    <div class="flex items-center justify-between gap-3 mb-4">
+                        <div class="flex items-center gap-3">
+                            <label class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg font-bold text-xs cursor-pointer hover:bg-indigo-100 transition shadow-sm border border-indigo-100">
+                                ជ្រើសរើសឯកសារ
+                                <input type="file" id="sig_manager_file" class="hidden" accept="image/*" onchange="window.handleFileUpload(event, 'manager')">
+                            </label>
+                            <span class="text-xs text-slate-400" id="sig_manager_filename">មិនមានឯកសារ...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 mt-auto">
+                        <div class="border border-slate-200 rounded-xl h-28 flex-1 flex items-center justify-between p-2 bg-slate-50 overflow-hidden">
+                            <button type="button" onclick="window.zoomSignature('manager', -0.1)" class="p-2 text-slate-500 hover:bg-slate-200 rounded-lg transition shrink-0 z-10 bg-white shadow-sm border border-slate-100" title="បង្រួម">
+                                <i data-lucide="zoom-out" class="w-5 h-5"></i>
+                            </button>
+                            <div class="h-full flex-1 flex items-center justify-center overflow-visible relative px-2">
+                                <img id="sig_manager_preview" src="" class="max-h-full max-w-full object-contain hidden transition-transform pointer-events-none" style="transform-origin: center; transform: scale(1);">
+                                <span id="sig_manager_placeholder" class="text-slate-400 text-xs border border-dashed border-slate-300 px-6 py-2 rounded-lg">គ្មាន</span>
+                            </div>
+                            <button type="button" onclick="window.zoomSignature('manager', 0.1)" class="p-2 text-slate-500 hover:bg-slate-200 rounded-lg transition shrink-0 z-10 bg-white shadow-sm border border-slate-100" title="ពង្រីក">
+                                <i data-lucide="zoom-in" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        <button type="button" onclick="window.removeSignature('manager')" class="p-3 text-red-500 hover:bg-red-50 bg-white rounded-xl border border-red-100 transition shadow-sm shrink-0" title="លុបរូបភាពចេញ">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Teacher Card -->
+                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col">
+                    <label class="block font-bold text-slate-700 text-sm mb-2">ឈ្មោះគ្រូបន្ទុកថ្នាក់</label>
+                    <input type="text" id="sig_teacher_name" class="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none mb-5" placeholder="វាយបញ្ចូលឈ្មោះ...">
+                    
+                    <label class="block font-bold text-slate-700 text-sm mb-2">រូបភាពហត្ថលេខា (បើមាន)</label>
+                    <div class="flex items-center justify-between gap-3 mb-4">
+                        <div class="flex items-center gap-3">
+                            <label class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg font-bold text-xs cursor-pointer hover:bg-indigo-100 transition shadow-sm border border-indigo-100">
+                                ជ្រើសរើសឯកសារ
+                                <input type="file" id="sig_teacher_file" class="hidden" accept="image/*" onchange="window.handleFileUpload(event, 'teacher')">
+                            </label>
+                            <span class="text-xs text-slate-400" id="sig_teacher_filename">មិនមានឯកសារ...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 mt-auto">
+                        <div class="border border-slate-200 rounded-xl h-28 flex-1 flex items-center justify-between p-2 bg-slate-50 overflow-hidden">
+                            <button type="button" onclick="window.zoomSignature('teacher', -0.1)" class="p-2 text-slate-500 hover:bg-slate-200 rounded-lg transition shrink-0 z-10 bg-white shadow-sm border border-slate-100" title="បង្រួម">
+                                <i data-lucide="zoom-out" class="w-5 h-5"></i>
+                            </button>
+                            <div class="h-full flex-1 flex items-center justify-center overflow-visible relative px-2">
+                                <img id="sig_teacher_preview" src="" class="max-h-full max-w-full object-contain hidden transition-transform pointer-events-none" style="transform-origin: center; transform: scale(1);">
+                                <span id="sig_teacher_placeholder" class="text-slate-400 text-xs border border-dashed border-slate-300 px-6 py-2 rounded-lg">គ្មាន</span>
+                            </div>
+                            <button type="button" onclick="window.zoomSignature('teacher', 0.1)" class="p-2 text-slate-500 hover:bg-slate-200 rounded-lg transition shrink-0 z-10 bg-white shadow-sm border border-slate-100" title="ពង្រីក">
+                                <i data-lucide="zoom-in" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        <button type="button" onclick="window.removeSignature('teacher')" class="p-3 text-red-500 hover:bg-red-50 bg-white rounded-xl border border-red-100 transition shadow-sm shrink-0" title="លុបរូបភាពចេញ">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-slate-100 flex justify-end gap-3 bg-white">
+                <button onclick="window.closeSignatureModal()" class="px-6 py-2.5 rounded-lg font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 text-sm transition">បោះបង់</button>
+                <button onclick="window.saveSignatureSettings()" class="px-6 py-2.5 rounded-lg font-bold text-white bg-[#0054a6] hover:bg-blue-800 text-sm shadow-md transition">រក្សាទុក</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Modules and App Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- 1. FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+
+        // --- 2. LOCAL CONFIGURATION ---
+        const monthlySubjects = [
+            { key: 'kh_listen', label: 'ស្តាប់', max: 10 },
+            { key: 'kh_speak', label: 'និយាយ', max: 10 },
+            { key: 'kh_read', label: 'អាន', max: 10 },
+            { key: 'kh_write', label: 'សរសេរ', max: 10 },
+            { key: 'math_num', label: 'ចំនួន', max: 10 },
+            { key: 'math_meas', label: 'រង្វាស់រង្វាល់', max: 10 },
+            { key: 'math_geo', label: 'ធរណីមាត្រ', max: 10 },
+            { key: 'math_alg', label: 'ពីជគណិត', max: 10 },
+            { key: 'math_stat', label: 'ស្ថិតិ', max: 10 },
+            { key: 'sci_phy', label: 'រូបវិទ្យា', max: 10 },
+            { key: 'sci_chem', label: 'គីមីវិទ្យា', max: 10 },
+            { key: 'sci_bio', label: 'ជីវវិទ្យា', max: 10 },
+            { key: 'sci_earth', label: 'ផែនដីវិទ្យា', max: 10 },
+            { key: 'soc_ethic', label: 'សីលធម៌', max: 10 },
+            { key: 'soc_geo', label: 'ភូមិវិទ្យា', max: 10 },
+            { key: 'soc_hist', label: 'ប្រវត្តិវិទ្យា', max: 10 },
+            { key: 'soc_home', label: 'គេហវិទ្យា', max: 10 },
+            { key: 'pe_sport', label: 'កីឡា', max: 10 },
+            { key: 'life_skill', label: 'បំណិនជីវិត', max: 10 },
+            { key: 'foreign', label: 'ភាសាបរទេស', max: 10 },
+            { key: 'ex_oral', label: 'ផ្ទាល់មាត់', max: 10 },
+            { key: 'ex_att', label: 'អវត្តមាន', max: 10 },
+            { key: 'ex_book', label: 'សៀវភៅ', max: 10 },
+            { key: 'ex_hw', label: 'កិច្ចការផ្ទះ', max: 10 }
+        ];
+
+        const semesterSubjects = [
+            { key: 'sem_kh_reading_speaking', label: 'អំណាន-និយាយ', max: 100 },
+            { key: 'sem_kh_dictation', label: 'សរសេរតាមអាន', max: 100 },
+            { key: 'sem_kh_essay', label: 'តែងសេចក្តី', max: 100 },
+            { key: 'sem_math', label: 'គណិតវិទ្យា', max: 100 },
+            { key: 'sem_science', label: 'វិទ្យាសាស្ត្រ', max: 100 },
+            { key: 'sem_moral_civics', label: 'សីលធម៌', max: 100 },
+            { key: 'sem_geo', label: 'ភូមិវិទ្យា', max: 100 },
+            { key: 'sem_hist', label: 'ប្រវត្តិវិទ្យា', max: 100 },
+            { key: 'sem_home_arts', label: 'គេហវិទ្យា', max: 100 },
+            { key: 'sem_life_skills', label: 'បំណិនជីវិត', max: 100 },
+            { key: 'sem_foreign', label: 'ភាសាបរទេស', max: 100 },
+            { key: 'sem_sport', label: 'កីឡា', max: 100 }
+        ];
+
+        const monthLabels = {
+            'nov': 'វិច្ឆិកា', 'dec': 'ធ្នូ', 'jan': 'មករា', 'feb': 'កុម្ភៈ',
+            'mar': 'មីនា', 'apr': 'មេសា', 'may': 'ឧសភា', 'jun': 'មិថុនា',
+            'jul': 'កក្កដា', 'aug': 'សីហា', 'sep': 'កញ្ញា', 'oct': 'តុលា',
+            'sem1': 'ឆមាសទី១', 'sem2': 'ឆមាសទី២', 'yearly': 'ប្រចាំឆ្នាំ'
+        };
+
+        const khmerNums = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+        const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+
+        let allStudents = [];
+        let classConfig = {};
+        let currentType = 'monthly';
+        let attendanceHistory = {};
+
+        // Signature Configuration Object with scale properties
+        window.userSignatures = {
+            managerName: '',
+            managerImage: '',
+            managerScale: 1,
+            teacherName: '',
+            teacherImage: '',
+            teacherScale: 1
+        };
+
+        // --- 3. INITIALIZATION & AUTH ---
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            window.loadProfileConfig(); // Load fallback immediately
+            window.loadAttendanceData(); // Load fallback immediately
+            window.updateMonthOptions();
+            
+            initAuth().then(() => {
+                onAuthStateChanged(auth, async (user) => {
+                    currentUser = user;
+                    await window.loadProfileConfig();
+                    await window.loadAttendanceData();
+                    window.loadStudents();
+                });
+            });
+        });
+
+        // --- EXPOSED WINDOW FUNCTIONS ---
+
+        // --- Signature Settings Logic ---
+        window.openSignatureModal = function() {
+            // Load existing values
+            const saved = JSON.parse(localStorage.getItem('print_signatures') || '{}');
+            window.userSignatures = { ...window.userSignatures, ...saved };
+            
+            // Set defaults if scale not present
+            if (!window.userSignatures.managerScale) window.userSignatures.managerScale = 1;
+            if (!window.userSignatures.teacherScale) window.userSignatures.teacherScale = 1;
+            
+            // Populate inputs - Fallback to Profile Config if empty
+            document.getElementById('sig_manager_name').value = window.userSignatures.managerName || '';
+            document.getElementById('sig_teacher_name').value = window.userSignatures.teacherName || classConfig.teacher || '';
+
+            window.updatePreview('manager', window.userSignatures.managerImage, window.userSignatures.managerScale);
+            window.updatePreview('teacher', window.userSignatures.teacherImage, window.userSignatures.teacherScale);
+
+            const modal = document.getElementById('signatureModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.closeSignatureModal = function() {
+            const modal = document.getElementById('signatureModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        window.updatePreview = function(type, base64Str, scale = 1) {
+            const img = document.getElementById(`sig_${type}_preview`);
+            const placeholder = document.getElementById(`sig_${type}_placeholder`);
+            const filenameText = document.getElementById(`sig_${type}_filename`);
+
+            if (base64Str) {
+                img.src = base64Str;
+                img.style.transform = `scale(${scale})`;
+                img.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                filenameText.textContent = "បានជ្រើសរើសរូបភាព✓";
+                filenameText.classList.add('text-green-600');
+                filenameText.classList.remove('text-slate-400');
+            } else {
+                img.src = '';
+                img.style.transform = `scale(1)`;
+                img.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+                filenameText.textContent = "មិនមានឯកសារ...";
+                filenameText.classList.remove('text-green-600');
+                filenameText.classList.add('text-slate-400');
+            }
+        };
+
+        window.zoomSignature = function(type, delta) {
+            let currentScale = window.userSignatures[`${type}Scale`] || 1;
+            currentScale += delta;
+            
+            // Clamp scale bounds
+            if (currentScale < 0.2) currentScale = 0.2;
+            if (currentScale > 4.0) currentScale = 4.0;
+            
+            window.userSignatures[`${type}Scale`] = currentScale;
+            document.getElementById(`sig_${type}_preview`).style.transform = `scale(${currentScale})`;
+        };
+
+        window.handleFileUpload = function(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Basic size validation
+            if (file.size > 2 * 1024 * 1024) {
+                alert("ឯកសារធំពេក សូមជ្រើសរើសរូបភាពក្រោម 2MB");
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                window.userSignatures[`${type}Image`] = e.target.result;
+                window.userSignatures[`${type}Scale`] = 1; // reset scale on new upload
+                window.updatePreview(type, e.target.result, 1);
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.removeSignature = function(type) {
+            window.userSignatures[`${type}Image`] = '';
+            window.userSignatures[`${type}Scale`] = 1;
+            window.updatePreview(type, '', 1);
+            document.getElementById(`sig_${type}_file`).value = '';
+        };
+
+        window.saveSignatureSettings = function() {
+            window.userSignatures.managerName = document.getElementById('sig_manager_name').value;
+            window.userSignatures.teacherName = document.getElementById('sig_teacher_name').value;
+            
+            localStorage.setItem('print_signatures', JSON.stringify(window.userSignatures));
+            window.closeSignatureModal();
+        };
+
+
+        // --- Core UI & Fetch Logic ---
+        window.setType = function(type) {
+            currentType = type;
+            const buttons = {
+                'monthly': document.getElementById('btnMonthly'),
+                'semester': document.getElementById('btnSemester'),
+                'yearly': document.getElementById('btnYearly')
+            };
+            const label = document.getElementById('periodLabel');
+
+            // Reset all buttons
+            Object.values(buttons).forEach(btn => {
+                if(btn) {
+                    btn.classList.remove('bg-white', 'shadow', 'text-[#0054a6]');
+                    btn.classList.add('text-gray-500', 'hover:bg-white/50');
+                }
+            });
+
+            // Set active button
+            const activeBtn = buttons[type];
+            if(activeBtn) {
+                activeBtn.classList.add('bg-white', 'shadow', 'text-[#0054a6]');
+                activeBtn.classList.remove('text-gray-500', 'hover:bg-white/50');
+            }
+
+            if (type === 'semester') {
+                label.innerText = 'ជ្រើសរើសឆមាស';
+            } else if (type === 'yearly') {
+                label.innerText = 'ប្រចាំឆ្នាំ';
+            } else {
+                label.innerText = 'ជ្រើសរើសខែ';
+            }
+            
+            window.updateMonthOptions();
+        }
+
+        window.updateMonthOptions = function() {
+            const yearVal = document.getElementById('yearSelect').value;
+            if (!yearVal || !yearVal.includes('-')) return;
+            const [startYear, endYear] = yearVal.split('-');
+            const periodSelect = document.getElementById('periodSelect');
+            
+            let optionsHTML = '';
+            
+            if (currentType === 'monthly') {
+                const months = [
+                    { value: 'nov', label: 'ខែវិច្ឆិកា', year: startYear },
+                    { value: 'dec', label: 'ខែធ្នូ', year: startYear },
+                    { value: 'jan', label: 'ខែមករា', year: endYear },
+                    { value: 'feb', label: 'ខែកុម្ភៈ', year: endYear },
+                    { value: 'mar', label: 'ខែមីនា', year: endYear },
+                    { value: 'apr', label: 'ខែមេសា', year: endYear },
+                    { value: 'may', label: 'ខែឧសភា', year: endYear },
+                    { value: 'jun', label: 'ខែមិថុនា', year: endYear },
+                    { value: 'jul', label: 'ខែកក្កដា', year: endYear },
+                    { value: 'aug', label: 'ខែសីហា', year: endYear },
+                    { value: 'sep', label: 'ខែកញ្ញា', year: endYear },
+                    { value: 'oct', label: 'ខែតុលា', year: endYear }
+                ];
+                months.forEach(m => {
+                    optionsHTML += `<option value="${m.value}">${m.label} ឆ្នាំ ${m.year}</option>`;
+                });
+            } else if (currentType === 'semester') {
+                optionsHTML = `
+                    <option value="sem1">ឆមាសទី១</option>
+                    <option value="sem2">ឆមាសទី២</option>
+                `;
+            } else {
+                optionsHTML = `
+                    <option value="yearly">ប្រចាំឆ្នាំសិក្សា</option>
+                `;
+            }
+
+            periodSelect.innerHTML = optionsHTML;
+        }
+
+        window.loadProfileConfig = async function() {
+            const teacherProfile = JSON.parse(localStorage.getItem('teacherProfile') || '{}');
+            let currentClassId = localStorage.getItem('current_class_id') || 'default';
+            let configKey = currentClassId === 'default' ? 'classConfig' : 'classConfig_' + currentClassId;
+            let legacyConfig = JSON.parse(localStorage.getItem(configKey)) || {};
+
+            classConfig = {
+                className: teacherProfile.class_name || legacyConfig.className || "១២ ក",
+                teacher: teacherProfile.homeroom_teacher || legacyConfig.teacher || "ឈ្មោះគ្រូ",
+                managerRole: teacherProfile.manager_role || legacyConfig.managerRole || "នាយកសាលា",
+                location: teacherProfile.province_for_date || legacyConfig.location || "ភ្នំពេញ"
+            };
+
+            if (currentUser) {
+                try {
+                    const profileRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'profile', 'data');
+                    const snap = await getDoc(profileRef);
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        if (data.class_name) classConfig.className = data.class_name;
+                        if (data.homeroom_teacher) classConfig.teacher = data.homeroom_teacher;
+                        if (data.manager_role) classConfig.managerRole = data.manager_role;
+                        if (data.province_for_date) classConfig.location = data.province_for_date;
+                    }
+                } catch (e) {
+                    console.error("Error loading profile config from Firebase", e);
+                }
+            }
+        }
+
+        window.loadAttendanceData = async function() {
+            let currentClassId = localStorage.getItem('current_class_id') || 'default';
+            let suffix = currentClassId === 'default' ? '' : '_' + currentClassId;
+            
+            attendanceHistory = JSON.parse(localStorage.getItem('attendance_history' + suffix)) || {};
+
+            if (currentUser) {
+                try {
+                    const attRef = doc(db, "users", currentUser.uid, "data", "class_" + currentClassId);
+                    const snap = await getDoc(attRef);
+                    if (snap.exists() && snap.data().attendanceHistory) {
+                        attendanceHistory = Object.assign(attendanceHistory, snap.data().attendanceHistory);
+                    }
+                } catch (e) {
+                    console.error("Error fetching attendance history from Firebase", e);
+                }
+            }
+        }
+
+        window.loadStudents = async function() {
+            const select = document.getElementById('studentSelect');
+            select.innerHTML = '<option value="">កំពុងផ្ទុកទិន្នន័យ...</option>';
+            
+            const fallbackLoad = () => {
+                const storedStudents = localStorage.getItem('students_db') || localStorage.getItem('students');
+                if (storedStudents) {
+                    allStudents = JSON.parse(storedStudents);
+                } else {
+                    allStudents = [];
+                }
+            };
+
+            if (currentUser) {
+                try {
+                    const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
+                    const snap = await getDocs(studentsRef);
+                    if (!snap.empty) {
+                        allStudents = [];
+                        snap.forEach(doc => {
+                            allStudents.push({ id: doc.id, ...doc.data() });
+                        });
+                    } else {
+                        fallbackLoad(); 
+                    }
+                } catch (e) {
+                    console.error("Error fetching students from Firebase, using fallback", e);
+                    fallbackLoad();
+                }
+            } else {
+                fallbackLoad();
+            }
+
+            allStudents.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'km'));
+            
+            if (allStudents.length > 0) {
+                select.innerHTML = allStudents.map(s => `<option value="${s.id}">${s.id} - ${s.name}</option>`).join('');
+            } else {
+                select.innerHTML = '<option value="">មិនមានសិស្សទេ</option>';
+            }
+        }
+
+        window.toKhmerNum = function(num) {
+            return num.toString().split('').map(d => khmerNums[parseInt(d)] || d).join('');
+        }
+
+        window.formatNum = function(num) {
+            if (num === null || num === undefined || isNaN(num)) return '0';
+            let n = parseFloat(num);
+            if (Number.isInteger(n)) return n.toString(); 
+            return n.toFixed(2).replace('.', ',');
+        }
+
+        window.calculateGrade = function(score, isAvg = false) {
+            let avg = isAvg ? score : score; 
+            if ((currentType === 'semester' || currentType === 'yearly') && !isAvg) {
+                avg = score / 10; 
+            }
+
+            if (avg >= 9.0) return 'A';
+            if (avg >= 8.0) return 'B';
+            if (avg >= 7.0) return 'C';
+            if (avg >= 6.0) return 'D';
+            if (avg >= 5.0) return 'E';
+            return 'F';
+        }
+
+        window.getAttendanceStats = function(studentId, period, type) {
+            let absent = 0;     
+            let permission = 0; 
+            
+            const monthStrs = {
+                'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04',
+                'may': '05', 'jun': '06', 'jul': '07', 'aug': '08',
+                'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12'
+            };
+            
+            const sem1Months = ['10', '11', '12', '01', '02', '03'];
+
+            Object.keys(attendanceHistory).forEach(dateStr => {
+                const parts = dateStr.split('-');
+                if (parts.length !== 3) return;
+                
+                const m = parts[1];
+                
+                let isMatch = false;
+                if (type === 'yearly') {
+                    isMatch = true; 
+                } else if (type === 'semester') {
+                    const isSem1 = sem1Months.includes(m);
+                    isMatch = period === 'sem1' ? isSem1 : !isSem1;
+                } else {
+                    isMatch = m === monthStrs[period];
+                }
+                
+                if (isMatch) {
+                    const record = attendanceHistory[dateStr][studentId];
+                    if (record) {
+                        if (record.status === 'A') absent++;       
+                        if (record.status === 'L') permission++;   
+                    }
+                }
+            });
+
+            return { absent, permission };
+        }
+
+        async function getScoresData(key) {
+            if (currentUser) {
+                try {
+                    const ref = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'scores', key);
+                    const snap = await getDoc(ref);
+                    if (snap.exists()) return snap.data();
+                    
+                    const oldRef = doc(db, "scores", key);
+                    const oldSnap = await getDoc(oldRef);
+                    if (oldSnap.exists()) return oldSnap.data();
+                } catch (e) {
+                    console.error("Firebase fetch error", e);
+                }
+            }
+            return JSON.parse(localStorage.getItem(`scores_${key}`) || '{}');
+        }
+
+        // --- 5. GENERATE REPORT ---
+        window.generateA5Report = async function() {
+            const studentId = String(document.getElementById('studentSelect').value);
+            if (!studentId) {
+                alert("សូមជ្រើសរើសសិស្សជាមុនសិន!");
+                return;
+            }
+
+            const year = document.getElementById('yearSelect').value;
+            const period = document.getElementById('periodSelect').value;
+            
+            const student = allStudents.find(s => String(s.id) === studentId);
+            if (!student) {
+                alert("រកមិនឃើញព័ត៌មានសិស្សនេះនៅក្នុងប្រព័ន្ធទេ!");
+                return;
+            }
+
+            // Show Loading Indicator
+            const btn = document.querySelector('button[onclick="window.generateA5Report()"]');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> កំពុងទាញយកទិន្នន័យ...';
+            btn.disabled = true;
+            lucide.createIcons();
+
+            try {
+                let displayRows = [];
+                let totalScore = 0;
+                let countSubjects = 0;
+                let allAverages = [];
+
+                if (currentType === 'yearly') {
+                    const sem1Data = await getScoresData(`${year}_sem1`);
+                    const sem2Data = await getScoresData(`${year}_sem2`);
+                    
+                    const s1Scores = sem1Data[studentId] || {};
+                    const s2Scores = sem2Data[studentId] || {};
+
+                    semesterSubjects.forEach(col => {
+                        let v1 = parseFloat(s1Scores[col.key]);
+                        let v2 = parseFloat(s2Scores[col.key]);
+                        let hasV1 = !isNaN(v1); 
+                        let hasV2 = !isNaN(v2);
+                        
+                        if (hasV1 || hasV2) {
+                            let score1 = hasV1 ? v1 : 0;
+                            let score2 = hasV2 ? v2 : 0;
+                            let avgSubjectScore = (score1 + score2) / 2;
+                            
+                            displayRows.push({
+                                label: col.label,
+                                score: avgSubjectScore,
+                                max: col.max
+                            });
+                            totalScore += avgSubjectScore;
+                            countSubjects++;
+                        }
+                    });
+
+                    allAverages = allStudents.map(s => {
+                        const s1D = sem1Data[s.id] || {};
+                        const s2D = sem2Data[s.id] || {};
+                        let sTotal = 0, sCount = 0;
+                        
+                        semesterSubjects.forEach(c => {
+                            let v1 = parseFloat(s1D[c.key]);
+                            let v2 = parseFloat(s2D[c.key]);
+                            let has1 = !isNaN(v1);
+                            let has2 = !isNaN(v2);
+                            if (has1 || has2) {
+                                sTotal += ((has1 ? v1 : 0) + (has2 ? v2 : 0)) / 2;
+                                sCount++;
+                            }
+                        });
+                        return { id: String(s.id), avg: sCount > 0 ? (sTotal/sCount) : 0 };
+                    });
+
+                } else {
+                    const key = `${year}_${period}`;
+                    const scoresData = await getScoresData(key);
+
+                    const studentScores = scoresData[studentId] || {};
+                    const columns = currentType === 'semester' ? semesterSubjects : monthlySubjects;
+
+                    columns.forEach(col => {
+                        let val = studentScores[col.key];
+                        if (val !== null && val !== undefined && val !== '') {
+                            let numVal = parseFloat(val);
+                            if (!isNaN(numVal)) { 
+                                displayRows.push({
+                                    label: col.label,
+                                    score: numVal,
+                                    max: col.max
+                                });
+                                totalScore += numVal;
+                                countSubjects++;
+                            }
+                        }
+                    });
+
+                    allAverages = allStudents.map(s => {
+                        const sData = scoresData[s.id] || {};
+                        let sTotal = 0, sCount = 0;
+                        columns.forEach(c => {
+                            let v = sData[c.key];
+                            if (v !== null && v !== undefined && v !== '') {
+                                let n = parseFloat(v);
+                                if (!isNaN(n)) { sTotal += n; sCount++; }
+                            }
+                        });
+                        return { id: String(s.id), avg: sCount > 0 ? (sTotal/sCount) : 0 };
+                    });
+                }
+
+                const studentAvg = countSubjects > 0 ? (totalScore / countSubjects) : 0;
+                const studentGrade = window.calculateGrade(studentAvg, true);
+
+                allAverages.sort((a, b) => b.avg - a.avg);
+                let rank = 1;
+                for(let i = 0; i < allAverages.length; i++) {
+                    if (i > 0 && allAverages[i].avg < allAverages[i-1].avg) rank = i + 1;
+                    if (allAverages[i].id === studentId) break;
+                }
+
+                let titlePrefix = currentType === 'monthly' ? 'ខែ' : '';
+                document.getElementById('out_title').textContent = `លទ្ធផលសិក្សា${titlePrefix}${monthLabels[period]}`;
+                
+                document.getElementById('out_id').textContent = student.id;
+                document.getElementById('out_name').textContent = student.name;
+                
+                document.getElementById('out_grade').textContent = classConfig.className;
+                document.getElementById('out_gender').textContent = (student.gender === 'ប្រុស' || student.gender === 'M' || student.gender === 'm') ? 'ប' : 'ស';
+                document.getElementById('out_loc').textContent = classConfig.location;
+
+                // Load Signatures for printing
+                const savedSigs = JSON.parse(localStorage.getItem('print_signatures') || '{}');
+                
+                // Manager Setup
+                document.getElementById('out_manager_role').textContent = classConfig.managerRole;
+                document.getElementById('out_manager_name_val').textContent = savedSigs.managerName || '';
+                const mgrImg = document.getElementById('out_manager_sig_img');
+                if (savedSigs.managerImage) {
+                    mgrImg.src = savedSigs.managerImage;
+                    mgrImg.style.transform = `scale(${savedSigs.managerScale || 1})`;
+                    mgrImg.classList.remove('hidden');
+                } else {
+                    mgrImg.classList.add('hidden');
+                }
+
+                // Teacher Setup
+                document.getElementById('out_teacher').textContent = savedSigs.teacherName || classConfig.teacher;
+                const tchImg = document.getElementById('out_teacher_sig_img');
+                if (savedSigs.teacherImage) {
+                    tchImg.src = savedSigs.teacherImage;
+                    tchImg.style.transform = `scale(${savedSigs.teacherScale || 1})`;
+                    tchImg.classList.remove('hidden');
+                } else {
+                    tchImg.classList.add('hidden');
+                }
+
+                // Update Dates Automatically
+                const today = new Date();
+                const buddhistYear = today.getFullYear() + 543; 
+                
+                // Array of Khmer Days
+                const khmerDays = ['អាទិត្យ', 'ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហស្បតិ៍', 'សុក្រ', 'សៅរ៍'];
+                const currentDayName = khmerDays[today.getDay()];
+                
+                document.getElementById('out_long_date').textContent = `ថ្ងៃ ${currentDayName} ខែ ${khmerMonths[today.getMonth()]} ឆ្នាំ ${window.toKhmerNum(today.getFullYear())} ព.ស ២៥៦៩`;
+                document.getElementById('out_short_date').textContent = `ថ្ងៃទី ${window.toKhmerNum(today.getDate())} ខែ ${khmerMonths[today.getMonth()]} ឆ្នាំ ${window.toKhmerNum(today.getFullYear())}`;
+
+                const tbody = document.getElementById('out_tbody');
+                let rowsHtml = '';
+
+                displayRows.forEach((item, index) => {
+                    let grade = window.calculateGrade(item.score);
+                    let gradeClass = grade === 'A' ? 'text-red-600 font-bold' : 'font-bold text-black';
+                    
+                    rowsHtml += `
+                        <tr class="h-[22px]">
+                            <td class="kh-moul border border-black">${window.toKhmerNum(index + 1)}</td>
+                            <td colspan="2" class="text-center font-bold px-2 border border-black">${item.label}</td>
+                            <td class="border border-black">${item.max}</td>
+                            <td class="border border-black">${window.formatNum(item.score)}</td>
+                            <td class="${gradeClass} border border-black">${grade}</td>
+                            <td class="border border-black"></td>
+                        </tr>
+                    `;
+                });
+
+                if (displayRows.length === 0) {
+                    rowsHtml += `
+                        <tr class="h-[22px]">
+                            <td colspan="7" class="text-center italic text-gray-500 border border-black">មិនមានទិន្នន័យពិន្ទុទេ</td>
+                        </tr>
+                    `;
+                }
+
+                const att = window.getAttendanceStats(studentId, period, currentType);
+                const totalAbs = att.permission + att.absent;
+
+                rowsHtml += `
+                    <tr class="font-bold bg-summary text-[12px]">
+                        <td class="border border-black py-1">អ.វស</td>
+                        <td class="border border-black py-1">មានច្បាប់</td>
+                        <td class="border border-black py-1">អត់ច្បាប់</td>
+                        <td class="border border-black py-1">ពិន្ទុសរុប</td>
+                        <td class="border border-black py-1">មធ្យមភាគ</td>
+                        <td class="border border-black py-1 text-[11px]">ចំណាត់ថ្នាក់</td>
+                        <td class="border border-black py-1">និទ្ទេស</td>
+                    </tr>
+                    <tr class="text-[12px] font-bold text-black">
+                        <td class="border border-black py-1">${totalAbs > 0 ? totalAbs : '0'}</td>
+                        <td class="border border-black py-1">${att.permission > 0 ? att.permission : '0'}</td>
+                        <td class="border border-black py-1">${att.absent > 0 ? att.absent : '0'}</td>
+                        <td class="border border-black py-1">${window.formatNum(totalScore)}</td>
+                        <td class="border border-black py-1">${window.formatNum(studentAvg)}</td>
+                        <td class="border border-black py-1 text-red-600 font-bold">${rank}</td>
+                        <td class="border border-black py-1 text-red-600 font-bold">${studentGrade}</td>
+                    </tr>
+                `;
+
+                tbody.innerHTML = rowsHtml;
+
+                document.getElementById('selectionScreen').classList.add('hidden');
+                const printWrapper = document.getElementById('printAreaWrapper');
+                printWrapper.classList.remove('hidden');
+                document.body.classList.add('preview-mode');
+
+            } catch (error) {
+                console.error("Error generating report", error);
+                alert("មានបញ្ហាក្នុងការទាញយកទិន្នន័យ! សូមព្យាយាមម្តងទៀត។");
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
+        window.closePreview = function() {
+            document.getElementById('selectionScreen').classList.remove('hidden');
+            document.getElementById('printAreaWrapper').classList.add('hidden');
+            document.body.classList.remove('preview-mode');
+        }
+
+    </script>
+</body>
+</html>

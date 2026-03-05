@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - បញ្ចូលពិន្ទុ (Online)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body { 
+            font-family: 'Battambang', cursive; 
+            background-color: #f9fafb;
+            color: #1f2937;
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 0; 
+        }
+        .kh-moul { font-family: 'Moul', cursive; font-weight: normal; }
+        
+        /* Table Styles (Matched with Student List) */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .data-table th {
+            background-color: #f8fafc;
+            color: #334155;
+            font-weight: bold;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        .data-table td {
+            padding: 6px 12px;
+            border: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+        
+        .data-table tbody tr {
+            background-color: #ffffff;
+            transition: background-color 0.2s;
+        }
+        .data-table tbody tr:nth-child(even) {
+            background-color: #fdfdfd;
+        }
+        .data-table tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            box-shadow: 2px 0 5px -2px rgba(0,0,0,0.05);
+        }
+        .data-table thead th.sticky-col {
+            background-color: #f8fafc;
+            z-index: 20;
+            text-align: left;
+        }
+        .data-table tbody td.sticky-col {
+            background-color: inherit; 
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        /* Custom Scrollbar */
+        .table-wrapper::-webkit-scrollbar { height: 6px; }
+        .table-wrapper::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Inputs and Buttons */
+        .form-select {
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.2rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            outline: none;
+            background: white;
+            font-family: 'Battambang', cursive;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-weight: 700;
+            color: #1f2937;
+            font-size: 13px;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .form-select:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+        .input-score { 
+            width: 100%; 
+            max-width: 80px;
+            text-align: center; 
+            padding: 0.4rem; 
+            border-radius: 0.375rem; 
+            border: 1px solid #e2e8f0; 
+            outline: none; 
+            transition: all 0.2s; 
+            font-weight: bold;
+            color: #4f46e5;
+            background: #f8fafc;
+            font-size: 13px;
+            -moz-appearance: textfield;
+        }
+        .input-score::-webkit-outer-spin-button,
+        .input-score::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .input-score:focus { border-color: #4f46e5; background: white; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1); }
+        .input-score::placeholder { color: #cbd5e1; font-weight: normal; }
+
+        .type-btn {
+            padding: 0.6rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 13px;
+        }
+        .type-btn.active {
+            background-color: #4f46e5;
+            color: white;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+        }
+        .type-btn.inactive {
+            background-color: white;
+            color: #64748b;
+            border-color: #e2e8f0;
+        }
+        .type-btn.inactive:hover {
+            border-color: #4f46e5;
+            color: #4f46e5;
+            background-color: #f8fafc;
+        }
+
+        /* Modals */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
+        }
+        
+        /* Loading Overlay */
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <div id="loadingOverlay">
+        <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-indigo-600 mb-2"></i>
+        <p class="font-bold text-gray-600">កំពុងទាញយកទិន្នន័យ...</p>
+    </div>
+
+    <nav class="bg-indigo-900 text-white p-4 shadow-lg sticky top-0 z-50 no-print">
+        <div class="container mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="hover:text-indigo-200 transition-colors flex items-center gap-1">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>ត្រឡប់
+                </a>
+                <h1 class="kh-moul text-lg hidden sm:block ml-2">បញ្ចូលពិន្ទុ (Online)</h1>
+            </div>
+            <div class="text-sm font-bold flex items-center gap-4">
+                <a href="subject-scores.html" class="hover:text-indigo-200 transition-colors flex items-center gap-1">
+                    <i data-lucide="table-2" class="w-4 h-4"></i> តារាងពិន្ទុ
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4 md:p-6 mt-4 pb-20 max-w-[1400px]">
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
+            <div class="h-2 w-full bg-[#2da143] no-print"></div>
+            
+            <div class="p-6 md:p-8">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-gray-100 pb-4 mb-6 gap-4">
+                    <div>
+                        <h2 class="kh-moul text-[#322a83] text-xl">ទម្រង់បញ្ចូលពិន្ទុសិស្ស</h2>
+                        <p class="text-sm text-gray-500 mt-1">ទិន្នន័យនឹងត្រូវបានរក្សាទុកទៅក្នុង Online Database (Firebase)</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                    <div class="col-span-1 md:col-span-2 lg:col-span-4 mb-2">
+                        <label class="block text-xs font-bold text-gray-500 mb-2 ml-1">ជ្រើសរើសប្រភេទពិន្ទុ</label>
+                        <div class="grid grid-cols-2 gap-3 max-w-sm">
+                            <button onclick="switchScoreType('monthly')" id="btnMonthly" class="type-btn active">
+                                <i data-lucide="calendar-check" class="w-4 h-4"></i>
+                                ពិន្ទុប្រចាំខែ
+                            </button>
+                            <button onclick="switchScoreType('semester')" id="btnSemester" class="type-btn inactive">
+                                <i data-lucide="award" class="w-4 h-4"></i>
+                                ពិន្ទុប្រចាំឆមាស
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5 ml-1">ឆ្នាំសិក្សា</label>
+                        <div class="relative">
+                            <i data-lucide="calendar-days" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                            <select id="yearSelect" class="form-select" onchange="updateMonthOptions(); loadScoresForCurrentPeriod()">
+                                <option value="2025-2026" selected>2025-2026</option>
+                                <option value="2026-2027">2026-2027</option>
+                                <option value="2027-2028">2027-2028</option>
+                                <option value="2028-2029">2028-2029</option>
+                                <option value="2029-2030">2029-2030</option>
+                                <option value="2030-2031">2030-2031</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="relative hidden" id="semesterContainer">
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5 ml-1">ឆមាស</label>
+                        <div class="relative">
+                            <i data-lucide="bookmark" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                            <select id="semesterSelect" class="form-select" onchange="loadScoresForCurrentPeriod()">
+                                <option value="sem1" selected>ឆមាសទី១</option>
+                                <option value="sem2">ឆមាសទី២</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="relative" id="monthContainer">
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5 ml-1">ខែ</label>
+                        <div class="relative">
+                            <i data-lucide="clock" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                            <select id="monthSelect" class="form-select" onchange="loadScoresForCurrentPeriod()">
+                                </select>
+                        </div>
+                    </div>
+
+                    <div class="relative lg:col-span-2">
+                        <label class="block text-xs font-bold text-gray-500 mb-1.5 ml-1">មុខវិជ្ជា</label>
+                        <div class="relative">
+                            <i data-lucide="book-open" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                            <select id="subjectSelect" class="form-select" onchange="updateTableStructure()">
+                                </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-lg flex items-center gap-3 cursor-pointer hover:bg-indigo-100 transition" onclick="quickSelect('ex_oral')">
+                        <div class="p-2 bg-white rounded-md shadow-sm text-indigo-600"><i data-lucide="mic" class="w-4 h-4"></i></div>
+                        <div>
+                            <p class="text-[10px] text-gray-500 font-bold uppercase">បញ្ចូលពិន្ទុ</p>
+                            <p class="text-xs md:text-sm font-bold text-indigo-900">សំណួរផ្ទាល់មាត់</p>
+                        </div>
+                    </div>
+                    <div class="bg-green-50 border border-green-100 p-3 rounded-lg flex items-center gap-3 cursor-pointer hover:bg-green-100 transition" onclick="quickSelect('ex_att')">
+                        <div class="p-2 bg-white rounded-md shadow-sm text-green-600"><i data-lucide="user-check" class="w-4 h-4"></i></div>
+                        <div>
+                            <p class="text-[10px] text-gray-500 font-bold uppercase">បញ្ចូលពិន្ទុ</p>
+                            <p class="text-xs md:text-sm font-bold text-green-900">វត្តមាន</p>
+                        </div>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-100 p-3 rounded-lg flex items-center gap-3 cursor-pointer hover:bg-purple-100 transition" onclick="quickSelect('ex_book')">
+                        <div class="p-2 bg-white rounded-md shadow-sm text-purple-600"><i data-lucide="book" class="w-4 h-4"></i></div>
+                        <div>
+                            <p class="text-[10px] text-gray-500 font-bold uppercase">បញ្ចូលពិន្ទុ</p>
+                            <p class="text-xs md:text-sm font-bold text-purple-900">សៀវភៅ</p>
+                        </div>
+                    </div>
+                    <div class="bg-orange-50 border border-orange-100 p-3 rounded-lg flex items-center gap-3 cursor-pointer hover:bg-orange-100 transition" onclick="quickSelect('ex_hw')">
+                        <div class="p-2 bg-white rounded-md shadow-sm text-orange-600"><i data-lucide="home" class="w-4 h-4"></i></div>
+                        <div>
+                            <p class="text-[10px] text-gray-500 font-bold uppercase">បញ្ចូលពិន្ទុ</p>
+                            <p class="text-xs md:text-sm font-bold text-orange-900">កិច្ចការផ្ទះ</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tablesContainer" class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start mb-8">
+                    </div>
+
+                <div class="flex flex-col md:flex-row gap-4 mt-6 pt-6 border-t border-gray-100">
+                    <button onclick="saveScores()" class="flex-1 py-3 bg-[#2da143] hover:bg-[#238535] text-white rounded-lg font-bold shadow-sm transition flex justify-center items-center gap-2">
+                        <i data-lucide="save" class="w-5 h-5"></i>
+                        រក្សាទុកពិន្ទុ (Cloud)
+                    </button>
+
+                    <button onclick="window.location.href='subject-scores.html'" class="flex-1 py-3 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-bold transition flex justify-center items-center gap-2">
+                        <i data-lucide="table-2" class="w-5 h-5"></i>
+                        មើលតារាងពិន្ទុសរុប
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="photoModal" class="modal" onclick="this.style.display='none'">
+        <div class="bg-white p-2 rounded-xl shadow-2xl max-w-sm w-full mx-4" onclick="event.stopPropagation()">
+            <img id="modalImg" src="" class="w-full h-auto rounded-lg" alt="Student Photo">
+            <button onclick="document.getElementById('photoModal').style.display='none'" class="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 rounded transition-colors">បិទ</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
+
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+
+        // --- DATA ---
+        const monthlyOptionsHTML = `
+            <option value="" disabled selected>ជ្រើសរើសមុខវិជ្ជា...</option>
+            <optgroup label="ភាសាខ្មែរ">
+                <option value="khmer_all">ភាសាខ្មែរ (គ្រប់បំណិន)</option>
+                <option value="kh_listen">សមត្ថភាពស្តាប់</option>
+                <option value="kh_write">សមត្ថភាពសរសេរ</option>
+                <option value="kh_read">សមត្ថភាពអាន</option>
+                <option value="kh_speak">សមត្ថភាពនិយាយ</option>
+            </optgroup>
+            <optgroup label="គណិតវិទ្យា">
+                <option value="math_general">គណិតវិទ្យា (គ្រប់ផ្នែក)</option>
+                <option value="math_num">ចំនួន</option>
+                <option value="math_meas">រង្វាស់រង្វាល់</option>
+                <option value="math_geo">ធរណីមាត្រ</option>
+                <option value="math_alg">ពីជគណិត</option>
+                <option value="math_stat">ស្ថិតិ</option>
+            </optgroup>
+            <optgroup label="វិទ្យាសាស្ត្រ">
+                <option value="science_all">វិទ្យាសាស្ត្រ (រូប,គីមី,ជីវៈ,ផែនដី)</option>
+                <option value="sci_phy">រូបវិទ្យា</option>
+                <option value="sci_chem">គីមីវិទ្យា</option>
+                <option value="sci_bio">ជីវវិទ្យា</option>
+                <option value="sci_earth">ផែនដីវិទ្យា-បរិស្ថាន</option>
+            </optgroup>
+            <optgroup label="សិក្សាសង្គម">
+                <option value="social_all">សិក្សាសង្គម (សីល,ភូមិ,ប្រវត្តិ,គេហៈ)</option>
+                <option value="soc_ethic">សីលធម៌-ពលរដ្ឋវិជ្ជា</option>
+                <option value="soc_geo">ភូមិវិទ្យា</option>
+                <option value="soc_hist">ប្រវត្តិវិទ្យា</option>
+                <option value="soc_home">គេហវិទ្យា-អប់រំសិល្បៈ</option>
+            </optgroup>
+            <optgroup label="មុខវិជ្ជាផ្សេងៗ">
+                <option value="pe_sport">អប់រំកាយ-កីឡា</option>
+                <option value="life_skill">អប់រំបំណិនជីវិត</option>
+                <option value="foreign">ភាសាបរទេស</option>
+            </optgroup>
+             <optgroup label="ការបំពេញបន្ថែម">
+                <option value="ex_oral">សំណួរផ្ទាល់មាត់</option>
+                <option value="ex_att">វត្តមាន</option>
+                <option value="ex_book">សៀវភៅ</option>
+                <option value="ex_hw">កិច្ចការផ្ទះ</option>
+            </optgroup>
+        `;
+
+        const semesterOptionsHTML = `
+            <option value="" disabled selected>ជ្រើសរើសមុខវិជ្ជា...</option>
+            <option value="sem_moral_civics">សីលធម៌-ពលរដ្ឋវិជ្ជា</option>
+            <option value="sem_geo">ភូមិវិទ្យា</option>
+            <option value="sem_hist">ប្រវត្តិវិទ្យា</option>
+            <option value="sem_home_arts">គេហវិទ្យា-អប់រំសិល្បៈ</option>
+            <option value="sem_life_skills">អប់រំបំណិនជីវិត</option>
+            <option value="sem_foreign">ភាសាបរទេស</option>
+            <option value="sem_kh_reading_speaking">អំណាន ស្តាប់ និង និយាយ</option>
+            <option value="sem_kh_dictation">សរសេរតាមអាន</option>
+            <option value="sem_kh_essay">តែងសេចក្តី</option>
+            <option value="sem_math">គណិតវិទ្យា</option>
+            <option value="sem_science">វិទ្យាសាស្ត្រ</option>
+            <option value="sem_sport">អប់រំកាយ-សុខភាព</option>
+        `;
+
+        const subjectConfigs = {
+            'khmer_all': [
+                { id: 'kh_listen', label: 'ស្តាប់', width: '80px' },
+                { id: 'kh_speak', label: 'និយាយ', width: '80px' },
+                { id: 'kh_read', label: 'អាន', width: '80px' },
+                { id: 'kh_write', label: 'សរសេរ', width: '80px' }
+            ],
+            'math_general': [
+                { id: 'math_num', label: 'ចំនួន', width: '70px' },
+                { id: 'math_meas', label: 'រង្វាស់', width: '70px' },
+                { id: 'math_geo', label: 'ធរណី', width: '70px' },
+                { id: 'math_alg', label: 'ពីជគណិត', width: '70px' },
+                { id: 'math_stat', label: 'ស្ថិតិ', width: '70px' }
+            ],
+            'science_all': [
+                { id: 'sci_phy', label: 'រូប', width: '80px' },
+                { id: 'sci_chem', label: 'គីមី', width: '80px' },
+                { id: 'sci_bio', label: 'ជីវៈ', width: '80px' },
+                { id: 'sci_earth', label: 'ផែនដី', width: '80px' }
+            ],
+            'social_all': [
+                { id: 'soc_ethic', label: 'សីលធម៌', width: '80px' },
+                { id: 'soc_geo', label: 'ភូមិ', width: '80px' },
+                { id: 'soc_hist', label: 'ប្រវត្តិ', width: '80px' },
+                { id: 'soc_home', label: 'គេហៈ', width: '80px' }
+            ],
+            'kh_listen': [{ id: 'kh_listen', label: 'ស្តាប់', width: '120px' }],
+            'kh_speak': [{ id: 'kh_speak', label: 'និយាយ', width: '120px' }],
+            'kh_read': [{ id: 'kh_read', label: 'អាន', width: '120px' }],
+            'kh_write': [{ id: 'kh_write', label: 'សរសេរ', width: '120px' }],
+            'math_num': [{ id: 'math_num', label: 'ចំនួន', width: '120px' }],
+            'math_meas': [{ id: 'math_meas', label: 'រង្វាស់', width: '120px' }],
+            'math_geo': [{ id: 'math_geo', label: 'ធរណី', width: '120px' }],
+            'math_alg': [{ id: 'math_alg', label: 'ពីជគណិត', width: '120px' }],
+            'math_stat': [{ id: 'math_stat', label: 'ស្ថិតិ', width: '120px' }],
+            'sci_phy': [{ id: 'sci_phy', label: 'រូបវិទ្យា', width: '120px' }],
+            'sci_chem': [{ id: 'sci_chem', label: 'គីមីវិទ្យា', width: '120px' }],
+            'sci_bio': [{ id: 'sci_bio', label: 'ជីវវិទ្យា', width: '120px' }],
+            'sci_earth': [{ id: 'sci_earth', label: 'ផែនដីវិទ្យា', width: '120px' }],
+            'soc_ethic': [{ id: 'soc_ethic', label: 'សីលធម៌', width: '120px' }],
+            'soc_geo': [{ id: 'soc_geo', label: 'ភូមិវិទ្យា', width: '120px' }],
+            'soc_hist': [{ id: 'soc_hist', label: 'ប្រវត្តិវិទ្យា', width: '120px' }],
+            'soc_home': [{ id: 'soc_home', label: 'គេហវិទ្យា', width: '120px' }],
+            'pe_sport': [{ id: 'pe_sport', label: 'អប់រំកាយ', width: '120px' }],
+            'life_skill': [{ id: 'life_skill', label: 'បំណិនជីវិត', width: '120px' }],
+            'foreign': [{ id: 'foreign', label: 'ភាសាបរទេស', width: '120px' }],
+            'ex_oral': [{ id: 'ex_oral', label: 'សំណួរផ្ទាល់មាត់', width: '120px' }],
+            'ex_att': [{ id: 'ex_att', label: 'វត្តមាន', width: '120px' }],
+            'ex_book': [{ id: 'ex_book', label: 'សៀវភៅ', width: '120px' }],
+            'ex_hw': [{ id: 'ex_hw', label: 'កិច្ចការផ្ទះ', width: '120px' }],
+
+            'sem_moral_civics': [{ id: 'sem_moral_civics', label: 'សីលធម៌-ពលរដ្ឋ', width: '150px' }],
+            'sem_geo': [{ id: 'sem_geo', label: 'ភូមិវិទ្យា', width: '150px' }],
+            'sem_hist': [{ id: 'sem_hist', label: 'ប្រវត្តិវិទ្យា', width: '150px' }],
+            'sem_home_arts': [{ id: 'sem_home_arts', label: 'គេហៈ-សិល្បៈ', width: '150px' }],
+            'sem_life_skills': [{ id: 'sem_life_skills', label: 'បំណិនជីវិត', width: '150px' }],
+            'sem_foreign': [{ id: 'sem_foreign', label: 'ភាសាបរទេស', width: '150px' }],
+            'sem_kh_reading_speaking': [{ id: 'sem_kh_reading_speaking', label: 'អំណាន-ស្តាប់-និយាយ', width: '150px' }],
+            'sem_kh_dictation': [{ id: 'sem_kh_dictation', label: 'សរសេរតាមអាន', width: '150px' }],
+            'sem_kh_essay': [{ id: 'sem_kh_essay', label: 'តែងសេចក្តី', width: '150px' }],
+            'sem_math': [{ id: 'sem_math', label: 'គណិតវិទ្យា', width: '150px' }],
+            'sem_science': [{ id: 'sem_science', label: 'វិទ្យាសាស្ត្រ', width: '150px' }],
+            'sem_sport': [{ id: 'sem_sport', label: 'អប់រំកាយ-សុខភាព', width: '150px' }]
+        };
+
+        const allMonthsMap = [
+            { id: 'nov', label: 'វិច្ឆិកា', isNextYear: false },
+            { id: 'dec', label: 'ធ្នូ', isNextYear: false },
+            { id: 'jan', label: 'មករា', isNextYear: true },
+            { id: 'feb', label: 'កុម្ភៈ', isNextYear: true },
+            { id: 'mar', label: 'មីនា', isNextYear: true },
+            { id: 'apr', label: 'មេសា', isNextYear: true },
+            { id: 'may', label: 'ឧសភា', isNextYear: true },
+            { id: 'jun', label: 'មិថុនា', isNextYear: true },
+            { id: 'jul', label: 'កក្កដា', isNextYear: true },
+            { id: 'aug', label: 'សីហា', isNextYear: true },
+            { id: 'sep', label: 'កញ្ញា', isNextYear: true },
+            { id: 'oct', label: 'តុលា', isNextYear: true }
+        ];
+
+        // --- STATE ---
+        let students = [];
+        let scoresData = {};
+        let currentMode = 'monthly';
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('subjectSelect').innerHTML = monthlyOptionsHTML;
+            document.getElementById('subjectSelect').value = "math_general"; 
+            updateMonthOptions(); 
+            lucide.createIcons();
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    await loadStudents();
+                    await loadScoresForCurrentPeriod();
+                } else {
+                    try {
+                        // បង្កើត Anonymous Session ដើម្បីអនុញ្ញាតឱ្យ Save ចូល Firebase បាន
+                        await signInAnonymously(auth);
+                    } catch (error) {
+                        console.error("Auth Error:", error);
+                        // បើ Offline ទាញចេញពី Local ធម្មតា
+                        await loadStudents();
+                        await loadScoresForCurrentPeriod();
+                    }
+                }
+            });
+        });
+
+        function updateMonthOptions() {
+            const yearVal = document.getElementById('yearSelect').value;
+            if (!yearVal || !yearVal.includes('-')) return;
+            
+            const [startYear, endYear] = yearVal.split('-');
+            const monthSelect = document.getElementById('monthSelect');
+            let currentSelection = monthSelect.value; 
+
+            // បង្កើតកូដចាប់យកខែបច្ចុប្បន្ន (Auto-select current month) ពេលចូលដំបូង
+            if (!currentSelection) {
+                const currentMonthIndex = new Date().getMonth();
+                const jsMonthToId = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+                currentSelection = jsMonthToId[currentMonthIndex];
+            }
+
+            let optionsHTML = '';
+            allMonthsMap.forEach(m => {
+                const y = m.isNextYear ? endYear : startYear;
+                const selected = m.id === currentSelection ? 'selected' : '';
+                optionsHTML += `<option value="${m.id}" ${selected}>ខែ${m.label} ឆ្នាំ ${y}</option>`;
+            });
+
+            monthSelect.innerHTML = optionsHTML;
+            
+            // ធានាថាវា Select ត្រូវខែបច្ចុប្បន្ន
+            if (currentSelection) {
+                 monthSelect.value = currentSelection;
+            } else if (!currentSelection && monthSelect.options.length > 0) {
+                 monthSelect.selectedIndex = 0;
+            }
+        }
+
+        window.switchScoreType = function(mode) {
+            currentMode = mode;
+            const monthContainer = document.getElementById('monthContainer');
+            const semesterContainer = document.getElementById('semesterContainer');
+            const btnMonthly = document.getElementById('btnMonthly');
+            const btnSemester = document.getElementById('btnSemester');
+            const subjectSelect = document.getElementById('subjectSelect');
+
+            if (mode === 'monthly') {
+                monthContainer.classList.remove('hidden');
+                semesterContainer.classList.add('hidden');
+                
+                btnMonthly.classList.add('active');
+                btnMonthly.classList.remove('inactive');
+                btnSemester.classList.add('inactive');
+                btnSemester.classList.remove('active');
+
+                subjectSelect.innerHTML = monthlyOptionsHTML;
+                subjectSelect.value = "math_general";
+            } else {
+                monthContainer.classList.add('hidden');
+                semesterContainer.classList.remove('hidden');
+
+                btnSemester.classList.add('active');
+                btnSemester.classList.remove('inactive');
+                btnMonthly.classList.add('inactive');
+                btnMonthly.classList.remove('active');
+
+                subjectSelect.innerHTML = semesterOptionsHTML;
+                subjectSelect.value = "sem_math";
+            }
+            loadScoresForCurrentPeriod();
+        }
+
+        // --- FIREBASE: LOAD STUDENTS ---
+        async function loadStudents() {
+            showLoading(true);
+            try {
+                let onlineStudents = [];
+                if (currentUser) {
+                    const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
+                    const querySnapshot = await getDocs(studentsRef);
+                    querySnapshot.forEach((doc) => {
+                        onlineStudents.push({ id: doc.id, ...doc.data() });
+                    });
+                }
+
+                if (onlineStudents.length > 0) {
+                    students = onlineStudents;
+                    console.log("Loaded students from Firebase");
+                } else {
+                    // Fallback to LocalStorage if Firebase is empty (for migration)
+                    console.log("Firebase empty, checking localStorage...");
+                    const storedStudents = localStorage.getItem('students_db') || localStorage.getItem('students');
+                    students = storedStudents ? JSON.parse(storedStudents) : [];
+                }
+            } catch (e) {
+                console.error("Error loading students:", e);
+                // Fallback on error
+                const storedStudents = localStorage.getItem('students_db') || localStorage.getItem('students');
+                students = storedStudents ? JSON.parse(storedStudents) : [];
+            } finally {
+                showLoading(false);
+                updateTableStructure();
+            }
+        }
+
+        function getStorageKey() {
+            const year = document.getElementById('yearSelect').value;
+            let period = currentMode === 'monthly' ? document.getElementById('monthSelect').value : document.getElementById('semesterSelect').value;
+            if(!period) period = currentMode === 'monthly' ? 'nov' : 'sem1';
+            
+            // This key is now used as Document ID in Firestore
+            return `${year}_${period}`;
+        }
+
+        // --- FIREBASE: LOAD SCORES ---
+        window.loadScoresForCurrentPeriod = async function() {
+            showLoading(true);
+            const docId = getStorageKey();
+            
+            // FIX: Always reset scores to empty when switching periods to prevent 
+            // old data from staying on the screen if the new month has no data.
+            scoresData = {}; 
+            
+            try {
+                let docSnap = null;
+                if (currentUser) {
+                    const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'scores', docId);
+                    docSnap = await getDoc(docRef);
+                    
+                    if (!docSnap.exists()) {
+                        const oldSnap = await getDoc(doc(db, "scores", docId)).catch(() => null);
+                        if (oldSnap && oldSnap.exists()) scoresData = oldSnap.data();
+                    }
+                }
+
+                if (docSnap && docSnap.exists()) {
+                    scoresData = docSnap.data();
+                } else if (Object.keys(scoresData || {}).length === 0) {
+                    const localScores = localStorage.getItem(`scores_${docId}`);
+                    scoresData = localScores ? JSON.parse(localScores) : {};
+                }
+            } catch (error) {
+                console.error("Error getting scores:", error);
+                const localScores = localStorage.getItem(`scores_${docId}`);
+                scoresData = localScores ? JSON.parse(localScores) : {};
+            } finally {
+                showLoading(false);
+                updateTableStructure();
+            }
+        }
+
+        window.updateMonthOptions = updateMonthOptions;
+
+        window.quickSelect = function(val) {
+            const select = document.getElementById('subjectSelect');
+            const exists = Array.from(select.options).some(opt => opt.value === val);
+            if (exists) {
+                select.value = val;
+                updateTableStructure();
+            } else if (currentMode === 'semester') {
+                alert("ជម្រើសនេះមានតែនៅក្នុង 'ពិន្ទុប្រចាំខែ' ប៉ុណ្ណោះ។");
+            }
+        }
+
+        window.updateTableStructure = function() {
+            const subjectKey = document.getElementById('subjectSelect').value;
+            const container = document.getElementById('tablesContainer');
+            
+            let columns = subjectConfigs[subjectKey] || subjectConfigs['math_general'];
+            container.innerHTML = '';
+
+            if (students.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-1 lg:col-span-2 text-center py-16 text-gray-400">
+                        <i data-lucide="users" class="w-16 h-16 mx-auto mb-4 opacity-30"></i>
+                        <p class="text-lg font-bold">មិនទាន់មានទិន្នន័យសិស្សនៅឡើយទេ</p>
+                    </div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            const half = Math.ceil(students.length / 2);
+            const students1 = students.slice(0, half);
+            const students2 = students.slice(half);
+
+            container.appendChild(createTable(students1, columns, 0));
+            if (students2.length > 0) {
+                container.appendChild(createTable(students2, columns, half));
+            }
+            lucide.createIcons();
+        }
+
+        function createTable(studentList, columns, startIndex) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-wrapper overflow-x-auto rounded-lg border border-gray-200 bg-white';
+            
+            let headerHTML = `
+                <thead>
+                    <tr>
+                        <th class="w-12 text-center text-gray-500">ល.រ</th>
+                        <th class="sticky-col min-w-[180px]">ឈ្មោះសិស្ស</th>
+            `;
+
+            columns.forEach(col => {
+                headerHTML += `<th class="text-center" style="width: ${col.width}">${col.label}</th>`;
+            });
+            headerHTML += `</tr></thead>`;
+
+            let tbodyHTML = '<tbody>';
+            studentList.forEach((s, i) => {
+                const actualIndex = startIndex + i;
+                let inputsHTML = '';
+                const studentScores = scoresData[s.id] || {};
+
+                columns.forEach(col => {
+                    const val = studentScores[col.id] !== undefined ? studentScores[col.id] : '';
+                    inputsHTML += `
+                        <td class="text-center px-1">
+                            <input type="number" 
+                                class="input-score" 
+                                placeholder="-" 
+                                min="0" max="100"
+                                value="${val}"
+                                onchange="cacheScore('${s.id}', '${col.id}', this.value)">
+                        </td>
+                    `;
+                });
+
+                const photoSrc = s.photo || 'https://api.dicebear.com/7.x/notionists/svg?seed=' + s.id;
+
+                tbodyHTML += `
+                    <tr>
+                        <td class="text-center font-bold text-gray-500">${actualIndex + 1}</td>
+                        <td class="font-bold text-gray-700 sticky-col">
+                            <div class="flex items-center gap-3">
+                                <img src="${photoSrc}" 
+                                     class="w-8 h-8 rounded-full border border-gray-200 object-cover cursor-pointer hover:ring-2 ring-indigo-400 shrink-0" 
+                                     onclick="showPhoto(this.src)"
+                                     alt="Student Photo">
+                                <span class="whitespace-nowrap">${s.name || '-'}</span>
+                            </div>
+                        </td>
+                        ${inputsHTML}
+                    </tr>
+                `;
+            });
+            tbodyHTML += '</tbody>';
+
+            const table = document.createElement('table');
+            table.className = 'data-table';
+            table.innerHTML = headerHTML + tbodyHTML;
+            
+            wrapper.appendChild(table);
+            return wrapper;
+        }
+
+        window.cacheScore = function(studentId, subjectId, value) {
+            if (!scoresData[studentId]) scoresData[studentId] = {};
+            scoresData[studentId][subjectId] = value === '' ? 0 : parseFloat(value);
+        }
+
+        window.showPhoto = function(src) {
+            document.getElementById('modalImg').src = src;
+            document.getElementById('photoModal').style.display = 'flex';
+        }
+
+        // --- FIREBASE: SAVE SCORES ---
+        window.saveScores = async function() {
+            const btn = document.querySelector('button[onclick="saveScores()"]');
+            const originalContent = btn.innerHTML;
+            
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> កំពុងរក្សាទុក...';
+            lucide.createIcons();
+
+            const docId = getStorageKey();
+
+            try {
+                if (currentUser) {
+                    const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'scores', docId);
+                    // Save to Firestore (merge: true keeps existing data in the document)
+                    await setDoc(docRef, scoresData, { merge: true });
+                }
+                
+                // រក្សាទុកបម្រុងទុកក្នុង LocalStorage (Backup)
+                localStorage.setItem(`scores_${docId}`, JSON.stringify(scoresData));
+
+                setTimeout(() => {
+                    btn.innerHTML = '<i data-lucide="check" class="w-5 h-5"></i> រួចរាល់!';
+                    btn.classList.replace('bg-[#2da143]', 'bg-[#1e7e31]');
+                    btn.classList.replace('hover:bg-[#238535]', 'hover:bg-[#156623]');
+                    lucide.createIcons();
+
+                    setTimeout(() => {
+                        btn.innerHTML = originalContent;
+                        btn.classList.replace('bg-[#1e7e31]', 'bg-[#2da143]');
+                        btn.classList.replace('hover:bg-[#156623]', 'hover:bg-[#238535]');
+                        lucide.createIcons();
+                    }, 1500);
+                }, 500);
+            } catch (error) {
+                console.error("Error saving document: ", error);
+                btn.innerHTML = '<i data-lucide="x" class="w-5 h-5"></i> បរាជ័យ!';
+                btn.classList.replace('bg-[#2da143]', 'bg-red-600');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.classList.replace('bg-red-600', 'bg-[#2da143]');
+                    lucide.createIcons();
+                }, 2000);
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+    </script>
+</body>
+</html>

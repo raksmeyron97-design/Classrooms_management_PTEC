@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - បញ្ចូលព័ត៌មានសិស្ស</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        body { 
+            font-family: 'Battambang', cursive; 
+            background-color: #f9fafb; /* bg-gray-50 */
+            color: #1f2937;
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 0; 
+        }
+        .kh-moul { font-family: 'Moul', cursive; font-weight: normal; }
+        
+        /* Loading Overlay */
+        #loadingOverlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        
+        /* Auto-complete Suggestions List */
+        .suggestions-list { 
+            position: absolute; width: 100%; background: white; border: 1px solid #d1d5db; 
+            border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 50; 
+            margin-top: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
+            display: none; 
+        }
+        .suggestion-item { padding: 8px 12px; cursor: pointer; font-size: 13px; transition: background 0.2s; border-bottom: 1px solid #f3f4f6; }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover { background-color: #eff6ff; color: #4f46e5; font-weight: bold; }
+
+        /* Custom Input Styling matching Mockup */
+        .mockup-input {
+            border: 1px solid #d1d5db;
+            padding: 10px 12px;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+            font-family: 'Battambang', cursive;
+        }
+        .mockup-input:focus { border-color: #5a67d8; box-shadow: 0 0 0 2px rgba(90, 103, 216, 0.2); }
+        .mockup-input:disabled { background-color: #f3f4f6; cursor: not-allowed; opacity: 0.7; }
+        
+        .mockup-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #4b5563;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Photo Preview Box Style */
+        .photo-preview-box {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #5a67d8;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        .photo-preview-box:hover { border-color: #4338ca; transform: scale(1.02); }
+        .photo-preview-box img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-preview-box .placeholder-icon { color: #cbd5e1; width: 40px; height: 40px; }
+
+        /* Modals */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
+        }
+        #avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .avatar-item {
+            cursor: pointer;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: 0.2s;
+            background: white;
+            padding: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .avatar-item:hover { border-color: #6366f1; background: #e0e7ff; }
+        
+        .section-header {
+            color: #322a83;
+            font-weight: bold;
+            font-size: 14px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 6px;
+            margin-top: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay for CSV / Firebase setup -->
+    <div id="loadingOverlay">
+        <div class="w-16 h-16 border-4 border-[#322a83] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="kh-moul text-[#322a83] text-lg animate-pulse" id="loading-text">កំពុងទាញយកទិន្នន័យទីតាំង...</p>
+        <p class="text-xs text-slate-500 mt-2">សូមរង់ចាំបន្តិច</p>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="bg-indigo-900 text-white p-4 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="student-list.html" class="hover:bg-indigo-800 p-2 rounded-full transition-colors" title="ត្រឡប់ក្រោយ">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </a>
+                <h1 class="kh-moul text-lg hidden sm:block">ប្រព័ន្ធគ្រប់គ្រងសិស្ស</h1>
+            </div>
+            <div class="text-sm font-bold flex items-center gap-2 text-indigo-200">
+                <i data-lucide="user-plus" class="w-4 h-4"></i> បញ្ចូលព័ត៌មានថ្មី
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <div class="container mx-auto p-4 md:p-6 max-w-5xl mt-4 pb-20">
+        
+        <form id="enrollmentForm" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
+            <!-- Top Border Decoration -->
+            <div class="h-2 w-full bg-[#2da143]"></div>
+            
+            <div class="p-6 md:p-8">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-6">
+                    <h2 class="kh-moul text-[#322a83] text-xl" id="pageTitle">គ្រប់គ្រងបញ្ជីសិស្ស</h2>
+                </div>
+                
+                <div class="flex flex-col md:flex-row gap-8 lg:gap-12 mb-2">
+                    <!-- Left Column: Avatar Profile -->
+                    <div class="flex flex-col items-center gap-3 w-32 flex-shrink-0">
+                        <label class="mockup-label">រូបតំណាង</label>
+                        
+                        <div class="photo-preview-box" onclick="openAvatarModal()" title="ចុចទីនេះដើម្បីជ្រើសរើសរូបតុក្កតា">
+                            <i id="defaultIcon" data-lucide="image" class="placeholder-icon"></i>
+                            <img id="photoPreview" src="" alt="Student Photo" class="absolute inset-0 z-10 w-full h-full object-cover hidden">
+                        </div>
+                        
+                        <!-- Added Avatar explicitly button here -->
+                        <div class="flex flex-col w-full gap-2 mt-1">
+                            <button type="button" class="text-[11px] bg-[#f0fdf4] text-[#16a34a] w-full py-1.5 rounded border border-[#bbf7d0] hover:bg-[#dcfce7] font-bold transition-colors flex justify-center items-center gap-1" onclick="openAvatarModal()">
+                                <i data-lucide="smile" class="w-3 h-3"></i> ជ្រើសរូបតុក្កតា
+                            </button>
+                            <button type="button" class="text-[11px] bg-[#edf2ff] text-[#4f46e5] w-full py-1.5 rounded border border-[#c7d2fe] hover:bg-[#e0e7ff] font-bold transition-colors" onclick="document.getElementById('photoInput').click()">ជ្រើសរូបផ្ទាល់</button>
+                            <button type="button" class="text-[11px] bg-[#f9fafb] text-[#4b5563] w-full py-1.5 rounded border border-[#e5e7eb] hover:bg-[#f3f4f6] font-bold transition-colors" onclick="document.getElementById('urlModal').style.display='flex'">ប្រើរូបភាពពីURL</button>
+                        </div>
+                        <input type="file" id="photoInput" accept="image/*" class="hidden">
+                    </div>
+
+                    <!-- Right Column: Input Grid -->
+                    <div class="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                        
+                        <!-- Row 1: Basic Info -->
+                        <div class="flex flex-col">
+                            <label class="mockup-label">អត្តលេខ*</label>
+                            <input id="studentId" type="text" placeholder="អត្តលេខ" class="mockup-input font-bold text-indigo-900">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="mockup-label">ថ្នាក់ទី*</label>
+                            <input id="grade" type="text" placeholder="ឧ. ១២ក" class="mockup-input">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="mockup-label">ឈ្មោះសិស្ស*</label>
+                            <input id="studentName" type="text" placeholder="ឈ្មោះសិស្ស" class="mockup-input">
+                        </div>
+
+                        <!-- Row 2: Basic Info (Cont.) -->
+                        <div class="flex flex-col">
+                            <label class="mockup-label">ភេទ*</label>
+                            <select id="gender" class="mockup-input bg-white cursor-pointer">
+                                <option value="">ជ្រើសរើស</option>
+                                <option value="ប្រុស">ប្រុស</option>
+                                <option value="ស្រី">ស្រី</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="mockup-label">ថ្ងៃខែឆ្នាំកំណើត*</label>
+                            <input type="date" id="dob" class="mockup-input">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="mockup-label">លេខទូរស័ព្ទអាណាព្យាបាល</label>
+                            <input id="phone" type="text" placeholder="លេខទូរស័ព្ទ" class="mockup-input">
+                        </div>
+
+                        <!-- Section: Birth Place -->
+                        <div class="md:col-span-2 lg:col-span-3 section-header mt-2">
+                            <i data-lucide="map-pin" class="w-4 h-4"></i> ទីកន្លែងកំណើត
+                        </div>
+
+                        <div class="flex flex-col relative">
+                            <label class="mockup-label">រាជធានី/ខេត្ត</label>
+                            <input type="text" id="province-input" class="mockup-input" placeholder="វាយបញ្ចូល ឬជ្រើសរើស..." autocomplete="off">
+                            <ul id="province-list" class="suggestions-list"></ul>
+                        </div>
+                        <div class="flex flex-col relative">
+                            <label class="mockup-label">ក្រុង/ស្រុក/ខណ្ឌ</label>
+                            <input type="text" id="district-input" class="mockup-input" placeholder="ជ្រើសរើសខេត្តជាមុន..." autocomplete="off" disabled>
+                            <ul id="district-list" class="suggestions-list"></ul>
+                        </div>
+                        <div class="flex flex-col relative">
+                            <label class="mockup-label">ឃុំ/សង្កាត់</label>
+                            <input type="text" id="commune-input" class="mockup-input" placeholder="ជ្រើសរើសស្រុកជាមុន..." autocomplete="off" disabled>
+                            <ul id="commune-list" class="suggestions-list"></ul>
+                        </div>
+                        <div class="flex flex-col relative">
+                            <label class="mockup-label">ភូមិ</label>
+                            <input type="text" id="village-input" class="mockup-input" placeholder="ជ្រើសរើសឃុំជាមុន..." autocomplete="off" disabled>
+                            <ul id="village-list" class="suggestions-list"></ul>
+                        </div>
+
+                        <!-- Section: Current Place -->
+                        <div class="md:col-span-2 lg:col-span-3 section-header mt-2">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-blue-600"></i> ទីកន្លែងបច្ចុប្បន្ន
+                        </div>
+
+                        <div class="flex flex-col relative">
+                            <label class="mockup-label text-blue-800">រាជធានី/ខេត្ត</label>
+                            <input type="text" id="curr-province-input" class="mockup-input border-blue-200" placeholder="វាយបញ្ចូល ឬជ្រើសរើស..." autocomplete="off">
+                            <ul id="curr-province-list" class="suggestions-list"></ul>
+                        </div>
+                        <div class="flex flex-col relative">
+                            <label class="mockup-label text-blue-800">ក្រុង/ស្រុក/ខណ្ឌ</label>
+                            <input type="text" id="curr-district-input" class="mockup-input border-blue-200" placeholder="ជ្រើសរើសខេត្តជាមុន..." autocomplete="off" disabled>
+                            <ul id="curr-district-list" class="suggestions-list"></ul>
+                        </div>
+                        <div class="flex flex-col relative">
+                            <label class="mockup-label text-blue-800">ឃុំ/សង្កាត់</label>
+                            <input type="text" id="curr-commune-input" class="mockup-input border-blue-200" placeholder="ជ្រើសរើសស្រុកជាមុន..." autocomplete="off" disabled>
+                            <ul id="curr-commune-list" class="suggestions-list"></ul>
+                        </div>
+                        <div class="flex flex-col relative">
+                            <label class="mockup-label text-blue-800">ភូមិ</label>
+                            <input type="text" id="curr-village-input" class="mockup-input border-blue-200" placeholder="ជ្រើសរើសឃុំជាមុន..." autocomplete="off" disabled>
+                            <ul id="curr-village-list" class="suggestions-list"></ul>
+                        </div>
+
+                        <!-- Section: Parents Info -->
+                        <div class="md:col-span-2 lg:col-span-3 section-header mt-2">
+                            <i data-lucide="users" class="w-4 h-4"></i> ព័ត៌មានអាណាព្យាបាល
+                        </div>
+
+                        <div class="flex flex-col">
+                            <label class="mockup-label">ឈ្មោះឪពុក</label>
+                            <input type="text" id="fatherName" placeholder="ឈ្មោះឪពុក" class="mockup-input">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="mockup-label">មុខរបរឪពុក</label>
+                            <input type="text" id="fatherJob" placeholder="មុខរបរ" class="mockup-input">
+                        </div>
+                        <div class="hidden lg:block"></div> <!-- Empty spacer for grid alignment -->
+
+                        <div class="flex flex-col">
+                            <label class="mockup-label">ឈ្មោះម្តាយ</label>
+                            <input type="text" id="motherName" placeholder="ឈ្មោះម្តាយ" class="mockup-input">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="mockup-label">មុខរបរម្តាយ</label>
+                            <input type="text" id="motherJob" placeholder="មុខរបរ" class="mockup-input">
+                        </div>
+
+                        <!-- Section: Additional Info -->
+                        <div class="md:col-span-2 lg:col-span-3 section-header mt-2">
+                            <i data-lucide="file-text" class="w-4 h-4"></i> ព័ត៌មានបន្ថែមផ្សេងៗ
+                        </div>
+
+                        <div class="flex flex-col">
+                            <label class="mockup-label text-purple-700">ជនជាតិដើមភាគតិច</label>
+                            <input type="text" id="ethnicity" placeholder="ឧ. ព្នង, គួយ..." class="mockup-input border-purple-200">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="mockup-label text-purple-700">លក្ខណៈពិសេស</label>
+                            <input type="text" id="specialFeatures" placeholder="ឧ. កូនភ្លោះ, ពិការភាព..." class="mockup-input border-purple-200">
+                        </div>
+                        <div class="flex flex-col md:col-span-2 lg:col-span-3">
+                            <label class="mockup-label text-purple-700">សេចក្តីផ្សេងៗ</label>
+                            <textarea id="otherRemarks" placeholder="ព័ត៌មានបន្ថែមផ្សេងៗ..." class="mockup-input border-purple-200" rows="2"></textarea>
+                        </div>
+
+                    </div>
+                </div>
+                
+                <!-- Notice Info -->
+                <div class="mt-6 p-3 bg-blue-50 rounded-lg text-[12px] text-blue-800 flex items-start gap-2 border border-blue-100">
+                    <i data-lucide="info" class="w-4 h-4 flex-shrink-0 mt-0.5"></i>
+                    <span>បញ្ជាក់: ចំពោះព័ត៌មានដែលមានសញ្ញា * ត្រូវតែបំពេញឱ្យបានគ្រប់ជ្រុងជ្រោយ។ ទិន្នន័យទីតាំងត្រូវបានទាញចេញពីឯកសារមេ (Data.csv)។</span>
+                </div>
+
+                <!-- Action Buttons matching Image Mockup -->
+                <div class="flex flex-wrap gap-3 mt-6 pt-6 border-t border-gray-100">
+                    <button type="submit" id="submitBtn" class="bg-[#2ba041] hover:bg-[#238535] text-white px-8 py-2.5 rounded text-[13px] font-bold shadow-sm transition-colors flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i> រក្សាទុក
+                    </button>
+                    
+                    <a href="https://docs.google.com/spreadsheets/d/1hdwKWafuPC_oIV-CBay_BKz1Hjgd7JEE/export?format=xlsx" class="bg-[#2653e7] hover:bg-[#1d40b8] text-white px-6 py-2.5 rounded text-[13px] font-bold flex items-center gap-2 shadow-sm transition-colors cursor-pointer">
+                        <i data-lucide="download" class="w-4 h-4"></i> <span>ទាញយកគំរូ Excel</span>
+                    </a>
+
+                    <label class="bg-[#df4b06] hover:bg-[#bd3f04] text-white px-6 py-2.5 rounded text-[13px] font-bold shadow-sm transition-colors cursor-pointer flex items-center gap-2">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> <span>នាំចូលឯកសារ Excel (.xlsx, .csv)</span>
+                        <input type="file" id="excelInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="window.importFromExcel(this)">
+                    </label>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Avatar Modal -->
+    <div id="avatarModal" class="modal">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-2xl mx-4">
+            <div class="flex justify-between items-center border-b pb-4 mb-4">
+                <h3 class="kh-moul text-indigo-800 text-sm flex items-center gap-2"><i data-lucide="smile" class="w-5 h-5"></i> ជ្រើសរើសរូបតុក្កតាតំណាង (Avatar)</h3>
+                <button type="button" onclick="document.getElementById('avatarModal').style.display='none'" class="text-gray-500 text-2xl leading-none hover:text-red-500">&times;</button>
+            </div>
+            <div id="avatar-grid" class="bg-gray-50 rounded-lg border p-2"></div>
+            <div class="mt-6 flex justify-end">
+                <button type="button" onclick="document.getElementById('avatarModal').style.display='none'" class="bg-gray-200 text-gray-800 px-6 py-2 rounded font-bold text-sm hover:bg-gray-300">បិទ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- URL Photo Modal -->
+    <div id="urlModal" class="modal">
+        <div class="bg-white p-5 rounded-xl shadow-2xl w-96 mx-4">
+            <h3 class="kh-moul text-sm text-indigo-800 mb-3">បញ្ចូល Link រូបភាព</h3>
+            <input id="photoUrlInput" type="text" class="w-full mockup-input mb-4" placeholder="https://...">
+            <div class="flex gap-2">
+                <button type="button" onclick="window.applyPhotoUrl()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded font-bold text-sm">យល់ព្រម</button>
+                <button type="button" onclick="document.getElementById('urlModal').style.display='none'" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded font-bold text-sm">បោះបង់</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+
+        // System variables
+        let locationMaster = {};
+        let currentPhotoBase64 = ''; // Stores final base64 or URL for the student
+
+        // Elements for Birth Place
+        const provinceInput = document.getElementById('province-input');
+        const districtInput = document.getElementById('district-input');
+        const communeInput = document.getElementById('commune-input');
+        const villageInput = document.getElementById('village-input');
+
+        const provinceList = document.getElementById('province-list');
+        const districtList = document.getElementById('district-list');
+        const communeList = document.getElementById('commune-list');
+        const villageList = document.getElementById('village-list');
+
+        // Elements for Current Place
+        const currProvinceInput = document.getElementById('curr-province-input');
+        const currDistrictInput = document.getElementById('curr-district-input');
+        const currCommuneInput = document.getElementById('curr-commune-input');
+        const currVillageInput = document.getElementById('curr-village-input');
+
+        const currProvinceList = document.getElementById('curr-province-list');
+        const currDistrictList = document.getElementById('curr-district-list');
+        const currCommuneList = document.getElementById('curr-commune-list');
+        const currVillageList = document.getElementById('curr-village-list');
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loading-text');
+        const photoPreview = document.getElementById('photoPreview');
+        const defaultIcon = document.getElementById('defaultIcon');
+
+        // =======================
+        // Authentication Check
+        // =======================
+        loadingText.textContent = "កំពុងផ្ទៀងផ្ទាត់គណនី...";
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                loadingText.textContent = "កំពុងទាញយកទិន្នន័យទីតាំង...";
+                loadCSVData(); // Load data once logged in
+            } else {
+                alert('សូមចូលគណនីជាមុនសិន!');
+                window.location.href = 'index.html';
+            }
+        });
+
+        // =======================
+        // Photo & Avatar Logic
+        // =======================
+
+        window.openAvatarModal = function() {
+            document.getElementById('avatarModal').style.display = 'flex';
+        };
+
+        function generateAvatarGrid() {
+            const grid = document.getElementById('avatar-grid');
+            grid.innerHTML = '';
+            
+            // Expanded seeds for more variety of Avatars
+            const seeds = {
+                notionists: [1, 3, 6, 9, 10, 13, 15, 17, 18, 19, 20, 23, 29, 52, 54, 58, 59, 64, 65, 68, 74, 75, 84],
+                micah: [4, 14, 69, 102, 124, 169, 232, 267, 309, 312, 343, 347, 352, 379],
+                avataaars: [2, 4, 6, 19, 26, 34, 38, 56, 66, 76, 78, 108, 128, 131, 150, 165, 170, 197, 205, 229, 257, 275]
+            };
+
+            Object.keys(seeds).forEach(group => {
+                seeds[group].forEach(seed => {
+                    const url = `https://api.dicebear.com/7.x/${group}/svg?seed=${seed}`;
+                    const div = document.createElement('div');
+                    div.className = 'avatar-item';
+                    div.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded" alt="Avatar">`;
+                    div.onclick = () => selectPhoto(url);
+                    grid.appendChild(div);
+                });
+            });
+        }
+
+        function selectPhoto(url) {
+            currentPhotoBase64 = url;
+            photoPreview.src = url;
+            photoPreview.classList.remove('hidden');
+            defaultIcon.classList.add('hidden');
+            document.getElementById('avatarModal').style.display = 'none';
+        }
+
+        window.applyPhotoUrl = function() {
+            const url = document.getElementById('photoUrlInput').value.trim();
+            if(url) {
+                selectPhoto(url);
+                document.getElementById('photoUrlInput').value = '';
+                document.getElementById('urlModal').style.display = 'none';
+            }
+        };
+
+        // Handle File Input (Local Photo)
+        document.getElementById('photoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('សូមអភ័យទោស ទំហំរូបថតធំពេក (លើសពី 2MB)។ សូមជ្រើសរើសរូបថតដែលមានទំហំតូចជាងនេះ។');
+                    this.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    selectPhoto(event.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // =======================
+        // Excel Import Logic (Firebase Version)
+        // =======================
+        window.importFromExcel = async function(input) {
+            if (!currentUser) return;
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                    if (jsonData.length > 0) {
+                        const newStudents = jsonData.map(row => formatStudentData(row)).filter(s => s.name && s.id); 
+
+                        if(newStudents.length === 0) {
+                            alert("រកមិនឃើញទិន្នន័យសិស្សទេ! សូមពិនិត្យមើលក្បាលតារាង (Header) នៅក្នុង Excel របស់អ្នក។");
+                            return;
+                        }
+
+                        // Save to Firestore using Batch
+                        const batch = writeBatch(db);
+                        newStudents.forEach(student => {
+                            const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students', student.id.toString());
+                            batch.set(docRef, student);
+                        });
+                        
+                        await batch.commit();
+
+                        alert(`បាននាំចូលទិន្នន័យសិស្សចំនួន ${newStudents.length} នាក់ ដោយជោគជ័យ!`);
+                        window.location.href = 'student-list.html';
+                    } else {
+                        alert('មិនមានទិន្នន័យនៅក្នុងឯកសារ Excel ទេ។');
+                    }
+                } catch(err) {
+                    console.error("Excel Import Error:", err);
+                    alert("មានបញ្ហាក្នុងការអាន ឬបញ្ចូលឯកសារ Excel ទៅកាន់ Database");
+                }
+                input.value = '';
+            };
+            reader.readAsArrayBuffer(file);
+        };
+
+        function formatStudentData(data) {
+            const getVal = (possibleKeys) => {
+                for (const key of possibleKeys) {
+                    if (data[key] !== undefined) return data[key];
+                    const foundKey = Object.keys(data).find(k => k.trim().toLowerCase() === key.toLowerCase());
+                    if (foundKey) return data[foundKey];
+                }
+                return '';
+            };
+
+            let gender = getVal(['Gender', 'Sex', 'ភេទ']);
+            if (gender) {
+                let g = gender.toString().toLowerCase().trim();
+                if (['m', 'male', 'ប្រុស'].includes(g)) gender = 'ប្រុស';
+                else if (['f', 'female', 'ស្រី', 'ស'].includes(g)) gender = 'ស្រី';
+            }
+
+            let dob = getVal(['DOB', 'Date of Birth', 'ថ្ងៃខែឆ្នាំកំណើត']);
+            if (typeof dob === 'number') {
+                const date = new Date(Math.round((dob - 25569) * 86400 * 1000));
+                dob = date.toISOString().split('T')[0];
+            } else if (typeof dob === 'string') {
+                const parts = dob.split(/[-/]/);
+                if (parts.length === 3) {
+                    if (parts[2].length === 4) { 
+                        dob = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                    } else if (parts[0].length === 4) { 
+                        dob = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                    }
+                }
+            }
+
+            let fJob = getVal(['Father Job', 'Father Occupation', 'មុខរបរឪពុក', 'មុខរបរ']);
+            let mJob = getVal(['Mother Job', 'Mother Occupation', 'មុខរបរម្តាយ', 'មុខរបរ_1']);
+
+            return {
+                id: getVal(['ID', 'Student ID', 'អត្តលេខ']),
+                grade: getVal(['Grade', 'Class', 'ថ្នាក់', 'ថ្នាក់ទី']),
+                name: getVal(['Name', 'Student Name', 'ឈ្មោះ', 'ឈ្មោះសិស្ស', 'គោត្តនាម និងនាម']), 
+                gender: gender,
+                dob: dob,
+                province: getVal(['Province', 'City', 'ខេត្ត', 'រាជធានី', 'ខេត្ត/ក្រុង']),
+                district: getVal(['District', 'Khan', 'ស្រុក', 'ខណ្ឌ', 'ស្រុក/ខណ្ឌ']),
+                commune: getVal(['Commune', 'Sangkat', 'ឃុំ', 'សង្កាត់', 'ឃុំ/សង្កាត់']),
+                village: getVal(['Village', 'Phum', 'ភូមិ']),
+                currProvince: getVal(['Current Province', 'ខេត្តបច្ចុប្បន្ន', 'ខេត្ត/ក្រុង_1']),
+                currDistrict: getVal(['Current District', 'ស្រុកបច្ចុប្បន្ន', 'ស្រុក/ខណ្ឌ_1']),
+                currCommune: getVal(['Current Commune', 'ឃុំបច្ចុប្បន្ន', 'ឃុំ/សង្កាត់_1']),
+                currVillage: getVal(['Current Village', 'ភូមិបច្ចុប្បន្ន', 'ភូមិ_1']),
+                ethnicity: getVal(['Ethnicity', 'ជនជាតិដើមភាគតិច']),
+                specialFeatures: getVal(['Special Features', 'លក្ខណៈពិសេស']),
+                otherRemarks: getVal(['Others', 'Remarks', 'សេចក្តីផ្សេងៗ']),
+                father: getVal(['Father Name', 'Father', 'ឈ្មោះឪពុក']),
+                fatherJob: fJob,
+                mother: getVal(['Mother Name', 'Mother', 'ឈ្មោះម្តាយ']),
+                motherJob: mJob,
+                phone: getVal(['Phone', 'Tel', 'លេខទូរស័ព្ទ']),
+                photo: `https://api.dicebear.com/7.x/notionists/svg?seed=${getVal(['ID', 'Student ID', 'អត្តលេខ'])}`,
+                createdAt: new Date().toISOString()
+            };
+        }
+
+        // =======================
+        // CSV Location Logic
+        // =======================
+        function parseCSVLine(line) {
+            const delimiter = line.includes(';') ? ';' : ',';
+            return line.split(delimiter).map(s => s.trim());
+        }
+
+        async function loadCSVData() {
+            try {
+                const response = await fetch('Data.csv');
+                if (!response.ok) throw new Error('Cannot find Data.csv file');
+                
+                const csvText = await response.text();
+                const rows = csvText.split('\n');
+
+                for (let i = 1; i < rows.length; i++) {
+                    const line = rows[i].trim();
+                    if (!line) continue;
+                    
+                    const [province, district, commune, village] = parseCSVLine(line);
+                    if (!province || province === "Province") continue;
+
+                    if (!locationMaster[province]) locationMaster[province] = {};
+                    if (district) {
+                        if (!locationMaster[province][district]) locationMaster[province][district] = {};
+                        if (commune) {
+                            if (!locationMaster[province][district][commune]) locationMaster[province][district][commune] = new Set();
+                            if (village) locationMaster[province][district][commune].add(village);
+                        }
+                    }
+                }
+
+                initAutocomplete();
+                await checkForEditMode(); // Check if we are editing an existing student
+                loadingOverlay.style.display = 'none';
+            } catch (error) {
+                console.error('Error:', error);
+                await checkForEditMode();
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        function setupAutocomplete(input, listElement, getData, onSelect) {
+            const showList = () => {
+                const data = getData(); 
+                const filter = input.value.toLowerCase();
+                listElement.innerHTML = '';
+                
+                const filteredData = data.filter(item => item.toLowerCase().includes(filter));
+                
+                if (filteredData.length > 0) {
+                    listElement.style.display = 'block';
+                    filteredData.forEach(item => {
+                        const li = document.createElement('li');
+                        li.className = 'suggestion-item';
+                        li.textContent = item;
+                        li.onclick = () => {
+                            input.value = item;
+                            listElement.style.display = 'none';
+                            if (onSelect) onSelect(item);
+                        };
+                        listElement.appendChild(li);
+                    });
+                } else {
+                    listElement.style.display = 'none';
+                }
+            };
+
+            input.addEventListener('input', showList);
+            input.addEventListener('focus', showList);
+
+            document.addEventListener('click', (e) => {
+                if (!input.contains(e.target) && !listElement.contains(e.target)) {
+                    listElement.style.display = 'none';
+                }
+            });
+        }
+
+        function setupLocationCascade(pInp, pList, dInp, dList, cInp, cList, vInp, vList) {
+            setupAutocomplete(pInp, pList, () => Object.keys(locationMaster).sort(), (selected) => {
+                resetInput(dInp, 'ជ្រើសរើសស្រុក/ខណ្ឌ');
+                resetInput(cInp, 'ជ្រើសរើសឃុំ/សង្កាត់');
+                resetInput(vInp, 'ជ្រើសរើសភូមិ');
+                dInp.disabled = false;
+                dInp.focus();
+            });
+
+            setupAutocomplete(dInp, dList, () => {
+                const prov = pInp.value;
+                return (prov && locationMaster[prov]) ? Object.keys(locationMaster[prov]).sort() : [];
+            }, (selected) => {
+                resetInput(cInp, 'ជ្រើសរើសឃុំ/សង្កាត់');
+                resetInput(vInp, 'ជ្រើសរើសភូមិ');
+                cInp.disabled = false;
+                cInp.focus();
+            });
+
+            setupAutocomplete(cInp, cList, () => {
+                const prov = pInp.value;
+                const dist = dInp.value;
+                return (prov && dist && locationMaster[prov][dist]) ? Object.keys(locationMaster[prov][dist]).sort() : [];
+            }, (selected) => {
+                resetInput(vInp, 'ជ្រើសរើសភូមិ');
+                vInp.disabled = false;
+                vInp.focus();
+            });
+
+            setupAutocomplete(vInp, vList, () => {
+                const prov = pInp.value;
+                const dist = dInp.value;
+                const comm = cInp.value;
+                return (prov && dist && comm && locationMaster[prov][dist][comm]) ? Array.from(locationMaster[prov][dist][comm]).sort() : [];
+            }, null);
+        }
+
+        function initAutocomplete() {
+            setupLocationCascade(
+                provinceInput, provinceList,
+                districtInput, districtList,
+                communeInput, communeList,
+                villageInput, villageList
+            );
+
+            setupLocationCascade(
+                currProvinceInput, currProvinceList,
+                currDistrictInput, currDistrictList,
+                currCommuneInput, currCommuneList,
+                currVillageInput, currVillageList
+            );
+        }
+
+        function resetInput(input, placeholder) {
+            input.value = '';
+            input.placeholder = placeholder;
+            input.disabled = true;
+        }
+
+        // =======================
+        // Edit Mode Logic (Firebase Version)
+        // =======================
+        async function checkForEditMode() {
+            // Check if student list page passed an ID
+            const editStudentId = localStorage.getItem('editStudentId'); 
+            const legacyEditIndex = localStorage.getItem('editStudentIndex'); // Fallback if list page hasn't been updated yet
+            
+            if (editStudentId && currentUser) {
+                loadingText.textContent = "កំពុងទាញយកទិន្នន័យសិស្ស...";
+                try {
+                    const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students', editStudentId);
+                    const docSnap = await getDoc(docRef);
+                    
+                    if (docSnap.exists()) {
+                        populateFormWithData(docSnap.data());
+                        setupEditUI();
+                    }
+                } catch (error) {
+                    console.error("Error fetching student:", error);
+                }
+            } else if (legacyEditIndex !== null) {
+                // Warning if the user comes from an old localstorage based list page
+                console.warn("កំពុងប្រើប្រាស់ LocalStorage Index។ សូមធ្វើបច្ចុប្បន្នភាពទំព័រ student-list.html ទៅកាន់ Firebase");
+                const localStudents = JSON.parse(localStorage.getItem('students') || '[]');
+                if(localStudents[legacyEditIndex]) {
+                    populateFormWithData(localStudents[legacyEditIndex]);
+                    setupEditUI();
+                }
+            }
+        }
+
+        function setupEditUI() {
+            document.getElementById('pageTitle').textContent = 'កែសម្រួលព័ត៌មានសិស្ស';
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> ធ្វើបច្ចុប្បន្នភាពទិន្នន័យ';
+            btn.className = "bg-[#2653e7] hover:bg-[#1d40b8] text-white px-8 py-2.5 rounded text-[13px] font-bold shadow-sm transition-colors flex items-center gap-2";
+            lucide.createIcons();
+        }
+
+        function populateFormWithData(student) {
+            document.getElementById('studentId').value = student.id || '';
+            document.getElementById('studentId').readOnly = true; // Protect ID from change during edit
+            document.getElementById('studentId').classList.add('bg-gray-100');
+            
+            document.getElementById('grade').value = student.grade || '';
+            document.getElementById('studentName').value = student.name || '';
+            document.getElementById('gender').value = student.gender || '';
+            document.getElementById('dob').value = student.dob || '';
+            
+            // Birth Place
+            document.getElementById('province-input').value = student.province || '';
+            document.getElementById('district-input').value = student.district || '';
+            document.getElementById('commune-input').value = student.commune || '';
+            document.getElementById('village-input').value = student.village || '';
+            
+            if(student.province) document.getElementById('district-input').disabled = false;
+            if(student.district) document.getElementById('commune-input').disabled = false;
+            if(student.commune) document.getElementById('village-input').disabled = false;
+
+            // Current Place
+            document.getElementById('curr-province-input').value = student.currProvince || '';
+            document.getElementById('curr-district-input').value = student.currDistrict || '';
+            document.getElementById('curr-commune-input').value = student.currCommune || '';
+            document.getElementById('curr-village-input').value = student.currVillage || '';
+            
+            if(student.currProvince) document.getElementById('curr-district-input').disabled = false;
+            if(student.currDistrict) document.getElementById('curr-commune-input').disabled = false;
+            if(student.currCommune) document.getElementById('curr-village-input').disabled = false;
+
+            // Other Fields
+            document.getElementById('ethnicity').value = student.ethnicity || '';
+            document.getElementById('specialFeatures').value = student.specialFeatures || '';
+            document.getElementById('otherRemarks').value = student.otherRemarks || '';
+            
+            document.getElementById('fatherName').value = student.father || '';
+            document.getElementById('fatherJob').value = student.fatherJob || '';
+            document.getElementById('motherName').value = student.mother || '';
+            document.getElementById('motherJob').value = student.motherJob || '';
+            document.getElementById('phone').value = student.phone || '';
+
+            if (student.photo) {
+                selectPhoto(student.photo);
+            }
+        }
+
+        // =======================
+        // Form Submission Logic (Firebase Version)
+        // =======================
+        document.getElementById('enrollmentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!currentUser) {
+                alert('បញ្ហាគណនី! សូមចូលគណនីជាថ្មីម្តងទៀត។');
+                return;
+            }
+
+            const studentId = document.getElementById('studentId').value;
+            const studentName = document.getElementById('studentName').value;
+            const gender = document.getElementById('gender').value;
+            const dob = document.getElementById('dob').value;
+            const grade = document.getElementById('grade').value;
+
+            if (!studentId || !studentName || !gender || !dob || !grade) {
+                alert('សូមបំពេញព័ត៌មានចាំបាច់ដែលមានសញ្ញា (*) !');
+                return;
+            }
+
+            if (!currentPhotoBase64) {
+                currentPhotoBase64 = `https://api.dicebear.com/7.x/notionists/svg?seed=${studentId}`;
+            }
+
+            const studentData = {
+                id: studentId,
+                grade: grade,
+                name: studentName,
+                gender: gender,
+                dob: dob,
+                province: document.getElementById('province-input').value,
+                district: document.getElementById('district-input').value,
+                commune: document.getElementById('commune-input').value,
+                village: document.getElementById('village-input').value,
+                currProvince: document.getElementById('curr-province-input').value,
+                currDistrict: document.getElementById('curr-district-input').value,
+                currCommune: document.getElementById('curr-commune-input').value,
+                currVillage: document.getElementById('curr-village-input').value,
+                ethnicity: document.getElementById('ethnicity').value,
+                specialFeatures: document.getElementById('specialFeatures').value,
+                otherRemarks: document.getElementById('otherRemarks').value,
+                father: document.getElementById('fatherName').value,
+                fatherJob: document.getElementById('fatherJob').value,
+                mother: document.getElementById('motherName').value,
+                motherJob: document.getElementById('motherJob').value,
+                phone: document.getElementById('phone').value,
+                photo: currentPhotoBase64,
+                updatedAt: new Date().toISOString()
+            };
+
+            const btn = document.getElementById('submitBtn');
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> កំពុងរក្សាទុក...';
+            btn.disabled = true;
+            lucide.createIcons();
+            
+            try {
+                // Save to Firestore specific document path using Student ID
+                const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students', studentId.toString());
+                await setDoc(docRef, studentData);
+
+                // Clear temporary edit pointers
+                localStorage.removeItem('editStudentId');
+                localStorage.removeItem('editStudentIndex');
+
+                const toast = document.createElement('div');
+                toast.className = "fixed top-10 left-1/2 -translate-x-1/2 bg-[#2ba041] text-white px-8 py-3 rounded-lg shadow-lg z-[3000] font-bold text-sm flex items-center gap-2";
+                toast.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i> រក្សាទុកទិន្នន័យជោគជ័យ!';
+                document.body.appendChild(toast);
+                lucide.createIcons();
+                
+                setTimeout(() => {
+                    toast.remove();
+                    window.location.href = 'student-list.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error("Error saving document: ", error);
+                alert("មិនអាចរក្សាទុកបានទេ! មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Database។");
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        });
+
+        // Initialize App
+        lucide.createIcons();
+        generateAvatarGrid();
+    </script>
+</body>
+</html>

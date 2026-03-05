@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - សៀវភៅជួយសិស្សរៀនយឺតភាសាខ្មែរ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Taprom&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    
+    <style>
+        :root { 
+            --primary: #4f46e5;
+            --secondary: #7c3aed;
+            --bg-color: #f8fafc;
+        }
+        
+        body { font-family: 'Battambang', cursive; background: var(--bg-color); min-height: 100vh; margin: 0; color: #1e293b; overflow-x: hidden; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        .font-taprom { font-family: 'Taprom', cursive; }
+        .text-shadow-custom { text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        .text-gradient { background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .bg-animate { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; 
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.15), transparent 25%),
+                radial-gradient(circle at 50% 80%, rgba(236, 72, 153, 0.1), transparent 40%);
+            animation: moveBg 15s infinite alternate ease-in-out; 
+            filter: blur(40px);
+        }
+        @keyframes moveBg { 
+            0% { transform: scale(1) translate(0, 0); } 
+            100% { transform: scale(1.1) translate(2%, 2%); } 
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 40px -15px rgba(79, 70, 229, 0.15), 0 0 10px rgba(255,255,255,0.5) inset;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            border-radius: 1rem;
+            border: 2px solid #e2e8f0;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            font-family: 'Battambang', cursive;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 700;
+            color: #334155;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02) inset;
+        }
+        .input-field:focus { 
+            border-color: var(--primary); 
+            background: white; 
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15), 0 2px 4px rgba(0,0,0,0.02) inset; 
+            transform: translateY(-1px);
+        }
+        .input-field::placeholder { color: #94a3b8; font-weight: 400; }
+
+        .a4-page {
+            background: white;
+            width: 210mm;
+            height: 297mm; 
+            max-height: 297mm;
+            margin: 0 auto 2rem auto;
+            padding: 15mm;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            box-sizing: border-box;
+            color: black;
+            overflow: hidden; 
+            page-break-after: always;
+            page-break-inside: avoid;
+        }
+        .a4-page:last-child { margin-bottom: 0; page-break-after: auto !important; }
+
+        .cover-page { display: block !important; padding: 25mm !important; position: relative; }
+        .cover-border {
+            position: absolute; top: 15mm; bottom: 15mm; left: 15mm; right: 15mm;
+            border: 4px solid #4f46e5; outline: 2px solid #4f46e5; outline-offset: 4px; pointer-events: none;
+        }
+        
+        .report-table { width: 100%; border-collapse: collapse; font-size: 11pt; margin-top: 20px; table-layout: fixed; }
+        .report-table th, .report-table td { border: 1px solid #000; padding: 12px 8px; text-align: center; vertical-align: middle !important; }
+        .report-table th { background-color: #f8fafc !important; font-family: 'Battambang', cursive; font-weight: bold; font-size: 12pt; text-align: center !important; }
+        .report-table td.text-left { text-align: left !important; padding-left: 16px !important; }
+        
+        .avoid-break { page-break-inside: avoid !important; break-inside: avoid !important; }
+        .signature-container { width: 100%; margin-top: 30px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; }
+        .sig-col-left { text-align: center; }
+        .sig-col-right { text-align: center; padding-left: 30mm; }
+        .teacher-name-final { font-family: 'Moul', cursive; font-size: 11.5pt; margin-top: 5px; display: block; text-align: center; position: relative; z-index: 10; }
+        .lunar-date { font-size: 11pt; margin-bottom: 2px; white-space: nowrap; }
+        .solar-date { font-size: 11pt; font-weight: normal; margin-bottom: 8px; }
+        .role-title { font-family: 'Moul', cursive; font-size: 12pt; position: relative; z-index: 10; }
+
+        /* ស្ទាយថ្មីសម្រាប់ប្រអប់រូបភាពហត្ថលេខាដែលអាចត្រួតស៊ីគ្នាបាន */
+        .sig-image-box { height: 75px; margin-top: 10px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; }
+        .sig-image-box img { max-height: 100%; max-width: 160px; object-fit: contain; mix-blend-mode: multiply; pointer-events: none; }
+
+        .pdf-exporting { background: white !important; }
+        .pdf-exporting .no-print { display: none !important; }
+        .pdf-exporting #printAreaWrapper { 
+            display: flex !important; flex-direction: column; align-items: center; 
+            width: 1024px !important; position: absolute; left: 0; top: 0; z-index: -999;
+        }
+        .pdf-exporting .a4-page {
+            width: 794px !important; height: 1123px !important; min-height: 1123px !important; max-height: 1123px !important;
+            margin: 0 !important; box-shadow: none !important; border: none !important; overflow: hidden !important; 
+            page-break-after: always; page-break-inside: avoid !important; padding: 56px !important; 
+            background: white !important; transform: scale(1) !important;
+        }
+        .pdf-exporting .a4-page:last-child { page-break-after: auto !important; }
+        .pdf-exporting .cover-page { padding: 94px !important; }
+        .pdf-exporting .text-shadow-custom { text-shadow: none !important; }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 1s linear infinite; }
+        
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { background: white !important; padding: 0; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            #printAreaWrapper { display: block !important; padding: 0; margin: 0; }
+            .a4-page { 
+                width: 210mm !important; height: 296mm !important; max-height: 296mm !important;
+                box-sizing: border-box !important; box-shadow: none !important; padding: 15mm !important; margin: 0 !important;
+                page-break-after: always !important; page-break-inside: avoid !important; overflow: hidden !important; 
+            }
+            .a4-page:last-child { page-break-after: auto !important; }
+            .cover-page { padding: 25mm !important; }
+            .text-shadow-custom { text-shadow: none !important; }
+            .report-table th { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; color-adjust: exact; text-align: center !important; }
+            .bg-animate { display: none; }
+        }
+
+        .preview-mode { background: #cbd5e1; padding-top: 2rem; padding-bottom: 2rem; }
+        
+        #studentDropdown::-webkit-scrollbar { width: 6px; }
+        #studentDropdown::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        #studentDropdown::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+        #studentDropdown::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: 0 4px 15px -3px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.5);
+            background: linear-gradient(135deg, #4338ca, #6d28d9);
+        }
+    </style>
+</head>
+<body spellcheck="false">
+
+    <div class="bg-animate no-print"></div>
+
+    <div id="mainScreen" class="min-h-screen flex flex-col pt-8 px-4 md:px-6 no-print relative">
+        <div class="max-w-6xl mx-auto w-full">
+            
+            <a href="index.html" class="inline-flex items-center gap-2 text-indigo-700 hover:text-indigo-900 font-bold transition mb-6 bg-white/60 px-5 py-2.5 rounded-2xl backdrop-blur-md shadow-sm w-fit border border-white/50 hover:shadow-md hover:-translate-y-0.5 hidden">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i> ត្រឡប់ទៅទំព័រដើម
+            </a>
+
+            <div class="glass-card p-6 md:p-10 mb-8 border-t border-l border-white/80">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b border-indigo-100 pb-6 mb-8">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3.5 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-2xl shadow-sm border border-white">
+                            <i data-lucide="book-open" class="w-7 h-7 text-indigo-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-indigo-500 mb-1">PTEC កម្មវិធីកត់ត្រា</p>
+                            <h1 class="kh-moul text-xl md:text-2xl text-gradient bg-gradient-to-r from-indigo-700 to-violet-700">សៀវភៅជួយសិស្សរៀនយឺតភាសាខ្មែរ</h1>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3 bg-white/60 p-2.5 rounded-2xl border border-indigo-50 shadow-sm backdrop-blur-sm">
+                        <div class="relative">
+                            <select id="filterMonth" onchange="renderTable()" class="input-field py-2 px-4 text-sm min-w-[150px] cursor-pointer appearance-none pr-8 bg-transparent border-transparent shadow-none focus:bg-white focus:border-indigo-300">
+                                <!-- ជម្រើសខែនឹងត្រូវបានបង្កើតដោយស្វ័យប្រវត្តិតាមរយៈ JavaScript ផ្អែកលើឆ្នាំដែលបានជ្រើសរើស -->
+                            </select>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-indigo-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        </div>
+                        <div class="w-px bg-indigo-100 my-1"></div>
+                        <div class="relative">
+                            <select id="filterYear" onchange="updateMonthLabels(); renderTable()" class="input-field py-2 px-4 text-sm min-w-[150px] cursor-pointer appearance-none pr-8 bg-transparent border-transparent shadow-none focus:bg-white focus:border-indigo-300">
+                                <option value="២០២៤-២០២៥">ឆ្នាំ ២០២៤-២០២៥</option>
+                                <option value="២០២៥-២០២៦" selected>ឆ្នាំ ២០២៥-២០២៦</option>
+                                <option value="២០២៥-២០២៧">ឆ្នាំ ២០២៥-២០២៧</option>
+                                <option value="២០២៦-២០២៧">ឆ្នាំ ២០២៦-២០២៧</option>
+                                <option value="២០២៧-២០២៨">ឆ្នាំ ២០២៧-២០២៨</option>
+                            </select>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-indigo-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-indigo-50/80 to-violet-50/80 border border-indigo-100/50 p-6 md:p-8 rounded-[2rem] mb-10 shadow-sm relative">
+                    <div class="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-200/20 rounded-full blur-3xl -mr-20 -mt-20"></div>
+                    </div>
+                    
+                    <h3 class="font-bold text-indigo-900 mb-6 flex items-center gap-2.5 text-lg relative z-10" id="formTitle">
+                        <div class="p-2 bg-indigo-100 rounded-lg"><i data-lucide="user-plus" class="w-5 h-5 text-indigo-600"></i></div> 
+                        កត់ត្រាសិស្សថ្មី
+                    </h3>
+                    
+                    <form id="recordForm" class="grid grid-cols-1 md:grid-cols-12 gap-5 items-end relative z-10">
+                        <input type="hidden" id="editId" value="">
+                        
+                        <div class="md:col-span-4 relative group">
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5 ml-1">ឈ្មោះសិស្ស <span class="text-pink-500">*</span></label>
+                            <div class="relative">
+                                <input type="text" id="studentName" required placeholder="ជ្រើសរើស ឬ វាយបញ្ចូលឈ្មោះ..." class="input-field pr-10" autocomplete="off">
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                                    <i data-lucide="search" class="w-4 h-4"></i>
+                                </div>
+                            </div>
+                            <div id="studentDropdown" class="hidden absolute top-full left-0 z-50 w-full mt-2 bg-white/95 backdrop-blur-xl border border-indigo-100 rounded-2xl shadow-[0_10px_40px_-10px_rgba(79,70,229,0.2)] max-h-60 overflow-y-auto overflow-x-hidden">
+                            </div>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5 ml-1">ភេទ <span class="text-pink-500">*</span></label>
+                            <div class="relative">
+                                <select id="studentGender" required class="input-field cursor-pointer appearance-none pr-10">
+                                    <option value="ប្រុស">ប្រុស</option>
+                                    <option value="ស្រី">ស្រី</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                            </div>
+                        </div>
+
+                        <!-- ផ្លាស់ប្តូរឈ្មោះ list សម្រាប់ភាសាខ្មែរ -->
+                        <div class="md:col-span-4">
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5 ml-1">មេរៀនត្រូវជួយ <span class="text-pink-500">*</span></label>
+                            <input type="text" id="lessonName" name="khmerLessonName" list="khmerLessonsList" autocomplete="off" required placeholder="ឧ. ការអាន..." class="input-field">
+                            <datalist id="khmerLessonsList">
+                                <option value="ការអាន"></option>
+                                <option value="ការសរសេរ"></option>
+                                <option value="ការសរសេរតាមអាន"></option>
+                                <option value="ការស្តាប់"></option>
+                                <option value="វេយ្យាករណ៍"></option>
+                                <option value="តែងសេចក្តី"></option>
+                            </datalist>
+                        </div>
+                        
+                        <div class="md:col-span-2 flex gap-3">
+                            <button type="submit" id="btnSave" class="w-full btn-primary text-white font-bold py-3 rounded-xl flex justify-center items-center gap-2">
+                                <i data-lucide="save" class="w-4 h-4"></i> រក្សាទុក
+                            </button>
+                            <button type="button" id="btnCancel" onclick="resetForm()" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold py-3 px-4 rounded-xl transition shadow-sm border border-slate-300">
+                                <i data-lucide="x" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ផ្នែកកំណត់ហត្ថលេខាសម្រាប់ការបោះពុម្ព ជំនាន់ថ្មី -->
+                <div class="bg-indigo-50/60 border border-indigo-100 p-5 md:p-6 rounded-2xl mb-8 shadow-sm">
+                    <h4 class="text-sm font-bold text-indigo-800 mb-5 flex items-center gap-2">
+                        <i data-lucide="pen-tool" class="w-5 h-5"></i> កំណត់អ្នកចុះហត្ថលេខាសម្រាប់ការបោះពុម្ព
+                    </h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- នាយកសាលា -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-indigo-50 shadow-sm">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះនាយកសាលា</label>
+                                <input type="text" id="managerNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="updateSignatures()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា / ត្រា (បើមាន)</label>
+                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                    <input type="file" id="managerSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors w-full" onchange="handleSignatureUpload('manager')">
+                                    
+                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                            <button type="button" onclick="zoomSignature('manager', -0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="បង្រួមទំហំ (Zoom Out)"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                            
+                                            <div id="managerSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded">
+                                                <!-- Preview will be injected here -->
+                                            </div>
+                                            
+                                            <button type="button" onclick="zoomSignature('manager', 0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="ពង្រីកទំហំ (Zoom In)"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                        </div>
+                                        
+                                        <button type="button" onclick="removeSignature('manager')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors" title="លុបរូបភាព">
+                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- គ្រូបន្ទុកថ្នាក់ -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-indigo-50 shadow-sm">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះគ្រូបន្ទុកថ្នាក់</label>
+                                <input type="text" id="teacherNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="updateSignatures()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា (បើមាន)</label>
+                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                    <input type="file" id="teacherSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors w-full" onchange="handleSignatureUpload('teacher')">
+                                    
+                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                            <button type="button" onclick="zoomSignature('teacher', -0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="បង្រួមទំហំ (Zoom Out)"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                            
+                                            <div id="teacherSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded">
+                                                <!-- Preview will be injected here -->
+                                            </div>
+                                            
+                                            <button type="button" onclick="zoomSignature('teacher', 0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="ពង្រីកទំហំ (Zoom In)"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                        </div>
+                                        
+                                        <button type="button" onclick="removeSignature('teacher')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors" title="លុបរូបភាព">
+                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
+                    <h3 class="font-bold text-slate-800 flex items-center gap-2.5 text-lg">
+                        <div class="p-2 bg-violet-100 rounded-lg"><i data-lucide="list-checks" class="w-5 h-5 text-violet-600"></i></div>
+                        បញ្ជីសិស្ស<span id="labelMonth" class="text-indigo-600 border-b-2 border-indigo-200 border-dashed pb-0.5">ខែតុលា ឆ្នាំ២០២៥</span> 
+                        <span class="bg-indigo-100 text-indigo-700 py-0.5 px-2.5 rounded-full text-sm ml-1"><span id="totalItemsCount">0</span> នាក់</span>
+                    </h3>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button onclick="previewPDF()" class="flex-1 sm:flex-none bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 px-5 py-2.5 rounded-xl font-bold transition shadow-sm hover:shadow flex justify-center items-center gap-2 text-sm">
+                            <i data-lucide="printer" class="w-4 h-4 text-indigo-500"></i> បោះពុម្ពខែនេះ
+                        </button>
+                        <button onclick="previewAnnualPDF()" class="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold transition shadow-sm hover:shadow flex justify-center items-center gap-2 text-sm">
+                            <i data-lucide="book-open" class="w-4 h-4 text-white"></i> បោះពុម្ពប្រចាំឆ្នាំ
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm bg-white">
+                    <table class="w-full text-sm text-left border-collapse">
+                        <thead class="bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                            <tr>
+                                <th class="p-4 text-center w-16 text-xs uppercase tracking-wider">ល.រ</th>
+                                <th class="p-4 text-xs uppercase tracking-wider text-center">ឈ្មោះសិស្ស</th>
+                                <th class="p-4 text-center w-24 text-xs uppercase tracking-wider">ភេទ</th>
+                                <th class="p-4 text-xs uppercase tracking-wider text-center">មេរៀនត្រូវជួយ</th>
+                                <th class="p-4 text-center w-36 text-xs uppercase tracking-wider">គ្រប់គ្រង</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody" class="divide-y divide-slate-100">
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="printAreaWrapper" class="hidden">
+        <div class="fixed top-4 right-4 flex flex-col gap-3 z-50 no-print">
+            <button id="downloadPdfBtn" onclick="downloadPDF()" class="bg-indigo-600 text-white p-3.5 rounded-full shadow-lg hover:bg-indigo-700 hover:scale-105 transition flex items-center justify-center border border-indigo-500" title="ទាញយក PDF">
+                <i data-lucide="download" class="w-5 h-5"></i>
+            </button>
+            <button onclick="window.print()" class="bg-emerald-500 text-white p-3.5 rounded-full shadow-lg hover:bg-emerald-600 hover:scale-105 transition flex items-center justify-center border border-emerald-400" title="បោះពុម្ភ">
+                <i data-lucide="printer" class="w-5 h-5"></i>
+            </button>
+            <button onclick="closePreview()" class="bg-slate-700 text-white p-3.5 rounded-full shadow-lg hover:bg-slate-800 hover:scale-105 transition flex items-center justify-center border border-slate-600" title="បិទ">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div id="printContainer">
+        </div>
+    </div>
+
+    <!-- ភ្ជាប់ Firebase និងកែសម្រួល Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const STORAGE_KEY = 'ptec_slow_learners_khmer_data';
+        let allRecords = [];
+        let classConfig = {};
+        let masterStudents = []; 
+        let exportFileName = 'Slow_Learners_Khmer.pdf'; 
+
+        const khDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+        const khMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+        
+        let globalLunarStr = '';
+        let globalSolarStr = '';
+
+        function toKhmerNum(num) { 
+            return num.toString().split('').map(d => khDigits[d] || d).join(''); 
+        }
+
+        function updateMonthLabels() {
+            const yearSelect = document.getElementById('filterYear').value; 
+            const years = yearSelect.split('-');
+            let year1 = "២០២៥";
+            let year2 = "២០២៦";
+            if(years.length >= 2) {
+                year1 = years[0].trim();
+                year2 = years[1].trim();
+            }
+
+            const monthSelect = document.getElementById('filterMonth');
+            const currentValue = monthSelect.value; 
+
+            monthSelect.innerHTML = ''; 
+
+            const academicMonthsOrder = [
+                "តុលា", "វិច្ឆិកា", "ធ្នូ", 
+                "មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា"
+            ];
+
+            academicMonthsOrder.forEach((month, index) => {
+                const optionYear = index < 3 ? year1 : year2;
+                const option = document.createElement('option');
+                option.value = month; 
+                option.text = `ខែ${month} ឆ្នាំ${optionYear}`;
+                monthSelect.appendChild(option);
+            });
+
+            if (currentValue && academicMonthsOrder.includes(currentValue)) {
+                monthSelect.value = currentValue;
+            } else {
+                monthSelect.value = "តុលា";
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            loadClassConfig();
+            loadMasterStudents();
+            setupStudentDropdown();
+            
+            if(classConfig.academicYear) {
+                const yearSelect = document.getElementById('filterYear');
+                let optionExists = Array.from(yearSelect.options).some(opt => opt.value === classConfig.academicYear);
+                if(!optionExists) {
+                    const newOption = new Option(`ឆ្នាំ ${classConfig.academicYear}`, classConfig.academicYear);
+                    yearSelect.add(newOption);
+                }
+                yearSelect.value = classConfig.academicYear;
+            }
+
+            updateMonthLabels();
+
+            const currentMonthIndex = new Date().getMonth();
+            const currentMonthName = khMonths[currentMonthIndex];
+            
+            const monthSelect = document.getElementById('filterMonth');
+            let hasMonth = Array.from(monthSelect.options).some(opt => opt.value === currentMonthName);
+            if(hasMonth) {
+                monthSelect.value = currentMonthName;
+            }
+
+            loadData();
+            await fetchFirebaseData();
+        });
+
+        async function fetchFirebaseData() {
+            try {
+                const settingsSnap = await getDoc(doc(db, "school_data", "general_settings"));
+                if (settingsSnap.exists()) {
+                    classConfig = { ...classConfig, ...settingsSnap.data() };
+                    localStorage.setItem('app_settings', JSON.stringify(classConfig));
+                    
+                    if(document.getElementById('managerNameInput')) document.getElementById('managerNameInput').value = classConfig.managerName || '';
+                    if(document.getElementById('teacherNameInput')) document.getElementById('teacherNameInput').value = classConfig.teacherName || '';
+                }
+
+                const studentsSnap = await getDoc(doc(db, "school_data", "students_list"));
+                if (studentsSnap.exists() && studentsSnap.data().students) {
+                    masterStudents = studentsSnap.data().students;
+                    localStorage.setItem('students', JSON.stringify(masterStudents));
+                }
+
+                const recordsSnap = await getDoc(doc(db, "school_data", "slow_learners_khmer"));
+                if (recordsSnap.exists() && recordsSnap.data().records) {
+                    allRecords = recordsSnap.data().records;
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(allRecords));
+                    renderTable();
+                }
+            } catch (error) {
+                console.error("Error fetching online data:", error);
+            }
+        }
+
+        function loadMasterStudents() {
+            try {
+                masterStudents = JSON.parse(localStorage.getItem('students')) || [];
+            } catch(e) {
+                masterStudents = [];
+            }
+        }
+
+        function setupStudentDropdown() {
+            const input = document.getElementById('studentName');
+            const dropdown = document.getElementById('studentDropdown');
+
+            input.addEventListener('focus', () => renderStudentDropdown(input.value));
+            input.addEventListener('input', () => renderStudentDropdown(input.value));
+
+            document.addEventListener('click', (e) => {
+                if(!input.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        function renderStudentDropdown(filterText) {
+            const dropdown = document.getElementById('studentDropdown');
+            const filterLower = filterText.toLowerCase();
+            
+            const filtered = masterStudents.filter(s => s.name && s.name.toLowerCase().includes(filterLower));
+            
+            if (masterStudents.length === 0) {
+                dropdown.innerHTML = `<div class="p-4 text-sm text-slate-500 text-center">មិនទាន់មានទិន្នន័យសិស្សក្នុងប្រព័ន្ធ (សូមបញ្ចូលសិស្សថ្មី)</div>`;
+            } else if (filtered.length === 0) {
+                dropdown.innerHTML = `<div class="p-4 text-sm text-slate-500 text-center">រកមិនឃើញសិស្សឈ្មោះ «${filterText}» ទេ</div>`;
+            } else {
+                dropdown.innerHTML = filtered.map(s => {
+                    const safeName = s.name.replace(/'/g, "\\'");
+                    const safeGender = s.gender ? s.gender.replace(/'/g, "\\'") : '';
+                    const defaultAvatar = `https://api.dicebear.com/7.x/notionists/svg?seed=${s.id || s.name}`;
+                    
+                    return `
+                    <div onclick="selectStudent('${safeName}', '${safeGender}')" class="flex items-center gap-3 p-3 hover:bg-indigo-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors">
+                        <img src="${s.photo || defaultAvatar}" class="w-10 h-10 rounded-full border border-slate-200 object-cover shadow-sm">
+                        <div>
+                            <div class="font-bold text-indigo-700">${s.name}</div>
+                            <div class="text-[12px] text-slate-500 flex items-center gap-1">
+                                <i data-lucide="${s.gender === 'ស្រី' ? 'user' : 'user'}" class="w-3 h-3 text-slate-400"></i> ភេទ៖ ${s.gender || '-'}
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+                lucide.createIcons(); 
+            }
+            dropdown.classList.remove('hidden');
+        }
+
+        function selectStudent(name, gender) {
+            document.getElementById('studentName').value = name;
+            if(gender) {
+                document.getElementById('studentGender').value = gender;
+            }
+            document.getElementById('studentDropdown').classList.add('hidden');
+            document.getElementById('lessonName').focus(); 
+        }
+
+        function loadClassConfig() {
+            const defaultSettings = {
+                unit1: "មន្ទីរអប់រំ យុវជន និងកីឡា", 
+                unit2: "ការិយាល័យអប់រំ យុវជន និងកីឡា",
+                className: "................", 
+                schoolName: "................",
+                teacherName: "", 
+                managerRole: "នាយកសាលា", 
+                managerName: "",
+                managerSignature: null,
+                managerSigScale: 1.0,
+                teacherSignature: null,
+                teacherSigScale: 1.0,
+                location: "................",
+                academicYear: "២០២៥-២០២៦"
+            };
+            
+            try {
+                classConfig = JSON.parse(localStorage.getItem('app_settings')) || defaultSettings;
+                if (typeof classConfig.managerSigScale !== 'number') classConfig.managerSigScale = 1.0;
+                if (typeof classConfig.teacherSigScale !== 'number') classConfig.teacherSigScale = 1.0;
+            } catch(e) {
+                classConfig = defaultSettings;
+            }
+
+            const managerInput = document.getElementById('managerNameInput');
+            const teacherInput = document.getElementById('teacherNameInput');
+            if(managerInput) managerInput.value = classConfig.managerName || '';
+            if(teacherInput) teacherInput.value = classConfig.teacherName || '';
+
+            renderSignaturePreview('manager');
+            renderSignaturePreview('teacher');
+        }
+
+        async function updateSignatures() {
+            classConfig.managerName = document.getElementById('managerNameInput').value;
+            classConfig.teacherName = document.getElementById('teacherNameInput').value;
+            localStorage.setItem('app_settings', JSON.stringify(classConfig));
+
+            try {
+                await setDoc(doc(db, "school_data", "general_settings"), {
+                    managerName: classConfig.managerName,
+                    teacherName: classConfig.teacherName
+                }, { merge: true });
+            } catch (error) {
+                console.error("Error updating settings online:", error);
+            }
+        }
+
+        function handleSignatureUpload(type) {
+            const input = document.getElementById(type + 'SignatureInput');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    if (type === 'manager') {
+                        classConfig.managerSignature = base64;
+                        classConfig.managerSigScale = 1.0;
+                    } else {
+                        classConfig.teacherSignature = base64;
+                        classConfig.teacherSigScale = 1.0; 
+                    }
+                    localStorage.setItem('app_settings', JSON.stringify(classConfig));
+                    renderSignaturePreview(type);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeSignature(type) {
+            if (type === 'manager') {
+                classConfig.managerSignature = null;
+            } else {
+                classConfig.teacherSignature = null;
+            }
+            localStorage.setItem('app_settings', JSON.stringify(classConfig));
+            document.getElementById(type + 'SignatureInput').value = ''; 
+            renderSignaturePreview(type);
+        }
+
+        function zoomSignature(type, delta) {
+            const scaleKey = type + 'SigScale';
+            if (typeof classConfig[scaleKey] !== 'number') {
+                classConfig[scaleKey] = 1.0;
+            }
+            
+            classConfig[scaleKey] += delta;
+            classConfig[scaleKey] = Math.max(0.2, Math.min(3.0, classConfig[scaleKey]));
+            
+            localStorage.setItem('app_settings', JSON.stringify(classConfig));
+            renderSignaturePreview(type);
+        }
+
+        function renderSignaturePreview(type) {
+            const previewDiv = document.getElementById(type + 'SigPreview');
+            const sigData = type === 'manager' ? classConfig.managerSignature : classConfig.teacherSignature;
+            const scaleKey = type + 'SigScale';
+            const scale = classConfig[scaleKey] !== undefined ? classConfig[scaleKey] : 1.0;
+            
+            if (sigData) {
+                previewDiv.innerHTML = `<img src="${sigData}" style="transform: scale(${scale}); transform-origin: center center;" class="h-full w-full object-contain transition-transform duration-200">`;
+            } else {
+                previewDiv.innerHTML = `<span class="text-[10px] text-slate-400">គ្មានរូបភាព</span>`;
+            }
+        }
+
+        function loadData() {
+            allRecords = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            renderTable();
+        }
+
+        async function commitData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(allRecords));
+            renderTable();
+
+            try {
+                await setDoc(doc(db, "school_data", "slow_learners_khmer"), {
+                    records: allRecords,
+                    lastUpdated: new Date().toISOString()
+                });
+            } catch (error) {
+                console.error("Firebase error saving data:", error);
+            }
+        }
+
+        document.getElementById('recordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitForm();
+        });
+
+        function submitForm() {
+            const idInput = document.getElementById('editId').value;
+            const name = document.getElementById('studentName').value.trim();
+            const gender = document.getElementById('studentGender').value;
+            const lesson = document.getElementById('lessonName').value.trim();
+            
+            const month = document.getElementById('filterMonth').value;
+            const year = document.getElementById('filterYear').value;
+
+            if (!name || !lesson) return;
+
+            if (idInput) {
+                const index = allRecords.findIndex(item => item.id == idInput);
+                if (index !== -1) {
+                    allRecords[index] = { ...allRecords[index], name, gender, lesson, month, year };
+                }
+            } else {
+                const newItem = { id: Date.now(), name, gender, lesson, month, year };
+                allRecords.push(newItem);
+            }
+
+            commitData().then(() => showToast('រក្សាទុកទិន្នន័យបានជោគជ័យ!'));
+            resetForm();
+        }
+
+        function editItem(id) {
+            const item = allRecords.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('editId').value = item.id;
+            document.getElementById('studentName').value = item.name;
+            document.getElementById('studentGender').value = item.gender;
+            document.getElementById('lessonName').value = item.lesson;
+            
+            document.getElementById('filterYear').value = item.year;
+            updateMonthLabels(); 
+            document.getElementById('filterMonth').value = item.month;
+            
+            renderTable();
+
+            document.getElementById('formTitle').innerHTML = '<div class="p-2 bg-amber-100 rounded-lg"><i data-lucide="edit-3" class="w-5 h-5 text-amber-600"></i></div> កែប្រែព័ត៌មាន';
+            const btnSave = document.getElementById('btnSave');
+            btnSave.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> យល់ព្រម';
+            btnSave.className = "w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-3 rounded-xl transition shadow flex justify-center items-center gap-2";
+            document.getElementById('btnCancel').classList.remove('hidden');
+            
+            lucide.createIcons();
+            document.getElementById('studentName').focus();
+        }
+
+        function deleteItem(id) {
+            if (confirm("តើអ្នកពិតជាចង់លុបទិន្នន័យនេះមែនទេ?")) {
+                allRecords = allRecords.filter(i => i.id !== id);
+                commitData().then(() => showToast('លុបទិន្នន័យបានជោគជ័យ!'));
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('recordForm').reset();
+            document.getElementById('editId').value = '';
+            
+            document.getElementById('formTitle').innerHTML = '<div class="p-2 bg-indigo-100 rounded-lg"><i data-lucide="user-plus" class="w-5 h-5 text-indigo-600"></i></div> កត់ត្រាសិស្សថ្មី';
+            const btnSave = document.getElementById('btnSave');
+            btnSave.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> រក្សាទុក';
+            btnSave.className = "w-full btn-primary text-white font-bold py-3 rounded-xl flex justify-center items-center gap-2";
+            document.getElementById('btnCancel').classList.add('hidden');
+            
+            lucide.createIcons();
+        }
+
+        function renderTable() {
+            const monthSelect = document.getElementById('filterMonth');
+            const month = monthSelect.value;
+            const year = document.getElementById('filterYear').value;
+            
+            if(monthSelect.selectedIndex >= 0) {
+                const fullMonthText = monthSelect.options[monthSelect.selectedIndex].text;
+                document.getElementById('labelMonth').innerText = fullMonthText;
+            }
+
+            const filteredData = allRecords.filter(item => item.month === month && item.year === year);
+            
+            const tbody = document.getElementById('dataTableBody');
+            document.getElementById('totalItemsCount').innerText = toKhmerNum(filteredData.length);
+            
+            if (filteredData.length === 0) {
+                const displayMonthText = monthSelect.options[monthSelect.selectedIndex]?.text || month;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-bold bg-slate-50/50"><i data-lucide="inbox" class="w-10 h-10 mx-auto mb-3 text-slate-300"></i>មិនទាន់មានទិន្នន័យនៅឡើយទេសម្រាប់ ${displayMonthText}</td></tr>`;
+                lucide.createIcons();
+                return;
+            }
+
+            tbody.innerHTML = filteredData.map((item, index) => {
+                const masterObj = masterStudents.find(ms => ms.name === item.name);
+                const defaultAvatar = `https://api.dicebear.com/7.x/notionists/svg?seed=${item.name}`;
+                const photoUrl = masterObj && masterObj.photo ? masterObj.photo : defaultAvatar;
+
+                return `
+                <tr class="hover:bg-indigo-50/30 transition-colors duration-200">
+                    <td class="p-3 text-center font-bold text-slate-500 border-r border-slate-100 align-middle h-16">${toKhmerNum(index + 1)}</td>
+                    <td class="p-3 font-bold text-indigo-900 align-middle">
+                        <div class="flex items-center gap-3 justify-center md:justify-start">
+                            <img src="${photoUrl}" class="w-9 h-9 rounded-full border border-slate-200 object-cover shadow-sm no-print">
+                            <span>${item.name}</span>
+                        </div>
+                    </td>
+                    <td class="p-3 text-center text-slate-600 align-middle"><span class="px-3 py-1 bg-slate-100 rounded-full text-xs">${item.gender}</span></td>
+                    <td class="p-3 text-slate-700 align-middle text-center">${item.lesson}</td>
+                    
+                    <td class="p-3 text-center align-middle no-print">
+                        <div class="flex justify-center gap-2">
+                            <button onclick="editItem(${item.id})" class="p-2 bg-white text-amber-500 border border-amber-200 rounded-lg hover:bg-amber-50 hover:border-amber-300 transition shadow-sm" title="កែប្រែ"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                            <button onclick="deleteItem(${item.id})" class="p-2 bg-white text-rose-500 border border-rose-200 rounded-lg hover:bg-rose-50 hover:border-rose-300 transition shadow-sm" title="លុប"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function setupCoverAndDates(year) {
+            loadClassConfig(); 
+
+            let cleanClass = classConfig.className ? classConfig.className.replace(/ថ្នាក់ទី/g, '').replace(/ថ្នាក់/g, '').trim() : '';
+
+            const coverHtml = `
+                <div class="a4-page cover-page relative data-page">
+                    <div class="cover-border"></div>
+                    <div class="text-center w-full pt-2">
+                        <h1 class="kh-moul text-xl mb-2">ព្រះរាជាណាចក្រកម្ពុជា</h1>
+                        <h2 class="kh-moul text-lg">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
+                        <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" alt="divider" class="h-[16px] w-auto mx-auto mt-3 mb-6" crossorigin="anonymous">
+                    </div>
+                    <div class="w-full text-left pl-4 mt-4 relative z-10">
+                        <p class="kh-moul text-base mb-3 leading-relaxed">${classConfig.unit1 || ''}</p>
+                        <p class="kh-moul text-base mb-3">${classConfig.unit2 || ''}</p>
+                        <p class="kh-moul text-base mb-3">${classConfig.schoolName || ''}</p>
+                    </div>
+                    <div class="w-full text-center mt-[100px] space-y-10 relative z-10">
+                        <h1 class="kh-moul text-6xl text-indigo-700 text-shadow-custom" style="font-weight: normal;">សៀវភៅ</h1>
+                        <h2 class="kh-moul text-4xl text-violet-700 text-shadow-custom leading-normal text-center w-full px-8">ជួយសិស្សរៀនយឺតភាសាខ្មែរ</h2>
+                        <h3 class="kh-moul text-4xl text-emerald-600 text-shadow-custom">${cleanClass ? 'ថ្នាក់ទី ' + cleanClass : 'ថ្នាក់ទី...'}</h3>
+                    </div>
+                    <div class="absolute bottom-[40mm] left-0 right-0 w-full text-center space-y-4 z-10">
+                        <p class="kh-moul text-3xl">${classConfig.teacherName ? '' + classConfig.teacherName : '...'}</p>
+                        <p class="kh-moul text-3xl">ឆ្នាំសិក្សា <span>${year || classConfig.academicYear || '២០២៥-២០២៦'}</span></p>
+                    </div>
+                </div>
+            `;
+
+            const today = new Date();
+            globalLunarStr = "ថ្ងៃ................ខែ..........ឆ្នាំ..........ព.ស.២៥៦...";
+            if (typeof momentkh !== 'undefined') {
+                try {
+                    const khmerDateObj = momentkh.fromDate(today);
+                    globalLunarStr = momentkh.format(khmerDateObj).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                } catch (e) { console.error("Error formatting khmer date", e); }
+            }
+            const locationTxt = classConfig.location || '....................';
+            globalSolarStr = `${locationTxt}, ថ្ងៃទី${toKhmerNum(today.getDate().toString().padStart(2, '0'))} ខែ${khMonths[today.getMonth()]} ឆ្នាំ${toKhmerNum(today.getFullYear())}`;
+
+            return coverHtml;
+        }
+
+        function generatePagesForMonth(month, year, container) {
+            const filteredData = allRecords.filter(item => item.month === month && item.year === year);
+            
+            const ROWS_FIRST_PAGE_MAX = 18; 
+            const ROWS_FIRST_PAGE_SIG = 13;   
+            const ROWS_OTHER_PAGE_MAX = 22;
+            const ROWS_OTHER_PAGE_SIG = 17;
+            
+            let pagesChunks = [];
+            let tempRecords = [...filteredData];
+
+            if (tempRecords.length === 0) {
+                pagesChunks.push([]);
+            } else {
+                let pageNum = 0;
+                while (tempRecords.length > 0) {
+                    let maxLimit = (pageNum === 0) ? ROWS_FIRST_PAGE_MAX : ROWS_OTHER_PAGE_MAX;
+                    let sigLimit = (pageNum === 0) ? ROWS_FIRST_PAGE_SIG : ROWS_OTHER_PAGE_SIG;
+
+                    if (tempRecords.length <= sigLimit) {
+                        pagesChunks.push(tempRecords.splice(0, tempRecords.length));
+                    } else if (tempRecords.length <= maxLimit) {
+                        let itemsForThisPage = tempRecords.length - 3;
+                        if (itemsForThisPage <= 0) itemsForThisPage = 1; 
+                        pagesChunks.push(tempRecords.splice(0, itemsForThisPage));
+                    } else {
+                        let remainder = tempRecords.length - maxLimit;
+                        if (remainder > 0 && remainder < 3) {
+                            let itemsForThisPage = tempRecords.length - 3;
+                            pagesChunks.push(tempRecords.splice(0, itemsForThisPage));
+                        } else {
+                            pagesChunks.push(tempRecords.splice(0, maxLimit));
+                        }
+                    }
+                    pageNum++;
+                }
+            }
+
+            pagesChunks.forEach((chunk, index) => {
+                const isLast = (index === pagesChunks.length - 1);
+                const isFirst = (index === 0);
+                let startIdx = 0;
+                for(let i=0; i<index; i++) startIdx += pagesChunks[i].length;
+
+                container.insertAdjacentHTML('beforeend', generateDataPageHTML(chunk, startIdx, isLast, isFirst, month, year));
+            });
+        }
+
+        function previewPDF() {
+            updateSignatures();
+            
+            const month = document.getElementById('filterMonth').value;
+            const year = document.getElementById('filterYear').value;
+            exportFileName = `Slow_Learners_Khmer_${month}_${year}.pdf`;
+
+            const container = document.getElementById('printContainer');
+            container.innerHTML = ''; 
+
+            container.insertAdjacentHTML('beforeend', setupCoverAndDates(year));
+
+            generatePagesForMonth(month, year, container);
+
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('printAreaWrapper').classList.remove('hidden');
+            document.body.classList.add('preview-mode');
+        }
+
+        function previewAnnualPDF() {
+            updateSignatures();
+
+            const year = document.getElementById('filterYear').value;
+            exportFileName = `Slow_Learners_Khmer_Annual_Report_${year}.pdf`;
+
+            const container = document.getElementById('printContainer');
+            container.innerHTML = ''; 
+
+            container.insertAdjacentHTML('beforeend', setupCoverAndDates(year));
+
+            const academicMonths = ["តុលា", "វិច្ឆិកា", "ធ្នូ", "មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា"];
+            
+            academicMonths.forEach(month => {
+                generatePagesForMonth(month, year, container);
+            });
+
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('printAreaWrapper').classList.remove('hidden');
+            document.body.classList.add('preview-mode');
+        }
+
+        function generateDataPageHTML(chunk, startIdx, isLastPage, isFirstPage, month, year) {
+            let headerHtml = '';
+            
+            if (isFirstPage) {
+                headerHtml = `
+                    <div class="text-center w-full mb-6">
+                        <h3 class="kh-moul text-[13pt] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                        <h3 class="kh-moul text-[13pt] mb-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                        <div class="flex justify-center mt-2">
+                            <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12pt] w-auto" crossorigin="anonymous">
+                        </div>
+                    </div>
+                    
+                    <div class="w-full text-[11pt] leading-relaxed mb-4 font-bold">
+                        <p>${classConfig.unit1 || ''}</p>
+                        <p>${classConfig.unit2 || ''}</p>
+                        <p>${classConfig.schoolName || ''}</p>
+                    </div>
+
+                    <h2 class="font-battambang font-bold text-center text-[14pt] mb-4">
+                        បញ្ជីជួយសិស្សរៀនយឺតភាសាខ្មែរ ខែ${month} ឆ្នាំសិក្សា ${toKhmerNum(year)}
+                    </h2>
+                `;
+            } else {
+                headerHtml = `<div class="mt-4 mb-2"></div>`; 
+            }
+
+            let tbodyHtml = '';
+            chunk.forEach((item, i) => {
+                tbodyHtml += `
+                    <tr>
+                        <td style="text-align: center !important;">${toKhmerNum(startIdx + i + 1)}</td>
+                        <td class="font-bold" style="text-align: left !important; padding-left: 16px !important;">${item.name || '&nbsp;'}</td>
+                        <td style="text-align: center !important;">${item.gender || '&nbsp;'}</td>
+                        <td style="text-align: left !important; padding-left: 16px !important;">${item.lesson || '&nbsp;'}</td>
+                    </tr>
+                `;
+            });
+
+            let sigHtml = '';
+            if (isLastPage) {
+                let managerScale = classConfig.managerSigScale !== undefined ? classConfig.managerSigScale : 1.0;
+                let teacherScale = classConfig.teacherSigScale !== undefined ? classConfig.teacherSigScale : 1.0;
+                
+                sigHtml = `
+                    <tbody class="avoid-break">
+                        <tr>
+                            <td colspan="4" style="border: none; padding: 0; text-align: left;">
+                                <div class="signature-container">
+                                    <div class="sig-col-left">
+                                        <div class="mb-4 invisible">.</div>
+                                        <p class="text-[11pt] mb-2">បានឃើញ និងឯកភាព</p>
+                                        <p class="role-title uppercase">${classConfig.managerRole || 'នាយកសាលា'}</p>
+                                        <div class="sig-image-box" style="margin-left: 2cm;">${classConfig.managerSignature ? `<img src="${classConfig.managerSignature}" style="transform: scale(${managerScale}); transform-origin: center center;">` : ''}</div>
+                                        <p class="teacher-name-final" style="padding-left: 3cm;">${classConfig.managerName || ''}</p>
+                                    </div>
+                                    <div class="sig-col-right">
+                                        <p class="lunar-date">${globalLunarStr}</p>
+                                        <p class="solar-date">${globalSolarStr}</p>
+                                        <p class="role-title">គ្រូបន្ទុកថ្នាក់</p>
+                                        <div class="sig-image-box" >${classConfig.teacherSignature ? `<img src="${classConfig.teacherSignature}" style="transform: scale(${teacherScale}); transform-origin: center center;">` : ''}</div>
+                                        <p class="teacher-name-final" style="margin-left: 3cm;">${classConfig.teacherName || ''}</p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                `;
+            }
+
+            return `
+            <div class="a4-page data-page">
+                ${headerHtml}
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%; text-align: center !important; vertical-align: middle !important;">ល.រ</th>
+                            <th style="width: 35%; text-align: center !important; vertical-align: middle !important;">ឈ្មោះសិស្ស</th>
+                            <th style="width: 10%; text-align: center !important; vertical-align: middle !important;">ភេទ</th>
+                            <th style="width: 45%; text-align: center !important; vertical-align: middle !important;">មេរៀនត្រូវជួយ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tbodyHtml}
+                    </tbody>
+                    ${sigHtml}
+                </table>
+            </div>
+            `;
+        }
+
+        function closePreview() {
+            document.getElementById('mainScreen').classList.remove('hidden');
+            document.getElementById('printAreaWrapper').classList.add('hidden');
+            document.body.classList.remove('preview-mode');
+        }
+
+        async function downloadPDF() {
+            const btn = document.getElementById('downloadPdfBtn');
+            const originalHtml = btn ? btn.innerHTML : '';
+            
+            if(btn) {
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i>';
+                btn.disabled = true;
+            }
+            if (window.lucide) lucide.createIcons();
+
+            document.body.classList.add('pdf-exporting');
+            
+            await document.fonts.ready;
+            await new Promise(r => setTimeout(r, 600)); 
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+                
+                const pages = document.querySelectorAll('#printContainer .a4-page');
+                
+                for (let i = 0; i < pages.length; i++) {
+                    const page = pages[i];
+                    
+                    const canvas = await html2canvas(page, {
+                        scale: 2, 
+                        useCORS: true, 
+                        allowTaint: true,
+                        backgroundColor: '#ffffff',
+                        windowWidth: 1024,
+                        logging: false
+                    });
+                    
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+                    
+                    if (i > 0) { pdf.addPage(); }
+                    
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    
+                    pdf.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                }
+
+                pdf.save(exportFileName);
+
+            } catch (error) {
+                console.error("Error generating PDF:", error);
+                alert("សុំទោស មានបញ្ហាក្នុងការទាញយក PDF។ សូមប្រើប្រាស់ប៊ូតុង 'បោះពុម្ភ' (Print) ជំនួសវិញ។");
+            } finally {
+                document.body.classList.remove('pdf-exporting');
+                if(btn) {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = "fixed bottom-5 right-5 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-2xl z-[2000] flex items-center gap-2 font-bold animate-bounce";
+            t.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5"></i> ${msg}`;
+            document.body.appendChild(t);
+            lucide.createIcons();
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        // Export functions to window for module script accessibility
+        window.updateMonthLabels = updateMonthLabels;
+        window.renderTable = renderTable;
+        window.selectStudent = selectStudent;
+        window.updateSignatures = updateSignatures;
+        window.handleSignatureUpload = handleSignatureUpload;
+        window.removeSignature = removeSignature;
+        window.zoomSignature = zoomSignature;
+        window.editItem = editItem;
+        window.deleteItem = deleteItem;
+        window.resetForm = resetForm;
+        window.previewPDF = previewPDF;
+        window.previewAnnualPDF = previewAnnualPDF;
+        window.closePreview = closePreview;
+        window.downloadPDF = downloadPDF;
+        window.saveData = submitForm;
+    </script>
+</body>
+</html>

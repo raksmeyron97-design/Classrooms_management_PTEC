@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>សៀវភៅតាមដានការសិក្សា</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Moul&family=Siemreap&display=swap');
+
+        :root {
+            --font-moul: 'Moul', serif;
+            --font-siemreap: 'Siemreap', sans-serif;
+            --page-width: 148.5mm;  /* A5 Width */
+            --page-height: 210mm; /* A5 Height */
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 0 0 20px 0;
+            margin: 0;
+            font-family: var(--font-siemreap);
+            color: #000;
+        }
+
+        /* ------------------ Top Menu Bar ------------------ */
+        .top-menu {
+            width: 100%;
+            background-color: #ffffff;
+            padding: 12px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            justify-content: center;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            gap: 40px;
+        }
+
+        .menu-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .menu-controls select, .menu-controls input {
+            font-family: var(--font-siemreap);
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+
+        .menu-actions button {
+            font-family: var(--font-siemreap);
+            font-size: 14px;
+            padding: 8px 16px;
+            margin-left: 10px;
+            cursor: pointer;
+            border: 1px solid #0056b3;
+            background-color: #f0f8ff;
+            color: #0056b3;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .menu-actions button:hover {
+            background-color: #0056b3;
+            color: #ffffff;
+        }
+
+        .menu-actions button.active {
+            background-color: #0056b3;
+            color: #ffffff;
+        }
+
+        /* ------------------ Page Structure ------------------ */
+        .pages-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .page {
+            width: var(--page-width);
+            height: var(--page-height);
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            page-break-after: always;
+            page-break-inside: avoid;
+        }
+
+        /* ------------------ Booklet Mode (A4 Landscape) ------------------ */
+        .booklet-mode.pages-container {
+            flex-direction: row;
+            flex-wrap: wrap;
+            width: 297mm; /* A4 Width */
+            gap: 0;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .booklet-mode .page {
+            box-shadow: none;
+            border-right: 1px dashed #ccc; /* បន្ទាត់ពុះកណ្តាលសម្រាប់មើលលើអេក្រង់ */
+        }
+        
+        /* លុបបន្ទាត់ពុះកណ្តាលសម្រាប់ទំព័រគូ */
+        .booklet-mode .page:nth-child(even) {
+            border-right: none;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: white;
+                padding: 0;
+            }
+            .pages-container {
+                gap: 0;
+            }
+            .page {
+                box-shadow: none;
+                margin: 0;
+            }
+            .booklet-mode .page {
+                border-right: none; /* លុបបន្ទាត់ពុះកណ្តាលពេលព្រីន */
+            }
+            .booklet-mode .page:nth-child(even) {
+                page-break-after: always; /* កាត់ទំព័ររៀងរាល់ ២សន្លឹក A5 */
+            }
+        }
+
+        /* ------------------ Common Styles ------------------ */
+        .text-center { text-align: center; }
+        .font-moul { font-family: var(--font-moul); }
+        .text-red { color: red; }
+        .bold { font-weight: bold; }
+        
+        .nation-header { margin-top: 12px; line-height: 1.3; }
+        .nation-title { font-family: var(--font-moul); font-size: 13px; }
+        .nation-motto { font-family: var(--font-moul); font-size: 13px; }
+        .sign { margin-top: 8px; }
+        .sign img { width: 80px; }
+
+        .ministry-title { font-family: var(--font-moul); font-size: 13px; margin-top: 15px; margin-bottom: 20px; }
+        .school-title { font-family: var(--font-moul); font-size: 18px; margin-bottom: 5px; }
+        .school-name { font-family: var(--font-moul); font-size: 22px; color: red; margin-bottom: 15px; }
+        .book-title { font-family: var(--font-moul); font-size: 18px; margin-bottom: 20px; }
+
+        /* Flex & Dotted Lines for Forms */
+        .flex-row { display: flex; align-items: flex-end; margin-bottom: 6px; font-size: 12px; }
+        .dots { flex-grow: 1; border-bottom: 1px dotted #333; margin: 0 4px; position: relative; top: -3px; }
+        .dots-fixed { display: inline-block; border-bottom: 1px dotted #333; margin: 0 4px; }
+
+        /* ------------------ Specific Page Styles ------------------ */
+        .page-1-border-outer {
+            border: 2px solid black; border-radius: 15px; position: absolute;
+            top: 15px; bottom: 15px; left: 15px; right: 15px; padding: 3px;
+        }
+        .page-1-border-inner {
+            border: 1px solid black; border-radius: 11px; height: 100%; width: 100%;
+            padding: 25px 20px; display: flex; flex-direction: column; align-items: center;
+        }
+        .cover-form { width: 85%; margin-top: auto; margin-bottom: 30px; font-size: 14px; font-weight: bold; }
+
+        .page-2-content { padding: 40px 45px; }
+        .student-info-form { width: 100%; margin-top: 20px; }
+        .student-info-form .flex-row { margin-bottom: 10px; }
+
+        .page-3-content { padding: 25px 35px; }
+        .month-title { font-size: 16px; margin-bottom: 10px; text-align: center; }
+        .header-stats { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; }
+        .header-stats > div { display: flex; width: 45%; }
+        .grades-table { width: 100%; margin-bottom: 6px; }
+        .grades-header {
+            display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
+            margin-left: 45%; text-align: center; font-size: 10px; margin-bottom: 6px;
+        }
+        .grades-row {
+            display: grid; grid-template-columns: 45% 1fr;
+            margin-bottom: 4px; align-items: center;
+        }
+        .subject-name { font-size: 13px; }
+        .checkbox-container { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; text-align: center; }
+        .checkbox { width: 10px; height: 10px; border: 1px solid #000; display: inline-block; margin: 0 auto; }
+        .absence-section { display: flex; align-items: center; font-family: var(--font-moul); font-size: 11px; margin: 8px 0; }
+        .grading-scale { font-size: 9px; margin-bottom: 8px; line-height: 1.3; }
+        .signatures-section { display: flex; justify-content: space-between; margin-top: 5px; font-size: 10px; }
+        .sig-block { text-align: center; width: 45%; }
+        .sig-block .font-moul { font-size: 12px !important; }
+        .parent-sig { text-align: center; margin-top: 15px; font-size: 11px; }
+        .parent-sig .font-moul { font-size: 12px !important; }
+
+    </style>
+</head>
+<body>
+
+    <!-- ==================== TOP MENU (NO PRINT) ==================== -->
+    <div class="top-menu no-print">
+        <div class="menu-controls">
+            <span>🗓️ ខែចាប់ផ្ដើម៖</span>
+            <select id="start-month" onchange="generateBook()">
+                <option value="0">មករា</option>
+                <option value="1">កុម្ភៈ</option>
+                <option value="2">មីនា</option>
+                <option value="3">មេសា</option>
+                <option value="4">ឧសភា</option>
+                <option value="5">មិថុនា</option>
+                <option value="6">កក្កដា</option>
+                <option value="7">សីហា</option>
+                <option value="8">កញ្ញា</option>
+                <option value="9" selected>តុលា</option>
+                <option value="10">វិច្ឆិកា</option>
+                <option value="11">ធ្នូ</option>
+            </select>
+            
+            <span>ចំនួនខែ៖</span>
+            <input type="number" id="num-months" value="10" min="1" max="12" style="width: 60px;" onchange="generateBook()">
+        </div>
+
+        <div class="menu-actions">
+            <button id="btn-normal" class="active" onclick="changeMode('normal')">📄 មើលទម្រង់ A5 (ធម្មតា)</button>
+            <button id="btn-booklet" onclick="changeMode('booklet')">📖 មើលទម្រង់សៀវភៅ (A4)</button>
+            <button onclick="triggerPrint()" style="background-color: #28a745; color: white; border-color: #28a745;">🖨️ ព្រីន (Print)</button>
+        </div>
+    </div>
+
+    <!-- ==================== PAGES CONTAINER ==================== -->
+    <div class="pages-container" id="pages-container">
+        <!-- ទីនេះនឹងត្រូវបានបំពេញដោយ JavaScript ដោយស្វ័យប្រវត្តិ -->
+    </div>
+
+
+    <!-- ==================== HIDDEN TEMPLATES ==================== -->
+    <!-- យើងប្រើ Template ដើម្បីងាយស្រួល Copy កូដយកទៅបង្កើតទំព័រដោយ JS -->
+    <div id="templates" style="display: none;">
+        
+        <!-- គំរូក្របមុខ -->
+        <div class="page" id="tpl-front-cover">
+            <div class="page-1-border-outer">
+                <div class="page-1-border-inner">
+                    <div class="nation-header text-center">
+                        <div class="nation-title">ព្រះរាជាណាចក្រកម្ពុជា</div>
+                        <div class="nation-motto">ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
+                        <div class="sign"><img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" alt="ក្បាច់រចនា"></div>
+                    </div>
+                    <div class="ministry-title text-center" style="margin-top: 35px;">
+                        មន្ទីរអប់រំ យុវជន និងកីឡារាជធានីភ្នំពេញ
+                    </div>
+                    <div style="margin-top: auto; text-align: center;">
+                        <div class="school-title" style="font-size: 20px;">សាលាបឋមសិក្សា</div>
+                        <div class="school-name" style="font-size: 24px; margin-bottom: 0;">អនុវត្តរាជធានី</div>
+                    </div>
+                    <div class="book-title text-center" style="margin-top: 40px; margin-bottom: auto; font-size: 22px;">
+                        សៀវភៅតាមដានការសិក្សា
+                    </div>
+                    <div class="cover-form">
+                        <div style="display: flex; align-items: flex-end; margin-bottom: 18px;">
+                            <span>ឈ្មោះសិស្ស</span>
+                            <span class="dots" style="flex-grow: 1; margin: 0 10px;"></span>
+                            <span>អត្តលេខ</span>
+                            <span class="dots" style="width: 70px; flex-grow: 0; margin-left: 5px;"></span>
+                        </div>
+                        <div style="display: flex; align-items: flex-end; margin-bottom: 18px; padding-left: 20%;">
+                            <span>ថ្នាក់ទី៖</span>
+                            <span class="dots" style="width: 80px; flex-grow: 0; margin-left: 10px;"></span>
+                        </div>
+                        <div style="display: flex; align-items: flex-end; padding-left: 20%;">
+                            <span>ឆ្នាំសិក្សា៖ ២០២៥ - ២០២៦</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- គំរូទំព័រទទេ (សម្រាប់ក្របខាងក្នុង) -->
+        <div class="page tpl-blank-page"></div>
+
+        <!-- គំរូព័ត៌មានសិស្ស -->
+        <div class="page" id="tpl-student-info">
+            <div class="page-2-content">
+                <div class="nation-header text-center" style="margin-top: 0;">
+                    <div class="nation-title">ព្រះរាជាណាចក្រកម្ពុជា</div>
+                    <div class="nation-motto">ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
+                    <div class="sign"><img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" alt="ក្បាច់រចនា"></div>
+                </div>
+                <div class="ministry-title text-center" style="margin-top: 20px; margin-bottom: 30px;">
+                    មន្ទីរអប់រំ យុវជន និងកីឡារាជធានីភ្នំពេញ
+                </div>
+                <div class="school-title text-center">សាលាបឋមសិក្សា</div>
+                <div class="school-name text-center">អនុវត្តរាជធានី</div>
+                <div class="book-title text-center" style="margin-bottom: 20px;">សៀវភៅតាមដានការសិក្សា</div>
+                <div class="student-info-form">
+                    <div class="flex-row"><span>របស់សិស្សឈ្មោះ :</span><span class="dots" style="flex: 2;"></span><span>ភេទ</span><span class="dots" style="flex: 1;"></span></div>
+                    <div class="flex-row"><span>កើតថ្ងៃទី</span><span class="dots" style="flex: 1;"></span><span>ខែ</span><span class="dots" style="flex: 1;"></span><span>ឆ្នាំ</span><span class="dots" style="flex: 1;"></span></div>
+                    <div class="flex-row"><span>នៅភូមិ</span><span class="dots" style="flex: 2;"></span><span>ឃុំ/សង្កាត់</span><span class="dots" style="flex: 2;"></span></div>
+                    <div class="flex-row"><span>ក្រុង / ស្រុក / ខណ្ឌ</span><span class="dots" style="flex: 2;"></span><span>រាជធានី / ខេត្ត</span><span class="dots" style="flex: 2;"></span></div>
+                    <div class="flex-row"><span>ឪពុកឈ្មោះ</span><span class="dots" style="flex: 2;"></span><span>មុខរបរ</span><span class="dots" style="flex: 2;"></span></div>
+                    <div class="flex-row"><span>ម្តាយឈ្មោះ</span><span class="dots" style="flex: 2;"></span><span>មុខរបរ</span><span class="dots" style="flex: 2;"></span></div>
+                    <div class="flex-row"><span>អាណាព្យាបាលឈ្មោះ</span><span class="dots" style="flex: 2;"></span><span>មុខរបរ</span><span class="dots" style="flex: 2;"></span></div>
+                    <div class="flex-row"><span>ស្នាក់នៅផ្ទះលេខ</span><span class="dots" style="flex: 1;"></span><span>ផ្លូវ</span><span class="dots" style="flex: 1;"></span><span>ក្រុម</span><span class="dots" style="flex: 1;"></span><span>ភូមិ</span><span class="dots" style="flex: 1;"></span></div>
+                    <div class="flex-row"><span>ឃុំ / សង្កាត់</span><span class="dots" style="flex: 1;"></span><span>ក្រុង / ស្រុក/ ខណ្ឌ</span><span class="dots" style="flex: 1;"></span><span>រាជធានី / ខេត្ត
+</span><span class="dots" style="flex: 1;"></span></div>
+                    <div class="flex-row"><span>លេខទូរសព្ទគ្រូប្រចាំថ្នាក់</span><span class="dots"></span></div>
+                    <div class="flex-row"><span>លេខទូរសព្ទនាយក / នាយិកា</span><span class="dots"></span></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+    <script>
+        const khmerMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+        const subjectsList = [
+            "រៀនអាន និងមេសូត្រ", "សរសេរតាមអាន", "តែងសេចក្តី", "គណិតវិទ្យា", 
+            "វិទ្យាសាស្ត្រអនុវត្ត", "សីលធម៌-ពលរដ្ឋវិជ្ជា", "ភូមិវិទ្យា", "ប្រវត្តិវិទ្យា", 
+            "គំនូរ និងហត្ថកម្ម", "សីលធម៌រស់នៅ", "អប់រំកាយ និងកីឡា", "សុខភាព និងអនាម័យ", 
+            "អក្សរផ្ចង់", "ភាសាបរទេស"
+        ];
+
+        let currentMode = 'normal';
+
+        function changeMode(mode) {
+            currentMode = mode;
+            document.getElementById('btn-normal').classList.toggle('active', mode === 'normal');
+            document.getElementById('btn-booklet').classList.toggle('active', mode === 'booklet');
+            generateBook(); // បង្កើតទំព័រឡើងវិញរាល់ពេលដូរ Mode
+        }
+
+        function triggerPrint() {
+            window.focus();
+            setTimeout(() => {
+                window.print();
+            }, 200);
+        }
+
+        function createMonthPage(monthName) {
+            let subjectsHtml = subjectsList.map(s => `
+                <div class="grades-row">
+                    <div class="subject-name">${s}</div>
+                    <div class="checkbox-container">
+                        <div class="checkbox"></div><div class="checkbox"></div><div class="checkbox"></div><div class="checkbox"></div>
+                    </div>
+                </div>
+            `).join('');
+
+            let page = document.createElement('div');
+            page.className = 'page';
+            page.innerHTML = `
+                <div class="page-3-content">
+                    <div class="month-title text-center">លទ្ធផលសិក្សាប្រចាំខែ <span style="font-family: var(--font-moul);">${monthName}</span></div>
+                    <div class="header-stats">
+                        <div><span>មធ្យមភាគ</span><span class="dots"></span></div>
+                        <div><span>ចំណាត់ថ្នាក់</span><span class="dots"></span></div>
+                    </div>
+                    <div class="grades-table">
+                        <div class="grades-header">
+                            <div>ល្អ</div><div>ល្អបង្គួរ</div><div>មធ្យម</div><div>ខ្សោយ</div>
+                        </div>
+                        ${subjectsHtml}
+                    </div>
+                    <div class="absence-section">
+                        <span class="font-moul">អវត្តមាន</span>
+                        <span style="margin-left: 30px;">មានច្បាប់</span>
+                        <span class="dots-fixed" style="width: 50px;"></span><span>ដង</span>
+                        <span style="margin-left: 50px;">ឥតច្បាប់</span>
+                        <span class="dots-fixed" style="width: 50px;"></span><span>ដង</span>
+                    </div>
+                    <div class="grading-scale font-moul">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>សម្គាល់ៈ និទ្ទេសល្អចាប់ពី ៨.០០↗</span><span>ល្អបង្គួរ ៦.៥០-៧.៩៩</span>
+                            <span>មធ្យម ៥.០០-៦.៤៩</span><span>ខ្សោយក្រោម ៥.០០</span>
+                        </div>
+                    </div>
+                    <div class="signatures-section">
+                        <div class="sig-block">
+                            <div style="margin-bottom: 5px;">បានឃើញ និងឯកភាព</div>
+                            <div class="font-moul" style="font-size: 18px;">នាយកសាលា</div>
+                        </div>
+                        <div class="sig-block text-center">
+                            <div>ថ្ងៃ........... ខែ........... ឆ្នាំ.........ស័ក ព.ស.២៥៧០</div>
+                            <div>រាជធានីភ្នំពេញ ថ្ងៃទី..........ខែ..........ឆ្នាំ២០២៦</div>
+                            <div class="font-moul" style="font-size: 18px;">មូលវិចារគ្រូប្រចាំថ្នាក់</div>
+                            <div class="dots" style="margin-top: 20px; width: 80%; margin-left: auto; margin-right: auto;"></div>
+                            <div class="dots" style="margin-top: 15px; width: 80%; margin-left: auto; margin-right: auto;"></div>
+                            <div class="dots" style="margin-top: 15px; width: 80%; margin-left: auto; margin-right: auto;"></div>
+                             <div class="dots" style="margin-top: 15px; width: 80%; margin-left: auto; margin-right: auto;"></div>
+                        </div>
+                    </div>
+                    <div class="parent-sig">
+                        <div class="font-moul" style="font-size: 14px; margin-bottom: 12px;">មតិរបស់អាណាព្យាបាល</div>
+                         <div class="dots" style="width: 95%; margin: 0 auto 12px auto;"></div>
+                        <div class="dots" style="width: 95%; margin: 0 auto 12px auto;"></div>
+                           <div class="dots" style="width: 95%; margin: 0 auto 12px auto;"></div>
+                              <div class="dots" style="width: 95%; margin: 0 auto 12px auto;"></div>
+                    </div>
+                </div>
+            `;
+            return page;
+        }
+        // អនុគមន៍កសាងសៀវភៅទាំងមូល
+        function generateBook() {
+            const startMonth = parseInt(document.getElementById('start-month').value);
+            const numMonths = parseInt(document.getElementById('num-months').value);
+            const container = document.getElementById('pages-container');
+            
+            // Setup Style Tag សម្រាប់ Print
+            let styleTag = document.getElementById('print-page-style');
+            if (!styleTag) {
+                styleTag = document.createElement('style');
+                styleTag.id = 'print-page-style';
+                document.head.appendChild(styleTag);
+            }
+
+            // សម្អាតទំព័រចាស់ៗចោល
+            container.innerHTML = '';
+            
+            let frontCover = document.getElementById('tpl-front-cover').cloneNode(true);
+            frontCover.id = '';
+
+            let studentInfo = document.getElementById('tpl-student-info').cloneNode(true);
+            studentInfo.id = '';
+
+            // ២. រៀបចំលំដាប់លំដោយផ្អែកលើ Mode
+            if (currentMode === 'booklet') {
+                container.classList.add('booklet-mode');
+                styleTag.innerHTML = `@page { size: A4 landscape; margin: 0; }`;
+                
+                let orderedPages = [];
+                
+                // --- ផ្នែកទី១: ក្របសៀវភៅ (រក្សាទុកនៅដដែល មិនប៉ះពាល់) ---
+                let blank1 = document.createElement('div'); blank1.className = 'page tpl-blank-page';
+                orderedPages.push(blank1);
+                orderedPages.push(frontCover);
+                
+                let blank2 = document.createElement('div'); blank2.className = 'page tpl-blank-page';
+                orderedPages.push(blank2);      
+                orderedPages.push(studentInfo); 
+
+                // --- ផ្នែកទី២: សន្លឹកខាងក្នុង (អនុវត្តតាមគំរូ ឆ្វេង | ស្តាំ របស់អ្នក) ---
+                let N = numMonths; // លំនាំដើមគឺ ១០
+                
+                // ១. បង្កើតលំដាប់គោល (Sequence A) [ឧ. ៩|០, ១|៨, ៧|២, ៣|៦, ៥|៤]
+                let seqA = [];
+                for(let i=0; i < Math.floor(N/2); i++) {
+                    if (i % 2 === 0) {
+                        seqA.push({ left: N - 1 - i, right: i });
+                    } else {
+                        seqA.push({ left: i, right: N - 1 - i });
+                    }
+                }
+
+                // ២. បង្កើតលំដាប់ត្រឡប់ (Sequence B) [ឧ. ០|៩, ៨|១, ២|៧, ៦|៣, ៤|៥]
+                let seqB = seqA.map(p => ({ left: p.right, right: p.left }));
+
+                // ៣. ស្វែងរកគូដែលស័ក្តិសម (ឱ្យខែដែលជ្រើសរើសនៅខាងស្តាំនៃសន្លឹកទី១)
+                let sequenceToUse = seqA;
+                let startIndex = seqA.findIndex(p => p.right === startMonth);
+
+                if (startIndex === -1) {
+                    startIndex = seqB.findIndex(p => p.right === startMonth);
+                    if (startIndex !== -1) {
+                        sequenceToUse = seqB;
+                    } else {
+                        // ករណីរកមិនឃើញ យកលំនាំដើម
+                        sequenceToUse = seqA;
+                        startIndex = 0;
+                    }
+                }
+
+                // ៤. ទាញយកទំព័រតាមលំដាប់ ដែលត្រូវនឹងលក្ខខណ្ឌ
+                for (let i = 0; i < sequenceToUse.length; i++) {
+                    let idx = (startIndex + i) % sequenceToUse.length;
+                    let pair = sequenceToUse[idx];
+                    
+                    let leftPage = createMonthPage(khmerMonths[pair.left % 12]);
+                    let rightPage = createMonthPage(khmerMonths[pair.right % 12]);
+
+                    orderedPages.push(leftPage);
+                    orderedPages.push(rightPage);
+                }
+                
+                // បញ្ចូលទៅក្នុងកន្លែងបង្ហាញ
+                orderedPages.forEach(p => container.appendChild(p));
+
+            } else {
+                // ទម្រង់ A5 ធម្មតា (រក្សាទុកនៅដដែល)
+                container.classList.remove('booklet-mode');
+                styleTag.innerHTML = `@page { size: A5 portrait; margin: 0; }`;
+                
+                container.appendChild(frontCover);
+                container.appendChild(studentInfo);
+                
+                for (let i = 0; i < numMonths; i++) {
+                    let mIdx = (startMonth + i) % 12;
+                    container.appendChild(createMonthPage(khmerMonths[mIdx]));
+                }
+            }
+        }
+        // ដំណើរការកម្មវិធីពេលទំព័រលោតចេញដំបូង
+        window.onload = function() {
+            generateBook();
+        };
+    </script>
+</body>
+</html>

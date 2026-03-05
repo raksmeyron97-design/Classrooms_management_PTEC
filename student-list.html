@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - បញ្ជីឈ្មោះសិស្ស</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body { 
+            font-family: 'Battambang', cursive; 
+            background-color: #f9fafb; /* bg-gray-50 */
+            color: #1f2937;
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 0; 
+        }
+        .kh-moul { font-family: 'Moul', cursive; font-weight: normal; }
+        
+        /* Loading Overlay */
+        #loadingOverlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .data-table th {
+            background-color: #f3f4f6;
+            color: #322a83;
+            font-weight: bold;
+            text-align: left;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+        .data-table td {
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+        
+        /* Set background explicitly on tr so inherit works for sticky columns */
+        .data-table tbody tr {
+            background-color: #ffffff;
+            transition: background-color 0.2s;
+        }
+        .data-table tbody tr:nth-child(even) {
+            background-color: #fdfdfd;
+        }
+        .data-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        /* Sticky Column for Name */
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);
+        }
+        .data-table thead th.sticky-col {
+            background-color: #f3f4f6;
+            z-index: 20;
+        }
+        .data-table tbody td.sticky-col {
+            background-color: #ffffff; 
+        }
+        .data-table tbody tr:nth-child(even) td.sticky-col {
+            background-color: #fdfdfd; 
+        }
+        .data-table tbody tr:hover td.sticky-col {
+            background-color: #f8fafc; 
+        }
+
+        .min-w-name { min-width: 180px; }
+        .min-w-place { min-width: 200px; }
+        .min-w-parent { min-width: 160px; }
+        .min-w-notes { min-width: 120px; }
+
+        /* Custom Scrollbar for Table */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        .table-wrapper::-webkit-scrollbar { height: 8px; }
+        .table-wrapper::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .data-table { font-size: 9pt; }
+            .data-table th, .data-table td { padding: 4px; border: 1px solid #000; white-space: normal; word-break: break-word; }
+            .table-wrapper { border: none; overflow: visible; }
+            /* Disable sticky position for printing */
+            .sticky-col { position: static !important; box-shadow: none !important; }
+            @page { size: A4 landscape; margin: 10mm; }
+        }
+        
+        /* Modals */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay for Firebase fetching -->
+    <div id="loadingOverlay">
+        <div class="w-16 h-16 border-4 border-[#322a83] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="kh-moul text-[#322a83] text-lg animate-pulse" id="loading-text">កំពុងទាញយកទិន្នន័យ...</p>
+        <p class="text-xs text-slate-500 mt-2">សូមរង់ចាំបន្តិច</p>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="bg-indigo-900 text-white p-4 shadow-lg sticky top-0 z-50 no-print">
+        <div class="container mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i data-lucide="users" class="w-6 h-6"></i>
+                <h1 class="kh-moul text-lg hidden sm:block">ប្រព័ន្ធគ្រប់គ្រងសិស្ស</h1>
+            </div>
+            <div class="text-sm font-bold flex items-center gap-4">
+                <a href="attendance-1.html" class="hover:text-indigo-200 transition-colors flex items-center gap-1"><i data-lucide="calendar-check" class="w-4 h-4"></i> វត្តមាន</a>
+                <a href="enrollment_V2.html" class="bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded flex items-center gap-1 transition-colors"><i data-lucide="user-plus" class="w-4 h-4"></i> បញ្ចូលសិស្សថ្មី</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <div class="container mx-auto p-4 md:p-6 mt-4 pb-20 max-w-[1400px]">
+        
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative" id="print-area">
+            <!-- Top Border Decoration -->
+            <div class="h-2 w-full bg-[#2da143] no-print"></div>
+            
+            <div class="p-6 md:p-8">
+                <!-- Header & Actions -->
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-gray-100 pb-4 mb-6 gap-4">
+                    <div>
+                        <h2 class="kh-moul text-[#322a83] text-xl" id="reportTitle">បញ្ជីរាយនាមសិស្សានុសិស្ស</h2>
+                        <p class="text-sm text-gray-500 mt-1" id="studentCount">សិស្សសរុប៖ ០ នាក់</p>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2 no-print">
+                        <!-- ប៊ូតុងថ្មីសម្រាប់ចូលទៅកាន់ទំព័រ Print/Excel -->
+                        <button onclick="window.location.href='print-student-list.html'" class="bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2 rounded text-[13px] font-bold flex items-center gap-2 shadow-sm transition-colors">
+                            <i data-lucide="printer" class="w-4 h-4"></i> ទម្រង់បោះពុម្ព និង ទាញយក
+                        </button>
+                        
+                        <!-- Delete All Button -->
+                        <button id="deleteAllBtn" onclick="window.deleteAllStudents()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-[13px] font-bold flex items-center gap-2 shadow-sm transition-colors ml-auto md:ml-4">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i> លុបទាំងអស់
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Table Area -->
+                <div class="table-wrapper">
+                    <table class="data-table" id="studentTable">
+                        <thead>
+                            <tr>
+                                <th class="text-center w-10">ល.រ</th>
+                                <th>អត្តលេខ</th>
+                                <th class="min-w-name sticky-col">គោត្តនាម នាម</th>
+                                <th>ភេទ</th>
+                                <th>ថ្ងៃខែឆ្នាំកំណើត</th>
+                                <th class="text-center">អាយុ</th>
+                                <th class="min-w-place">ទីកន្លែងកំណើត</th>
+                                <th class="min-w-parent">ឈ្មោះឪពុក និងមុខរបរ</th>
+                                <th class="min-w-parent">ឈ្មោះម្តាយ និងមុខរបរ</th>
+                                <th class="min-w-place">អាសយដ្ឋានសព្វថ្ងៃ</th>
+                                <th>ជនជាតិដើមភាគតិច</th>
+                                <th class="min-w-notes">លក្ខណៈពិសេស</th>
+                                <th class="min-w-notes">សេចក្តីផ្សេងៗ</th>
+                                <th class="text-center no-print sticky right-0 bg-gray-50 border-l z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">សកម្មភាព</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody">
+                            <!-- Data injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-gray-400">
+                    <i data-lucide="users" class="w-16 h-16 mb-4 opacity-50"></i>
+                    <p class="text-lg font-bold">មិនទាន់មានទិន្នន័យសិស្សនៅឡើយទេ</p>
+                    <a href="enrollment_V2.html" class="mt-4 bg-[#2da143] text-white px-6 py-2 rounded font-bold hover:bg-[#238535] transition-colors">ទៅកាន់ទំព័របញ្ចូលសិស្ស</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for showing full photo -->
+    <div id="photoModal" class="modal" onclick="this.style.display='none'">
+        <div class="bg-white p-2 rounded-xl shadow-2xl max-w-sm w-full mx-4" onclick="event.stopPropagation()">
+            <img id="modalImg" src="" class="w-full h-auto rounded-lg" alt="Student Photo">
+            <button onclick="document.getElementById('photoModal').style.display='none'" class="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 rounded transition-colors">បិទ</button>
+        </div>
+    </div>
+
+    <!-- ប្រើប្រាស់ Type Module សម្រាប់ Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, deleteDoc, writeBatch, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+        let studentsData = [];
+        let unsubscribeSnapshot = null;
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loading-text');
+
+        // =======================
+        // Authentication Check
+        // =======================
+        const initAuth = async () => {
+            try {
+                // To support Canvas Environment Auth Flow gracefully
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    // បើមិនមាន user login អាច redirect ទៅកាន់ index.html ឬប្រើ Anonymous Login ជាបណ្ដោះអាសន្ន
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+            }
+        };
+
+        // Initialize Lucide Icons initially
+        lucide.createIcons();
+
+        // Check Auth State
+        initAuth().then(() => {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUser = user;
+                    loadingText.textContent = "កំពុងរៀបចំទិន្នន័យពី Database...";
+                    loadStudentsFromFirestore();
+                } else {
+                    // ប្រសិនបើចង់ឲ្យវាលោតទៅទំព័រ Login ពេលអត់មាន User កែសម្រួលកូដនៅទីនេះ
+                    // window.location.href = 'index.html';
+                }
+            });
+        });
+
+        // =======================
+        // Firestore Logic
+        // =======================
+        function loadStudentsFromFirestore() {
+            if (!currentUser) return;
+
+            // Database Path ដូចគ្នាទៅនឹង enrollment_V2.html
+            const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
+
+            // ប្រើ onSnapshot ដើម្បី Update តារាងដោយស្វ័យប្រវត្តិ (Real-time updates)
+            unsubscribeSnapshot = onSnapshot(studentsRef, (snapshot) => {
+                studentsData = [];
+                snapshot.forEach((doc) => {
+                    studentsData.push(doc.data());
+                });
+                
+                // Sort by createdAt (optional)
+                studentsData.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                
+                renderTable();
+                loadingOverlay.style.display = 'none';
+            }, (error) => {
+                console.error("Error fetching students: ", error);
+                loadingOverlay.style.display = 'none';
+                alert("មិនអាចទាញយកទិន្នន័យបានទេ សូមពិនិត្យមើលអ៉ីនធឺណិតរបស់អ្នក!");
+            });
+        }
+
+        // =======================
+        // Table Rendering & Helpers
+        // =======================
+        function calculateAge(dobStr) {
+            if(!dobStr || dobStr === '-') return '-';
+            const dob = new Date(dobStr);
+            if(isNaN(dob)) return '-';
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        function formatLocation(v, c, d, p) {
+            let parts = [];
+            const clean = (str, regex) => str ? str.replace(regex, '').trim() : '';
+            
+            let village = clean(v, /^(ភូមិទី|ភូមិ)\s*/);
+            let commune = clean(c, /^(ឃុំ\/សង្កាត់|សង្កាត់|ឃុំ)\s*/);
+            let district = clean(d, /^(ស្រុក\/ខណ្ឌ|ក្រុង\/ស្រុក\/ខណ្ឌ|ខណ្ឌ|ស្រុក|ក្រុង)\s*/);
+            let province = clean(p, /^(ខេត្ត\/ក្រុង|រាជធានី\/ខេត្ត|រាជធានី|ខេត្ត)\s*/);
+
+            if(village) parts.push(village);
+            if(commune) parts.push(commune);
+            if(district) parts.push(district);
+            if(province) parts.push(province);
+            
+            return parts.length > 0 ? parts.join(' ') : '-';
+        }
+
+        function formatParent(name, job) {
+            if(!name && !job) return '-';
+            let res = name ? name.trim() : 'មិនស្គាល់';
+            if(job && job.trim()) res += ` (${job.trim()})`;
+            return res;
+        }
+
+        function formatDateDisplay(dobStr) {
+            if(!dobStr || dobStr === '-') return '-';
+            const parts = dobStr.split('-');
+            if(parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dobStr;
+        }
+
+        function renderTable() {
+            const tableBody = document.getElementById('studentTableBody');
+            const emptyState = document.getElementById('emptyState');
+            const tableWrapper = document.querySelector('.table-wrapper');
+            
+            document.getElementById('studentCount').textContent = `សិស្សសរុប៖ ${studentsData.length} នាក់ (ស្រី ${studentsData.filter(s => s.gender === 'ស្រី').length} នាក់)`;
+
+            if (studentsData.length === 0) {
+                tableWrapper.style.display = 'none';
+                emptyState.style.display = 'flex';
+                return;
+            }
+
+            tableWrapper.style.display = 'block';
+            emptyState.style.display = 'none';
+
+            tableBody.innerHTML = '';
+            
+            studentsData.forEach((s, index) => {
+                const age = calculateAge(s.dob);
+                const birthPlace = formatLocation(s.village, s.commune, s.district, s.province);
+                const currPlace = formatLocation(s.currVillage, s.currCommune, s.currDistrict, s.currProvince) !== '-' ? 
+                                  formatLocation(s.currVillage, s.currCommune, s.currDistrict, s.currProvince) : 
+                                  (s.currentAddress || '-'); 
+                                  
+                const fatherInfo = formatParent(s.father, s.fatherJob);
+                const motherInfo = formatParent(s.mother, s.motherJob);
+                const displayDob = formatDateDisplay(s.dob);
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-center font-bold text-gray-500">${index + 1}</td>
+                    <td class="font-mono text-blue-600 font-bold">${s.id || '-'}</td>
+                    <td class="sticky-col font-bold text-indigo-900 border-r border-gray-200">
+                        <div class="flex items-center gap-2">
+                            <img src="${s.photo || 'https://api.dicebear.com/7.x/notionists/svg?seed=' + s.id}" 
+                                 class="w-8 h-8 rounded-full border border-gray-200 object-cover cursor-pointer hover:ring-2 ring-indigo-400 no-print" 
+                                 onclick="window.showPhoto(this.src)">
+                            <span class="whitespace-nowrap">${s.name || '-'}</span>
+                        </div>
+                    </td>
+                    <td>${s.gender || '-'}</td>
+                    <td class="text-gray-600">${displayDob}</td>
+                    <td class="text-center font-bold ${age !== '-' ? 'text-green-600' : ''}">${age}</td>
+                    <td class="text-gray-600 text-[11px]">${birthPlace}</td>
+                    <td class="text-gray-700 text-[11px]">${fatherInfo}</td>
+                    <td class="text-gray-700 text-[11px]">${motherInfo}</td>
+                    <td class="text-gray-600 text-[11px]">${currPlace}</td>
+                    <td class="text-[11px]">${s.ethnicity || '-'}</td>
+                    <td class="text-[11px] text-purple-600">${s.specialFeatures || '-'}</td>
+                    <td class="text-[11px] text-gray-500 italic">${s.otherRemarks || '-'}</td>
+                    <td class="text-center no-print sticky right-0 bg-inherit border-l px-2 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">
+                        <div class="flex items-center justify-center gap-1 bg-inherit">
+                            <button onclick="window.editStudent(${index})" class="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors" title="កែសម្រួល">
+                                <i data-lucide="edit" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="window.deleteStudent(${index})" class="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors" title="លុប">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+            
+            lucide.createIcons();
+        }
+
+        // =======================
+        // Action Methods (Exposed to window for inline HTML onclick)
+        // =======================
+        window.showPhoto = function(src) {
+            document.getElementById('modalImg').src = src;
+            document.getElementById('photoModal').style.display = 'flex';
+        };
+
+        window.editStudent = function(index) {
+            const student = studentsData[index];
+            // រក្សា ID សិស្សទុក ដើម្បីទំព័រ enrollment_V2 ទាញយក
+            localStorage.setItem('editStudentId', student.id);
+            window.location.href = 'enrollment_V2.html'; // ត្រូវប្រាកដថាឈ្មោះទំព័រត្រូវគ្នា
+        };
+
+        window.deleteStudent = async function(index) {
+            if(!currentUser) return;
+            const student = studentsData[index];
+
+            if(confirm(`តើអ្នកពិតជាចង់លុបទិន្នន័យសិស្សឈ្មោះ ${student.name} មែនទេ?`)) {
+                try {
+                    const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students', student.id.toString());
+                    await deleteDoc(docRef);
+                    // onSnapshot វានឹងដំណើរការលុបពី UI ដោយស្វ័យប្រវត្តិ
+                } catch (error) {
+                    console.error("Error deleting student: ", error);
+                    alert("មិនអាចលុបបានទេ សូមព្យាយាមម្តងទៀត។");
+                }
+            }
+        };
+
+        window.deleteAllStudents = async function() {
+            if(studentsData.length === 0) {
+                alert('មិនមានទិន្នន័យសម្រាប់លុបទេ!');
+                return;
+            }
+            if(!currentUser) return;
+
+            if(confirm('តើអ្នកពិតជាចង់លុបទិន្នន័យសិស្សទាំងអស់មែនទេ?\nបញ្ជាក់៖ សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ!')) {
+                const btn = document.getElementById('deleteAllBtn');
+                const originalContent = btn.innerHTML;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> កំពុងលុប...';
+                btn.disabled = true;
+
+                try {
+                    const batch = writeBatch(db);
+                    studentsData.forEach(student => {
+                        const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students', student.id.toString());
+                        batch.delete(docRef);
+                    });
+                    
+                    await batch.commit();
+                    // UI នឹង update ស្វ័យប្រវត្តិតាមរយៈ onSnapshot
+                } catch (error) {
+                    console.error("Error deleting all: ", error);
+                    alert("មានបញ្ហាក្នុងការលុបទិន្នន័យទាំងអស់!");
+                } finally {
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                    lucide.createIcons();
+                }
+            }
+        };
+
+    </script>
+</body>
+</html>

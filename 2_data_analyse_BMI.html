@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ក្រាបចំណាត់ថ្នាក់ BMI កុមារ និងយុវវ័យ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Battambang', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            margin: 0;
+            padding: 0;
+        }
+        .kh-moul {
+            font-family: 'Moul', cursive;
+        }
+        .btn-toggle {
+            transition: all 0.3s ease;
+        }
+        .btn-active-boy {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5);
+        }
+        .btn-active-girl {
+            background-color: #ec4899;
+            color: white;
+            border-color: #ec4899;
+            box-shadow: 0 4px 6px -1px rgba(236, 72, 153, 0.5);
+        }
+
+        /* រចនាប័ទ្មពេលបោះពុម្ព (Print Styles) */
+        @media print {
+            @page { size: landscape; margin: 10mm; }
+            body, html { background: white !important; margin: 0 !important; padding: 0 !important; }
+            .no-print { display: none !important; }
+            .max-w-7xl { box-shadow: none !important; border: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; border-radius: 0 !important; }
+            .bg-slate-800 { background: transparent !important; color: black !important; padding: 10px 0 20px 0 !important; border-bottom: 2px solid #e2e8f0; }
+            .bg-slate-800 h1, .bg-slate-800 p { color: black !important; }
+            .text-slate-300 { color: #475569 !important; }
+            .p-6 { padding: 10px 0 !important; }
+            .shadow-sm { box-shadow: none !important; border-color: #cbd5e1 !important; }
+            
+            .print-grid {
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 20px !important;
+                align-items: center !important;
+                justify-content: center !important;
+                width: 100% !important;
+            }
+            .print-main-chart {
+                width: 60% !important;
+                height: 450px !important; 
+            }
+            .print-summary-chart {
+                width: 40% !important;
+                height: 450px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            canvas {
+                max-width: 100% !important;
+                max-height: 100% !important;
+                margin: 0 auto !important;
+            }
+            #summaryStats {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                width: 100% !important;
+                gap: 8px !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 md:p-8">
+
+    <div class="max-w-7xl w-full mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative">
+        <!-- Loading UI -->
+        <div id="loadingOverlay" class="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+            <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+            <p class="text-indigo-700 font-bold">កំពុងទាញយកទិន្នន័យ...</p>
+        </div>
+
+        <!-- Header -->
+        <div class="bg-slate-800 text-white p-6 text-center">
+            <h1 class="kh-moul text-xl md:text-2xl mb-2">ក្រាបចំណាត់ថ្នាក់ BMI និងការវិភាគទិន្នន័យ</h1>
+            <p class="text-slate-300 text-sm">ផ្អែកតាមស្តង់ដារអង្គការសុខភាពពិភពលោក (WHO) សម្រាប់អាយុ ៥ ដល់ ១៥ឆ្នាំ</p>
+        </div>
+
+        <div class="p-6 md:p-8">
+            <!-- Controls & Graph Type Selectors -->
+            <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4">
+                
+                <div class="flex flex-wrap items-center gap-4">
+                    <!-- Gender Toggle -->
+                    <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl no-print">
+                        <button id="btnBoy" onclick="window.setGender('boy')" class="btn-toggle btn-active-boy px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 text-sm">
+                            <i data-lucide="user" class="w-4 h-4"></i> សិស្សប្រុស
+                        </button>
+                        <button id="btnGirl" onclick="window.setGender('girl')" class="btn-toggle text-slate-600 hover:bg-slate-200 px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 text-sm">
+                            <i data-lucide="user" class="w-4 h-4"></i> សិស្សស្រី
+                        </button>
+                    </div>
+
+                    <!-- Chart Type Selectors -->
+                    <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 p-1.5 rounded-lg no-print">
+                        <div class="flex items-center gap-2 px-2">
+                            <i data-lucide="bar-chart-2" class="w-4 h-4 text-slate-500"></i>
+                            <select id="mainChartType" onchange="window.changeMainChartType(this.value)" class="bg-transparent text-sm font-bold text-slate-700 outline-none cursor-pointer">
+                                <option value="area">Area Chart (ក្រាបផ្ទៃ)</option>
+                                <option value="line">Line Chart (ក្រាបបន្ទាត់)</option>
+                                <option value="bar">Bar Chart (ក្រាបសសរ)</option>
+                            </select>
+                        </div>
+                        <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                        <div class="flex items-center gap-2 px-2">
+                            <i data-lucide="pie-chart" class="w-4 h-4 text-slate-500"></i>
+                            <select id="summaryChartType" onchange="window.changeSummaryChartType(this.value)" class="bg-transparent text-sm font-bold text-slate-700 outline-none cursor-pointer">
+                                <option value="doughnut">Doughnut (ក្រាបនំ)</option>
+                                <option value="pie">Pie (ក្រាបចំណិត)</option>
+                                <option value="bar">Bar (ក្រាបសសរ)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Print Button -->
+                    <button onclick="window.print()" class="no-print flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-colors shadow-sm">
+                        <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ព
+                    </button>
+                </div>
+
+                <!-- Legend -->
+                <div class="flex flex-wrap gap-3 text-[11px] md:text-xs font-bold bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-[#fef9c3] border border-[#eab308]"></span> ស្គម (Underweight)</div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-[#dcfce7] border border-[#22c55e]"></span> ធម្មតា (Normal)</div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-[#ffedd5] border border-[#f97316]"></span> លើសទម្ងន់ (Overweight)</div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-[#fee2e2] border border-[#ef4444]"></span> ធាត់ខ្លាំង (Obese)</div>
+                </div>
+            </div>
+
+            <!-- Student Data Note -->
+            <div class="no-print flex items-center justify-center gap-2 mb-6 text-[13px] bg-indigo-50/80 border border-indigo-100 text-indigo-800 py-2.5 px-4 rounded-lg font-bold shadow-sm">
+                <span class="w-3.5 h-3.5 rounded-full bg-[#4f46e5] border-2 border-white shadow-sm inline-block shrink-0"></span> 
+                <span>ចំណុចពណ៌ខៀវ តំណាងឲ្យទិន្នន័យសិស្ស។ ក្រាបសង្ខេបខាងស្តាំ បង្ហាញពីភាគរយសរុបនៃស្ថានភាពសុខភាពសិស្ស។</span>
+            </div>
+
+            <!-- Charts Grid Layout -->
+            <div class="print-grid grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Main Chart -->
+                <div class="print-main-chart lg:col-span-2 relative w-full h-[400px] md:h-[500px] bg-white border border-slate-100 rounded-xl p-2 shadow-sm">
+                    <canvas id="bmiChart"></canvas>
+                </div>
+
+                <!-- Summary Chart -->
+                <div class="print-summary-chart relative w-full h-[400px] md:h-[500px] flex flex-col items-center bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+                    <h3 class="text-base font-bold text-slate-800 mb-1 kh-moul text-center">វិភាគទិន្នន័យសិស្សសរុប</h3>
+                    <p class="text-xs text-slate-500 mb-6 text-center">ចំនួនសិស្សតាមចំណាត់ថ្នាក់ BMI</p>
+                    
+                    <div class="relative w-full flex-grow flex justify-center items-center">
+                        <canvas id="summaryChart"></canvas>
+                    </div>
+
+                    <div id="summaryStats" class="w-full mt-6 grid grid-cols-2 gap-2 text-xs font-bold text-slate-700">
+                        <!-- Stats injected via JS -->
+                    </div>
+                </div>
+
+            </div>
+            
+            <p class="no-print text-center text-xs text-slate-400 mt-6"><i data-lucide="info" class="w-3 h-3 inline pb-0.5"></i> អ័ក្សដេក (X): អាយុគិតជាឆ្នាំ | អ័ក្សឈរ (Y): តម្លៃ BMI</p>
+        </div>
+    </div>
+
+    <!-- Firebase Integration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const PTEC_APP_ID = "ptec-app"; 
+
+        window.students = [];
+        window.healthData = {};
+        window.currentUser = null;
+
+        lucide.createIcons();
+
+        // Data Variables
+        const labels = ['៥ ឆ្នាំ', '៦ ឆ្នាំ', '៧ ឆ្នាំ', '៨ ឆ្នាំ', '៩ ឆ្នាំ', '១០ ឆ្នាំ', '១១ ឆ្នាំ', '១២ ឆ្នាំ', '១៣ ឆ្នាំ', '១៤ ឆ្នាំ', '១៥ ឆ្នាំ'];
+        
+        const boysData = {
+            underweight: [13.0, 13.3, 13.6, 13.8, 14.0, 14.2, 14.6, 15.0, 15.4, 16.0, 16.5],
+            overweight:  [16.6, 17.0, 17.3, 17.7, 18.3, 19.0, 19.9, 20.8, 21.8, 22.7, 23.6],
+            obese:       [18.3, 18.5, 19.0, 19.7, 20.5, 21.4, 22.5, 23.6, 24.8, 25.9, 27.0]
+        };
+
+        const girlsData = {
+            underweight: [12.7, 13.0, 13.2, 13.5, 13.8, 14.0, 14.4, 14.8, 15.3, 15.8, 16.3],
+            overweight:  [16.9, 17.1, 17.6, 18.3, 19.1, 20.0, 21.1, 22.3, 23.3, 24.3, 25.0],
+            obese:       [18.9, 18.8, 19.6, 20.6, 21.7, 22.9, 24.3, 25.9, 27.1, 28.2, 29.1]
+        };
+
+        const maxData = Array(11).fill(32); 
+
+        // State Variables
+        let currentGender = 'boy';
+        let mainChartStyle = 'area'; 
+        let sumChartStyle = 'doughnut'; 
+        let bmiChart = null;
+        let summaryChart = null;
+
+        // --- Authentication & Live Data Flow ---
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+            }
+        };
+
+        initAuth().then(() => {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    window.currentUser = user;
+                    setupFirebaseListeners();
+                }
+            });
+        });
+
+        // ប្រើប្រាស់ onSnapshot ដើម្បីទាញយកទិន្នន័យ (លោតដោយស្វ័យប្រវត្តិពេលមានការកែប្រែ)
+        function setupFirebaseListeners() {
+            let studentsLoaded = false;
+            let healthLoaded = false;
+
+            const checkAndRender = () => {
+                if (studentsLoaded && healthLoaded) {
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                    initMainChart();
+                    initSummaryChart();
+                }
+            };
+
+            const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', window.currentUser.uid, 'students');
+            onSnapshot(studentsRef, (snapshot) => {
+                window.students = [];
+                snapshot.forEach(doc => window.students.push(doc.data()));
+                window.students.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                studentsLoaded = true;
+                checkAndRender();
+            }, (error) => {
+                console.error("Firebase error: ", error);
+            });
+
+            const healthRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', window.currentUser.uid, 'settings', 'health_tracking');
+            onSnapshot(healthRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    window.healthData = docSnap.data();
+                } else {
+                    window.healthData = {};
+                }
+                healthLoaded = true;
+                checkAndRender();
+            });
+        }
+
+
+        // --- Fetch Student Data Logic ---
+        function getStudentPoints(targetGender) {
+            const points = [];
+
+            window.students.forEach((s, index) => {
+                let isBoy = true;
+                if (s.gender && (s.gender.includes('ស្រី') || s.gender.toLowerCase() === 'f')) {
+                    isBoy = false;
+                }
+
+                if ((targetGender === 'boy' && isBoy) || (targetGender === 'girl' && !isBoy)) {
+                    const h_cm = parseFloat(window.healthData[`h_${index}`]);
+                    const w_kg = parseFloat(window.healthData[`w_${index}`]);
+                    
+                    if (h_cm && w_kg && h_cm >= 50 && w_kg >= 5) {
+                        const h_m = h_cm / 100;
+                        const bmi = parseFloat((w_kg / (h_m * h_m)).toFixed(1));
+
+                        let age = 9; 
+                        if (s.dob) {
+                            const match = s.dob.toString().match(/\d{4}/);
+                            if (match) {
+                                const birthYear = parseInt(match[0]);
+                                const currentYear = new Date().getFullYear();
+                                age = currentYear - birthYear;
+                            }
+                        }
+                        
+                        let chartAge = age;
+                        if (chartAge < 5) chartAge = 5;
+                        if (chartAge > 15) chartAge = 15;
+
+                        const xIndex = chartAge - 5;
+
+                        points.push({
+                            x: labels[xIndex],
+                            y: bmi,
+                            studentName: s.name || `សិស្សទី ${index + 1}`,
+                            age: age
+                        });
+                    }
+                }
+            });
+
+            // Sample data if empty
+            if (points.length === 0) {
+                 return [
+                    { x: labels[0], y: 14.5, studentName: 'សិស្សគំរូ ក (ធម្មតា)', age: 5 },
+                    { x: labels[3], y: 19.0, studentName: 'សិស្សគំរូ ខ (លើសទម្ងន់)', age: 8 },
+                    { x: labels[6], y: 23.5, studentName: 'សិស្សគំរូ គ (ធាត់ខ្លាំង)', age: 11 },
+                    { x: labels[9], y: 15.0, studentName: 'សិស្សគំរូ ឃ (ស្គម)', age: 14 },
+                    { x: labels[5], y: 16.5, studentName: 'សិស្សគំរូ ង (ធម្មតា)', age: 10 }
+                 ];
+            }
+
+            return points;
+        }
+
+        // --- Calculate Summary Data ---
+        function calculateSummary(points, genderData) {
+            let counts = { underweight: 0, normal: 0, overweight: 0, obese: 0 };
+            
+            points.forEach(p => {
+                const ageIndex = labels.indexOf(p.x);
+                if (ageIndex === -1) return;
+
+                const obeseVal = genderData.obese[ageIndex];
+                const overweightVal = genderData.overweight[ageIndex];
+                const normalVal = genderData.underweight[ageIndex];
+
+                if (p.y >= obeseVal) counts.obese++;
+                else if (p.y >= overweightVal) counts.overweight++;
+                else if (p.y >= normalVal) counts.normal++;
+                else counts.underweight++;
+            });
+
+            return counts;
+        }
+
+
+        // --- Main Chart Configuration ---
+        function getMainChartDatasets(gender) {
+            const data = gender === 'boy' ? boysData : girlsData;
+            const studentPoints = getStudentPoints(gender);
+            
+            const isArea = mainChartStyle === 'area';
+            const baseType = mainChartStyle === 'bar' ? 'bar' : 'line';
+
+            return [
+                {
+                    type: baseType,
+                    label: 'Max',
+                    data: maxData,
+                    borderColor: mainChartStyle === 'line' ? '#cbd5e1' : 'transparent',
+                    borderWidth: mainChartStyle === 'line' ? 1 : 0,
+                    backgroundColor: 'rgba(254, 226, 226, 0.6)', 
+                    fill: isArea ? 1 : false, 
+                    pointRadius: 0,
+                    tooltip: false,
+                    barPercentage: 1.0,
+                    categoryPercentage: 1.0
+                },
+                {
+                    type: baseType,
+                    label: 'កម្រិតធាត់ខ្លាំង (Obese ≥)',
+                    data: data.obese,
+                    borderColor: '#ef4444',
+                    borderWidth: mainChartStyle === 'bar' ? 1 : 3,
+                    backgroundColor: mainChartStyle === 'line' ? 'transparent' : 'rgba(255, 237, 213, 0.9)',
+                    fill: isArea ? 2 : false, 
+                    tension: 0.3,
+                    pointBackgroundColor: '#ef4444',
+                    pointBorderColor: '#fff',
+                    pointRadius: mainChartStyle === 'bar' ? 0 : 4,
+                    barPercentage: 1.0,
+                    categoryPercentage: 1.0
+                },
+                {
+                    type: baseType,
+                    label: 'កម្រិតលើសទម្ងន់ (Overweight ≥)',
+                    data: data.overweight,
+                    borderColor: '#f97316',
+                    borderWidth: mainChartStyle === 'bar' ? 1 : 3,
+                    backgroundColor: mainChartStyle === 'line' ? 'transparent' : 'rgba(220, 252, 231, 0.9)',
+                    fill: isArea ? 3 : false, 
+                    tension: 0.3,
+                    pointBackgroundColor: '#f97316',
+                    pointBorderColor: '#fff',
+                    pointRadius: mainChartStyle === 'bar' ? 0 : 4,
+                    barPercentage: 1.0,
+                    categoryPercentage: 1.0
+                },
+                {
+                    type: baseType,
+                    label: 'កម្រិតធម្មតា (Normal ≥)',
+                    data: data.underweight,
+                    borderColor: '#22c55e',
+                    borderWidth: mainChartStyle === 'bar' ? 1 : 3,
+                    backgroundColor: mainChartStyle === 'line' ? 'transparent' : 'rgba(254, 249, 195, 0.9)',
+                    fill: isArea ? 'origin' : false, 
+                    tension: 0.3,
+                    pointBackgroundColor: '#22c55e',
+                    pointBorderColor: '#fff',
+                    pointRadius: mainChartStyle === 'bar' ? 0 : 4,
+                    barPercentage: 1.0,
+                    categoryPercentage: 1.0
+                },
+                {
+                    type: 'line', 
+                    showLine: false, 
+                    label: 'ទិន្នន័យសិស្ស',
+                    data: studentPoints,
+                    backgroundColor: '#4f46e5', 
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                    pointRadius: 6, 
+                    pointHoverRadius: 9,
+                    order: 0 
+                }
+            ];
+        }
+
+        function initMainChart() {
+            if (bmiChart) bmiChart.destroy();
+
+            const ctx = document.getElementById('bmiChart').getContext('2d');
+            Chart.defaults.font.family = "'Battambang', sans-serif";
+            
+            bmiChart = new Chart(ctx, {
+                data: {
+                    labels: labels,
+                    datasets: getMainChartDatasets(currentGender)
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'nearest', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleFont: { family: "'Battambang', sans-serif", size: 14, weight: 'bold' },
+                            bodyFont: { family: "'Battambang', sans-serif", size: 13 },
+                            padding: 12,
+                            cornerRadius: 8,
+                            filter: function(tooltipItem) { return tooltipItem.datasetIndex !== 0; },
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataset.label === 'ទិន្នន័យសិស្ស') {
+                                        return ` ${context.raw.studentName} (អាយុ ${context.raw.age}ឆ្នាំ) : ${context.parsed.y} BMI`;
+                                    }
+                                    return ' ' + context.dataset.label.replace(' ≥', '') + ': ' + context.parsed.y + ' BMI';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 10, max: 32,
+                            ticks: { stepSize: 2 },
+                            title: { display: true, text: 'សន្ទស្សន៍ម៉ាសរាងកាយ (BMI)', font: { weight: 'bold' } },
+                            stacked: false 
+                        },
+                        x: {
+                            title: { display: true, text: 'អាយុ (ឆ្នាំ)', font: { weight: 'bold' } },
+                            grid: { display: false },
+                            stacked: false 
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Summary Chart Configuration ---
+        function initSummaryChart() {
+            if (summaryChart) summaryChart.destroy();
+            
+            const points = getStudentPoints(currentGender);
+            const genderData = currentGender === 'boy' ? boysData : girlsData;
+            const counts = calculateSummary(points, genderData);
+            
+            const total = counts.underweight + counts.normal + counts.overweight + counts.obese;
+            const dataArray = [counts.underweight, counts.normal, counts.overweight, counts.obese];
+            
+            const bgColors = ['rgba(253, 224, 71, 0.8)', 'rgba(74, 222, 128, 0.8)', 'rgba(251, 146, 60, 0.8)', 'rgba(248, 113, 113, 0.8)'];
+            const borderColors = ['#eab308', '#22c55e', '#ea580c', '#dc2626'];
+            const labelsArr = ['ស្គម', 'ធម្មតា', 'លើសទម្ងន់', 'ធាត់ខ្លាំង'];
+
+            const ctx = document.getElementById('summaryChart').getContext('2d');
+            
+            summaryChart = new Chart(ctx, {
+                type: sumChartStyle,
+                data: {
+                    labels: labelsArr,
+                    datasets: [{
+                        label: 'ចំនួនសិស្ស',
+                        data: dataArray,
+                        backgroundColor: bgColors,
+                        borderColor: borderColors,
+                        borderWidth: 1,
+                        borderRadius: sumChartStyle === 'bar' ? 6 : 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: sumChartStyle === 'doughnut' ? '65%' : 0,
+                    plugins: {
+                        legend: {
+                            display: sumChartStyle !== 'bar',
+                            position: 'bottom',
+                            labels: { font: { family: "'Battambang', sans-serif" }, padding: 20 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let val = context.raw || 0;
+                                    let pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                                    return ` ${val} នាក់ (${pct}%)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: sumChartStyle === 'bar' ? {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    } : {
+                        x: { display: false }, y: { display: false }
+                    }
+                },
+                plugins: [sumChartStyle === 'doughnut' ? {
+                    id: 'textCenter',
+                    beforeDraw: function(chart) {
+                        var width = chart.width, height = chart.height, ctx = chart.ctx;
+                        ctx.restore();
+                        var fontSize = (height / 114).toFixed(2);
+                        ctx.font = "bold " + fontSize + "em 'Battambang'";
+                        ctx.textBaseline = "middle";
+                        ctx.fillStyle = "#334155";
+                        var text = total + " នាក់", textX = Math.round((width - ctx.measureText(text).width) / 2), textY = height / 2 - 10;
+                        ctx.fillText(text, textX, textY);
+                        
+                        ctx.font = (fontSize*0.4) + "em 'Battambang'";
+                        ctx.fillStyle = "#64748b";
+                        var text2 = "សរុប", text2X = Math.round((width - ctx.measureText(text2).width) / 2), text2Y = height / 2 + 15;
+                        ctx.fillText(text2, text2X, text2Y);
+                        ctx.save();
+                    }
+                } : {}]
+            });
+
+            // Update HTML Stats
+            document.getElementById('summaryStats').innerHTML = `
+                <div class="bg-yellow-50 p-2 rounded border border-yellow-200 text-center">ស្គម: <span class="text-yellow-700 text-lg">${counts.underweight}</span></div>
+                <div class="bg-green-50 p-2 rounded border border-green-200 text-center">ធម្មតា: <span class="text-green-700 text-lg">${counts.normal}</span></div>
+                <div class="bg-orange-50 p-2 rounded border border-orange-200 text-center">លើសទម្ងន់: <span class="text-orange-700 text-lg">${counts.overweight}</span></div>
+                <div class="bg-red-50 p-2 rounded border border-red-200 text-center">ធាត់ខ្លាំង: <span class="text-red-700 text-lg">${counts.obese}</span></div>
+            `;
+        }
+
+
+        // --- UI Interactions ---
+        window.setGender = function(gender) {
+            currentGender = gender;
+            
+            const btnBoy = document.getElementById('btnBoy');
+            const btnGirl = document.getElementById('btnGirl');
+            
+            if (gender === 'boy') {
+                btnBoy.className = "btn-toggle btn-active-boy px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 text-sm";
+                btnGirl.className = "btn-toggle text-slate-600 hover:bg-slate-200 px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 text-sm";
+            } else {
+                btnGirl.className = "btn-toggle btn-active-girl px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 text-sm";
+                btnBoy.className = "btn-toggle text-slate-600 hover:bg-slate-200 px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 text-sm";
+            }
+
+            initMainChart();
+            initSummaryChart();
+        };
+
+        window.changeMainChartType = function(type) {
+            mainChartStyle = type;
+            initMainChart();
+        };
+
+        window.changeSummaryChartType = function(type) {
+            sumChartStyle = type;
+            initSummaryChart();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - ចុះវត្តមានតាមប្លង់តុ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@300;400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root { --primary: #0054a6; --present: #22c55e; --permission: #eab308; --absent: #ef4444; }
+        body { font-family: 'Hanuman', serif; background: #f8fafc; min-height: 100vh; padding-bottom: 100px; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        
+        /* Seat Styles */
+        .seat {
+            transition: all 0.2s;
+            cursor: pointer;
+            user-select: none;
+        }
+        .seat.empty {
+            border: 2px dashed #cbd5e1;
+            background: #f1f5f9;
+            color: #94a3b8;
+        }
+        .seat.empty:hover {
+            border-color: var(--primary);
+            background: #e0f2fe;
+            color: var(--primary);
+            transform: scale(1.05);
+            z-index: 50;
+        }
+        
+        .seat.filled:hover {
+            transform: scale(1.05);
+            z-index: 50;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Attendance Status Colors */
+        .status-P { background-color: #dcfce7; border: 2px solid var(--present); color: #166534; }
+        .status-L { background-color: #fef9c3; border: 2px solid var(--permission); color: #854d0e; }
+        .status-A { background-color: #fee2e2; border: 2px solid var(--absent); color: #991b1b; }
+
+        /* Edit Mode Styles */
+        .mode-edit .seat.filled {
+            position: relative;
+        }
+        .remove-btn {
+            display: none;
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            padding: 2px;
+            width: 20px;
+            height: 20px;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            z-index: 10;
+        }
+        .mode-edit .seat.filled:hover .remove-btn { display: flex; }
+
+        /* Modal */
+        .modal {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        /* Floating Action Bar */
+        .floating-bar {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Custom Scrollbar for overflow areas */
+        .overflow-x-auto::-webkit-scrollbar { height: 6px; }
+        .overflow-x-auto::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* Loading Overlay */
+        #loadingOverlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="w-12 h-12 border-4 border-[#0054a6] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="kh-moul text-[#0054a6] text-lg animate-pulse" id="loadingText">កំពុងទាញយកទិន្នន័យ...</p>
+    </div>
+
+    <div class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <a href="index.html" class="p-2 hover:bg-gray-100 rounded-full transition text-gray-600">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </a>
+                <div>
+                    <h1 class="font-bold text-gray-800 text-lg md:text-xl flex items-center gap-2">
+                        <i data-lucide="calendar" class="w-5 h-5 text-[#0054a6]"></i>
+                        វត្តមានថ្ងៃនេះ: <input type="date" id="attendance_date" class="bg-transparent border-none text-[#0054a6] font-bold outline-none cursor-pointer" onchange="window.loadAttendance()">
+                    </h1>
+                </div>
+            </div>
+
+            <div class="flex gap-3 w-full md:w-auto items-center">
+                <button id="toggleModeBtn" onclick="window.toggleMode()" class="flex-1 md:flex-none px-4 py-2 rounded-lg font-bold text-white bg-[#7c3aed] hover:bg-[#6d28d9] transition flex items-center justify-center gap-2 shadow-sm">
+                    <i data-lucide="layout" class="w-4 h-4"></i>
+                    <span id="modeText">កែសម្រួលប្លង់</span>
+                </button>
+
+                <!-- Edit Mode Controls -->
+                <div id="editTools" class="hidden flex items-center gap-2 bg-gray-100 p-1 rounded-xl overflow-x-auto max-w-full">
+                    <button onclick="window.toggleMode()" class="px-3 py-1.5 text-gray-700 hover:bg-white rounded-lg transition flex items-center gap-1 text-sm font-bold whitespace-nowrap">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> ត្រឡប់
+                    </button>
+                    
+                    <!-- Layout Select -->
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                            <i data-lucide="layout-template" class="w-3.5 h-3.5 text-gray-400"></i>
+                        </div>
+                        <select id="layoutSelect" onchange="window.updateGridConfig()" class="appearance-none bg-white pl-8 pr-8 py-1.5 rounded-lg border border-gray-200 text-xs font-bold outline-none cursor-pointer w-[160px]">
+                            <option value="grid">ប្លង់ធម្មតា</option>
+                            <option value="u-shape">រាង U</option>
+                            <option value="group-4">ក្រុម ៤នាក់ (រង្វង់)</option>
+                            <option value="group-5">ក្រុម ៥នាក់ (រង្វង់)</option>
+                            <option value="group-6">ក្រុម ៦នាក់ (រង្វង់)</option>
+                            <option value="group-7">ក្រុម ៧នាក់ (រង្វង់)</option>
+                            <option value="group-8">ក្រុម ៨នាក់ (រង្វង់)</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 pointer-events-none"></i>
+                    </div>
+
+                    <!-- Input តុ -->
+                    <div class="flex items-center gap-1 bg-white px-2 py-1.5 rounded-lg border border-gray-200">
+                        <span class="text-xs text-gray-500 whitespace-nowrap">តុ:</span>
+                        <input type="number" id="inputTables" oninput="window.updateGridConfig()" value="20" class="w-10 text-center font-bold outline-none text-sm bg-transparent">
+                    </div>
+                    <!-- Input ជួរ -->
+                    <div class="flex items-center gap-1 bg-white px-2 py-1.5 rounded-lg border border-gray-200">
+                        <span class="text-xs text-gray-500 whitespace-nowrap">ជួរ:</span>
+                        <input type="number" id="inputCols" oninput="window.updateGridConfig()" value="4" class="w-10 text-center font-bold outline-none text-sm bg-transparent">
+                    </div>
+                    <!-- Seats Per Table -->
+                    <div class="relative">
+                        <select id="seatsPerTable" onchange="window.updateGridConfig()" class="appearance-none bg-white px-3 py-1.5 pr-8 rounded-lg border border-gray-200 text-xs font-bold outline-none cursor-pointer">
+                            <option value="2">២ នាក់/តុ</option>
+                            <option value="1">១ នាក់/តុ</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 pointer-events-none"></i>
+                    </div>
+                    <button onclick="window.renderGrid()" class="p-1.5 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
+                        <i data-lucide="refresh-cw" class="w-4 h-4 text-gray-700"></i>
+                    </button>
+                </div>
+
+                <button id="saveBtn" onclick="window.saveData()" class="flex-1 md:flex-none px-4 py-2 rounded-lg font-bold text-white bg-[#0054a6] hover:bg-[#1e40af] transition flex items-center justify-center gap-2 shadow-sm">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    រក្សាទុក
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-4 py-8 overflow-x-auto" id="classroomArea">
+        
+        <!-- Teacher Table & Blackboard Area -->
+        <div class="flex flex-col mb-10 gap-4 min-w-[600px]">
+             <!-- Teacher Desk -->
+            <div class="flex justify-start">
+                <div class="bg-white px-6 py-3 rounded-2xl shadow-sm border-b-4 border-blue-600 flex items-center gap-3 transform -translate-y-2">
+                    <i data-lucide="user" class="w-5 h-5 text-gray-800"></i>
+                    <span class="font-bold text-gray-800 text-lg kh-moul">តុគ្រូបង្រៀន</span>
+                </div>
+            </div>
+            
+            <!-- Blackboard Bar -->
+            <div class="flex justify-center w-full">
+                <div class="w-full max-w-4xl bg-[#1e293b] rounded-full h-10 flex items-center justify-center shadow-lg border-2 border-[#451a03] relative">
+                    <span class="text-slate-400 font-sans tracking-[0.2em] text-xs font-bold uppercase">ក្ដារខៀន</span>
+                </div>
+            </div>
+
+             <!-- Separator Line -->
+            <div class="w-full border-b-2 border-dashed border-gray-200 mt-2"></div>
+        </div>
+
+        <div id="tablesGrid" class="grid gap-6 min-w-[600px]">
+            <!-- Grid columns will be set via JS -->
+        </div>
+
+    </main>
+
+    <!-- Attendance Legend -->
+    <div id="attendanceLegend" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white rounded-full px-6 py-3 flex items-center gap-6 floating-bar border border-gray-100 z-30">
+        <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+            <span class="text-xs font-bold text-gray-600">វត្តមាន</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <span class="text-xs font-bold text-gray-600">ច្បាប់</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+            <span class="text-xs font-bold text-gray-600">អវត្តមាន</span>
+        </div>
+    </div>
+
+    <!-- Student Modal -->
+    <div id="studentModal" class="modal fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                    <i data-lucide="users" class="w-5 h-5 text-blue-600"></i>
+                    ជ្រើសរើសសិស្ស
+                </h3>
+                <button onclick="window.closeModal()" class="p-1 hover:bg-gray-200 rounded-full"><i data-lucide="x" class="w-5 h-5 text-gray-500"></i></button>
+            </div>
+            
+            <div class="p-3 border-b border-gray-100">
+                <div class="relative">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    <input type="text" id="studentSearch" onkeyup="window.filterStudents()" placeholder="ស្វែងរកឈ្មោះ ឬអត្តលេខសិស្ស..." class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm">
+                </div>
+            </div>
+
+            <div id="studentListContainer" class="overflow-y-auto p-2 flex-1 space-y-1 min-h-[200px]">
+                <!-- Student list renders here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Script Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+
+        // --- State Management ---
+        let currentClassId = localStorage.getItem('current_class_id') || 'default';
+        
+        function getKey(baseKey) {
+            if (currentClassId === 'default') return baseKey; 
+            return baseKey + '_' + currentClassId;
+        }
+        
+        let TOTAL_TABLES = 20;
+        let GRID_COLS = 4;
+        let SEATS_PER_TABLE = 2;
+        let CURRENT_LAYOUT = 'grid'; 
+        let isEditMode = false;
+        let selectedSeatId = null;
+        
+        let students = []; 
+        let seatingLayout = {}; 
+        let attendanceHistory = {}; 
+        let lockedDates = [];
+
+        lucide.createIcons();
+
+        // 1. Check Auth & Initialization
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('attendance_date').value = today;
+                
+                await loadDataFromFirebase();
+                
+                document.getElementById('loadingOverlay').style.display = 'none';
+            } else {
+                signInAnonymously(auth).catch(err => {
+                    console.error("Auth Error", err);
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                });
+            }
+        });
+
+        async function loadDataFromFirebase() {
+            try {
+                // 1. Fetch Students (Sync with attendance-1 logic)
+                try {
+                    const studentsSnap = await getDocs(collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students'));
+                    students = [];
+                    studentsSnap.forEach(doc => {
+                        const data = doc.data();
+                        students.push({
+                            uid: String(data.id || doc.id),
+                            name: data.name,
+                            gender: data.gender,
+                            photo: data.photo || `https://api.dicebear.com/7.x/notionists/svg?seed=${data.id}`
+                        });
+                    });
+                    if (students.length === 0) throw new Error("No remote students");
+                } catch(e) {
+                    const globalStudents = JSON.parse(localStorage.getItem('students') || '[]');
+                    students = globalStudents.map(s => ({
+                        uid: s.id ? String(s.id) : 'N/A',
+                        name: s.name,
+                        gender: s.gender,
+                        photo: `https://api.dicebear.com/7.x/notionists/svg?seed=${s.id || s.name}`
+                    }));
+                }
+
+                // 2. Load Layout Configuration (Syncs from localStorage like attendance-1.html)
+                seatingLayout = JSON.parse(localStorage.getItem(getKey('seatingLayout'))) || {};
+                const config = JSON.parse(localStorage.getItem(getKey('seatingConfig'))) || { totalTables: 20, gridCols: 4, seatsPerTable: 2, layout: 'grid' };
+                
+                document.getElementById('inputTables').value = config.totalTables;
+                document.getElementById('inputCols').value = config.gridCols;
+                if(config.seatsPerTable) document.getElementById('seatsPerTable').value = config.seatsPerTable;
+                if(config.layout) document.getElementById('layoutSelect').value = config.layout;
+
+                // 3. Load Attendance History (Syncs with same path as attendance-1.html)
+                try {
+                    const classDocRef = doc(db, "users", currentUser.uid, "data", "class_" + currentClassId);
+                    const classDocSnap = await getDoc(classDocRef);
+                    
+                    if (classDocSnap.exists()) {
+                        const cloudData = classDocSnap.data();
+                        if (cloudData.attendanceHistory) attendanceHistory = cloudData.attendanceHistory;
+                        if (cloudData.lockedDates) lockedDates = cloudData.lockedDates;
+                        
+                        // Keep local storage in sync
+                        localStorage.setItem(getKey('attendance_history'), JSON.stringify(attendanceHistory));
+                        localStorage.setItem(getKey('locked_dates'), JSON.stringify(lockedDates));
+                    } else {
+                        // Fallback to local
+                        attendanceHistory = JSON.parse(localStorage.getItem(getKey('attendance_history'))) || {};
+                        lockedDates = JSON.parse(localStorage.getItem(getKey('locked_dates'))) || [];
+                    }
+                } catch (e) {
+                    // Fallback to local on error
+                    attendanceHistory = JSON.parse(localStorage.getItem(getKey('attendance_history'))) || {};
+                    lockedDates = JSON.parse(localStorage.getItem(getKey('locked_dates'))) || [];
+                }
+
+                window.updateGridConfig(); 
+                window.loadAttendance();
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        window.loadAttendance = function() {
+            window.renderGrid();
+        }
+
+        // --- Layout Logic ---
+        window.updateGridConfig = function() {
+            TOTAL_TABLES = parseInt(document.getElementById('inputTables').value) || 0;
+            GRID_COLS = parseInt(document.getElementById('inputCols').value) || 1;
+            CURRENT_LAYOUT = document.getElementById('layoutSelect').value;
+            
+            // Handle specific group layouts overriding the standard seats dropdown
+            const seatsPerTableDropdown = document.getElementById('seatsPerTable');
+            if (CURRENT_LAYOUT.startsWith('group-')) {
+                const groupSize = parseInt(CURRENT_LAYOUT.split('-')[1]);
+                SEATS_PER_TABLE = groupSize;
+                seatsPerTableDropdown.disabled = true;
+                seatsPerTableDropdown.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                SEATS_PER_TABLE = parseInt(seatsPerTableDropdown.value) || 2;
+                seatsPerTableDropdown.disabled = false;
+                seatsPerTableDropdown.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            
+            // --- CLEAN UP ORPHANED SEATS ---
+            for (const seatId in seatingLayout) {
+                const parts = seatId.match(/t(\d+)-s(\d+)/);
+                if (parts) {
+                    const tNum = parseInt(parts[1]);
+                    const sNum = parseInt(parts[2]);
+                    if (tNum > TOTAL_TABLES || sNum > SEATS_PER_TABLE) {
+                        delete seatingLayout[seatId]; 
+                    }
+                }
+            }
+            
+            const grid = document.getElementById('tablesGrid');
+            grid.style.gridTemplateColumns = '';
+            
+            if (CURRENT_LAYOUT.startsWith('group-')) {
+                grid.className = 'grid gap-y-12 gap-x-8 mt-12 w-max mx-auto pb-16 min-w-[600px]';
+                grid.style.gridTemplateColumns = `repeat(${GRID_COLS}, 300px)`;
+            } else if (CURRENT_LAYOUT === 'u-shape') {
+                grid.className = 'grid gap-6 min-w-[600px] w-full';
+                if (GRID_COLS < 3) GRID_COLS = 3; 
+                grid.style.gridTemplateColumns = `repeat(${GRID_COLS}, minmax(0, 1fr))`;
+            } else {
+                grid.className = 'grid gap-6 min-w-[600px] w-full';
+                grid.style.gridTemplateColumns = `repeat(${GRID_COLS}, minmax(0, 1fr))`;
+            }
+            
+            window.renderGrid();
+        }
+
+        window.renderGrid = function() {
+            const grid = document.getElementById('tablesGrid');
+            grid.innerHTML = '';
+            
+            if (CURRENT_LAYOUT === 'u-shape') {
+                renderUShape(grid);
+            } else {
+                for (let i = 1; i <= TOTAL_TABLES; i++) {
+                    grid.insertAdjacentHTML('beforeend', createTableHTML(i));
+                }
+            }
+            lucide.createIcons();
+        }
+
+        function renderUShape(grid) {
+            const bottomCount = TOTAL_TABLES % 2 === 0 ? 2 : 1;
+            const sideRows = Math.floor((TOTAL_TABLES - bottomCount) / 2);
+            let currentTable = 1;
+            const spacerSpan = GRID_COLS - 2;
+
+            for (let r = 0; r < sideRows; r++) {
+                grid.insertAdjacentHTML('beforeend', createTableHTML(currentTable++));
+                if (spacerSpan > 0) {
+                    grid.insertAdjacentHTML('beforeend', `<div style="grid-column: span ${spacerSpan};"></div>`);
+                }
+                grid.insertAdjacentHTML('beforeend', createTableHTML(currentTable++));
+            }
+
+            if (bottomCount > 0) {
+                let bottomHtml = `<div style="grid-column: span ${GRID_COLS}; display: flex; justify-content: center; gap: 1.5rem;">`;
+                for(let i=0; i<bottomCount; i++) {
+                    bottomHtml += createTableHTML(currentTable++);
+                }
+                bottomHtml += `</div>`;
+                grid.insertAdjacentHTML('beforeend', bottomHtml);
+            }
+        }
+
+        function createTableHTML(i) {
+            if (CURRENT_LAYOUT.startsWith('group-')) {
+                return createCircularGroupHTML(i);
+            }
+
+            let seatsHtml = '';
+            for(let s = 1; s <= SEATS_PER_TABLE; s++) {
+                seatsHtml += renderSeat(i, s, false);
+            }
+
+            return `
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3 flex-1 min-w-[150px]">
+                    <div class="text-center text-xs font-bold text-gray-400 uppercase tracking-wider">តុទី ${i}</div>
+                    <div class="flex gap-3 h-24">
+                        ${seatsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function createCircularGroupHTML(tableNum) {
+            let seatsHtml = '';
+            const radius = 105; 
+            
+            let startAngleOffset = -90; 
+            if (SEATS_PER_TABLE === 6) {
+                startAngleOffset = 0; 
+            } else if (SEATS_PER_TABLE === 8) {
+                startAngleOffset = -90; 
+            }
+
+            for(let s = 1; s <= SEATS_PER_TABLE; s++) {
+                const angleDeg = (360 / SEATS_PER_TABLE) * (s - 1) + startAngleOffset;
+                const angleRad = angleDeg * (Math.PI / 180);
+                
+                const x = Math.cos(angleRad) * radius;
+                const y = Math.sin(angleRad) * radius;
+                
+                seatsHtml += `
+                    <div class="absolute hover:z-50 transition-all duration-200" style="top: calc(50% + ${y}px); left: calc(50% + ${x}px); transform: translate(-50%, -50%); width: 75px; height: 50px; z-index: 20;">
+                        ${renderSeat(tableNum, s, true)}
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="relative w-[300px] h-[300px] shrink-0 flex items-center justify-center">
+                    <div class="w-[84px] h-[84px] rounded-full border-2 border-gray-400 bg-gray-50 flex items-center justify-center z-10 shadow-sm relative">
+                        <span class="font-bold text-gray-600 text-sm">តុទី ${tableNum}</span>
+                    </div>
+                    ${seatsHtml}
+                </div>
+            `;
+        }
+
+        function renderSeat(tableNum, seatNum, isCircular = false) {
+            const seatId = `t${tableNum}-s${seatNum}`;
+            const studentId = seatingLayout[seatId];
+            const student = students.find(s => String(s.uid) === String(studentId));
+            
+            const extraClasses = isCircular ? 'w-full h-full shadow-sm' : 'flex-1';
+            
+            if (student) {
+                const date = document.getElementById('attendance_date').value;
+                const status = attendanceHistory[date]?.[student.uid]?.status || 'P'; // Default status is P visually
+                const statusClass = `status-${status}`;
+                
+                return `
+                    <div id="${seatId}" onclick="window.handleSeatClick('${seatId}')" 
+                        class="seat filled ${extraClasses} rounded-xl p-1 flex flex-col items-center justify-center text-center gap-0.5 relative overflow-hidden ${statusClass}">
+                        <div class="remove-btn" onclick="event.stopPropagation(); window.removeStudent('${seatId}')">
+                            <i data-lucide="x" class="w-3 h-3"></i>
+                        </div>
+                        <div class="font-bold text-[11px] leading-tight line-clamp-2" title="${student.name}">${student.name}</div>
+                        <div class="text-[9px] opacity-80">${student.uid || ''}</div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div id="${seatId}" onclick="window.handleSeatClick('${seatId}')" 
+                        class="seat empty ${extraClasses} rounded-xl flex items-center justify-center text-xs font-bold bg-white">
+                        <span>+</span>
+                    </div>
+                `;
+            }
+        }
+
+        // --- Logic Control ---
+        window.toggleMode = function() {
+            isEditMode = !isEditMode;
+            const toggleBtn = document.getElementById('toggleModeBtn');
+            const editTools = document.getElementById('editTools');
+            const saveBtn = document.getElementById('saveBtn');
+            const body = document.body;
+            const legend = document.getElementById('attendanceLegend');
+
+            if (isEditMode) {
+                body.classList.add('mode-edit');
+                toggleBtn.classList.add('hidden');
+                editTools.classList.remove('hidden');
+                legend.style.display = 'none';
+                saveBtn.classList.replace('bg-[#0054a6]', 'bg-[#22c55e]');
+                saveBtn.classList.replace('hover:bg-[#1e40af]', 'hover:bg-[#16a34a]');
+            } else {
+                body.classList.remove('mode-edit');
+                toggleBtn.classList.remove('hidden');
+                editTools.classList.add('hidden');
+                legend.style.display = 'flex';
+                saveBtn.classList.replace('bg-[#22c55e]', 'bg-[#0054a6]');
+                saveBtn.classList.replace('hover:bg-[#16a34a]', 'hover:bg-[#1e40af]');
+                window.saveData(); // Save config automatically when exiting layout mode
+            }
+            lucide.createIcons();
+        }
+
+        window.handleSeatClick = function(seatId) {
+            const currentStudentId = seatingLayout[seatId];
+            
+            if (!currentStudentId) {
+                if (isEditMode) openStudentModal(seatId);
+            } else {
+                if (!isEditMode) {
+                    const date = document.getElementById('attendance_date').value;
+                    
+                    // Prevent modification if locked
+                    if (lockedDates.includes(date)) {
+                        alert('ទិន្នន័យវត្តមានថ្ងៃនេះត្រូវបានចាក់សោ មិនអាចកែប្រែបានទេ!');
+                        return;
+                    }
+                    
+                    // Prevent Sunday
+                    if (date) {
+                        const [y, m, d] = date.split('-');
+                        if (new Date(y, m - 1, d).getDay() === 0) {
+                            alert('មិនអាចកត់ត្រាវត្តមាននៅថ្ងៃអាទិត្យបានទេ!');
+                            return; 
+                        }
+                    }
+                    
+                    toggleAttendanceStatus(currentStudentId);
+                    const seatEl = document.getElementById(seatId);
+                    updateSeatStatusClass(seatEl, currentStudentId);
+                }
+            }
+        }
+
+        async function toggleAttendanceStatus(studentId) {
+            const date = document.getElementById('attendance_date').value;
+            let current = attendanceHistory[date]?.[studentId]?.status || 'P';
+            
+            // Flow: Present (P) -> Leave/Permission (L) -> Absent (A)
+            const flow = { 'P': 'L', 'L': 'A', 'A': 'P' };
+            
+            if (!attendanceHistory[date]) attendanceHistory[date] = {};
+            attendanceHistory[date][studentId] = { status: flow[current], note: '' };
+            
+            // Save to Local Storage to keep it in sync with attendance-1.html
+            localStorage.setItem(getKey('attendance_history'), JSON.stringify(attendanceHistory));
+            
+            // Auto save history to Firestore on click using the matched path
+            if(currentUser) {
+                try {
+                    const classDocRef = doc(db, "users", currentUser.uid, "data", "class_" + currentClassId);
+                    await setDoc(classDocRef, {
+                        attendanceHistory: attendanceHistory,
+                        updatedAt: new Date().toISOString()
+                    }, { merge: true });
+                } catch(e) {
+                    console.error("Auto save attendance failed", e);
+                }
+            }
+        }
+
+        function updateSeatStatusClass(element, studentId) {
+            const date = document.getElementById('attendance_date').value;
+            const status = attendanceHistory[date]?.[studentId]?.status || 'P';
+            element.classList.remove('status-P', 'status-L', 'status-A');
+            element.classList.add(`status-${status}`);
+        }
+
+        window.removeStudent = function(seatId) {
+            if (!isEditMode) return;
+            delete seatingLayout[seatId];
+            window.renderGrid();
+        }
+
+        function openStudentModal(seatId) {
+            selectedSeatId = seatId;
+            const modal = document.getElementById('studentModal');
+            
+            const seatedIds = Object.values(seatingLayout).map(id => String(id));
+            const availableStudents = students.filter(s => !seatedIds.includes(String(s.uid)));
+
+            renderStudentList(availableStudents);
+            modal.classList.remove('hidden');
+            document.getElementById('studentSearch').value = '';
+            document.getElementById('studentSearch').focus();
+        }
+
+        window.closeModal = function() {
+            document.getElementById('studentModal').classList.add('hidden');
+            selectedSeatId = null;
+        }
+
+        function renderStudentList(listData) {
+            const container = document.getElementById('studentListContainer');
+            container.innerHTML = '';
+
+            if (students.length === 0) {
+                container.innerHTML = `
+                    <div class="p-6 text-center flex flex-col items-center gap-3">
+                        <i data-lucide="user-x" class="w-10 h-10 text-gray-300"></i>
+                        <div class="text-gray-500 text-sm">មិនទាន់មានទិន្នន័យសិស្សទេ!</div>
+                        <a href="index.html" class="mt-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-100">ត្រឡប់ទៅទំព័រដើម</a>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            if (listData.length === 0) {
+                container.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">សិស្សទាំងអស់ត្រូវបានចាត់ចូលតុរួចរាល់</div>';
+                return;
+            }
+
+            listData.forEach(s => {
+                const el = document.createElement('div');
+                el.className = 'p-3 hover:bg-blue-50 cursor-pointer rounded-xl flex items-center gap-3 border border-transparent hover:border-blue-100 transition';
+                el.onclick = () => window.assignStudent(s.uid);
+                
+                const stName = s.name || 'គ្មានឈ្មោះ';
+                const stId = s.uid || 'គ្មានអត្តលេខ';
+                const stGender = s.gender === 'ស្រី' ? 'ស' : 'ប';
+                
+                el.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">
+                        ${stGender}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-bold text-gray-700 text-sm truncate">${stName}</div>
+                        <div class="text-xs text-gray-400">ID: ${stId}</div>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        window.filterStudents = function() {
+            const query = document.getElementById('studentSearch').value.toLowerCase();
+            const seatedIds = Object.values(seatingLayout).map(id => String(id));
+            
+            const filtered = students.filter(s => {
+                const isSeated = seatedIds.includes(String(s.uid));
+                if (isSeated) return false;
+                
+                const sName = String(s.name || '').toLowerCase();
+                const sId = String(s.uid || '').toLowerCase();
+                
+                return sName.includes(query) || sId.includes(query);
+            });
+            renderStudentList(filtered);
+        }
+
+        window.assignStudent = function(studentId) {
+            if (selectedSeatId) {
+                seatingLayout[selectedSeatId] = String(studentId);
+                window.renderGrid();
+                window.closeModal();
+            }
+        }
+        
+        window.saveData = async function() {
+            if (!currentUser) return;
+            
+            // Config structure
+            const config = {
+                totalTables: parseInt(document.getElementById('inputTables').value),
+                gridCols: parseInt(document.getElementById('inputCols').value),
+                seatsPerTable: parseInt(document.getElementById('seatsPerTable').value),
+                layout: document.getElementById('layoutSelect').value
+            };
+            
+            const saveBtn = document.getElementById('saveBtn');
+            const originalContent = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> រក្សាទុក...';
+            lucide.createIcons();
+            
+            // Sync with attendance-1 via Local Storage Keys FIRST
+            localStorage.setItem(getKey('seatingLayout'), JSON.stringify(seatingLayout));
+            localStorage.setItem(getKey('seatingConfig'), JSON.stringify(config));
+            localStorage.setItem(getKey('attendance_history'), JSON.stringify(attendanceHistory));
+
+            try {
+                // Ensure Firebase is also synced on manual save with same root document logic
+                const classDocRef = doc(db, "users", currentUser.uid, "data", "class_" + currentClassId);
+                await setDoc(classDocRef, {
+                    attendanceHistory: attendanceHistory,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+
+                saveBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> បានរក្សាទុក';
+            } catch (error) {
+                console.error("Error saving to Firebase:", error);
+                // Fallback indication that local storage saved correctly
+                saveBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> រក្សាទុកក្នុងម៉ាស៊ីន';
+            }
+            
+            lucide.createIcons();
+            setTimeout(() => {
+                saveBtn.innerHTML = originalContent;
+                lucide.createIcons();
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

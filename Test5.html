@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - បញ្ជីពិន្ទុសិស្សសរុប (Score Report)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- បណ្ណាល័យ SheetJS សម្រាប់ Export Excel ជាមួយ Style -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+
+    <style>
+        :root { --primary: #0054a6; --secondary: #3b82f6; }
+        
+        @font-face {
+            font-family: 'Tacteing';
+            src: local('Tacteing'); 
+        }
+
+        body { font-family: 'Battambang', cursive; background: #f0f4f8; min-height: 100vh; margin: 0; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        
+        /* Modal Animation */
+        .modal-content { transition: all 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6">
+        
+        <!-- Header Controls -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8 border-b pb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800 kh-moul">ប្រព័ន្ធគ្រប់គ្រងពិន្ទុ (PTEC)</h1>
+                <p class="text-gray-500 mt-1">តារាងស្រង់ពិន្ទុប្រចាំខែកុម្ភៈ ឆ្នាំ 2026</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex gap-3">
+                <button onclick="exportToExcel()" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 font-bold transition-colors shadow-sm">
+                    <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                    ទាញយក Excel (Moul Font & Merged)
+                </button>
+            </div>
+        </div>
+
+        <!-- Preview Table Placeholder -->
+        <div class="bg-gray-50 border rounded-lg p-8 text-center">
+            <i data-lucide="table" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
+            <h2 class="text-xl font-bold text-gray-700 mb-2">ទិន្នន័យត្រៀមទាញយករួចរាល់</h2>
+            <p class="text-gray-500">សូមចុចប៊ូតុង <span class="font-bold text-green-600">"ទាញយក Excel"</span> ខាងលើដើម្បីទទួលបានឯកសារដែលមានទម្រង់ត្រឹមត្រូវ១០០% និងមានប្រើប្រាស់ Font Moul នៅលើចំណងជើង។</p>
+        </div>
+
+    </div>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // មុខងារនាំចេញទៅកាន់ Excel ជាមួយនឹង Styles និង Merged Cells 100%
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            const wsData = [];
+
+            // កំណត់ទិន្នន័យជួរដេក (Rows)
+            
+            // ជួរទី១: ព្រះរាជាណាចក្រកម្ពុជា
+            let row1 = new Array(31).fill("");
+            row1[24] = "ព្រះរាជាណាចក្រកម្ពុជា";
+            wsData.push(row1);
+
+            // ជួរទី២: ជាតិ សាសនា ព្រះមហាក្សត្រ
+            let row2 = new Array(31).fill("");
+            row2[24] = "ជាតិ សាសនា ព្រះមហាក្សត្រ";
+            wsData.push(row2);
+
+            // ជួរទី៣: លេខ 6 (Tacteing)
+            let row3 = new Array(31).fill("");
+            row3[24] = "6"; 
+            wsData.push(row3);
+
+            // ជួរទី៤: ការិយាល័យអប់រំ...
+            let row4 = new Array(31).fill("");
+            row4[0] = "ការិយាល័យអប់រំ យុវជន និងកីឡារដ្ឋបាលស្រុកកំពង់ត្របែក";
+            wsData.push(row4);
+
+            // ជួរទី៥: សាលាបឋមសិក្សា...
+            let row5 = new Array(31).fill("");
+            row5[0] = "សាលាបឋមសិក្សាកគោ";
+            wsData.push(row5);
+
+            // ជួរទី៦: ចំណងជើងធំ
+            let row6 = new Array(31).fill("");
+            row6[0] = "តារាងស្រង់ពិន្ទុប្រចាំខែកុម្ភៈ ឆ្នាំ 2026";
+            wsData.push(row6);
+
+            // ជួរទី៧: ទទេរ
+            wsData.push(new Array(31).fill(""));
+
+            // ជួរទី៨: ព័ត៌មានស្ថិតិសិស្ស
+            let row8 = new Array(31).fill("");
+            row8[0] = "ថ្នាក់ទី ១ «ខ»";
+            row8[4] = "ឆ្នាំសិក្សា 2025-2026";
+            row8[19] = "សិស្សសរុប";
+            row8[22] = 37;
+            row8[23] = "នាក់";
+            row8[24] = "ប្រុស";
+            row8[25] = 0;
+            row8[26] = "នាក់";
+            row8[27] = "ស្រី";
+            row8[28] = 0;
+            row8[29] = "នាក់";
+            wsData.push(row8);
+
+            // ជួរទី៩: ក្បាលតារាងគោល (Main Headers)
+            let row9 = new Array(31).fill("");
+            row9[0] = "ល.រ";
+            row9[1] = "ឈ្មោះសិស្ស";
+            row9[2] = "ភាសាខ្មែរ";
+            row9[6] = "គណិតវិទ្យា";
+            row9[11] = "វិទ្យាសាស្ត្រ";
+            row9[15] = "សិក្សាសង្គម";
+            row9[19] = "ផ្សេងៗ";
+            row9[23] = "ការបំពេញបន្ថែម";
+            row9[27] = "លទ្ធផលសរុប";
+            wsData.push(row9);
+
+            // ជួរទី១០: ក្បាលតារាងរង (Sub Headers)
+            let row10 = new Array(31).fill("");
+            const subHeaders = [
+                "ស្តាប់", "និយាយ", "អាន", "សរសេរ", // ភាសាខ្មែរ (C-F)
+                "ចំនួន", "រង្វាស់រង្វាល់", "ធរណីមាត្រ", "ពីជគណិត", "ស្ថិតិ", // គណិតវិទ្យា (G-K)
+                "រូបវិទ្យា", "គីមីវិទ្យា", "ជីវវិទ្យា", "ផែនដីវិទ្យា", // វិទ្យាសាស្ត្រ (L-O)
+                "សីលធម៌", "ភូមិវិទ្យា", "ប្រវត្តិវិទ្យា", "គេហវិទ្យា", // សិក្សាសង្គម (P-S)
+                "កីឡា", "បំណិនជីវិត", "ភាសាបរទេស", "ផ្ទាល់មាត់", // ផ្សេងៗ (T-W)
+                "ទី១", "ទី២", "ទី៣", "ទី៤", // ការបំពេញបន្ថែម (X-AA)
+                "ពិន្ទុ", "មធ្យមភាគ", "ចំណាត់ថ្នាក់", "និទ្ទេស" // លទ្ធផលសរុប (AB-AE)
+            ];
+            for(let i=0; i < subHeaders.length; i++) {
+                row10[i+2] = subHeaders[i];
+            }
+            wsData.push(row10);
+
+            // --- បញ្ចូលទិន្នន័យសិស្ស (Sample Data) ---
+            const sampleData = [
+                [1, "សែ សុបញ្ញា", 10, 10, 10, 7, 9, 8, 7, 9, "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", 70, 8.75, 2, "B"],
+                [2, "ហន សុណាន់", 9, 9, 9, 9, 8, 8, 3, 8, "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", 63, 7.88, 10, "C"],
+                [3, "ហម សៀវមិញ", 9, 9, 9, 7, 6, 7, 8, 6, "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", 61, 7.63, 12, "C"],
+                [4, "ហឿន ម៉ាលីស", 8, 6, 7, 8, 9, 7, 7, 6, "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", 58, 7.25, 16, "C"],
+                [5, "ឡៃ សុខហេង", 7, 8, 9, 7, 6, 7, 8, 7, "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", 59, 7.38, 14, "C"]
+            ];
+
+            sampleData.forEach(dataRow => {
+                let row = new Array(31).fill("");
+                dataRow.forEach((val, index) => { row[index] = val; });
+                wsData.push(row);
+            });
+
+            // បង្កើត Worksheet
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+            // --- កំណត់ Merged Cells ---
+            ws['!merges'] = [
+                // ចំណងជើងខាងស្តាំ (Top Right)
+                { s: { r: 0, c: 24 }, e: { r: 0, c: 30 } },
+                { s: { r: 1, c: 24 }, e: { r: 1, c: 30 } },
+                { s: { r: 2, c: 24 }, e: { r: 2, c: 30 } },
+                
+                // ចំណងជើងខាងឆ្វេង (Top Left)
+                { s: { r: 3, c: 0 }, e: { r: 3, c: 10 } },
+                { s: { r: 4, c: 0 }, e: { r: 4, c: 10 } },
+                { s: { r: 5, c: 0 }, e: { r: 5, c: 10 } },
+                
+                // ក្បាលតារាង (Headers Merges)
+                { s: { r: 8, c: 0 }, e: { r: 9, c: 0 } },   // ល.រ
+                { s: { r: 8, c: 1 }, e: { r: 9, c: 1 } },   // ឈ្មោះសិស្ស
+                { s: { r: 8, c: 2 }, e: { r: 8, c: 5 } },   // ភាសាខ្មែរ (ស្តាប់ និយាយ អាន សរសេរ)
+                { s: { r: 8, c: 6 }, e: { r: 8, c: 10 } },  // គណិតវិទ្យា
+                { s: { r: 8, c: 11 }, e: { r: 8, c: 14 } }, // វិទ្យាសាស្ត្រ
+                { s: { r: 8, c: 15 }, e: { r: 8, c: 18 } }, // សិក្សាសង្គម
+                { s: { r: 8, c: 19 }, e: { r: 8, c: 22 } }, // ផ្សេងៗ
+                { s: { r: 8, c: 23 }, e: { r: 8, c: 26 } }, // ការបំពេញបន្ថែម
+                { s: { r: 8, c: 27 }, e: { r: 8, c: 30 } }  // លទ្ធផលសរុប
+            ];
+
+            // --- អនុវត្ត Styles និង Fonts រួមមានទាំង Moul ---
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cellRef = XLSX.utils.encode_cell({r: R, c: C});
+                    if (!ws[cellRef]) ws[cellRef] = { v: "", t: "s" };
+
+                    // Style ដើម (Default Font)
+                    let cellStyle = { font: { name: 'Battambang', sz: 11 } };
+
+                    // 1. ចំណងជើងធំៗ (Font Moul & ពណ៌)
+                    if ((R === 0 || R === 1) && C >= 24) {
+                        cellStyle = { font: { name: 'Moul', sz: 12 }, alignment: { horizontal: "center", vertical: "center" } };
+                    }
+                    if (R === 2 && C >= 24) {
+                        // សម្រាប់និមិត្តសញ្ញា (Tacteing) លេខ 6
+                        cellStyle = { font: { name: 'Tacteing', sz: 16 }, alignment: { horizontal: "center", vertical: "center" } };
+                    }
+                    if ((R === 3 || R === 4 || R === 5) && C <= 10) {
+                        cellStyle = { font: { name: 'Moul', sz: 12 }, alignment: { horizontal: "center", vertical: "center" } };
+                    }
+
+                    // 2. ការរៀបចំជួរទី ៨ (ស្ថិតិថ្នាក់) ឱ្យនៅកណ្តាល
+                    if (R === 7) {
+                        cellStyle.alignment = { vertical: "center" };
+                    }
+
+                    // 3. ក្បាលតារាងគោល (ជួរ ៨ និង ៩) មានបន្ទាត់ Border
+                    if (R === 8 || R === 9) {
+                        cellStyle = {
+                            font: { name: 'Battambang', sz: 10, bold: true },
+                            alignment: { horizontal: "center", vertical: "center", wrapText: true },
+                            border: {
+                                top: { style: "thin" }, bottom: { style: "thin" },
+                                left: { style: "thin" }, right: { style: "thin" }
+                            }
+                        };
+                    }
+
+                    // 4. ទិន្នន័យសិស្ស (ជួរទី១០ ចុះក្រោម)
+                    if (R >= 10) {
+                        cellStyle = {
+                            font: { name: 'Battambang', sz: 11 },
+                            // ដាក់ឈ្មោះសិស្សឱ្យរត់ទៅខាងឆ្វេង លេខរត់នៅកណ្តាល
+                            alignment: { horizontal: C === 1 ? "left" : "center", vertical: "center" },
+                            border: {
+                                top: { style: "thin" }, bottom: { style: "thin" },
+                                left: { style: "thin" }, right: { style: "thin" }
+                            }
+                        };
+                    }
+
+                    ws[cellRef].s = cellStyle;
+                }
+            }
+
+            // កំណត់ប្រវែង (Width) នៃកូឡោន
+            ws['!cols'] = [
+                { wch: 5 },  // A: ល.រ
+                { wch: 22 }, // B: ឈ្មោះសិស្ស
+            ];
+            // កំណត់ប្រវែងស្មើៗគ្នាសម្រាប់មុខវិជ្ជា
+            for(let i = 2; i <= 30; i++) {
+                ws['!cols'].push({ wch: 6 }); 
+            }
+
+            // បញ្ចូលទៅកាន់ Workbook និងទាញយក
+            XLSX.utils.book_append_sheet(wb, ws, "Score Report");
+            XLSX.writeFile(wb, "តារាងស្រង់ពិន្ទុប្រចាំខែកុម្ភៈ_2026.xlsx");
+        }
+    </script>
+</body>
+</html>

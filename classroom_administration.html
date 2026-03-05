@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>រដ្ឋបាលថ្នាក់រៀន - General Admin</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Moul&family=Siemreap&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Siemreap', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .font-moul {
+            font-family: 'Moul', serif;
+        }
+        
+        /* Custom Input Styling for Forms */
+        .form-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            outline: none;
+            padding: 4px;
+        }
+        .form-input:focus {
+            background-color: #eef2ff;
+        }
+        .dotted-input {
+            border-bottom: 1px dotted #000;
+            display: inline-block;
+            min-width: 50px;
+        }
+        
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 4px;
+            text-align: center;
+        }
+        th {
+            background-color: #f9fafb;
+            font-weight: bold;
+        }
+
+        /* Iframe container styling */
+        .iframe-container {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        /* Print Styling */
+        @media print {
+            body { background-color: white; }
+            #sidebar, #topbar, .no-print { display: none !important; }
+            #main-content { margin: 0; padding: 0; width: 100%; height: 100%; overflow: visible; }
+            .print-page { 
+                box-shadow: none !important; 
+                margin: 0 !important; 
+                padding: 0 !important;
+                width: 100%;
+            }
+            .form-input { border: none !important; background: transparent !important; }
+            input::placeholder, textarea::placeholder { color: transparent; }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-gray-800">
+
+    <aside id="sidebar" class="w-72 bg-blue-900 text-white flex flex-col h-full shadow-2xl z-10 shrink-0">
+        <div class="p-6 text-center border-b border-blue-800">
+            <h1 class="text-xl font-moul leading-relaxed text-yellow-400">រដ្ឋបាលថ្នាក់រៀន</h1>
+            <p id="sidebar-subtitle" class="text-sm mt-2 opacity-80">ប្រព័ន្ធគ្រប់គ្រង</p>
+        </div>
+        <div class="flex-1 overflow-y-auto py-4">
+            <ul id="menu-list" class="space-y-1 px-3">
+                </ul>
+        </div>
+        <div id="sidebar-footer" class="p-4 border-t border-blue-800 text-sm text-center opacity-60">
+            ឆ្នាំសិក្សា ២០២៥-២០២៦
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full relative">
+        <header id="topbar" class="bg-white shadow-sm h-16 flex items-center justify-between px-6 z-10">
+            <h2 id="current-form-title" class="text-lg font-bold text-gray-700 font-moul mt-1">សូមស្វាគមន៍</h2>
+            <div class="space-x-2" id="action-buttons">
+                <button onclick="saveData()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow transition duration-200">
+                    <i class="fas fa-save mr-2"></i>រក្សាទុក
+                </button>
+                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition duration-200">
+                    <i class="fas fa-print mr-2"></i>បោះពុម្ព
+                </button>
+            </div>
+        </header>
+
+        <div id="main-content" class="flex-1 overflow-y-auto p-8 bg-gray-200">
+            <div id="form-container" class="bg-white mx-auto shadow-lg rounded h-full relative">
+                <div id="welcome-screen" class="flex flex-col items-center justify-center h-full opacity-50 text-center p-10">
+                    <i class="fas fa-book-open text-6xl mb-4 text-blue-300"></i>
+                    <h3 class="text-2xl font-moul mb-2">ប្រព័ន្ធគ្រប់គ្រងឯកសារថ្នាក់រៀន</h3>
+                    <p>សូមជ្រើសរើសសៀវភៅនៅបញ្ជីខាងឆ្វេង។</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="toast" class="absolute bottom-5 right-5 bg-green-500 text-white px-6 py-3 rounded shadow-lg transform transition-all duration-300 translate-y-20 opacity-0 z-50">
+            <i class="fas fa-check-circle mr-2"></i> រក្សាទុកបានជោគជ័យ!
+        </div>
+    </main>
+
+    <script>
+        // Get Settings Function - CLEARED DEFAULT DATA as requested
+        function getSettings() {
+            const defaultSettings = {
+                unit1: '', // Was: District Office
+                unit2: '', // Was: Cluster
+                schoolName: '', // Was: School Name
+                location: '', 
+                className: '', 
+                teacherName: '', // Was: Teacher Name
+                managerRole: 'នាយកសាលា',
+                academicYear: '២០២៥-២០២៦'
+            };
+            const saved = localStorage.getItem('app_settings');
+            return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
+        }
+
+        // Define all forms structure
+        const formsData = [
+            {
+                id: 'external_attendance',
+                icon: 'fa-calendar-check',
+                title: '១. សៀវភៅសម្រង់វត្តមាន (Attendance)',
+                type: 'iframe',
+                src: '1_adr.html' // Linking to your other file
+            },
+            {
+                id: 'f1',
+                icon: 'fa-calendar-alt',
+                title: '២. សម្រង់អត្ថបទប្រចាំថ្ងៃ',
+                render: () => `
+                    <div class="print-page p-[2cm] max-w-[21cm] mx-auto min-h-[29.7cm] bg-white">
+                        ${renderHeader('សៀវភៅសម្រង់អត្ថបទប្រចាំថ្ងៃ')}
+                        <div class="mb-4 mt-6 leading-loose">
+                            ថ្ងៃ <input type="text" class="form-input dotted-input w-24 text-center" id="f1_day"> 
+                            ខែ <input type="text" class="form-input dotted-input w-24 text-center" id="f1_month"> 
+                            ឆ្នាំ <input type="text" class="form-input dotted-input w-24 text-center" id="f1_year"> 
+                            ស័ក ព.ស ២៥<input type="text" class="form-input dotted-input w-16 text-center" id="f1_buddhist_year"><br>
+                            ត្រូវនឹងថ្ងៃទី <input type="text" class="form-input dotted-input w-16 text-center" id="f1_date"> 
+                            ខែ <input type="text" class="form-input dotted-input w-32 text-center" id="f1_g_month"> 
+                            ឆ្នាំ ២០២<input type="text" class="form-input dotted-input w-16 text-center" id="f1_g_year">
+                        </div>
+                        ${generateTable('f1', ['ម៉ោង', 'ខ្លឹមសារ'], 5, [10, 90])}
+                    </div>
+                `
+            },
+            {
+                id: 'f2',
+                icon: 'fa-weight',
+                title: '៣. តាមដានទម្ងន់ កម្ពស់សិស្ស',
+                render: () => `
+                    <div class="print-page p-[2cm] max-w-[21cm] mx-auto min-h-[29.7cm] bg-white">
+                        ${renderHeader('សៀវភៅតាមដានទម្ងន់ កម្ពស់សិស្ស')}
+                        ${generateTable('f2', ['ល.រ', 'ឈ្មោះសិស្ស', 'ភេទ', 'កម្ពស់', 'ទម្ងន់'], 20, [10, 40, 10, 20, 20])}
+                    </div>
+                `
+            },
+            {
+                id: 'f3',
+                icon: 'fa-box-open',
+                title: '៤. ទទួល និងចែកសម្ភារៈ',
+                render: () => `
+                    <div class="print-page p-[2cm] max-w-[21cm] mx-auto min-h-[29.7cm] bg-white">
+                        ${renderHeader('សៀវភៅទទួល និងចែកសម្ភារៈ')}
+                        ${generateTable('f3', ['ល.រ', 'បរិយាយ', 'ចំនួន', 'ឯកតា', 'ថ្ងៃខែឆ្នាំទទួល', 'ហត្ថលេខា'], 10, [10, 30, 15, 15, 15, 15])}
+                        ${renderFooterSignatures()}
+                    </div>
+                `
+            },
+            {
+                id: 'f4',
+                icon: 'fa-comment-dots',
+                title: '៥. សៀវភៅអនុសាសន៍',
+                render: () => {
+                    const s = getSettings();
+                    return `
+                    <div class="print-page p-[2cm] max-w-[21cm] mx-auto min-h-[29.7cm] bg-white">
+                        ${renderHeader('សៀវភៅអនុសាសន៍')}
+                        <div class="mt-6 space-y-4">
+                            <div>
+                                <span class="font-bold">ក្រុមអធិការកិច្ច</span>
+                                <textarea id="f4_inspectors" class="w-full border border-gray-300 rounded mt-2 p-2 focus:outline-none focus:border-blue-500" rows="3" placeholder="ឈ្មោះអ្នកចុះអធិការកិច្ច..."></textarea>
+                            </div>
+                            <div>
+                                <span class="font-bold">ចំណុចល្អ</span>
+                                <textarea id="f4_good" class="w-full border border-gray-300 rounded mt-2 p-2 focus:outline-none focus:border-blue-500" rows="5"></textarea>
+                            </div>
+                            <div>
+                                <span class="font-bold">ចំណុចកែលម្អ</span>
+                                <textarea id="f4_improve" class="w-full border border-gray-300 rounded mt-2 p-2 focus:outline-none focus:border-blue-500" rows="5"></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-8 flex justify-between text-center leading-loose">
+                            <div>
+                                <span class="font-bold">ក្រុមអធិការកិច្ច</span><br><br><br><br>
+                                <input type="text" id="f4_sign1" class="form-input dotted-input w-40 text-center">
+                            </div>
+                            <div>
+                                ថ្ងៃ <input type="text" id="f4_d1" class="form-input dotted-input w-12 text-center"> ខែ <input type="text" id="f4_m1" class="form-input dotted-input w-16 text-center"> ឆ្នាំ <input type="text" id="f4_y1" class="form-input dotted-input w-16 text-center"> ស័ក ព.ស២៥<input type="text" id="f4_ps" class="form-input dotted-input w-8 text-center"><br>
+                                ${s.location} ថ្ងៃទី <input type="text" id="f4_d2" class="form-input dotted-input w-12 text-center"> ខែ <input type="text" id="f4_m2" class="form-input dotted-input w-16 text-center"> ឆ្នាំ២០២<input type="text" id="f4_y2" class="form-input dotted-input w-8 text-center"><br>
+                                <span class="font-bold">បានឃើញ និងព្យាយាមអនុវត្ត</span><br>
+                                <span class="font-bold">គ្រូប្រចាំថ្នាក់</span><br><br><br>
+                                <span class="font-moul">${s.teacherName}</span>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                }
+            },
+            {
+                id: 'settings',
+                icon: 'fa-cog',
+                title: 'ការកំណត់ទូទៅ (Settings)',
+                render: () => {
+                    const s = getSettings();
+                    return `
+                        <div class="p-8 h-full bg-white overflow-y-auto">
+                            <div class="text-center font-moul text-2xl mt-4 mb-8 text-blue-900">ការកំណត់ព័ត៌មានទូទៅ</div>
+                            <div class="max-w-2xl mx-auto bg-gray-50 p-8 rounded shadow-sm border border-gray-200">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="col-span-2">
+                                        <label class="font-bold text-gray-700">អង្គភាពគ្រប់គ្រង ១ (ឧ. ការិយាល័យ...):</label>
+                                        <input type="text" id="setting_unit1" value="${s.unit1}" placeholder="បញ្ចូលឈ្មោះការិយាល័យ..." class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
+                                    </div>
+                                    <div class="col-span-2">
+                                        <label class="font-bold text-gray-700">អង្គភាពគ្រប់គ្រង ២ (ឧ. កម្រង...):</label>
+                                        <input type="text" id="setting_unit2" value="${s.unit2}" placeholder="បញ្ចូលឈ្មោះកម្រង..." class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
+                                    </div>
+                                    <div class="col-span-2">
+                                        <label class="font-bold text-gray-700">ឈ្មោះសាលា:</label>
+                                        <input type="text" id="setting_schoolName" value="${s.schoolName}" placeholder="បញ្ចូលឈ្មោះសាលា..." class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="font-bold text-gray-700">ទីតាំង (សម្រាប់សរសេរថ្ងៃខែ):</label>
+                                        <input type="text" id="setting_location" value="${s.location}" placeholder="ឧ. ភ្នំពេញ" class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="font-bold text-gray-700">ឈ្មោះថ្នាក់:</label>
+                                        <input type="text" id="setting_className" value="${s.className}" placeholder="ឧ. ថ្នាក់ទី១ ក" class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="font-bold text-gray-700">ឈ្មោះគ្រូបន្ទុកថ្នាក់:</label>
+                                        <input type="text" id="setting_teacherName" value="${s.teacherName}" placeholder="ឈ្មោះលោកគ្រូ/អ្នកគ្រូ..." class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="font-bold text-gray-700">តួនាទីអ្នកគ្រប់គ្រង (ឧ. នាយកសាលា):</label>
+                                        <input type="text" id="setting_managerRole" value="${s.managerRole}" class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
+                                    </div>
+                                    <div class="col-span-2">
+                                        <label class="font-bold text-gray-700">ឆ្នាំសិក្សា:</label>
+                                        <input type="text" id="setting_academicYear" value="${s.academicYear}" class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
+                                    </div>
+                                </div>
+                                <div class="text-center mt-8">
+                                    <button onclick="saveData()" class="bg-blue-600 text-white px-8 py-3 rounded shadow hover:bg-blue-700 font-bold transition">
+                                        <i class="fas fa-save mr-2"></i>រក្សាទុកការកំណត់
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        ];
+
+        let currentFormId = null;
+
+        // UI Components Generators
+        function renderHeader(bookTitle) {
+            const s = getSettings();
+            return `
+                <div class="text-center font-moul mb-6 leading-loose">
+                    <span class="text-xl">ព្រះរាជាណាចក្រកម្ពុជា</span><br>
+                    <span class="text-lg">ជាតិ សាសនា ព្រះមហាក្សត្រ</span>
+                </div>
+                <div class="flex justify-between items-start text-sm md:text-base leading-relaxed mb-6">
+                    <div>
+                        ${s.unit1}<br>
+                        ${s.unit2}<br>
+                        ${s.schoolName}
+                    </div>
+                    <div class="text-right">
+                        ${s.className}<br>
+                        ${s.teacherName}<br>
+                        ឆ្នាំសិក្សា ${s.academicYear}
+                    </div>
+                </div>
+                <div class="text-center font-moul text-xl mt-8 mb-4">
+                    ${bookTitle}
+                </div>
+            `;
+        }
+
+        function renderFooterSignatures() {
+            const s = getSettings();
+            return `
+                <div class="mt-12 flex justify-between text-center leading-loose">
+                    <div>
+                        <br><br>
+                        <span class="font-bold">បានឃើញ និងឯកភាព</span><br>
+                        <span class="font-bold">${s.managerRole}</span>
+                    </div>
+                    <div>
+                        ថ្ងៃ <input type="text" class="form-input dotted-input w-10 text-center"> ខែ <input type="text" class="form-input dotted-input w-16 text-center"> ឆ្នាំ <input type="text" class="form-input dotted-input w-10 text-center"> ស័ក ព.ស២៥<input type="text" class="form-input dotted-input w-8 text-center"><br>
+                        ${s.location} ថ្ងៃទី <input type="text" class="form-input dotted-input w-10 text-center"> ខែ <input type="text" class="form-input dotted-input w-16 text-center"> ឆ្នាំ២០២<input type="text" class="form-input dotted-input w-8 text-center"><br>
+                        <span class="font-bold">គ្រូប្រចាំថ្នាក់</span><br><br><br>
+                        <span class="font-moul">${s.teacherName}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateTable(formId, headers, rowCount, widths, hasTotalRow = false) {
+            let html = `<table><thead><tr>`;
+            headers.forEach((h, i) => {
+                html += `<th style="width: ${widths[i]}%;">${h}</th>`;
+            });
+            html += `</tr></thead><tbody>`;
+            
+            for (let i = 1; i <= rowCount; i++) {
+                html += `<tr>`;
+                headers.forEach((_, colIndex) => {
+                    let val = colIndex === 0 ? textToKhmerNum(i) : ''; // Auto fill number for first col
+                    let inputType = 'text';
+                    html += `<td><input type="${inputType}" id="${formId}_r${i}_c${colIndex}" value="${val}" class="form-input text-center"></td>`;
+                });
+                html += `</tr>`;
+            }
+
+            if(hasTotalRow) {
+                html += `<tr class="font-bold bg-gray-50">`;
+                html += `<td colspan="${headers.length - 1}" class="text-right pr-4">សរុប</td>`;
+                html += `<td><input type="text" id="${formId}_total" class="form-input text-center font-bold"></td>`;
+                html += `</tr>`;
+            }
+
+            html += `</tbody></table>`;
+            return html;
+        }
+
+        function textToKhmerNum(num) {
+            const khmerNums = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+            return num.toString().split('').map(n => khmerNums[parseInt(n)]).join('');
+        }
+
+        function updateSidebarInfo() {
+            const s = getSettings();
+            document.getElementById('sidebar-subtitle').innerText = s.className ? `${s.className}` : "សូមបំពេញព័ត៌មាន";
+            document.getElementById('sidebar-footer').innerText = `ឆ្នាំសិក្សា ${s.academicYear}`;
+            document.title = `រដ្ឋបាលថ្នាក់រៀន`;
+        }
+
+        // App Logic
+        function initApp() {
+            updateSidebarInfo();
+            const menuList = document.getElementById('menu-list');
+            
+            formsData.forEach(form => {
+                // Add separator before settings
+                if(form.id === 'settings') {
+                    const hr = document.createElement('div');
+                    hr.className = "border-t border-blue-800 my-2";
+                    menuList.appendChild(hr);
+                }
+
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <button onclick="loadForm('${form.id}')" id="menu-${form.id}" class="w-full text-left px-4 py-3 rounded-lg hover:bg-blue-800 transition flex items-center group">
+                        <i class="fas ${form.icon} w-6 text-center ${form.id === 'settings' ? 'text-gray-400' : 'text-blue-300'} group-hover:text-white transition"></i>
+                        <span class="ml-3 text-sm truncate">${form.title}</span>
+                    </button>
+                `;
+                menuList.appendChild(li);
+            });
+
+            // Try to load last selected form, or leave welcome screen
+            const lastForm = localStorage.getItem('lastForm');
+            if (lastForm) {
+                loadForm(lastForm);
+            }
+        }
+
+        function loadForm(id) {
+            // Update active menu state
+            document.querySelectorAll('[id^="menu-"]').forEach(btn => btn.classList.remove('bg-blue-800', 'border-l-4', 'border-yellow-400'));
+            const activeBtn = document.getElementById(`menu-${id}`);
+            if(activeBtn) activeBtn.classList.add('bg-blue-800', 'border-l-4', 'border-yellow-400');
+
+            const formDef = formsData.find(f => f.id === id);
+            currentFormId = id;
+            localStorage.setItem('lastForm', id);
+
+            document.getElementById('current-form-title').innerText = formDef.title;
+
+            const container = document.getElementById('form-container');
+            const actionButtons = document.getElementById('action-buttons');
+
+            // Handle Iframe vs Normal Form
+            if (formDef.type === 'iframe') {
+                // Render Iframe
+                container.innerHTML = `<iframe src="${formDef.src}" class="iframe-container" title="${formDef.title}"></iframe>`;
+                // Hide Save/Print buttons for iframe (since iframe has its own)
+                actionButtons.style.display = 'none';
+                container.style.backgroundColor = 'transparent';
+                container.style.boxShadow = 'none';
+            } else {
+                // Render Template
+                container.innerHTML = formDef.render();
+                actionButtons.style.display = 'block';
+                container.style.backgroundColor = 'white';
+                container.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+                restoreFormData();
+            }
+        }
+
+        function saveData() {
+            if (!currentFormId) return;
+            
+            // Handle Settings Save
+            if (currentFormId === 'settings') {
+                const s = {
+                    unit1: document.getElementById('setting_unit1').value,
+                    unit2: document.getElementById('setting_unit2').value,
+                    schoolName: document.getElementById('setting_schoolName').value,
+                    location: document.getElementById('setting_location').value,
+                    className: document.getElementById('setting_className').value,
+                    teacherName: document.getElementById('setting_teacherName').value,
+                    managerRole: document.getElementById('setting_managerRole').value,
+                    academicYear: document.getElementById('setting_academicYear').value
+                };
+                localStorage.setItem('app_settings', JSON.stringify(s));
+                updateSidebarInfo();
+                showToast();
+                return;
+            }
+
+            // Handle Normal Form Save
+            const container = document.getElementById('form-container');
+            const inputs = container.querySelectorAll('input, textarea');
+            const data = {};
+            
+            inputs.forEach(input => {
+                if(input.id) {
+                    data[input.id] = input.value;
+                }
+            });
+
+            localStorage.setItem(`data_${currentFormId}`, JSON.stringify(data));
+            showToast();
+        }
+
+        function restoreFormData() {
+            if (!currentFormId || currentFormId === 'settings') return; // Settings are rendered directly with values
+            
+            const savedData = localStorage.getItem(`data_${currentFormId}`);
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                const container = document.getElementById('form-container');
+                const inputs = container.querySelectorAll('input, textarea');
+                
+                inputs.forEach(input => {
+                    if(input.id && data[input.id] !== undefined) {
+                        input.value = data[input.id];
+                    }
+                });
+            }
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Initialize on load
+        window.onload = initApp;
+
+    </script>
+</body>
+</html>

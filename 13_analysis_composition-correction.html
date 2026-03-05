@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - វិភាគកំហុសតែងសេចក្តី</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700;900&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Chart.js សម្រាប់គូសក្រាហ្វិក -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { font-family: 'Battambang', cursive; background: #f4f7fb; min-height: 100vh; margin: 0; color: #1e293b; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        }
+
+        .select-field {
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            outline: none;
+            background: #f8fafc;
+            font-family: 'Battambang', cursive;
+            transition: all 0.2s;
+            font-weight: 700;
+            color: #334155;
+            cursor: pointer;
+        }
+        .select-field:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1); }
+        
+        /* Custom Scrollbar for Table */
+        .table-wrapper { overflow-x: auto; border-radius: 0.75rem; }
+        .table-wrapper::-webkit-scrollbar { height: 8px; }
+        .table-wrapper::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="pb-20">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-[#0f172a] text-white p-4 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i data-lucide="bar-chart-2" class="w-6 h-6 text-sky-400"></i>
+                <h1 class="kh-moul text-lg hidden sm:block mt-1">ប្រព័ន្ធវិភាគកំហុសតែងសេចក្តីសិស្ស</h1>
+            </div>
+            <div class="text-sm font-bold flex items-center gap-3">
+                <a href="13_composition-correction.html" class="hover:text-sky-300 transition-colors flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-lg">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> ត្រឡប់ទៅកាន់កំណែ
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4 md:p-6 max-w-7xl mt-4">
+        
+        <!-- Header & Filters -->
+        <div class="glass-card p-5 mb-8 flex flex-col md:flex-row justify-between items-center gap-4 border border-slate-200">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <i data-lucide="pie-chart" class="w-6 h-6 text-sky-500"></i> ទិដ្ឋភាពទូទៅនៃកំហុស
+                </h2>
+                <p class="text-sm text-slate-500 mt-1" id="db-status">កំពុងភ្ជាប់ទិន្នន័យ...</p>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-bold text-slate-600">ឆ្នាំសិក្សា៖</label>
+                    <select id="filterYear" class="select-field text-sm" onchange="window.updateDashboard()"></select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-bold text-slate-600">ខែ៖</label>
+                    <select id="filterMonth" class="select-field text-sm" onchange="window.updateDashboard()"></select>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-2xl p-6 border border-sky-100 shadow-sm flex items-center gap-5 hover:shadow-md transition">
+                <div class="p-4 bg-sky-50 rounded-2xl text-sky-600"><i data-lucide="file-text" class="w-8 h-8"></i></div>
+                <div>
+                    <p class="text-sm text-slate-500 font-bold mb-1">ចំនួនកិច្ចការបានកែសរុប</p>
+                    <h4 class="text-3xl font-black text-slate-800" id="kpiTotalRecords">០</h4>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-rose-100 shadow-sm flex items-center gap-5 hover:shadow-md transition">
+                <div class="p-4 bg-rose-50 rounded-2xl text-rose-600"><i data-lucide="alert-triangle" class="w-8 h-8"></i></div>
+                <div>
+                    <p class="text-sm text-slate-500 font-bold mb-1">ចំនួនកំហុសសរុបគ្រប់ប្រភេទ</p>
+                    <h4 class="text-3xl font-black text-slate-800" id="kpiTotalErrors">០</h4>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl p-6 border border-amber-100 shadow-sm flex items-center gap-5 hover:shadow-md transition">
+                <div class="p-4 bg-amber-50 rounded-2xl text-amber-600"><i data-lucide="users" class="w-8 h-8"></i></div>
+                <div>
+                    <p class="text-sm text-slate-500 font-bold mb-1">ចំនួនសិស្សដែលមានកំហុស</p>
+                    <h4 class="text-3xl font-black text-slate-800" id="kpiTotalStudents">០</h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Doughnut Chart -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                    <i data-lucide="donut" class="w-5 h-5 text-indigo-500"></i> បំណែងចែកប្រភេទកំហុស
+                </h3>
+                <div class="relative h-[300px] w-full flex justify-center">
+                    <canvas id="typeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Bar Chart -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                    <i data-lucide="trending-up" class="w-5 h-5 text-rose-500"></i> សិស្ស១០នាក់ដែលមានកំហុសច្រើនជាងគេ
+                </h3>
+                <div class="relative h-[300px] w-full">
+                    <canvas id="studentChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                    <i data-lucide="table" class="w-5 h-5 text-emerald-600"></i> របាយការណ៍លម្អិតតាមសិស្សម្នាក់ៗ
+                </h3>
+            </div>
+            <div class="table-wrapper p-0">
+                <table class="w-full text-[13px] text-left whitespace-nowrap">
+                    <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                        <tr>
+                            <th class="p-3 text-center w-12 border-r border-slate-100">ល.រ</th>
+                            <th class="p-3 border-r border-slate-100">ឈ្មោះសិស្ស</th>
+                            <th class="p-3 text-center border-r border-slate-100">ចំនួនកិច្ចការ</th>
+                            <th class="p-3 text-center text-rose-600 border-r border-slate-100">របៀបសរសេរ</th>
+                            <th class="p-3 text-center text-rose-600 border-r border-slate-100">អក្ខរាវិរុទ្ធ</th>
+                            <th class="p-3 text-center text-amber-600 border-r border-slate-100">ពាក្យច្រំដែល</th>
+                            <th class="p-3 text-center text-purple-600 border-r border-slate-100">ឃ្លាឆ្គង</th>
+                            <th class="p-3 text-center text-emerald-600 border-r border-slate-100">ចាកប្រធាន</th>
+                            <th class="p-3 text-center text-red-700 bg-red-50/30">សរុបកំហុស</th>
+                        </tr>
+                    </thead>
+                    <tbody id="analysisTableBody" class="divide-y divide-slate-100">
+                        <!-- Data will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ការកំណត់ Firebase របស់អ្នក
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let allRecords = [];
+        let configData = {};
+        let typeChartInstance = null;
+        let studentChartInstance = null;
+
+        const khDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+        function toKhmerNum(num) { 
+            if (num === undefined || num === null || num === '') return '';
+            return num.toString().split('').map(d => khDigits[d] || d).join(''); 
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (window.lucide) lucide.createIcons();
+            
+            try {
+                // ចូលប្រើអនាមិកដើម្បីឱ្យមានសិទ្ធិចូលទិន្នន័យ
+                await signInAnonymously(auth);
+                await loadDataOnline();
+            } catch (error) {
+                console.error("Firebase Auth or Load Error:", error);
+                document.getElementById('db-status').innerText = 'មានបញ្ហាភ្ជាប់ទិន្នន័យ ប្រើប្រាស់ទិន្នន័យចាស់ក្នុងម៉ាស៊ីន (Offline)';
+                loadDataOffline(); // Fallback
+            }
+        });
+
+        async function loadDataOnline() {
+            try {
+                // ទាញយកទិន្នន័យកំណត់ប្រធានបទ
+                const configSnap = await getDoc(doc(db, "school_data", "composition_errors_config"));
+                if (configSnap.exists()) {
+                    configData = configSnap.data();
+                }
+
+                // ទាញយកកំហុសសិស្ស
+                const docSnap = await getDoc(doc(db, "school_data", "composition_errors"));
+                if (docSnap.exists()) {
+                    allRecords = docSnap.data().records || [];
+                    document.getElementById('db-status').innerText = 'ភ្ជាប់ទិន្នន័យជោគជ័យពី Cloud ☁️';
+                } else {
+                    allRecords = [];
+                    document.getElementById('db-status').innerText = 'មិនទាន់មានទិន្នន័យនៅលើ Cloud ទេ';
+                }
+            } catch (error) {
+                console.error("Error loading data from Firebase:", error);
+                loadDataOffline();
+                return;
+            }
+            populateFilters();
+            updateDashboard();
+        }
+
+        function loadDataOffline() {
+            try {
+                allRecords = JSON.parse(localStorage.getItem('ptec_composition_errors')) || [];
+                configData = JSON.parse(localStorage.getItem('ptec_composition_errors_config')) || {};
+            } catch (error) {
+                allRecords = [];
+            }
+            populateFilters();
+            updateDashboard();
+        }
+
+        function populateFilters() {
+            // Populate Years
+            const years = [...new Set(allRecords.map(r => r.year))].filter(Boolean).sort();
+            const yearSelect = document.getElementById('filterYear');
+            yearSelect.innerHTML = '<option value="all">គ្រប់ឆ្នាំសិក្សា</option>';
+            years.forEach(y => {
+                yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+            });
+
+            // Set current active year if available from config
+            if (configData && configData.year && years.includes(configData.year)) {
+                yearSelect.value = configData.year;
+            }
+
+            // Populate Months
+            const months = [...new Set(allRecords.map(r => r.month))].filter(Boolean);
+            const monthSelect = document.getElementById('filterMonth');
+            monthSelect.innerHTML = '<option value="all">គ្រប់ខែ</option>';
+            
+            const khMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+            khMonths.forEach(m => {
+                if (months.includes(m)) {
+                    monthSelect.innerHTML += `<option value="${m}">${m}</option>`;
+                }
+            });
+        }
+
+        window.updateDashboard = function() {
+            const yearFilter = document.getElementById('filterYear').value;
+            const monthFilter = document.getElementById('filterMonth').value;
+
+            let filtered = allRecords;
+            if (yearFilter !== 'all') filtered = filtered.filter(r => r.year === yearFilter);
+            if (monthFilter !== 'all') filtered = filtered.filter(r => r.month === monthFilter);
+
+            const stats = {
+                totalRecords: filtered.length,
+                totalFormat: 0,
+                totalSpelling: 0,
+                totalRepetitive: 0,
+                totalAwkward: 0,
+                totalOffTopic: 0,
+                students: {}
+            };
+
+            let totalErrorsGlobal = 0;
+            const hasErr = (val) => val && val.trim() !== '';
+
+            filtered.forEach(r => {
+                if (!stats.students[r.name]) {
+                    stats.students[r.name] = {
+                        name: r.name,
+                        totalExercises: 0,
+                        formatErrors: 0,
+                        spellingErrors: 0,
+                        repetitiveWords: 0,
+                        awkwardPhrases: 0,
+                        offTopics: 0,
+                        totalErrors: 0
+                    };
+                }
+                
+                const s = stats.students[r.name];
+                s.totalExercises++;
+
+                if (hasErr(r.formatError)) { s.formatErrors++; stats.totalFormat++; s.totalErrors++; totalErrorsGlobal++; }
+                if (hasErr(r.spellingError)) { s.spellingErrors++; stats.totalSpelling++; s.totalErrors++; totalErrorsGlobal++; }
+                if (hasErr(r.repetitiveWord)) { s.repetitiveWords++; stats.totalRepetitive++; s.totalErrors++; totalErrorsGlobal++; }
+                if (hasErr(r.awkwardPhrase)) { s.awkwardPhrases++; stats.totalAwkward++; s.totalErrors++; totalErrorsGlobal++; }
+                if (hasErr(r.offTopic)) { s.offTopics++; stats.totalOffTopic++; s.totalErrors++; totalErrorsGlobal++; }
+            });
+
+            const studentsWithError = Object.values(stats.students).filter(s => s.totalErrors > 0).length;
+
+            document.getElementById('kpiTotalRecords').innerText = toKhmerNum(stats.totalRecords);
+            document.getElementById('kpiTotalErrors').innerText = toKhmerNum(totalErrorsGlobal);
+            document.getElementById('kpiTotalStudents').innerText = toKhmerNum(studentsWithError);
+
+            renderCharts(stats);
+            renderTable(stats.students);
+        }
+
+        function renderCharts(stats) {
+            Chart.defaults.font.family = "'Battambang', cursive";
+            Chart.defaults.color = '#64748b';
+
+            const ctxType = document.getElementById('typeChart').getContext('2d');
+            if (typeChartInstance) typeChartInstance.destroy();
+            
+            const typeData = [stats.totalFormat, stats.totalSpelling, stats.totalRepetitive, stats.totalAwkward, stats.totalOffTopic];
+            
+            typeChartInstance = new Chart(ctxType, {
+                type: 'doughnut',
+                data: {
+                    labels: ['របៀបសរសេរ', 'អក្ខរាវិរុទ្ធ', 'ពាក្យប្រើច្រើនដង', 'ឃ្លាឆ្គង', 'ចាកប្រធាន'],
+                    datasets: [{
+                        data: typeData,
+                        backgroundColor: ['#3b82f6', '#ef4444', '#f59e0b', '#8b5cf6', '#10b981'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { position: 'right', labels: { padding: 20, font: { size: 12 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed !== null) label += context.parsed + ' កំហុស';
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const ctxStudent = document.getElementById('studentChart').getContext('2d');
+            if (studentChartInstance) studentChartInstance.destroy();
+
+            const topStudents = Object.values(stats.students)
+                .filter(s => s.totalErrors > 0)
+                .sort((a, b) => b.totalErrors - a.totalErrors)
+                .slice(0, 10);
+            
+            studentChartInstance = new Chart(ctxStudent, {
+                type: 'bar',
+                data: {
+                    labels: topStudents.map(s => s.name),
+                    datasets: [{
+                        label: 'កំហុសសរុប',
+                        data: topStudents.map(s => s.totalErrors),
+                        backgroundColor: '#f43f5e',
+                        borderRadius: 6,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: '#f1f5f9' },
+                            ticks: { stepSize: 1 } 
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { maxRotation: 45, minRotation: 45 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `មានកំហុសសរុប: ${context.parsed.y}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTable(studentStats) {
+            const tbody = document.getElementById('analysisTableBody');
+            
+            const sortedStudents = Object.values(studentStats)
+                .sort((a, b) => {
+                    if (b.totalErrors !== a.totalErrors) return b.totalErrors - a.totalErrors;
+                    return a.name.localeCompare(b.name);
+                });
+            
+            if (sortedStudents.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-slate-400 font-bold">មិនមានទិន្នន័យសម្រាប់បង្ហាញទេ</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = sortedStudents.map((s, idx) => {
+                const isHighRisk = s.totalErrors >= 5;
+                const rowClass = isHighRisk ? "bg-red-50/20 hover:bg-red-50/40" : "hover:bg-slate-50";
+                const nameClass = isHighRisk ? "text-red-700 font-black" : "text-sky-700 font-bold";
+
+                const displayNum = (num, zeroFormat = '-') => num > 0 ? toKhmerNum(num) : zeroFormat;
+
+                return `
+                <tr class="${rowClass} transition border-b border-slate-100">
+                    <td class="p-3 text-center text-slate-500 font-bold border-r border-slate-100">${toKhmerNum(idx + 1)}</td>
+                    <td class="p-3 ${nameClass} border-r border-slate-100">${s.name}</td>
+                    <td class="p-3 text-center font-bold text-slate-600 border-r border-slate-100">${displayNum(s.totalExercises, '០')}</td>
+                    <td class="p-3 text-center text-rose-500 border-r border-slate-100">${displayNum(s.formatErrors)}</td>
+                    <td class="p-3 text-center text-rose-500 border-r border-slate-100">${displayNum(s.spellingErrors)}</td>
+                    <td class="p-3 text-center text-amber-500 border-r border-slate-100">${displayNum(s.repetitiveWords)}</td>
+                    <td class="p-3 text-center text-purple-500 border-r border-slate-100">${displayNum(s.awkwardPhrases)}</td>
+                    <td class="p-3 text-center text-emerald-500 border-r border-slate-100">${displayNum(s.offTopics)}</td>
+                    <td class="p-3 text-center font-black text-red-600 bg-red-50/50">${displayNum(s.totalErrors, '០')}</td>
+                </tr>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>

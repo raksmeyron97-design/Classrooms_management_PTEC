@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ផ្នែកជីវប្រវត្តិសង្ខេបរបស់សិស្ស</title>
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    <!-- បន្ថែមបណ្ណាល័យសម្រាប់ទាញយក Excel ដែលមានគាំទ្រការកំណត់ Style -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&family=Moul&display=swap');
+
+        :root {
+            --primary-font: 'Hanuman', serif;
+            --title-font: 'Moul', cursive;
+        }
+
+        body {
+            font-family: var(--primary-font);
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            font-size: 12px;
+        }
+
+        /* Action Panel Styling (ជំនួស Settings Panel ចាស់) */
+        .action-panel {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 1300px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: var(--primary-font);
+            font-weight: bold;
+            font-size: 14px;
+            transition: background-color 0.3s, opacity 0.3s;
+        }
+        button:hover { opacity: 0.9; }
+        .btn-print { background-color: #ea4335; } /* ពណ៌ក្រហមសម្រាប់ Print */
+        .btn-excel { background-color: #34a853; } /* ពណ៌បៃតងសម្រាប់ Excel */
+        .btn-back { background-color: #6b7280; } /* ពណ៌ប្រផេះសម្រាប់ត្រឡប់ក្រោយ */
+
+        /* Document/Print Area Styling */
+        .print-container {
+            padding: 20px 0;
+            max-width: 100%;
+            margin: auto;
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* ទម្រង់មើលទៅដូចជាក្រដាស A3 Landscape ចំកណ្តាលអេក្រង់ */
+        #printArea {
+            width: 420mm;
+            min-height: 297mm;
+            background-color: white;
+            color: black;
+            padding: 15mm;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        .header-left {
+            text-align: left;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .header-right {
+            text-align: center;
+            font-family: var(--title-font);
+            font-size: 16px;
+        }
+        
+        .report-header-img {
+            height: 15px; 
+            width: auto; 
+            margin-top: 5px; 
+            display: inline-block;
+        }
+
+        .main-title {
+            text-align: center;
+            font-family: var(--title-font);
+            font-size: 18px;
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .class-info {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 11px;
+            table-layout: fixed; 
+            word-wrap: break-word; 
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 4px 6px;
+            text-align: left;
+            vertical-align: middle;
+            overflow: hidden;
+        }
+        th {
+            background-color: #f9f9f9;
+            text-align: center;
+            font-weight: bold;
+            word-break: keep-all; 
+            overflow-wrap: normal;
+        }
+        
+        tbody tr {
+            min-height: 50px;
+            height: 50px;
+            page-break-inside: avoid;
+        }
+        tbody td {
+            height: 50px;
+        }
+        
+        .center-text { text-align: center; }
+
+        .footer-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding: 0 50px;
+            line-height: 1.6;
+            page-break-inside: avoid;
+        }
+        .footer-box {
+            text-align: center;
+            font-size: 13px;
+        }
+        .kh-moul {
+            font-family: var(--title-font);
+            font-weight: normal;
+        }
+        .signature-space {
+            height: 80px;
+        }
+
+        @page {
+            size: A3 landscape;
+            margin: 0mm; 
+        }
+
+        @media print {
+            .action-panel { display: none !important; }
+            body { 
+                background-color: white; 
+                margin: 0;
+                padding: 0; 
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .print-container { padding: 0; justify-content: flex-start; }
+            #printArea { 
+                box-shadow: none; 
+                margin: 0; 
+                width: 100%; 
+                padding: 15mm; 
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Action Buttons Panel -->
+    <div class="action-panel no-print">
+        <button class="btn-back" onclick="window.location.href='student-list.html'">ត្រឡប់ក្រោយ</button>
+        <button id="btnPrint" class="btn-print" onclick="window.print()">បោះពុម្ព (Print)</button>
+        <button id="btnExcel" class="btn-excel" onclick="downloadExcel()">ទាញយក Excel</button>
+    </div>
+
+    <div class="print-container">
+        <div id="printArea">
+            
+            <div class="header-section">
+                <div class="header-left">
+                    <div id="outMgm1"></div>
+                    <div id="outMgm2"></div>
+                    <div id="outSchool"></div>
+                    <div style="font-weight: normal; font-size: 13px; margin-top: 5px;">លេខកូដសាលា៖ <span id="outSchoolCode"></span></div>
+                </div>
+                <div class="header-right">
+                    ព្រះរាជាណាចក្រកម្ពុជា<br>
+                    ជាតិ សាសនា ព្រះមហាក្សត្រ<br>
+                    <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="report-header-img" crossorigin="anonymous">
+                </div>
+            </div>
+
+            <div class="main-title">
+                បញ្ជីហៅឈ្មោះសិស្ស<br>
+                ផ្នែកជីវប្រវត្តិសង្ខេបរបស់សិស្ស
+            </div>
+
+            <div class="class-info">
+                <span id="outClass"></span> &nbsp;&nbsp;&nbsp;&nbsp; 
+                ឈ្មោះគ្រូ <span id="outTeacher"></span> &nbsp;&nbsp;&nbsp;&nbsp; 
+                ភេទ <span id="outTeacherGender"></span> &nbsp;&nbsp;&nbsp;&nbsp; 
+                កម្រិតវប្បធម៌ <span id="outTeacherEdu"></span> &nbsp;&nbsp;&nbsp;&nbsp; 
+                កម្រិតបណ្តុះបណ្តាល <span id="outTeacherTraining"></span> &nbsp;&nbsp;&nbsp;&nbsp;
+                អតីតភាព <span id="outTeacherSeniority"></span> ឆ្នាំ
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th width="3%">ល.រ</th>
+                        <th width="6%">អត្តលេខ</th>
+                        <th width="7%">គោត្តនាម</th>
+                        <th width="7%">នាម</th>
+                        <th width="10%">គោត្តនាម នាម</th>
+                        <th width="4%">ភេទ</th>
+                        <th width="8%">ថ្ងៃខែ&#8203;ឆ្នាំ&#8203;កំណើត</th>
+                        <th width="3%">អាយុ</th>
+                        <th width="10%">ទីកន្លែង&#8203;កំណើត</th>
+                        <th width="10%">ឈ្មោះឪពុក និង&#8203;មុខរបរ</th>
+                        <th width="10%">ឈ្មោះម្តាយ និង&#8203;មុខរបរ</th>
+                        <th width="10%">អាសយដ្ឋាន&#8203;សព្វថ្ងៃ</th>
+                        <th width="4%">ជនជាតិ&#8203;ដើម&#8203;ភាគតិច</th>
+                        <th width="4%">លក្ខណៈ&#8203;ពិសេស</th>
+                        <th width="4%">សេចក្តី&#8203;ផ្សេងៗ</th>
+                    </tr>
+                    <tr class="center-text" style="background-color: #f0f0f0;">
+                        <td>១</td><td>២</td><td>៣</td><td>៤</td><td>៥</td><td>៦</td><td>៧</td><td>៨</td><td>៩</td><td>១០</td><td>១១</td><td>១២</td><td>១៣</td><td>១៤</td><td>១៥</td>
+                    </tr>
+                </thead>
+                <tbody id="studentTableBody">
+                </tbody>
+            </table>
+
+            <div class="footer-section">
+                <div class="footer-box">
+                    <div style="margin-bottom: 5px; font-weight: bold;">បានឃើញ និងឯកភាព</div>
+                    <div id="outRole" class="kh-moul" style="font-size: 14px;">នាយកសាលា</div>
+                    <div class="signature-space"></div>
+                </div>
+                <div class="footer-box">
+                    <div id="outLunarDate" style="margin-bottom: 2px;">ថ្ងៃ................ខែ..........ឆ្នាំ..........</div>
+                    <div style="margin-bottom: 10px;">
+                        ធ្វើនៅ <span id="outProvince"></span>, <span id="outKhmerDate">ថ្ងៃទី... ខែ... ឆ្នាំ...</span>
+                    </div>
+                    <div class="kh-moul" style="font-size: 14px;">គ្រូបន្ទុកថ្នាក់</div>
+                    <div class="signature-space"></div>
+                    <div id="outTeacherSign" class="kh-moul" style="font-size: 14px; position: relative; left: 40px;"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let teacherProfile = {}; // Store the profile data here
+
+        // អនុគមន៍ជំនួយពីប្រព័ន្ធគ្រប់គ្រងសិស្ស
+        function calculateAge(dobStr) {
+            if(!dobStr || dobStr === '-') return '-';
+            const dob = new Date(dobStr);
+            if(isNaN(dob)) return '-';
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        function formatLocation(v, c, d, p) {
+            let parts = [];
+            const clean = (str, regex) => str ? str.replace(regex, '').trim() : '';
+            let village = clean(v, /^(ភូមិទី|ភូមិ)\s*/);
+            let commune = clean(c, /^(ឃុំ\/សង្កាត់|សង្កាត់|ឃុំ)\s*/);
+            let district = clean(d, /^(ស្រុក\/ខណ្ឌ|ក្រុង\/ស្រុក\/ខណ្ឌ|ខណ្ឌ|ស្រុក|ក្រុង)\s*/);
+            let province = clean(p, /^(ខេត្ត\/ក្រុង|រាជធានី\/ខេត្ត|រាជធានី|ខេត្ត)\s*/);
+
+            if(village) parts.push(village);
+            if(commune) parts.push(commune);
+            if(district) parts.push(district);
+            if(province) parts.push(province);
+            return parts.length > 0 ? parts.join(' ') : '-';
+        }
+
+        function formatParent(name, job) {
+            if(!name && !job) return '-';
+            let res = name ? name.trim() : 'មិនស្គាល់';
+            if(job && job.trim()) res += ` (${job.trim()})`;
+            return res;
+        }
+
+        function formatDateDisplay(dobStr) {
+            if(!dobStr || dobStr === '-') return '-';
+            const parts = dobStr.split('-');
+            if(parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dobStr;
+        }
+
+        // ទាញយកទិន្នន័យពី LocalStorage របស់ប្រព័ន្ធ
+        function loadStudentsFromLocal() {
+            let studentsData = [];
+            try {
+                studentsData = JSON.parse(localStorage.getItem('students') || '[]');
+            } catch (e) {
+                console.error("Error loading students", e);
+            }
+
+            if (studentsData.length > 0) {
+                let tbodyHtml = '';
+                studentsData.forEach((s, index) => {
+                    let parts = s.name ? s.name.trim().split(/\s+/) : [];
+                    let lastName = parts.length > 0 ? parts[0] : '';
+                    let firstName = parts.length > 1 ? parts.slice(1).join(' ') : '';
+                    let fullName = s.name || '';
+
+                    let age = calculateAge(s.dob);
+                    let birthPlace = formatLocation(s.village, s.commune, s.district, s.province);
+                    let currPlace = formatLocation(s.currVillage, s.currCommune, s.currDistrict, s.currProvince) !== '-' ? 
+                                    formatLocation(s.currVillage, s.currCommune, s.currDistrict, s.currProvince) : 
+                                    (s.currentAddress || '-'); 
+                                    
+                    let fatherInfo = formatParent(s.father, s.fatherJob);
+                    let motherInfo = formatParent(s.mother, s.motherJob);
+                    let displayDob = formatDateDisplay(s.dob);
+
+                    tbodyHtml += `<tr>
+                        <td class="center-text">${index + 1}</td>
+                        <td class="center-text">${s.id || ''}</td>
+                        <td>${lastName}</td>
+                        <td>${firstName}</td>
+                        <td>${fullName}</td>
+                        <td class="center-text">${s.gender || ''}</td>
+                        <td class="center-text">${displayDob}</td>
+                        <td class="center-text">${age !== '-' ? age : ''}</td>
+                        <td>${birthPlace}</td>
+                        <td>${fatherInfo}</td>
+                        <td>${motherInfo}</td>
+                        <td>${currPlace}</td>
+                        <td class="center-text">${s.ethnicity || ''}</td>
+                        <td>${s.specialFeatures || ''}</td>
+                        <td>${s.otherRemarks || ''}</td>
+                    </tr>`;
+                });
+
+                const defaultRows = 25;
+                if (studentsData.length < defaultRows) {
+                    for(let i = studentsData.length + 1; i <= defaultRows; i++) {
+                        tbodyHtml += `<tr>
+                            <td class="center-text">${i}</td>
+                            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                        </tr>`;
+                    }
+                }
+
+                document.getElementById('studentTableBody').innerHTML = tbodyHtml;
+                return true;
+            }
+            return false;
+        }
+
+        // អនុគមន៍បំប្លែងលេខអារ៉ាប់ទៅលេខខ្មែរ និងឈ្មោះខែ
+        function getKhmerDate() {
+            const khmerNumbers = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
+            const khmerMonths = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
+            
+            const toKhNum = (num) => num.toString().split('').map(d => khmerNumbers[d] || d).join('');
+            
+            const date = new Date();
+            const day = toKhNum(date.getDate().toString().padStart(2, '0'));
+            const month = khmerMonths[date.getMonth()];
+            const year = toKhNum(date.getFullYear());
+
+            return `ថ្ងៃទី ${day} ខែ ${month} ឆ្នាំ ${year}`;
+        }
+        
+        function updateDates() {
+            document.getElementById('outKhmerDate').innerText = getKhmerDate();
+
+            let lunarStr = "ថ្ងៃ................ខែ..........ឆ្នាំ..........";
+            const today = new Date();
+            if (typeof momentkh !== 'undefined') {
+                try {
+                    const khmerDateObj = momentkh.fromDate(today);
+                    lunarStr = momentkh.format(khmerDateObj).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                } catch (e) { console.error("Error formatting khmer date", e); }
+            }
+            document.getElementById('outLunarDate').innerText = lunarStr;
+        }
+
+        function generateEmptyRows(count) {
+            let html = '';
+            for(let i = 1; i <= count; i++) {
+                html += `<tr>
+                    <td class="center-text">${i}</td>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>`;
+            }
+            document.getElementById('studentTableBody').innerHTML = html;
+        }
+
+        // ----- មុខងារទាញយកទិន្នន័យពី Profile ------------------
+        function loadProfileData() {
+            const saved = localStorage.getItem('teacherProfile');
+            let profile = {};
+            if (saved) {
+                try {
+                    profile = JSON.parse(saved);
+                } catch(e) {
+                    console.error("Error loading profile", e);
+                }
+            }
+            
+            // Map the values or fallback to default blanks
+            teacherProfile = {
+                mgm1: profile.management_unit_1 || "មន្ទីរអប់រំ យុវជន និងកីឡា រាជធានី/ខេត្តព្រៃវែង",
+                mgm2: profile.management_unit_2 || "ការិយាល័យអប់រំ យុវជន និងកីឡារដ្ឋបាលក្រុង/ស្រុក/ខណ្ឌព្រះស្ដេច",
+                school: profile.school_name_admin || "សាលាបឋមសិក្សា កគោ",
+                schoolCode: profile.school_code || "14090207006",
+                className: profile.class_name ? profile.class_name + (profile.academic_year ? " ឆ្នាំសិក្សា" + profile.academic_year : "") : "ថ្នាក់ទី៦ «ក» ឆ្នាំសិក្សា២០២៤-២០២៥",
+                teacher: profile.homeroom_teacher || "សាយ ចន្ធី",
+                teacherGender: profile.gender || "ស្រី",
+                teacherEdu: profile.education_level || "បរិញ្ញាប័ត្រ",
+                teacherTraining: profile.training_level || "១២+២",
+                teacherSeniority: profile.seniority_years || "",
+                role: profile.manager_role || "នាយកសាលា",
+                province: profile.province_for_date || "ព្រៃវែង"
+            };
+        }
+
+        function applySettings() {
+            document.getElementById('outMgm1').innerText = teacherProfile.mgm1;
+            document.getElementById('outMgm2').innerText = teacherProfile.mgm2;
+            document.getElementById('outSchool').innerText = teacherProfile.school;
+            document.getElementById('outSchoolCode').innerText = teacherProfile.schoolCode;
+            document.getElementById('outClass').innerText = teacherProfile.className;
+            
+            document.getElementById('outTeacher').innerText = teacherProfile.teacher;
+            document.getElementById('outTeacherSign').innerText = teacherProfile.teacher;
+            
+            document.getElementById('outTeacherGender').innerText = teacherProfile.teacherGender;
+            document.getElementById('outTeacherEdu').innerText = teacherProfile.teacherEdu;
+            document.getElementById('outTeacherTraining').innerText = teacherProfile.teacherTraining;
+            document.getElementById('outTeacherSeniority').innerText = teacherProfile.teacherSeniority;
+            
+            document.getElementById('outRole').innerText = teacherProfile.role;
+            document.getElementById('outProvince').innerText = teacherProfile.province;
+            
+            updateDates();
+
+            const loaded = loadStudentsFromLocal();
+            if (!loaded) {
+                generateEmptyRows(25);
+            }
+        }
+
+        // អនុគមន៍សម្រាប់ទាញយក Excel
+        function downloadExcel() {
+            const btn = document.getElementById('btnExcel');
+            const originalText = btn.innerText;
+            btn.innerText = "កំពុងទាញយក...";
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                try {
+                    // ទាញយកទិន្នន័យពី Object ដែលបាន Load ចេញពី Profile
+                    const mgm1 = teacherProfile.mgm1;
+                    const mgm2 = teacherProfile.mgm2;
+                    const school = teacherProfile.school;
+                    const schoolCode = teacherProfile.schoolCode;
+                    const className = teacherProfile.className;
+                    const teacher = teacherProfile.teacher;
+                    const gender = teacherProfile.teacherGender;
+                    const edu = teacherProfile.teacherEdu;
+                    const training = teacherProfile.teacherTraining;
+                    const seniority = teacherProfile.teacherSeniority;
+                    const province = teacherProfile.province;
+                    const role = teacherProfile.role;
+                    
+                    const lunarDate = document.getElementById('outLunarDate').innerText;
+                    const solarDate = document.getElementById('outKhmerDate').innerText;
+                    
+                    let aoa = [];
+                    for(let i=0; i<13; i++) aoa.push(Array(15).fill(""));
+
+                    aoa[0][0] = mgm1;
+                    aoa[1][0] = mgm2;
+                    aoa[2][0] = school;
+                    aoa[3][0] = "លេខកូដសាលា៖";
+                    aoa[3][2] = schoolCode; 
+                    
+                    aoa[0][10] = "ព្រះរាជាណាចក្រកម្ពុជា";
+                    aoa[1][10] = "ជាតិ សាសនា ព្រះមហាក្សត្រ";
+                    aoa[2][10] = "6"; 
+                    
+                    aoa[5][0] = "បញ្ជីហៅឈ្មោះសិស្ស";
+                    aoa[6][0] = "ផ្នែកជីវប្រវត្តិសង្ខេបរបស់សិស្ស";
+                    aoa[7][0] = `${className} ឈ្មោះគ្រូ ${teacher}  ភេទ${gender} កម្រិតវប្បធម៌ ${edu} កម្រិតបណ្តុះបណ្តាល${training}អតីតភាព  ${seniority} ឆ្នាំ`;
+
+                    aoa[9] = ["ល.រ", "អត្តលេខ", "គោត្តនាម", "នាម", "គោត្តនាម នាម", "ភេទ", "ថ្ងៃខែឆ្នាំកំណើត", "អាយុ", "ទីកន្លែងកំណើត", "ឈ្មោះឪពុក និងមុខរបរ", "ឈ្មោះម្តាយ និងមុខរបរ", "អាសយដ្ឋានសព្វថ្ងៃ", "ជនជាតិដើមភាគតិច", "លក្ខណៈពិសេស", "សេចក្តីផ្សេងៗ"];
+                    aoa[10] = ["១", "២", "៣", "៤", "៥", "៦", "៧", "៨", "៩", "១០", "១១", "១២", "១៣", "១៤", "១៥"];
+                    
+                    // ទាញយកទិន្នន័យពីតារាង (Table)
+                    const tbody = document.getElementById('studentTableBody');
+                    const rows = tbody.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        let rowData = [];
+                        row.querySelectorAll('td').forEach(cell => {
+                            rowData.push(cell.innerText.trim());
+                        });
+                        while(rowData.length < 15) rowData.push("");
+                        aoa.push(rowData);
+                    });
+                    
+                    const totalRows = aoa.length;
+                    
+                    aoa.push(Array(15).fill(""));
+                    
+                    let footerRow1 = Array(15).fill("");
+                    footerRow1[1] = "បានឃើញ និងឯកភាព";
+                    footerRow1[10] = lunarDate;
+                    aoa.push(footerRow1);
+                    
+                    let footerRow2 = Array(15).fill("");
+                    footerRow2[1] = role;
+                    footerRow2[10] = `ធ្វើនៅ ${province}, ${solarDate}`;
+                    aoa.push(footerRow2);
+                    
+                    let footerRow3 = Array(15).fill("");
+                    footerRow3[10] = "គ្រូបន្ទុកថ្នាក់";
+                    aoa.push(footerRow3);
+                    
+                    aoa.push(Array(15).fill(""));
+                    aoa.push(Array(15).fill(""));
+                    aoa.push(Array(15).fill(""));
+                    
+                    let footerRow4 = Array(15).fill("");
+                    footerRow4[10] = teacher;
+                    aoa.push(footerRow4);
+
+                    const ws = XLSX.utils.aoa_to_sheet(aoa);
+                    
+                    ws['!pageSetup'] = { paperSize: 8, orientation: 'landscape' };
+                    
+                    ws['!cols'] = [
+                        { wch: 5 }, { wch: 8 }, { wch: 10 }, { wch: 10 }, { wch: 16 }, 
+                        { wch: 5 }, { wch: 12 }, { wch: 5 }, { wch: 15 }, { wch: 16 }, 
+                        { wch: 16 }, { wch: 20 }, { wch: 7 }, { wch: 7 }, { wch: 10 }
+                    ];
+
+                    ws['!rows'] = [];
+                    ws['!rows'][0] = { hpt: 22 };
+                    ws['!rows'][1] = { hpt: 22 };
+                    ws['!rows'][2] = { hpt: 45 }; 
+                    ws['!rows'][5] = { hpt: 25 }; 
+                    ws['!rows'][6] = { hpt: 25 }; 
+                    for(let i = 9; i < totalRows; i++) { ws['!rows'][i] = { hpt: 22 }; }
+
+                    ws['!merges'] = [
+                        { s: { r: 0, c: 10 }, e: { r: 0, c: 14 } }, 
+                        { s: { r: 1, c: 10 }, e: { r: 1, c: 14 } }, 
+                        { s: { r: 2, c: 10 }, e: { r: 2, c: 14 } }, 
+                        { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+                        { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },
+                        { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } },
+                        { s: { r: 3, c: 0 }, e: { r: 3, c: 1 } }, 
+                        { s: { r: 5, c: 0 }, e: { r: 5, c: 14 } }, 
+                        { s: { r: 6, c: 0 }, e: { r: 6, c: 14 } }, 
+                        { s: { r: 7, c: 0 }, e: { r: 7, c: 14 } }, 
+                        { s: { r: totalRows + 1, c: 1 }, e: { r: totalRows + 1, c: 3 } }, 
+                        { s: { r: totalRows + 1, c: 10 }, e: { r: totalRows + 1, c: 14 } }, 
+                        { s: { r: totalRows + 2, c: 1 }, e: { r: totalRows + 2, c: 3 } }, 
+                        { s: { r: totalRows + 2, c: 10 }, e: { r: totalRows + 2, c: 14 } }, 
+                        { s: { r: totalRows + 3, c: 10 }, e: { r: totalRows + 3, c: 14 } }, 
+                        { s: { r: totalRows + 7, c: 10 }, e: { r: totalRows + 7, c: 14 } } 
+                    ];
+                    
+                    const range = XLSX.utils.decode_range(ws['!ref']);
+                    for (let R = 0; R <= range.e.r; ++R) {
+                        for (let C = 0; C <= range.e.c; ++C) {
+                            const cellRef = XLSX.utils.encode_cell({ c: C, r: R });
+                            if (!ws[cellRef]) ws[cellRef] = { v: "", t: "s" }; 
+                            
+                            let cellStyle = {
+                                font: { name: "Khmer OS Content", sz: 11 }, 
+                                alignment: { vertical: "center", wrapText: true }
+                            };
+                            
+                            if (R === 0 && C === 10) { cellStyle.font = { name: "Moul", sz: 14 }; cellStyle.alignment.horizontal = "center"; }
+                            if (R === 1 && C === 10) { cellStyle.font = { name: "Moul", sz: 14 }; cellStyle.alignment.horizontal = "center"; }
+                            if (R === 2 && C === 10) { cellStyle.font = { name: "Tacteing", sz: 40 }; cellStyle.alignment.horizontal = "center"; }
+                            
+                            if (R >= 0 && R <= 3 && C === 0) { cellStyle.font.bold = true; }
+                            
+                            if (R === 5 && C === 0) { cellStyle.font = { name: "Moul", sz: 14 }; cellStyle.alignment.horizontal = "center"; }
+                            if (R === 6 && C === 0) { cellStyle.font = { name: "Moul", sz: 14 }; cellStyle.alignment.horizontal = "center"; }
+                            if (R === 7 && C === 0) { cellStyle.alignment.horizontal = "left"; cellStyle.font.bold = true; }
+                            
+                            if (R >= 9 && R < totalRows) {
+                                cellStyle.border = {
+                                  top: { style: "thin", color: { rgb: "000000" } },
+                                  bottom: { style: "thin", color: { rgb: "000000" } },
+                                  left: { style: "thin", color: { rgb: "000000" } },
+                                  right: { style: "thin", color: { rgb: "000000" } }
+                                };
+                                if (R === 9 || R === 10) {
+                                    cellStyle.font.bold = true;
+                                    cellStyle.alignment.horizontal = "center";
+                                } else {
+                                    if ([0, 1, 5, 6, 7].includes(C)) {
+                                        cellStyle.alignment.horizontal = "center";
+                                    }
+                                }
+                            }
+                            
+                            if (R >= totalRows + 1) {
+                                cellStyle.alignment.horizontal = "center";
+                                
+                                if (R === totalRows + 1 && C === 1) cellStyle.font = { name: "Khmer OS Content", sz: 11, bold: true };
+                                if (R === totalRows + 2 && C === 1) cellStyle.font = { name: "Moul", sz: 12 };
+                                if (R === totalRows + 3 && C === 10) cellStyle.font = { name: "Moul", sz: 12 };
+                                if (R === totalRows + 7 && C === 10) cellStyle.font = { name: "Moul", sz: 12 };
+                            }
+                            
+                            ws[cellRef].s = cellStyle;
+                        }
+                    }
+
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "បញ្ជីសិស្ស");
+                    XLSX.writeFile(wb, "បញ្ជីជីវប្រវត្តិសិស្ស.xlsx");
+                } catch (err) {
+                    console.error(err);
+                    alert("មានបញ្ហាក្នុងការទាញយក Excel!");
+                }
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }, 100);
+        }
+
+        // អនុវត្តការកំណត់លើកដំបូងពេលបើក Web ទំព័រ
+        window.onload = () => {
+            loadProfileData(); // ១. ទាញយកទិន្នន័យពី Profile មកជំនួស Settings ចាស់
+            applySettings();   // ២. អនុវត្តទិន្នន័យ និងបង្ហាញតារាង
+        };
+    </script>
+</body>
+</html>

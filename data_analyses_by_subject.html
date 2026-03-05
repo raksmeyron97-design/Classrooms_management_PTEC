@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - វិភាគពិន្ទុតាមមុខវិជ្ជា (Online)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Chart.js for Data Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root { 
+            --primary: #0054a6; 
+            --secondary: #3b82f6; 
+        }
+        
+        body { 
+            font-family: 'Battambang', cursive; 
+            background: #f0f4f8; 
+            min-height: 100vh; 
+            margin: 0; 
+            color: #1e293b;
+        }
+        
+        .kh-moul { 
+            font-family: 'Moul', cursive; 
+        }
+        
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .glass-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        /* Form Selects */
+        .form-select {
+            padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            outline: none;
+            background: white;
+            font-family: 'Battambang', cursive;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #1e293b;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0, 84, 166, 0.1); }
+    </style>
+</head>
+<body class="pb-10">
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" style="display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(4px);">
+        <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-[#0054a6] mb-2"></i>
+        <p class="font-bold text-slate-600">កំពុងទាញយកទិន្នន័យពី Cloud...</p>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="bg-[#0054a6] text-white p-4 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto max-w-7xl flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="flex items-center gap-2 hover:text-yellow-400 transition font-bold text-sm bg-white/10 px-3 py-1.5 rounded-lg border border-white/20">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> ត្រឡប់ក្រោយ
+                </a>
+                <div class="bg-white/20 p-2 rounded-lg hidden sm:block">
+                    <i data-lucide="book-open" class="w-5 h-5 text-yellow-300"></i>
+                </div>
+                <h1 class="kh-moul text-lg hidden md:block">វិភាគពិន្ទុតាមមុខវិជ្ជា (Online)</h1>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                
+                <!-- Print Button -->
+                <a href="data_analyses_by_subject_print.html" target="_blank" class="flex items-center gap-2 bg-white text-[#0054a6] hover:bg-gray-100 transition font-bold text-sm px-4 py-2 rounded-xl shadow-sm">
+                    <i data-lucide="printer" class="w-4 h-4"></i> 
+                    <span class="hidden sm:inline">បោះពុម្ព</span>
+                </a>
+
+                <!-- Year Select -->
+                <div class="relative">
+                    <select id="yearSelect" onchange="window.loadData()" class="form-select text-gray-800">
+                        <option value="2025-2026" selected>ឆ្នាំ ២០២៥-២០២៦</option>
+                        <option value="2026-2027">ឆ្នាំ ២០២៦-២០២៧</option>
+                        <option value="2027-2028">ឆ្នាំ ២០២៧-២០២៨</option>
+                    </select>
+                    <i data-lucide="calendar" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-600"></i>
+                </div>
+                
+                <!-- Month Select -->
+                <div class="relative">
+                    <select id="monthSelect" onchange="window.analyzeSubject()" class="form-select text-gray-800">
+                        <!-- Populated by JS -->
+                    </select>
+                    <i data-lucide="clock" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-600"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto max-w-7xl px-4 mt-6 space-y-6">
+
+        <!-- Subject Selector & Status -->
+        <div class="glass-card p-5 border-l-4 border-[#0054a6] bg-gradient-to-r from-blue-50 to-white flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <div class="p-3 bg-blue-600 text-white rounded-xl shadow-md">
+                    <i data-lucide="target" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-gray-800 text-sm">ជ្រើសរើសមុខវិជ្ជាដើម្បីវិភាគ៖</h2>
+                    <select id="subjectSelect" onchange="window.analyzeSubject()" class="mt-1 w-full md:w-64 p-2 border-b-2 border-blue-600 bg-transparent outline-none font-bold text-[#0054a6] text-lg cursor-pointer">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+            </div>
+            <button onclick="window.analyzeSubject()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 border border-indigo-200 w-full md:w-auto justify-center">
+                <i data-lucide="refresh-ccw" class="w-4 h-4"></i> ធ្វើបច្ចុប្បន្នភាព
+            </button>
+        </div>
+
+        <!-- Error/Empty State -->
+        <div id="emptyState" class="hidden bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg shadow-sm">
+            <div class="flex items-center">
+                <i data-lucide="alert-triangle" class="w-6 h-6 text-yellow-500 mr-3"></i>
+                <p class="font-bold text-yellow-800">មិនមានទិន្នន័យពិន្ទុសម្រាប់មុខវិជ្ជានិងខែនេះទេ។ សូមជ្រើសរើសមុខវិជ្ជា ឬខែផ្សេង។</p>
+            </div>
+        </div>
+
+        <!-- Key Metrics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="metricsContainer">
+            <!-- Populated by JS -->
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Distribution Doughnut Chart -->
+            <div class="glass-card p-5 lg:col-span-1">
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h2 class="font-bold text-gray-800 flex items-center gap-2 text-sm">
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-purple-600"></i>
+                        កម្រិតយល់ដឹងសិស្ស
+                    </h2>
+                </div>
+                <div class="chart-container flex justify-center items-center h-[250px]">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Subject Trend Line Chart -->
+            <div class="glass-card p-5 lg:col-span-2">
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h2 class="font-bold text-gray-800 flex items-center gap-2 text-sm">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-[#0054a6]"></i>
+                        និន្នាការមធ្យមភាគថ្នាក់ប្រចាំខែ (មុខវិជ្ជា <span id="trendSubjLabel" class="text-[#0054a6]"></span>)
+                    </h2>
+                </div>
+                <div class="chart-container h-[250px]">
+                    <canvas id="subjectTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top and Bottom Students Tables -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Top Students -->
+            <div class="glass-card p-0 overflow-hidden border border-green-100">
+                <div class="bg-green-50 p-4 border-b border-green-100 flex items-center justify-between">
+                    <h3 class="font-bold text-green-800 flex items-center gap-2">
+                        <i data-lucide="award" class="w-5 h-5 text-green-600"></i>
+                        សិស្សឆ្នើម (Top 5)
+                    </h3>
+                    <span class="bg-green-200 text-green-800 text-[10px] px-2 py-1 rounded-full font-bold uppercase">Great Performance</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-white text-gray-500 text-xs border-b">
+                            <tr>
+                                <th class="px-4 py-2 w-12 text-center">លេខ</th>
+                                <th class="px-4 py-2">ឈ្មោះសិស្ស</th>
+                                <th class="px-4 py-2 text-center w-24">ពិន្ទុ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topStudentsBody" class="bg-white divide-y divide-gray-50">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bottom Students -->
+            <div class="glass-card p-0 overflow-hidden border border-red-100">
+                <div class="bg-red-50 p-4 border-b border-red-100 flex items-center justify-between">
+                    <h3 class="font-bold text-red-800 flex items-center gap-2">
+                        <i data-lucide="alert-octagon" class="w-5 h-5 text-red-600"></i>
+                        សិស្សត្រូវជួយបំប៉ន (Bottom 5)
+                    </h3>
+                    <span class="bg-red-200 text-red-800 text-[10px] px-2 py-1 rounded-full font-bold uppercase">Needs Attention</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-white text-gray-500 text-xs border-b">
+                            <tr>
+                                <th class="px-4 py-2 w-12 text-center">លេខ</th>
+                                <th class="px-4 py-2">ឈ្មោះសិស្ស</th>
+                                <th class="px-4 py-2 text-center w-24">ពិន្ទុ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bottomStudentsBody" class="bg-white divide-y divide-gray-50">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Individual Student Analysis -->
+        <div class="glass-card p-5 border-t-4 border-indigo-500 mt-8 mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b pb-4 gap-4">
+                <div>
+                    <h2 class="font-bold text-indigo-800 flex items-center gap-2 text-lg">
+                        <i data-lucide="user-search" class="w-6 h-6"></i>
+                        វិភាគសិស្សម្នាក់ៗ
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1 font-medium">មុខវិជ្ជា៖ <span id="indvSubjLabel" class="text-indigo-600 font-bold"></span></p>
+                </div>
+                <div class="w-full md:w-auto flex items-center gap-3">
+                    <label class="text-sm font-bold text-gray-600 hidden md:block">ជ្រើសរើសសិស្ស៖</label>
+                    <select id="studentSelect" onchange="window.analyzeIndividualStudent()" class="w-full md:w-72 p-2.5 border border-indigo-200 rounded-xl outline-none focus:border-indigo-500 font-bold text-sm bg-indigo-50 text-indigo-800 cursor-pointer shadow-sm">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+            </div>
+
+            <div id="indvContentArea" class="hidden">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 flex flex-col justify-center items-center text-center">
+                        <span class="text-[10px] text-gray-500 font-bold uppercase mb-1">មធ្យមភាគផ្ទាល់ខ្លួន</span>
+                        <span class="text-2xl font-black text-indigo-700" id="indvAvg">-</span>
+                    </div>
+                    <div class="bg-green-50/50 p-4 rounded-xl border border-green-100 flex flex-col justify-center items-center text-center">
+                        <span class="text-[10px] text-gray-500 font-bold uppercase mb-1">ពិន្ទុខ្ពស់បំផុត</span>
+                        <span class="text-2xl font-black text-green-700" id="indvMax">-</span>
+                    </div>
+                    <div class="bg-red-50/50 p-4 rounded-xl border border-red-100 flex flex-col justify-center items-center text-center">
+                        <span class="text-[10px] text-gray-500 font-bold uppercase mb-1">ពិន្ទុទាបបំផុត</span>
+                        <span class="text-2xl font-black text-red-700" id="indvMin">-</span>
+                    </div>
+                    <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col justify-center items-center text-center">
+                        <span class="text-[10px] text-gray-500 font-bold uppercase mb-1">ចំនួនខែមានពិន្ទុ</span>
+                        <span class="text-2xl font-black text-blue-700" id="indvCount">-</span>
+                    </div>
+                </div>
+
+                <div class="chart-container h-[250px]">
+                    <canvas id="indvTrendChart"></canvas>
+                </div>
+            </div>
+            
+            <div id="indvEmptyState" class="text-center py-8 text-gray-400">
+                <i data-lucide="user" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+                <p class="font-bold">សូមជ្រើសរើសឈ្មោះសិស្សខាងលើ ដើម្បីមើលទិន្នន័យវិភាគផ្ទាល់ខ្លួន។</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase System & Core Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
+        
+        const PTEC_APP_ID = "ptec-app";
+
+        // --- Subject Configuration ---
+        const subjectsConfig = [
+            { key: 'kh_listen', label: 'ភាសាខ្មែរ (ស្តាប់)' },
+            { key: 'kh_speak', label: 'ភាសាខ្មែរ (និយាយ)' },
+            { key: 'kh_read', label: 'ភាសាខ្មែរ (អាន)' },
+            { key: 'kh_write', label: 'ភាសាខ្មែរ (សរសេរ)' },
+            { key: 'math_num', label: 'គណិត (ចំនួន)' },
+            { key: 'math_meas', label: 'គណិត (រង្វាស់រង្វាល់)' },
+            { key: 'math_geo', label: 'គណិត (ធរណីមាត្រ)' },
+            { key: 'math_alg', label: 'គណិត (ពីជគណិត)' },
+            { key: 'math_stat', label: 'គណិត (ស្ថិតិ)' },
+            { key: 'sci_phy', label: 'រូបវិទ្យា' },
+            { key: 'sci_chem', label: 'គីមីវិទ្យា' },
+            { key: 'sci_bio', label: 'ជីវវិទ្យា' },
+            { key: 'sci_earth', label: 'ផែនដីវិទ្យា' },
+            { key: 'soc_ethic', label: 'សីលធម៌' },
+            { key: 'soc_geo', label: 'ភូមិវិទ្យា' },
+            { key: 'soc_hist', label: 'ប្រវត្តិវិទ្យា' },
+            { key: 'soc_home', label: 'គេហវិទ្យា' },
+            { key: 'pe_sport', label: 'កីឡា' },
+            { key: 'life_skill', label: 'បំណិនជីវិត' },
+            { key: 'foreign', label: 'ភាសាបរទេស' }
+        ];
+
+        const monthsOrder = ['nov', 'dec', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct'];
+        const monthsLabel = {
+            'nov': 'វិច្ឆិកា', 'dec': 'ធ្នូ', 'jan': 'មករា', 'feb': 'កុម្ភៈ',
+            'mar': 'មីនា', 'apr': 'មេសា', 'may': 'ឧសភា', 'jun': 'មិថុនា',
+            'jul': 'កក្កដា', 'aug': 'សីហា', 'sep': 'កញ្ញា', 'oct': 'តុលា'
+        };
+
+        // --- Globals ---
+        let currentUserId = null;
+        let students = [];
+        let scoresDataAllMonths = {}; // Stores all months data for the selected year
+        let distributionChart = null;
+        let trendChart = null;
+        let indvTrendChart = null; 
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            populateSelectors();
+            
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    await window.loadData();
+                } else {
+                    try {
+                        await signInAnonymously(auth);
+                    } catch (error) {
+                        console.error("Auth Error:", error);
+                        // បើ Offline ព្យាយាមទាញចេញពី Local ធម្មតា
+                        await window.loadData();
+                    }
+                }
+            });
+        });
+
+        function showLoading(show) {
+            const el = document.getElementById('loadingOverlay');
+            if (el) el.style.display = show ? 'flex' : 'none';
+        }
+
+        function populateSelectors() {
+            // Populate Subjects
+            const subjectSelect = document.getElementById('subjectSelect');
+            subjectSelect.innerHTML = subjectsConfig.map(s => `<option value="${s.key}">${s.label}</option>`).join('');
+
+            // Populate Months
+            const monthSelect = document.getElementById('monthSelect');
+            monthSelect.innerHTML = monthsOrder.map(m => `<option value="${m}">ខែ ${monthsLabel[m]}</option>`).join('');
+            
+            // Set default month to current actual month if possible
+            const currentMonthIdx = new Date().getMonth();
+            const jsMonthMap = { 0:'jan', 1:'feb', 2:'mar', 3:'apr', 4:'may', 5:'jun', 6:'jul', 7:'aug', 8:'sep', 9:'oct', 10:'nov', 11:'dec' };
+            const currentMonthCode = jsMonthMap[currentMonthIdx];
+            if(monthsOrder.includes(currentMonthCode)) {
+                monthSelect.value = currentMonthCode;
+            } else {
+                monthSelect.value = 'nov';
+            }
+        }
+
+        function populateStudentSelector() {
+            const selector = document.getElementById('studentSelect');
+            selector.innerHTML = '<option value="">-- សូមជ្រើសរើសសិស្ស --</option>' + 
+                students.map(s => `<option value="${s.uid || s.id}">${s.name}</option>`).join('');
+        }
+
+        window.loadData = async function() {
+            showLoading(true);
+            const year = document.getElementById('yearSelect').value;
+            
+            try {
+                // 1. Load Students from Firestore properly
+                let loadedStudents = [];
+                if (currentUserId) {
+                    const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUserId, 'students');
+                    const studentsSnap = await getDocs(studentsRef);
+                    studentsSnap.forEach(doc => {
+                        loadedStudents.push({ id: doc.id, uid: doc.id, ...doc.data() });
+                    });
+                }
+                
+                // Fallback local
+                if (loadedStudents.length > 0) {
+                    students = loadedStudents;
+                } else {
+                    const storedStudents = localStorage.getItem('students_db') || localStorage.getItem('students');
+                    if (storedStudents) students = JSON.parse(storedStudents);
+                }
+                populateStudentSelector();
+
+                // 2. Load Scores for ALL months of selected year (needed for trend chart)
+                scoresDataAllMonths = {};
+                for (const month of monthsOrder) {
+                    const docId = `${year}_${month}`;
+                    let data = {};
+                    if (currentUserId) {
+                        const scoresRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUserId, 'scores', docId);
+                        const snap = await getDoc(scoresRef);
+                        if (snap.exists()) {
+                            data = snap.data();
+                        } else {
+                            // Fallback to older paths
+                            const oldSnap = await getDoc(doc(db, "scores", docId)).catch(()=>null);
+                            if (oldSnap && oldSnap.exists()) data = oldSnap.data();
+                        }
+                    }
+                    if (Object.keys(data).length === 0) {
+                        data = JSON.parse(localStorage.getItem(`scores_${docId}`) || '{}');
+                    }
+                    scoresDataAllMonths[month] = data;
+                }
+
+                window.analyzeSubject();
+                
+            } catch (error) {
+                console.error("Error loading data", error);
+                alert("មិនអាចភ្ជាប់ទៅកាន់ប្រព័ន្ធបានទេ! សូមពិនិត្យអ៊ីនធឺណិតរបស់អ្នក។");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        window.analyzeSubject = function() {
+            const subjectKey = document.getElementById('subjectSelect').value;
+            const month = document.getElementById('monthSelect').value;
+            const emptyState = document.getElementById('emptyState');
+            
+            // Get label for UI
+            const subjectObj = subjectsConfig.find(s => s.key === subjectKey);
+            const subjectName = subjectObj ? subjectObj.label : 'មិនស្គាល់';
+            document.getElementById('trendSubjLabel').innerText = subjectName;
+
+            let validScores = [];
+            let scoreDistribution = { excellent: 0, good: 0, average: 0, fail: 0 }; // >=9, 7-8.9, 5-6.9, <5
+            let totalScore = 0;
+            let maxScore = -1;
+            let minScore = 101;
+
+            // Extract scores for specific month
+            const monthScores = scoresDataAllMonths[month];
+
+            if (monthScores && students.length > 0) {
+                students.forEach(student => {
+                    const uid = String(student.uid || student.id);
+                    if (monthScores[uid] && monthScores[uid][subjectKey] !== null && monthScores[uid][subjectKey] !== undefined && monthScores[uid][subjectKey] !== "") {
+                        const score = parseFloat(monthScores[uid][subjectKey]);
+                        if (!isNaN(score)) {
+                            validScores.push({ name: student.name, score: score, uid: uid });
+                            totalScore += score;
+                            if (score > maxScore) maxScore = score;
+                            if (score < minScore) minScore = score;
+
+                            // Binning
+                            if (score >= 9) scoreDistribution.excellent++;
+                            else if (score >= 7) scoreDistribution.good++;
+                            else if (score >= 5) scoreDistribution.average++;
+                            else scoreDistribution.fail++;
+                        }
+                    }
+                });
+            }
+
+            if (validScores.length === 0) {
+                emptyState.classList.remove('hidden');
+                document.getElementById('metricsContainer').innerHTML = '';
+                document.getElementById('topStudentsBody').innerHTML = `<tr><td colspan="3" class="text-center py-4 text-gray-400">គ្មានទិន្នន័យ</td></tr>`;
+                document.getElementById('bottomStudentsBody').innerHTML = `<tr><td colspan="3" class="text-center py-4 text-gray-400">គ្មានទិន្នន័យ</td></tr>`;
+                renderCharts(null, null, subjectKey);
+                window.analyzeIndividualStudent(); 
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            // Calculations
+            const classAvg = (totalScore / validScores.length).toFixed(2);
+            const passedCount = validScores.length - scoreDistribution.fail;
+            const passRate = ((passedCount / validScores.length) * 100).toFixed(1);
+
+            renderMetrics(classAvg, maxScore, minScore, passRate, validScores.length);
+            
+            // Sort valid scores
+            validScores.sort((a, b) => b.score - a.score);
+            
+            renderTables(validScores);
+            renderCharts(scoreDistribution, validScores, subjectKey);
+            
+            // Trigger update for individual student chart
+            window.analyzeIndividualStudent();
+            
+            lucide.createIcons();
+        }
+
+        function renderMetrics(avg, max, min, passRate, count) {
+            const container = document.getElementById('metricsContainer');
+            
+            container.innerHTML = `
+                <div class="glass-card p-4 border-l-4 border-blue-500 hover:scale-105 transition duration-300">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[11px] text-gray-500 font-bold uppercase mb-1">មធ្យមភាគថ្នាក់ (Avg)</p>
+                            <h3 class="text-3xl font-black text-blue-700">${avg}</h3>
+                        </div>
+                        <div class="bg-blue-100 p-2 rounded-lg text-blue-600"><i data-lucide="bar-chart-2" class="w-6 h-6"></i></div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2 font-medium">ក្នុងចំណោមសិស្សមានពិន្ទ ${count} នាក់</p>
+                </div>
+
+                <div class="glass-card p-4 border-l-4 border-green-500 hover:scale-105 transition duration-300">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[11px] text-gray-500 font-bold uppercase mb-1">អត្រាជាប់ (≥ ៥.០)</p>
+                            <h3 class="text-3xl font-black text-green-700">${passRate}%</h3>
+                        </div>
+                        <div class="bg-green-100 p-2 rounded-lg text-green-600"><i data-lucide="check-circle" class="w-6 h-6"></i></div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 mt-3 overflow-hidden">
+                        <div class="bg-green-500 h-1.5 rounded-full" style="width: ${passRate}%"></div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 border-l-4 border-purple-500 hover:scale-105 transition duration-300">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[11px] text-gray-500 font-bold uppercase mb-1">ពិន្ទុខ្ពស់បំផុត (Max)</p>
+                            <h3 class="text-3xl font-black text-purple-700">${max.toFixed(2)}</h3>
+                        </div>
+                        <div class="bg-purple-100 p-2 rounded-lg text-purple-600"><i data-lucide="arrow-up-circle" class="w-6 h-6"></i></div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 border-l-4 border-red-500 hover:scale-105 transition duration-300">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[11px] text-gray-500 font-bold uppercase mb-1">ពិន្ទុទាបបំផុត (Min)</p>
+                            <h3 class="text-3xl font-black text-red-700">${min.toFixed(2)}</h3>
+                        </div>
+                        <div class="bg-red-100 p-2 rounded-lg text-red-600"><i data-lucide="arrow-down-circle" class="w-6 h-6"></i></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTables(sortedScores) {
+            // Top 5
+            const top5 = sortedScores.slice(0, 5);
+            const topBody = document.getElementById('topStudentsBody');
+            topBody.innerHTML = top5.map((s, i) => `
+                <tr class="hover:bg-green-50/50 transition">
+                    <td class="px-4 py-3 text-center text-gray-500 font-bold">${i + 1}</td>
+                    <td class="px-4 py-3 font-bold text-gray-800">${s.name}</td>
+                    <td class="px-4 py-3 text-center">
+                        <span class="bg-green-100 text-green-700 px-2.5 py-1 rounded-md font-bold text-xs">${s.score.toFixed(2)}</span>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Bottom 5 
+            let bottom5 = [];
+            if(sortedScores.length > 5) {
+                bottom5 = sortedScores.slice(-5).reverse();
+            } else {
+                bottom5 = [...sortedScores].reverse();
+            }
+            
+            const bottomBody = document.getElementById('bottomStudentsBody');
+            bottomBody.innerHTML = bottom5.map((s, i) => {
+                const colorClass = s.score < 5 ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700';
+                return `
+                <tr class="hover:bg-red-50/50 transition">
+                    <td class="px-4 py-3 text-center text-gray-500 font-bold">${sortedScores.length - i}</td>
+                    <td class="px-4 py-3 font-bold text-gray-800">${s.name}</td>
+                    <td class="px-4 py-3 text-center">
+                        <span class="${colorClass} px-2.5 py-1 rounded-md font-bold text-xs">${s.score.toFixed(2)}</span>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function renderCharts(distData, validScores, subjectKey) {
+            // 1. Render Distribution Doughnut
+            const distCtx = document.getElementById('distributionChart').getContext('2d');
+            
+            if (distributionChart) distributionChart.destroy();
+
+            if (distData) {
+                distributionChart = new Chart(distCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['ល្អណាស់ (៩-១០)', 'ល្អ (៧-៨.៩)', 'មធ្យម (៥-៦.៩)', 'ខ្សោយ (<៥)'],
+                        datasets: [{
+                            data: [distData.excellent, distData.good, distData.average, distData.fail],
+                            backgroundColor: ['#8b5cf6', '#3b82f6', '#eab308', '#ef4444'],
+                            borderWidth: 0,
+                            hoverOffset: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'right', labels: { font: { family: 'Battambang', size: 11 } } }
+                        },
+                        cutout: '65%'
+                    }
+                });
+            }
+
+            // 2. Render Trend Line Chart
+            const trendCtx = document.getElementById('subjectTrendChart').getContext('2d');
+            
+            let trendLabels = [];
+            let trendData = [];
+
+            monthsOrder.forEach(m => {
+                if (scoresDataAllMonths[m]) {
+                    trendLabels.push(monthsLabel[m]);
+                    
+                    let sum = 0, count = 0;
+                    const mScores = scoresDataAllMonths[m];
+                    
+                    students.forEach(student => {
+                        const uid = String(student.uid || student.id);
+                        if(mScores[uid] && mScores[uid][subjectKey] !== null && mScores[uid][subjectKey] !== undefined && mScores[uid][subjectKey] !== "") {
+                            const val = parseFloat(mScores[uid][subjectKey]);
+                            if(!isNaN(val)) {
+                                sum += val;
+                                count++;
+                            }
+                        }
+                    });
+                    
+                    if (count > 0) {
+                        trendData.push(parseFloat((sum / count).toFixed(2)));
+                    } else {
+                        trendData.push(null); 
+                    }
+                }
+            });
+
+            if (trendChart) trendChart.destroy();
+
+            trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: trendLabels,
+                    datasets: [{
+                        label: 'មធ្យមភាគថ្នាក់',
+                        data: trendData,
+                        borderColor: '#0054a6',
+                        backgroundColor: 'rgba(0, 84, 166, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#0054a6',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        spanGaps: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            titleFont: { family: 'Battambang' },
+                            bodyFont: { family: 'Battambang' }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            max: 10, 
+                            grid: { color: '#f1f5f9' },
+                            ticks: { font: { family: 'Battambang' } }
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { font: { family: 'Battambang' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Individual Student Trend Analysis ---
+        window.analyzeIndividualStudent = function() {
+            const studentId = document.getElementById('studentSelect').value;
+            const subjectKey = document.getElementById('subjectSelect').value;
+            const contentArea = document.getElementById('indvContentArea');
+            const emptyState = document.getElementById('indvEmptyState');
+
+            const subjectObj = subjectsConfig.find(s => s.key === subjectKey);
+            document.getElementById('indvSubjLabel').innerText = subjectObj ? subjectObj.label : '';
+
+            if (!studentId) {
+                contentArea.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            contentArea.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+
+            let labels = [];
+            let dataPoints = [];
+            let sum = 0, count = 0, max = -1, min = 101;
+
+            monthsOrder.forEach(m => {
+                if (scoresDataAllMonths[m]) {
+                    labels.push(monthsLabel[m]);
+                    const mScores = scoresDataAllMonths[m];
+                    
+                    if (mScores[studentId] && mScores[studentId][subjectKey] !== null && mScores[studentId][subjectKey] !== undefined && mScores[studentId][subjectKey] !== "") {
+                        const val = parseFloat(mScores[studentId][subjectKey]);
+                        if (!isNaN(val)) {
+                            dataPoints.push(val);
+                            sum += val;
+                            count++;
+                            if (val > max) max = val;
+                            if (val < min) min = val;
+                        } else {
+                            dataPoints.push(null);
+                        }
+                    } else {
+                        dataPoints.push(null);
+                    }
+                }
+            });
+
+            // Update Metrics display
+            document.getElementById('indvAvg').innerText = count > 0 ? (sum / count).toFixed(2) : '-';
+            document.getElementById('indvMax').innerText = max !== -1 ? max : '-';
+            document.getElementById('indvMin').innerText = min !== 101 ? min : '-';
+            document.getElementById('indvCount').innerText = count;
+
+            // Update individual Chart
+            const ctx = document.getElementById('indvTrendChart').getContext('2d');
+            if (indvTrendChart) indvTrendChart.destroy();
+
+            const studentName = document.getElementById('studentSelect').options[document.getElementById('studentSelect').selectedIndex].text;
+
+            indvTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `ពិន្ទុរបស់សិស្ស ${studentName}`,
+                        data: dataPoints,
+                        borderColor: '#8b5cf6', // Purple color for individual trend
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#8b5cf6',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        spanGaps: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: 'Battambang' } } },
+                        tooltip: { titleFont: { family: 'Battambang' }, bodyFont: { family: 'Battambang' } }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            max: 10, 
+                            grid: { color: '#f1f5f9' },
+                            ticks: { font: { family: 'Battambang' } }
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { font: { family: 'Battambang' } }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - បញ្ជីសារពើភ័ណ្ឌ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    
+    <style>
+        :root { --primary: #0054a6; --secondary: #3b82f6; }
+        
+        body { font-family: 'Battambang', cursive; background: #f0f4f8; min-height: 100vh; margin: 0; color: #1e293b; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        
+        /* Background Animation */
+        .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 10% 20%, #e0e7ff 0%, transparent 40%), radial-gradient(circle at 90% 80%, #dcfce7 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 50%); animation: moveBg 20s infinite alternate ease-in-out; }
+        @keyframes moveBg { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        /* Form Control */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            outline: none;
+            background: #f8fafc;
+            font-family: 'Battambang', cursive;
+            transition: all 0.2s;
+            font-weight: 700;
+        }
+        .input-field:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(0, 84, 166, 0.1); }
+
+        /* Print Container & A4 Styling */
+        .print-container {
+            display: none;
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 2rem auto;
+            padding: 15mm;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+            box-sizing: border-box;
+            color: black;
+        }
+
+        .report-table { width: 100%; border-collapse: collapse; font-size: 11pt; margin-top: 20px; }
+        .report-table th, .report-table td { border: 1px solid #000; padding: 6px 8px; text-align: center; vertical-align: middle; }
+        .report-table th { background-color: #f3f4f6 !important; font-family: 'Moul', cursive; font-weight: normal; font-size: 11pt; }
+        .report-table td.text-left { text-align: left; }
+        
+        .signature-container { width: 100%; margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; }
+        .sig-col-left { text-align: center; }
+        .sig-col-right { text-align: center; padding-left: 10mm; }
+        .teacher-name-final { font-family: 'Moul', cursive; font-size: 11.5pt; margin-top: 80px; display: block; text-align: center; }
+        .lunar-date { font-size: 11pt; margin-bottom: 2px; white-space: nowrap; }
+        .solar-date { font-size: 11pt; font-weight: normal; margin-bottom: 8px; }
+        .role-title { font-family: 'Moul', cursive; font-size: 12pt; }
+        
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { background: white !important; padding: 0; margin: 0; }
+            .no-print { display: none !important; }
+            .print-container { 
+                display: block !important; 
+                width: 100%;
+                height: 100%;
+                box-shadow: none !important;
+                padding: 15mm !important;
+                margin: 0 !important;
+            }
+            .report-table th { background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .bg-animate { display: none; }
+        }
+
+        .preview-mode { background: #94a3b8; padding-top: 2rem; padding-bottom: 2rem; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-animate no-print"></div>
+
+    <!-- Main Screen -->
+    <div id="mainScreen" class="min-h-screen flex flex-col pt-6 px-4 no-print relative">
+        <div class="max-w-5xl mx-auto w-full">
+            
+            <!-- Navigation -->
+            <a href="index.html" class="inline-flex items-center gap-2 text-[#0054a6] hover:text-blue-800 font-bold transition mb-6 bg-white/50 px-4 py-2 rounded-xl backdrop-blur-sm shadow-sm w-fit">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i> ត្រឡប់ទៅទំព័រដើម
+            </a>
+
+            <!-- Form & Management Section -->
+            <div class="glass-card p-6 md:p-8 mb-8">
+                <div class="flex items-center gap-3 mb-6 border-b pb-4">
+                    <div class="p-3 bg-blue-100 rounded-full text-[#0054a6]">
+                        <i data-lucide="package" class="w-6 h-6"></i>
+                    </div>
+                    <h1 class="kh-moul text-xl md:text-2xl text-[#0054a6]">បញ្ជីសារពើភ័ណ្ឌថ្នាក់រៀន</h1>
+                </div>
+
+                <!-- Input Form -->
+                <div class="bg-blue-50/50 border border-blue-100 p-5 rounded-2xl mb-8">
+                    <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2" id="formTitle">
+                        <i data-lucide="plus-circle" class="w-5 h-5 text-green-600"></i> បញ្ចូលសម្ភារៈថ្មី
+                    </h3>
+                    <form id="inventoryForm" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                        <input type="hidden" id="editId" value="">
+                        
+                        <div class="md:col-span-5">
+                            <label class="block text-sm font-bold text-gray-600 mb-1">ឈ្មោះសម្ភារៈ <span class="text-red-500">*</span></label>
+                            <input type="text" id="itemName" required placeholder="ឧ. តុសិស្ស, ក្តារខៀន..." class="input-field">
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-600 mb-1">ចំនួន <span class="text-red-500">*</span></label>
+                            <input type="number" id="itemQty" required min="1" placeholder="ឧ. 20" class="input-field text-center">
+                        </div>
+                        
+                        <div class="md:col-span-3">
+                            <label class="block text-sm font-bold text-gray-600 mb-1">ផ្សេងៗ (ចំណាំ)</label>
+                            <input type="text" id="itemNote" placeholder="ស្ថានភាព (ល្អ, ខូច...)" class="input-field">
+                        </div>
+                        
+                        <div class="md:col-span-2 flex gap-2">
+                            <button type="submit" id="btnSave" class="w-full bg-[#0054a6] hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl transition shadow flex justify-center items-center gap-2">
+                                <i data-lucide="save" class="w-4 h-4"></i> រក្សាទុក
+                            </button>
+                            <button type="button" id="btnCancel" onclick="window.resetForm()" class="hidden bg-gray-400 hover:bg-gray-500 text-white font-bold py-2.5 px-3 rounded-xl transition shadow">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Controls & Export -->
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-700 flex items-center gap-2">
+                        <i data-lucide="list" class="w-5 h-5 text-[#0054a6]"></i> បញ្ជីទិន្នន័យសម្ភារៈ (<span id="totalItemsCount">0</span>)
+                    </h3>
+                    <button onclick="window.previewPDF()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl font-bold transition shadow-md flex items-center gap-2 text-sm">
+                        <i data-lucide="file-down" class="w-4 h-4"></i> បោះពុម្ព PDF
+                    </button>
+                </div>
+
+                <!-- Data Table -->
+                <div class="overflow-x-auto rounded-xl border border-gray-200">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-gray-100 text-gray-700 font-bold border-b">
+                            <tr>
+                                <th class="p-3 text-center w-16">ល.រ</th>
+                                <th class="p-3">ឈ្មោះសម្ភារៈ</th>
+                                <th class="p-3 text-center w-24">ចំនួន</th>
+                                <th class="p-3">ចំណាំ</th>
+                                <th class="p-3 text-center w-32">គ្រប់គ្រង</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody" class="bg-white divide-y divide-gray-100">
+                            <!-- Items will be generated here -->
+                            <tr><td colspan="5" class="p-6 text-center text-gray-400 font-bold">កំពុងផ្ទៀងផ្ទាត់គណនី និងទាញយកទិន្នន័យ...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Preview Wrapper -->
+    <div id="printAreaWrapper" class="hidden">
+        
+        <!-- Preview Controls -->
+        <div class="fixed top-4 right-4 flex flex-col gap-3 z-50 no-print">
+            <button onclick="window.downloadPDF()" class="bg-red-600 text-white p-3 rounded-full shadow-xl hover:bg-red-700 hover:scale-105 transition" title="ទាញយក PDF">
+                <i data-lucide="download" class="w-6 h-6"></i>
+            </button>
+            <button onclick="window.print()" class="bg-blue-600 text-white p-3 rounded-full shadow-xl hover:bg-blue-700 hover:scale-105 transition" title="បោះពុម្ភ">
+                <i data-lucide="printer" class="w-6 h-6"></i>
+            </button>
+            <button onclick="window.closePreview()" class="bg-slate-600 text-white p-3 rounded-full shadow-xl hover:bg-slate-700 hover:scale-105 transition" title="បិទ">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- A4 Print Container -->
+        <div id="printContainer" class="print-container">
+            
+            <!-- Header (Kingdom) exactly like attendance-1 -->
+            <div class="text-center w-full mb-6">
+                <h3 class="kh-moul text-[13pt] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                <h3 class="kh-moul text-[13pt] mb-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12pt] w-auto mx-auto mt-2" crossorigin="anonymous">
+            </div>
+
+            <!-- Organization Info -->
+            <div class="w-full text-[11pt] leading-relaxed mb-6 font-bold">
+                <p id="print_org_1"></p>
+                <p id="print_org_2"></p>
+                <p id="print_school"></p>
+            </div>
+
+            <!-- Title -->
+            <h2 class="kh-moul text-center text-[14pt] mb-2 uppercase">បញ្ជីសារពើភ័ណ្ឌថ្នាក់រៀន</h2>
+            <p class="text-center font-bold text-[11pt] mb-6">ប្រចាំថ្នាក់ទី <span id="print_class"></span> សិក្សាឆ្នាំ <span id="print_year">២០២៥-២០២៦</span></p>
+
+            <!-- Table -->
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th class="w-[10%]">ល.រ</th>
+                        <th class="w-[45%]">ឈ្មោះសម្ភារៈ</th>
+                        <th class="w-[15%]">ចំនួន</th>
+                        <th class="w-[30%]">ផ្សេងៗ (ចំណាំ)</th>
+                    </tr>
+                </thead>
+                <tbody id="printTableBody">
+                    <!-- PDF items will be injected here -->
+                </tbody>
+            </table>
+
+            <!-- Signatures -->
+            <div class="signature-container">
+                <div class="sig-col-left">
+                    <div class="mb-4 invisible">.</div>
+                    <p class="text-[11pt] mb-2">បានឃើញ និងឯកភាព</p>
+                    <p id="print_manager_role" class="role-title uppercase">នាយកសាលា</p>
+                    <p id="print_manager_name" class="teacher-name-final"></p>
+                </div>
+                <div class="sig-col-right">
+                    <p id="print_lunar_date" class="lunar-date">...</p>
+                    <p id="print_solar_date" class="solar-date"></p>
+                    <p class="role-title">គ្រូបន្ទុកថ្នាក់</p>
+                    <p id="print_teacher_sign" class="teacher-name-final"></p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Firebase Integration Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // --- 1. Variables & Initialization ---
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+        let dbDocRef = null;
+        let currentClassId = 'default';
+        
+        let inventoryItems = [];
+        let classConfig = {
+            org1: "មន្ទីរអប់រំ យុវជន និងកីឡា", 
+            org2: "ការិយាល័យអប់រំ យុវជន និងកីឡា",
+            className: "................", 
+            school: "................",
+            teacher: "ឈ្មោះគ្រូ", 
+            managerRole: "នាយកសាលា", 
+            location: "................",
+            academicYear: "២០២៤-២០២៥"
+        };
+
+        const khDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+        const khMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+        
+        function toKhmerNum(num) { 
+            return num.toString().split('').map(d => khDigits[d] || d).join(''); 
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            
+            // Check User Auth First
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    currentClassId = localStorage.getItem('current_class_id') || 'default';
+                    dbDocRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'inventory', currentClassId);
+                    
+                    await loadProfileDataAsConfig();
+                    loadInventoryFromCloud();
+                } else {
+                    document.getElementById('inventoryTableBody').innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-500 font-bold">សូមចូលគណនី (Login) ជាមុនសិន ដើម្បីប្រើប្រាស់មុខងារនេះ!</td></tr>`;
+                }
+            });
+        });
+
+        // Load Config from Profile Firestore Document
+        async function loadProfileDataAsConfig() {
+            try {
+                const profileRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'profile', 'data');
+                const profileSnap = await getDoc(profileRef);
+
+                if (profileSnap.exists()) {
+                    const profile = profileSnap.data();
+                    // Mapping Firebase profile data to our print config
+                    classConfig = {
+                        org1: profile.management_unit_1 || "មន្ទីរអប់រំ យុវជន និងកីឡា",
+                        org2: profile.management_unit_2 || "ការិយាល័យអប់រំ យុវជន និងកីឡា",
+                        className: profile.class_name || "................",
+                        school: profile.school_name_admin || "................",
+                        teacher: profile.homeroom_teacher || "ឈ្មោះគ្រូ",
+                        managerRole: profile.manager_role || "នាយកសាលា",
+                        location: profile.province_for_date || "................",
+                        academicYear: profile.academic_year || "២០២៤-២០២៥"
+                    };
+                    
+                    // Update academic year in DOM early
+                    document.getElementById('print_year').textContent = classConfig.academicYear;
+                } else {
+                    // Fallback to local storage if profile doesn't exist yet
+                    let configKey = currentClassId === 'default' ? 'classConfig' : 'classConfig_' + currentClassId;
+                    const localData = JSON.parse(localStorage.getItem(configKey));
+                    if(localData) {
+                        classConfig = { ...classConfig, ...localData };
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading profile data:", error);
+            }
+        }
+
+        // --- 2. Core CRUD Logic with Firebase ---
+        function loadInventoryFromCloud() {
+            if (!dbDocRef) return;
+            
+            // Real-time listener from Firestore
+            onSnapshot(dbDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    inventoryItems = docSnap.data().items || [];
+                } else {
+                    inventoryItems = [];
+                }
+                renderTable();
+            }, (error) => {
+                console.error("Error fetching data: ", error);
+                document.getElementById('inventoryTableBody').innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-500 font-bold">មានបញ្ហាក្នុងការទាញយកទិន្នន័យ។ សូមពិនិត្យ Database Rules។</td></tr>`;
+            });
+        }
+
+        async function saveInventoryToCloud() {
+            if (!currentUser || !dbDocRef) {
+                alert("សូមចូលគណនីជាមុនសិន!");
+                return;
+            }
+            try {
+                // Save the array to Firestore document
+                await setDoc(dbDocRef, { items: inventoryItems }, { merge: true });
+                // renderTable will be called automatically by onSnapshot
+            } catch (error) {
+                console.error("Error saving document: ", error);
+                alert("មិនអាចរក្សាទុកទិន្នន័យបានទេ! សូមពិនិត្យមើលការតភ្ជាប់អ៊ីនធឺណិត។");
+            }
+        }
+
+        document.getElementById('inventoryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const idInput = document.getElementById('editId').value;
+            const name = document.getElementById('itemName').value.trim();
+            const qty = parseInt(document.getElementById('itemQty').value) || 0;
+            const note = document.getElementById('itemNote').value.trim();
+
+            if (!name || qty <= 0) return;
+
+            if (idInput) {
+                // Update Existing
+                const index = inventoryItems.findIndex(item => item.id == idInput);
+                if (index !== -1) {
+                    inventoryItems[index] = { id: parseInt(idInput), name, qty, note };
+                }
+            } else {
+                // Add New
+                const newItem = {
+                    id: Date.now(),
+                    name,
+                    qty,
+                    note
+                };
+                inventoryItems.push(newItem);
+            }
+
+            saveInventoryToCloud();
+            window.resetForm();
+        });
+
+        window.editItem = function(id) {
+            const item = inventoryItems.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('editId').value = item.id;
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemQty').value = item.qty;
+            document.getElementById('itemNote').value = item.note;
+
+            // UI Changes for Edit Mode
+            document.getElementById('formTitle').innerHTML = '<i data-lucide="edit-3" class="w-5 h-5 text-yellow-600"></i> កែប្រែព័ត៌មានសម្ភារៈ';
+            const btnSave = document.getElementById('btnSave');
+            btnSave.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> យល់ព្រម';
+            btnSave.className = "w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2.5 rounded-xl transition shadow flex justify-center items-center gap-2";
+            document.getElementById('btnCancel').classList.remove('hidden');
+            
+            lucide.createIcons();
+            document.getElementById('itemName').focus();
+        };
+
+        window.deleteItem = function(id) {
+            if (confirm("តើអ្នកពិតជាចង់លុបសម្ភារៈនេះមែនទេ?")) {
+                inventoryItems = inventoryItems.filter(i => i.id !== id);
+                saveInventoryToCloud();
+            }
+        };
+
+        window.resetForm = function() {
+            document.getElementById('inventoryForm').reset();
+            document.getElementById('editId').value = '';
+            
+            // Restore UI
+            document.getElementById('formTitle').innerHTML = '<i data-lucide="plus-circle" class="w-5 h-5 text-green-600"></i> បញ្ចូលសម្ភារៈថ្មី';
+            const btnSave = document.getElementById('btnSave');
+            btnSave.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> រក្សាទុក';
+            btnSave.className = "w-full bg-[#0054a6] hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl transition shadow flex justify-center items-center gap-2";
+            document.getElementById('btnCancel').classList.add('hidden');
+            
+            lucide.createIcons();
+        };
+
+        // --- 3. Rendering ---
+        function renderTable() {
+            const tbody = document.getElementById('inventoryTableBody');
+            document.getElementById('totalItemsCount').innerText = toKhmerNum(inventoryItems.length);
+            
+            if (inventoryItems.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400 font-bold">មិនទាន់មានទិន្នន័យសម្ភារៈនៅឡើយទេ</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = inventoryItems.map((item, index) => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="p-3 text-center font-bold text-gray-600 border-r border-gray-100">${toKhmerNum(index + 1)}</td>
+                    <td class="p-3 font-bold text-[#0054a6]">${item.name}</td>
+                    <td class="p-3 text-center font-bold">${toKhmerNum(item.qty)}</td>
+                    <td class="p-3 text-gray-600 text-sm">${item.note || '-'}</td>
+                    <td class="p-3 text-center">
+                        <div class="flex justify-center gap-2">
+                            <button onclick="window.editItem(${item.id})" class="p-1.5 bg-yellow-100 text-yellow-600 rounded-lg hover:bg-yellow-200 transition" title="កែប្រែ"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                            <button onclick="window.deleteItem(${item.id})" class="p-1.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition" title="លុប"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        // --- 4. PDF Generation ---
+        window.previewPDF = function() {
+            if (inventoryItems.length === 0) {
+                alert("មិនមានទិន្នន័យសម្រាប់បោះពុម្ពទេ!");
+                return;
+            }
+
+            // Populate Info
+            document.getElementById('print_org_1').textContent = classConfig.org1 || '';
+            document.getElementById('print_org_2').textContent = classConfig.org2 || '';
+            document.getElementById('print_school').textContent = classConfig.school || '';
+            document.getElementById('print_class').textContent = classConfig.className || '';
+            
+            document.getElementById('print_manager_role').textContent = classConfig.managerRole || 'នាយកសាលា';
+            document.getElementById('print_teacher_sign').textContent = classConfig.teacher || 'ឈ្មោះគ្រូ';
+            
+            // Generate Auto Date in Khmer
+            const today = new Date();
+            let lunarStr = "ថ្ងៃ................ខែ..........ឆ្នាំ..........ព.ស.២៥៦...";
+            if (typeof momentkh !== 'undefined') {
+                try {
+                    const khmerDateObj = momentkh.fromDate(today);
+                    lunarStr = momentkh.format(khmerDateObj).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                } catch (e) { console.error("Error formatting khmer date", e); }
+            }
+            
+            document.getElementById('print_lunar_date').textContent = lunarStr;
+            const locationTxt = classConfig.location || '....................';
+            document.getElementById('print_solar_date').textContent = `${locationTxt}, ថ្ងៃទី${toKhmerNum(today.getDate())} ខែ${khMonths[today.getMonth()]} ឆ្នាំ${toKhmerNum(today.getFullYear())}`;
+
+            // Populate Table
+            const printBody = document.getElementById('printTableBody');
+            printBody.innerHTML = inventoryItems.map((item, index) => `
+                <tr>
+                    <td>${toKhmerNum(index + 1)}</td>
+                    <td class="text-left font-bold pl-2">${item.name}</td>
+                    <td class="font-bold">${toKhmerNum(item.qty)}</td>
+                    <td class="text-left pl-2">${item.note || ''}</td>
+                </tr>
+            `).join('');
+
+            // Switch Views
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('printAreaWrapper').classList.remove('hidden');
+            document.body.classList.add('preview-mode');
+        };
+
+        window.closePreview = function() {
+            document.getElementById('mainScreen').classList.remove('hidden');
+            document.getElementById('printAreaWrapper').classList.add('hidden');
+            document.body.classList.remove('preview-mode');
+        };
+
+        window.downloadPDF = function() {
+            const element = document.getElementById('printContainer');
+            html2pdf().from(element).set({
+                margin: 0, 
+                filename: `Inventory_Report_${classConfig.className || 'Class'}.pdf`, 
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: { scale: 2, useCORS: true }, 
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).save();
+        };
+
+    </script>
+</body>
+</html>

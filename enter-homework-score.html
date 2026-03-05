@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - បញ្ចូលពិន្ទុកិច្ចការផ្ទះ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root { --primary: #0054a6; --secondary: #3b82f6; }
+        body { font-family: 'Battambang', cursive; background: #f0f4f8; margin: 0; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        
+        /* Background Animation */
+        .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 10% 20%, #e0e7ff 0%, transparent 40%), radial-gradient(circle at 90% 80%, #dcfce7 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 40%); opacity: 0.6; }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { height: 10px; width: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Sticky Columns Configuration */
+        .sticky-col-1 { position: sticky; left: 0; z-index: 40; background-color: white; border-right: 1px solid #e2e8f0; }
+        .sticky-col-2 { position: sticky; left: 48px; z-index: 40; background-color: white; border-right: 2px solid #cbd5e1; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
+        .sticky-col-right { position: sticky; right: 0; z-index: 40; background-color: #f0fdf4; border-left: 2px solid #10b981; box-shadow: -2px 0 5px rgba(0,0,0,0.05); }
+        
+        thead th { position: sticky; top: 0; z-index: 50; }
+        thead th.sticky-col-1, thead th.sticky-col-2 { z-index: 60; }
+        thead th.sticky-col-right { z-index: 60; background-color: #059669; }
+
+        /* Hide number input arrows */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; margin: 0; 
+        }
+
+        /* Hover Effects */
+        tr:hover td.sticky-col-1, tr:hover td.sticky-col-2 { background-color: #eef2ff !important; }
+        tr:hover td.sticky-col-right { background-color: #d1fae5 !important; }
+        
+        input:focus { background-color: #dbeafe !important; font-weight: bold; color: #1e40af; }
+
+        /* Form Selects */
+        .form-select {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            outline: none;
+            background: white;
+            font-family: 'Battambang', cursive;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #1e293b;
+            cursor: pointer;
+        }
+        .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0, 84, 166, 0.1); }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col min-h-screen">
+    <div class="bg-animate"></div>
+
+    <!-- Main Container -->
+    <div class="max-w-[1400px] mx-auto px-4 py-6 w-full flex flex-col gap-5">
+        
+        <!-- Header Section -->
+        <div class="bg-white/80 backdrop-blur-md p-4 md:p-5 rounded-2xl shadow-sm border border-white/50 flex flex-col gap-4 shrink-0">
+            
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <!-- Title & Back -->
+                <div class="flex items-center gap-4 w-full md:w-auto">
+                    <a href="index.html" class="bg-indigo-50 p-3 rounded-xl hover:bg-indigo-100 text-indigo-600 transition flex items-center gap-2">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    </a>
+                    <div class="bg-indigo-600 p-3 rounded-xl shadow-lg shadow-indigo-200 text-white">
+                        <i data-lucide="book-marked" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl md:text-2xl kh-moul text-indigo-900">បញ្ចូលពិន្ទុកិច្ចការផ្ទះ</h1>
+                        <p class="text-slate-500 font-medium text-xs md:text-sm">Homework Score Entry (Online Data)</p>
+                    </div>
+                </div>
+
+                <!-- Filters & Action -->
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-start md:justify-end">
+                    <!-- Day Select (Visible only in Daily Mode) -->
+                    <div class="relative" id="daySelectContainer">
+                        <select id="daySelect" class="form-select pl-9 min-w-[130px]" onchange="renderTable()">
+                            <!-- Options generated by JS -->
+                        </select>
+                        <i data-lucide="calendar" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    </div>
+
+                    <!-- Month Select -->
+                    <div class="relative">
+                        <select id="monthSelect" class="form-select pl-9" onchange="updateDayOptions(); loadData()">
+                            <!-- Options generated by JS -->
+                        </select>
+                        <i data-lucide="clock" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    </div>
+
+                    <!-- Year Select -->
+                    <div class="relative">
+                        <select id="yearSelect" class="form-select pl-9" onchange="updateMonthOptions(); loadData()">
+                            <option value="2025-2026" selected>២០២៥-២០២៦</option>
+                            <option value="2026-2027">២០២៦-២០២៧</option>
+                            <option value="2027-2028">២០២៧-២០២៨</option>
+                            <option value="2028-2029">២០២៨-២០២៩</option>
+                            <option value="2029-2030">២០២៩-២០៣០</option>
+                        </select>
+                        <i data-lucide="calendar-days" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    </div>
+
+                    <div class="w-px h-8 bg-slate-200 mx-1 hidden sm:block"></div>
+
+                    <!-- Print Button -->
+                    <a href="print_homework-score.html" target="_blank" class="flex items-center gap-2 px-4 py-2.5 bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 ml-auto md:ml-0">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">បោះពុម្ព</span>
+                    </a>
+
+                    <!-- Save Button -->
+                    <button onclick="saveScores()" class="flex items-center gap-2 px-5 py-2.5 bg-[#0054a6] text-white hover:bg-[#1e40af] rounded-xl font-bold shadow-lg shadow-blue-200 transition-all hover:scale-105 active:scale-95">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span id="saveBtnText">រក្សាទុក</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Information Banner -->
+            <div class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl text-sm flex items-start gap-3">
+                <i data-lucide="info" class="w-5 h-5 min-w-[20px] text-amber-600 mt-0.5"></i>
+                <div>
+                    <span class="font-bold">បញ្ជាក់៖</span> ពិន្ទុកិច្ចការផ្ទះត្រូវបូកសរុបចាប់ពី <b>ថ្ងៃទី ២៦ នៃខែចាស់</b> រហូតដល់ <b>ថ្ងៃទី ២៥ នៃខែបច្ចុប្បន្ន</b>។ ពិន្ទុសរុបនឹងត្រូវបូកបញ្ចូលដោយស្វ័យប្រវត្តិ។
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Tabs -->
+        <div class="flex items-center justify-between gap-4 shrink-0 -mb-2">
+            <div class="flex p-1 bg-white/80 backdrop-blur-md rounded-xl shadow-sm border border-slate-200/60 w-full sm:w-auto">
+                <button id="tabDaily" onclick="switchTab('daily')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-bold text-sm bg-indigo-600 text-white shadow-md transition-all">
+                    <i data-lucide="calendar-check" class="w-4 h-4"></i> បញ្ចូលប្រចាំថ្ងៃ
+                </button>
+                <button id="tabMonthly" onclick="switchTab('monthly')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-bold text-sm text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition-all">
+                    <i data-lucide="table-properties" class="w-4 h-4"></i> ពិនិត្យប្រចាំខែ
+                </button>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="h-[55vh] bg-white/95 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50 overflow-hidden flex flex-col relative shrink-0">
+            <div class="flex-1 overflow-auto custom-scrollbar" id="dynamicTableContainer">
+                <!-- Tables generated by JS -->
+            </div>
+            
+            <!-- Footer Stats -->
+            <div class="p-3 bg-white border-t border-slate-200 flex justify-between items-center text-sm text-slate-500 shrink-0">
+                <span id="studentCount" class="font-bold text-[#0054a6]">Loading...</span>
+                <span class="italic text-xs bg-slate-100 px-2 py-1 rounded flex items-center gap-1">
+                    <i data-lucide="cloud-check" class="w-3 h-3 text-blue-500"></i> Cloud Sync Ready
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Data Structure Maps
+        const allMonthsMap = [
+            { id: 'nov', label: 'វិច្ឆិកា', isNextYear: false },
+            { id: 'dec', label: 'ធ្នូ', isNextYear: false },
+            { id: 'jan', label: 'មករា', isNextYear: true },
+            { id: 'feb', label: 'កុម្ភៈ', isNextYear: true },
+            { id: 'mar', label: 'មីនា', isNextYear: true },
+            { id: 'apr', label: 'មេសា', isNextYear: true },
+            { id: 'may', label: 'ឧសភា', isNextYear: true },
+            { id: 'jun', label: 'មិថុនា', isNextYear: true },
+            { id: 'jul', label: 'កក្កដា', isNextYear: true },
+            { id: 'aug', label: 'សីហា', isNextYear: true },
+            { id: 'sep', label: 'កញ្ញា', isNextYear: true },
+            { id: 'oct', label: 'តុលា', isNextYear: true }
+        ];
+
+        const monthIndexMapping = {
+            'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+            'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+        };
+
+        let students = [];
+        let hwScores = {}; // Format: { studentId: { days: { "26": 1, "27": 0.5 }, total: 1.5 } }
+        let currentTab = 'daily'; // default tab
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setInitialDate(); // Setup the real present date automatically
+            switchTab('daily'); // Setup initial UI state
+            loadData();
+            lucide.createIcons();
+        });
+
+        // Smart Present Date Logic
+        function setInitialDate() {
+            let d = new Date();
+            let dDay = d.getDate();
+            let dMonth = d.getMonth(); // 0-11
+            let dYear = d.getFullYear();
+
+            // The grading cycle for month X is from 26th of Month X-1 to 25th of Month X
+            let targetMonth = dMonth;
+            let targetYear = dYear;
+
+            // If day is >= 26, it shifts to the next grading month
+            if (dDay >= 26) {
+                targetMonth += 1;
+                if (targetMonth > 11) {
+                    targetMonth = 0;
+                    targetYear += 1;
+                }
+            }
+
+            // Determine Academic Year String
+            // Academic year typically starts in Nov (month index 10)
+            let academicStartYear = (targetMonth === 10 || targetMonth === 11) ? targetYear : targetYear - 1;
+            let academicYearStr = `${academicStartYear}-${academicStartYear + 1}`;
+
+            // 1. Update the Year Dropdown
+            let yearSelect = document.getElementById('yearSelect');
+            let yearOptionExists = Array.from(yearSelect.options).some(opt => opt.value === academicYearStr);
+            if (!yearOptionExists) {
+                yearSelect.add(new Option(academicYearStr, academicYearStr));
+            }
+            yearSelect.value = academicYearStr;
+
+            // 2. Resolve Target Month ID
+            const monthIds = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+            let targetMonthId = monthIds[targetMonth];
+
+            // 3. Update Options and Inject the forced Month & Day
+            updateMonthOptions(targetMonthId, dDay);
+        }
+
+        // Toggle between Daily and Monthly views
+        function switchTab(tab) {
+            currentTab = tab;
+            const tabDaily = document.getElementById('tabDaily');
+            const tabMonthly = document.getElementById('tabMonthly');
+            const daySelectContainer = document.getElementById('daySelectContainer');
+            
+            if (tab === 'daily') {
+                tabDaily.className = "flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-bold text-sm bg-indigo-600 text-white shadow-md transition-all";
+                tabMonthly.className = "flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-bold text-sm text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition-all";
+                daySelectContainer.style.display = 'block';
+            } else {
+                tabMonthly.className = "flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-bold text-sm bg-indigo-600 text-white shadow-md transition-all";
+                tabDaily.className = "flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-bold text-sm text-slate-600 hover:text-indigo-600 hover:bg-slate-50 transition-all";
+                daySelectContainer.style.display = 'none';
+            }
+            renderTable();
+        }
+
+        // Date Column Logic matching print
+        function generateDateColumns(mId, yearVal) {
+            const selectedMonth = monthIndexMapping[mId];
+            const [startYear, endYear] = yearVal.split('-');
+            
+            let currentYear = parseInt(endYear);
+            if (mId === 'nov' || mId === 'dec') {
+                currentYear = parseInt(startYear);
+            }
+
+            let prevMonth = selectedMonth - 1;
+            let prevYear = currentYear;
+            if (prevMonth < 0) {
+                prevMonth = 11;
+                prevYear--;
+            }
+
+            const daysInPrevMonth = new Date(prevYear, prevMonth + 1, 0).getDate();
+            let columns = [];
+            
+            for (let d = 26; d <= daysInPrevMonth; d++) {
+                const date = new Date(prevYear, prevMonth, d);
+                columns.push({ dayNum: d, isSunday: date.getDay() === 0, fullDate: date });
+            }
+            
+            for (let d = 1; d <= 25; d++) {
+                const date = new Date(currentYear, selectedMonth, d);
+                columns.push({ dayNum: d, isSunday: date.getDay() === 0, fullDate: date });
+            }
+            
+            return columns;
+        }
+
+        // Generate Month Options
+        function updateMonthOptions(defaultMonthId = null, forceDay = null) {
+            const yearVal = document.getElementById('yearSelect').value;
+            if (!yearVal || !yearVal.includes('-')) return;
+            
+            const [startYear, endYear] = yearVal.split('-');
+            const monthSelect = document.getElementById('monthSelect');
+            const targetMonth = defaultMonthId || monthSelect.value || 'nov';
+
+            let optionsHTML = '';
+            allMonthsMap.forEach(m => {
+                const y = m.isNextYear ? endYear : startYear;
+                const selected = m.id === targetMonth ? 'selected' : '';
+                optionsHTML += `<option value="${m.id}" ${selected}>ខែ${m.label} ឆ្នាំ ${y}</option>`;
+            });
+
+            monthSelect.innerHTML = optionsHTML;
+            monthSelect.value = targetMonth; // Ensure DOM is synced
+            updateDayOptions(forceDay); // sync day options
+        }
+
+        // Update Day Options for Daily Tab
+        function updateDayOptions(forceDay = null) {
+            const yearVal = document.getElementById('yearSelect').value;
+            const mId = document.getElementById('monthSelect').value;
+            const cols = generateDateColumns(mId, yearVal);
+            const daySelect = document.getElementById('daySelect');
+            
+            const currentSelected = daySelect.value;
+            
+            // Identify actual today
+            const d = new Date();
+            const tYear = d.getFullYear();
+            const tMonth = d.getMonth();
+            const tDay = d.getDate();
+            
+            // Priority: forceDay parameter -> currently selected dropdown value -> actual today's date
+            let toSelect = forceDay !== null ? forceDay : (currentSelected ? parseInt(currentSelected) : tDay);
+            
+            let optionsHTML = '';
+            let found = false;
+            
+            cols.forEach(c => {
+                let isRealToday = (c.fullDate.getFullYear() === tYear && c.fullDate.getMonth() === tMonth && c.fullDate.getDate() === tDay);
+                let isTodayText = isRealToday ? ' (ថ្ងៃនេះ)' : '';
+                const selected = c.dayNum === toSelect ? 'selected' : '';
+                if(c.dayNum === toSelect) found = true;
+                optionsHTML += `<option value="${c.dayNum}" ${selected}>ថ្ងៃទី ${c.dayNum}${isTodayText}</option>`;
+            });
+            
+            // If the selected day or today's date doesn't exist in this month's 26-25 range, default to the first available day
+            if (!found && cols.length > 0) {
+                optionsHTML = '';
+                cols.forEach((c, index) => {
+                    let isRealToday = (c.fullDate.getFullYear() === tYear && c.fullDate.getMonth() === tMonth && c.fullDate.getDate() === tDay);
+                    let isTodayText = isRealToday ? ' (ថ្ងៃនេះ)' : '';
+                    const selected = index === 0 ? 'selected' : ''; // Select 26th usually
+                    optionsHTML += `<option value="${c.dayNum}" ${selected}>ថ្ងៃទី ${c.dayNum}${isTodayText}</option>`;
+                });
+            }
+
+            daySelect.innerHTML = optionsHTML;
+        }
+
+        function getStorageKey() {
+            const year = document.getElementById('yearSelect').value;
+            const month = document.getElementById('monthSelect').value;
+            return `hw_scores_v2_${year}_${month}`;
+        }
+
+        // Load Students and Scores Online From Firebase
+        async function loadData() {
+            // Keeping Students offline if they are managed on another page, 
+            // otherwise you can transition this to Firebase easily.
+            try { students = JSON.parse(localStorage.getItem('students') || '[]'); } 
+            catch (e) { students = []; }
+
+            const storageKey = getStorageKey();
+            const oldStorageKey = `hw_scores_${document.getElementById('yearSelect').value}_${document.getElementById('monthSelect').value}`;
+            
+            try {
+                // Fetch from Firebase Firestore
+                const docRef = doc(db, "homework_scores", storageKey);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists() && docSnap.data().scores) {
+                    hwScores = docSnap.data().scores;
+                } else {
+                    // Fallback to local storage (for easy transition without losing data)
+                    let data = JSON.parse(localStorage.getItem(storageKey));
+                    if (data) {
+                        hwScores = data;
+                    } else {
+                        let oldData = JSON.parse(localStorage.getItem(oldStorageKey));
+                        if (oldData) {
+                            hwScores = {};
+                            for (let sid in oldData) {
+                                hwScores[sid] = { days: {}, total: oldData[sid] };
+                            }
+                        } else {
+                            hwScores = {};
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading from Firebase:", e);
+                // Last resort fallback
+                hwScores = JSON.parse(localStorage.getItem(storageKey)) || {};
+            }
+
+            renderTable();
+        }
+
+        // Render the Table Matrix based on active Tab
+        function renderTable() {
+            const container = document.getElementById('dynamicTableContainer');
+            const countLabel = document.getElementById('studentCount');
+
+            const yearVal = document.getElementById('yearSelect').value;
+            const mId = document.getElementById('monthSelect').value;
+            
+            // Get columns and filter based on Tab Mode
+            let dateColumns = generateDateColumns(mId, yearVal);
+            if (currentTab === 'daily') {
+                const selectedDay = parseInt(document.getElementById('daySelect').value);
+                dateColumns = dateColumns.filter(c => c.dayNum === selectedDay);
+            }
+
+            const femaleCount = students.filter(s => s.gender === 'ស្រី' || s.gender === 'F').length;
+            countLabel.textContent = `សិស្សសរុប៖ ${students.length} នាក់ (ស្រី ${femaleCount})`;
+
+            if (students.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-slate-500 flex flex-col items-center justify-center gap-2"><i data-lucide="users" class="w-8 h-8 opacity-50"></i><p>មិនមានទិន្នន័យសិស្សទេ។ សូមទៅកាន់បញ្ជីឈ្មោះសិស្សដើម្បីបញ្ចូលជាមុនសិន។</p></div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            if (currentTab === 'daily') {
+                // Split students into two halves for 2-column layout
+                const half = Math.ceil(students.length / 2);
+                const leftStudents = students.slice(0, half);
+                const rightStudents = students.slice(half);
+
+                container.innerHTML = `
+                    <div class="grid grid-cols-1 xl:grid-cols-2 bg-slate-50 min-h-full">
+                        <div class="border-b xl:border-b-0 xl:border-r border-slate-300">
+                            <table class="w-full border-collapse">
+                                <thead>${generateTheadHTML(dateColumns, 'daily')}</thead>
+                                <tbody class="bg-white text-sm">${generateTbodyHTML(leftStudents, 0, dateColumns, 'daily')}</tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <table class="w-full border-collapse">
+                                <thead>${generateTheadHTML(dateColumns, 'daily')}</thead>
+                                <tbody class="bg-white text-sm">${generateTbodyHTML(rightStudents, half, dateColumns, 'daily')}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <table class="w-full border-collapse">
+                        <thead>${generateTheadHTML(dateColumns, 'monthly')}</thead>
+                        <tbody class="bg-white text-sm">${generateTbodyHTML(students, 0, dateColumns, 'monthly')}</tbody>
+                    </table>
+                `;
+            }
+        }
+
+        function generateTheadHTML(cols, mode) {
+            let dateLabel = mode === 'daily' ? 'កាលបរិច្ឆេទប្រចាំថ្ងៃ' : 'កាលបរិច្ឆេទ (២៦ ដល់ ២៥)';
+            let stickyClass1 = mode === 'monthly' ? 'sticky-col-1' : '';
+            let stickyClass2 = mode === 'monthly' ? 'sticky-col-2' : '';
+            let stickyClassRight = mode === 'monthly' ? 'sticky-col-right' : '';
+
+            let theadHTML = `
+                <tr>
+                    <th rowspan="2" class="p-2 border-b border-r border-indigo-200 ${stickyClass1} bg-indigo-900 text-white w-12 text-center font-bold text-sm">ល.រ</th>
+                    <th rowspan="2" class="p-2 border-b border-r border-indigo-200 ${stickyClass2} bg-indigo-900 text-white text-left font-bold text-sm min-w-[150px]">ឈ្មោះសិស្ស</th>
+                    <th rowspan="2" class="p-2 border-b border-r border-indigo-200 bg-indigo-800 text-white w-14 text-center font-bold text-sm">ភេទ</th>
+                    <th colspan="${cols.length}" class="p-1.5 border-b border-r border-indigo-200 bg-indigo-700 text-white text-center font-bold text-sm">${dateLabel}</th>
+                    <th rowspan="2" class="p-2 border-b border-indigo-200 ${stickyClassRight} bg-emerald-600 text-white min-w-[70px] text-center font-bold text-sm">សរុប</th>
+                </tr>
+                <tr>
+            `;
+            cols.forEach(col => {
+                let bg = col.isSunday ? 'bg-red-500/80 text-white' : 'bg-indigo-600 text-indigo-50';
+                let minW = mode === 'daily' ? 'min-w-[80px]' : 'min-w-[34px]'; 
+                let textSize = mode === 'daily' ? 'text-[14px]' : 'text-[11px]';
+                theadHTML += `<th class="py-1.5 px-0.5 border-b border-r border-indigo-300/30 ${bg} text-center font-bold ${textSize} ${minW}">${col.dayNum}</th>`;
+            });
+            theadHTML += `</tr>`;
+            return theadHTML;
+        }
+
+        function generateTbodyHTML(stuList, startIndex, cols, mode) {
+            let stickyClass1 = mode === 'monthly' ? 'sticky-col-1' : '';
+            let stickyClass2 = mode === 'monthly' ? 'sticky-col-2' : '';
+            let stickyClassRight = mode === 'monthly' ? 'sticky-col-right' : '';
+            let rowsHTML = '';
+
+            stuList.forEach((s, index) => {
+                let studentData = hwScores[s.id] || { days: {}, total: '' };
+                const genderColor = (s.gender === 'ស្រី' || s.gender === 'F') ? 'text-pink-600' : 'text-blue-600';
+
+                rowsHTML += `
+                <tr class="group transition-colors border-b border-slate-100 last:border-0 hover:bg-indigo-50/50">
+                    <td class="p-2 text-center font-bold text-slate-500 ${stickyClass1} bg-white group-hover:bg-eef2ff">${startIndex + index + 1}</td>
+                    <td class="p-2 ${stickyClass2} bg-white group-hover:bg-eef2ff font-bold text-indigo-900 text-[13px] whitespace-nowrap">${s.name || '-'}</td>
+                    <td class="p-2 text-center font-bold text-[13px] ${genderColor} border-r border-slate-200 bg-white group-hover:bg-indigo-50/50">${s.gender || '-'}</td>
+                `;
+
+                // Days input
+                cols.forEach(col => {
+                    let val = studentData.days && studentData.days[col.dayNum] !== undefined ? studentData.days[col.dayNum] : '';
+                    let bgClass = col.isSunday ? 'bg-red-50' : 'bg-transparent';
+                    let inputSize = mode === 'daily' ? 'py-2.5 text-[15px]' : 'py-1.5 text-[13px]';
+                    
+                    if (col.isSunday) {
+                        rowsHTML += `
+                        <td class="p-0.5 border-r border-slate-200 ${bgClass}">
+                            <input type="text" disabled readonly
+                                class="w-full text-center ${inputSize} px-0.5 border border-transparent rounded outline-none font-bold text-red-300 bg-transparent cursor-not-allowed select-none" 
+                                value="-" title="ថ្ងៃអាទិត្យ មិនអនុញ្ញាតអោយបញ្ចូលពិន្ទុទេ">
+                        </td>
+                        `;
+                    } else {
+                        rowsHTML += `
+                        <td class="p-0.5 border-r border-slate-200 ${bgClass}">
+                            <input type="number" 
+                                class="w-full text-center ${inputSize} px-0.5 border border-transparent hover:border-slate-300 rounded outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 font-bold text-slate-700 bg-transparent transition-all" 
+                                value="${val}"
+                                oninput="window.updateDayScore('${s.id}', ${col.dayNum}, this.value)"
+                                min="0" step="0.5">
+                        </td>
+                        `;
+                    }
+                });
+
+                // Total display
+                let displayTotal = studentData.total !== '' && studentData.total !== 0 ? studentData.total : (studentData.total === 0 && Object.keys(studentData.days||{}).length > 0 ? 0 : '');
+                
+                rowsHTML += `
+                    <td class="p-2 ${stickyClassRight} text-center font-bold text-emerald-600 text-base group-hover:bg-d1fae5" id="total_${s.id}">${displayTotal}</td>
+                </tr>
+                `;
+            });
+
+            return rowsHTML;
+        }
+
+        // Update single day score and calculate total
+        function updateDayScore(studentId, dayNum, value) {
+            if (!hwScores[studentId]) hwScores[studentId] = { days: {}, total: '' };
+            if (!hwScores[studentId].days) hwScores[studentId].days = {};
+
+            if (value === '') {
+                delete hwScores[studentId].days[dayNum];
+            } else {
+                hwScores[studentId].days[dayNum] = parseFloat(value);
+            }
+
+            // Recalculate Total
+            let total = 0;
+            let hasValue = false;
+            for (let key in hwScores[studentId].days) {
+                let v = hwScores[studentId].days[key];
+                if (!isNaN(v)) {
+                    total += v;
+                    hasValue = true;
+                }
+            }
+            
+            if (hasValue) {
+                hwScores[studentId].total = total;
+                document.getElementById(`total_${studentId}`).innerText = total;
+            } else {
+                hwScores[studentId].total = '';
+                document.getElementById(`total_${studentId}`).innerText = '';
+            }
+        }
+
+        // Save scores to Firebase Firestore
+        async function saveScores() {
+            const btnText = document.getElementById('saveBtnText');
+            const originalText = btnText.innerText;
+            const btn = btnText.closest('button');
+            
+            btnText.innerText = 'កំពុងរក្សាទុក...';
+            btn.classList.replace('bg-[#0054a6]', 'bg-indigo-500');
+            btn.classList.replace('hover:bg-[#1e40af]', 'hover:bg-indigo-600');
+
+            const storageKey = getStorageKey();
+
+            try {
+                // Online Storage execution
+                const docRef = doc(db, "homework_scores", storageKey);
+                await setDoc(docRef, { scores: hwScores }, { merge: true });
+                
+                // Keep local backup to enable offline robustness/fast load
+                localStorage.setItem(storageKey, JSON.stringify(hwScores));
+
+                btnText.innerText = 'រួចរាល់!';
+                btn.classList.replace('bg-indigo-500', 'bg-emerald-600');
+                btn.classList.replace('hover:bg-indigo-600', 'hover:bg-emerald-700');
+                
+                setTimeout(() => {
+                    btnText.innerText = originalText;
+                    btn.classList.replace('bg-emerald-600', 'bg-[#0054a6]');
+                    btn.classList.replace('hover:bg-emerald-700', 'hover:bg-[#1e40af]');
+                }, 1500);
+            } catch(error) {
+                console.error("Firebase Error: ", error);
+                
+                btnText.innerText = 'បរាជ័យ!';
+                btn.classList.replace('bg-indigo-500', 'bg-red-500');
+                btn.classList.replace('hover:bg-indigo-600', 'hover:bg-red-600');
+                
+                setTimeout(() => {
+                    btnText.innerText = originalText;
+                    btn.classList.replace('bg-red-500', 'bg-[#0054a6]');
+                    btn.classList.replace('hover:bg-red-600', 'hover:bg-[#1e40af]');
+                }, 1500);
+            }
+        }
+
+        // Expose functions to the window object for inline HTML event handlers (since this is now a JS module)
+        window.renderTable = renderTable;
+        window.updateDayOptions = updateDayOptions;
+        window.updateMonthOptions = updateMonthOptions;
+        window.loadData = loadData;
+        window.switchTab = switchTab;
+        window.saveScores = saveScores;
+        window.updateDayScore = updateDayScore;
+    </script>
+</body>
+</html>

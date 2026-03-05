@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>តាមដានទម្ងន់ និងកម្ពស់សិស្ស</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Siemreap&family=Taprom&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- បណ្ណាល័យសម្រាប់បង្កើត PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    
+    <style>
+        :root {
+            --khmer-moul: 'Moul', cursive;
+            --khmer-battambang: 'Battambang', sans-serif;
+            --khmer-siemreap: 'Siemreap', sans-serif;
+            --khmer-taprom: 'Taprom', cursive;
+            --primary: #4f46e5;
+        }
+
+        body {
+            font-family: var(--khmer-battambang);
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 0;
+            color: #1f2937;
+        }
+
+        .kh-moul, .font-moul { font-family: var(--khmer-moul); font-weight: normal; }
+        .font-taprom { font-family: var(--khmer-taprom); }
+        .text-shadow-custom { text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        /* --- សម្រាប់ទិដ្ឋភាពលើអេក្រង់ (Web UI) --- */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .data-table th { background-color: #f8fafc; color: #334155; font-weight: bold; padding: 14px 12px; border: 1px solid #e2e8f0; white-space: nowrap; }
+        .data-table td { padding: 8px 12px; border: 1px solid #e2e8f0; vertical-align: middle; }
+        .data-table tbody tr { background-color: #ffffff; transition: background-color 0.2s; }
+        .data-table tbody tr:nth-child(even) { background-color: #fdfdfd; }
+        .data-table tbody tr:hover { background-color: #f1f5f9; }
+        
+        .sticky-col { position: sticky; left: 0; z-index: 10; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.05); }
+        .data-table thead th.sticky-col { background-color: #f8fafc; z-index: 20; text-align: left; }
+        .data-table tbody td.sticky-col { background-color: inherit; }
+
+        .table-wrapper { overflow-x: auto; border-radius: 6px; border: 1px solid #e5e7eb; background: white; }
+        .table-wrapper::-webkit-scrollbar { height: 6px; }
+        .table-wrapper::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .input-val { width: 100%; max-width: 85px; text-align: center; padding: 0.5rem; border-radius: 0.375rem; border: 1px solid #e2e8f0; outline: none; transition: all 0.2s; font-weight: bold; color: #4f46e5; background: #f8fafc; font-size: 15px; }
+        .input-val:focus { border-color: #4f46e5; background: white; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1); }
+        .input-text { width: 100%; min-width: 120px; text-align: left; padding: 0.5rem 0.6rem; border-radius: 0.375rem; border: 1px solid #e2e8f0; outline: none; transition: all 0.2s; background: #f8fafc; font-size: 14px; color: #1f2937; }
+        .input-text:focus { border-color: #4f46e5; background: white; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1); }
+
+        .input-field {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            outline: none;
+            background: #f8fafc;
+            font-family: var(--khmer-battambang);
+            transition: all 0.2s;
+            font-weight: 700;
+        }
+        .input-field:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+        /* Modal Styles */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; }
+
+        /* --- សម្រាប់ទិដ្ឋភាពក្រដាសបោះពុម្ព (Print UI) --- */
+        .page-a4 {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 0 auto 20px auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            font-family: var(--khmer-battambang);
+            position: relative;
+        }
+        
+        .cover-page { display: flex; flex-direction: column; align-items: center; }
+        .cover-border { position: absolute; top: 15mm; bottom: 15mm; left: 15mm; right: 15mm; border: 4px solid #d4af37; outline: 2px solid #d4af37; outline-offset: 4px; pointer-events: none; }
+
+        .print-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .print-table th, .print-table td { border: 1px solid black; padding: 6px; text-align: center; font-size: 13px; }
+        .print-table th { font-family: var(--khmer-moul); background-color: #f9fafb; font-weight: normal; font-size: 12px; padding: 8px; }
+        .print-input { width: 100%; border: none; background: transparent; text-align: center; outline: none; padding: 0; font-family: var(--khmer-battambang); }
+
+        .keep-together { page-break-inside: avoid; break-inside: avoid; }
+        .no-border-row td { border: none !important; padding-top: 20px !important; }
+        .print-table tbody tr.data-row { height: 38px; }
+
+        .sig-image-box { height: 75px; margin-top: 5px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; }
+        .sig-image-box img { max-height: 100%; max-width: 160px; object-fit: contain; mix-blend-mode: multiply; pointer-events: none; }
+        .teacher-name-final { font-family: var(--khmer-moul); font-size: 11.5pt; margin-top: 5px; display: block; text-align: center; position: relative; z-index: 10; }
+
+        /* --- PDF Export Specific Styles --- */
+        .pdf-exporting { background: white !important; }
+        .pdf-exporting .screen-only { display: none !important; }
+        .pdf-exporting .print-only { display: flex !important; flex-direction: column; align-items: center; width: 1024px !important; position: absolute; left: 0; top: 0; z-index: -999; }
+        
+        .pdf-exporting .page-a4 {
+            width: 794px !important; 
+            height: 1123px !important; 
+            min-height: 1123px !important;
+            max-height: 1123px !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            overflow: hidden !important; 
+            page-break-after: always;
+            padding: 56px !important; 
+            background: white !important;
+            transform: scale(1) !important;
+        }
+        
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 1s linear infinite; }
+
+        @media screen { .print-only { display: none; } }
+        @media print {
+            @page { size: A4 portrait; margin: 0 !important; }
+            body, html { background: white !important; margin: 0 !important; padding: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .screen-only { display: none !important; }
+            .print-only { display: block !important; }
+            .page-a4 { 
+                box-shadow: none !important; margin: 0 !important; width: 210mm !important; 
+                min-height: 297mm !important; max-height: 297mm !important; padding: 15mm !important;
+                page-break-after: always; border: none !important; overflow: hidden !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- វគ្គទី ១៖ ទិដ្ឋភាពលើអេក្រង់ (Web UI) -->
+    <div class="screen-only">
+        <nav class="bg-indigo-900 text-white p-4 shadow-lg sticky top-0 z-50">
+            <div class="container mx-auto flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <h1 class="kh-moul text-2xl hidden sm:block ml-2">តាមដានទម្ងន់ និងកម្ពស់សិស្ស (មាន BMI ) </h1>
+                </div>
+                <div class="text-sm font-bold flex items-center gap-2 sm:gap-4">
+                    <button onclick="window.toggleSignatureSettings()" class="hover:text-indigo-200 transition-colors flex items-center gap-1 bg-white/20 px-3 py-1.5 rounded-md">
+                        <i data-lucide="pen-tool" class="w-4 h-4"></i> ហត្ថលេខា
+                    </button>
+                    <button id="btnDownloadTop" onclick="window.downloadPDF()" class="hover:text-indigo-200 transition-colors flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-md text-red-100 hover:text-red-200 hover:bg-white/20">
+                        <i data-lucide="download" class="w-4 h-4"></i> ទាញយក PDF
+                    </button>
+                    <button onclick="window.print()" class="hover:text-indigo-200 transition-colors flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-md hidden sm:flex">
+                        <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ព
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mx-auto p-4 md:p-6 mt-4 pb-20 max-w-[1400px]">
+            
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="flex flex-col items-center justify-center py-10 bg-white rounded-xl shadow-sm mb-6 border border-gray-200">
+                <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                <p class="text-indigo-700 font-bold">កំពុងទាញយកទិន្នន័យ...</p>
+            </div>
+
+            <!-- Main Workspace Container (Hidden until loaded) -->
+            <div id="mainWorkspace" class="hidden">
+                <!-- ផ្នែកកំណត់ហត្ថលេខាសម្រាប់ការបោះពុម្ព -->
+                <div id="signatureSettingsBox" class="hidden bg-indigo-50 border border-indigo-100 p-5 md:p-6 rounded-2xl mb-8 shadow-sm transition-all duration-300">
+                    <div class="flex items-center justify-between mb-5">
+                        <h4 class="text-sm font-bold text-indigo-800 flex items-center gap-2">
+                            <i data-lucide="pen-tool" class="w-5 h-5"></i> កំណត់អ្នកចុះហត្ថលេខាសម្រាប់ការបោះពុម្ព
+                        </h4>
+                        <button type="button" onclick="window.toggleSignatureSettings()" class="text-slate-400 hover:text-slate-600 transition p-1">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- នាយកសាលា -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-indigo-50 shadow-sm">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះនាយកសាលា</label>
+                                <input type="text" id="managerNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="window.updateSignatures()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា / ត្រា (បើមាន)</label>
+                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                    <input type="file" id="managerSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors w-full" onchange="window.handleSignatureUpload('manager')">
+                                    
+                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                            <button type="button" onclick="window.zoomSignature('manager', -0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                            <div id="managerSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded"></div>
+                                            <button type="button" onclick="window.zoomSignature('manager', 0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                        </div>
+                                        <button type="button" onclick="window.removeSignature('manager')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- គ្រូបន្ទុកថ្នាក់ -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-indigo-50 shadow-sm">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះគ្រូបន្ទុកថ្នាក់</label>
+                                <input type="text" id="teacherNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="window.updateSignatures()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា (បើមាន)</label>
+                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                    <input type="file" id="teacherSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors w-full" onchange="window.handleSignatureUpload('teacher')">
+                                    
+                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                            <button type="button" onclick="window.zoomSignature('teacher', -0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                            <div id="teacherSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded"></div>
+                                            <button type="button" onclick="window.zoomSignature('teacher', 0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                        </div>
+                                        <button type="button" onclick="window.removeSignature('teacher')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
+                    <div class="h-2 w-full bg-[#2da143]"></div>
+                    
+                    <div class="p-6 md:p-8">
+                        
+                        <!-- Dashboard Statistics -->
+                        <div id="statsContainer" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                            <!-- បង្កើតដោយ JavaScript -->
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row justify-between items-end gap-4 mb-8">
+                            <div class="w-full max-w-sm">
+                                <label class="block text-xs font-bold text-gray-500 mb-2 ml-1">ជ្រើសរើសខែបច្ចុប្បន្ន</label>
+                                <div class="relative">
+                                    <i data-lucide="calendar" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                                    <select id="monthSelect" class="w-full pl-10 pr-3 py-2.5 rounded-lg border border-gray-200 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 font-battambang text-sm" onchange="window.updateMonthDisplay()">
+                                        <option value="">-- បញ្ចូលខែ --</option>
+                                        <option value="មករា">មករា</option>
+                                        <option value="កុម្ភៈ">កុម្ភៈ</option>
+                                        <option value="មីនា">មីនា</option>
+                                        <option value="មេសា">មេសា</option>
+                                        <option value="ឧសភា">ឧសភា</option>
+                                        <option value="មិថុនា">មិថុនា</option>
+                                        <option value="កក្កដា">កក្កដា</option>
+                                        <option value="សីហា">សីហា</option>
+                                        <option value="កញ្ញា">កញ្ញា</option>
+                                        <option value="តុលា">តុលា</option>
+                                        <option value="វិច្ឆិកា">វិច្ឆិកា</option>
+                                        <option value="ធ្នូ">ធ្នូ</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Moved Button to Top Right -->
+                            <button onclick="window.openBMIModal()" class="flex items-center justify-center gap-2 bg-white border border-blue-200 hover:bg-blue-50 text-blue-700 px-5 py-2.5 rounded-lg font-bold text-[14px] transition-all shadow-sm whitespace-nowrap w-full sm:w-auto">
+                                <i data-lucide="line-chart" class="w-5 h-5"></i> មើលក្រាប BMI
+                            </button>
+                        </div>
+
+                        <div id="webTablesContainer" class="flex flex-col gap-6 items-start mb-8 w-full">
+                            <!-- បង្កើតដោយ JavaScript -->
+                        </div>
+
+                        <!-- ផ្ទាំងចំណាំ BMI និងការណែនាំ (Legend & Notes) -->
+                        <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-6 mb-6 text-sm text-gray-700 leading-relaxed shadow-sm">
+                            
+                            <h4 class="font-bold text-blue-800 flex items-center gap-2 mb-3">
+                                <i data-lucide="info" class="w-5 h-5"></i> ចំណាំស្តីពីសន្ទស្សន៍ម៉ាសរាងកាយ (BMI)
+                            </h4>
+
+                            <p class="mb-4 text-[13px] text-gray-600">
+                                <strong>BMI (Body Mass Index)</strong> គឺជារង្វាស់ដែលប្រើដើម្បីវាយតម្លៃភាពសមាមាត្ររវាងទម្ងន់ និងកម្ពស់។ កម្មវិធីនេះប្រើប្រាស់ <strong>ស្តង់ដារកុមារ និងយុវវ័យ (អាយុ ៥ ដល់ ១៥ឆ្នាំ) របស់អង្គការសុខភាពពិភពលោក (WHO)</strong> ដើម្បីចាត់ថ្នាក់ស្ថានភាពសុខភាព ដោយផ្អែកលើអាយុ និងភេទរបស់សិស្ស៖
+                            </p>
+                            
+                            <!-- ពណ៌សម្គាល់ (Badges) -->
+                            <div class="flex flex-wrap gap-4 mt-2 font-bold text-[13px]">
+                                <span class="flex items-center gap-2 bg-[#fef9c3] text-[#a16207] px-3.5 py-2 rounded-md border border-[#fde047] shadow-sm">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-[#eab308]"></span> ស្គម (Underweight)
+                                </span>
+                                <span class="flex items-center gap-2 bg-[#dcfce7] text-[#166534] px-3.5 py-2 rounded-md border border-[#86efac] shadow-sm">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-[#22c55e]"></span> ធម្មតា (Normal)
+                                </span>
+                                <span class="flex items-center gap-2 bg-[#ffedd5] text-[#c2410c] px-3.5 py-2 rounded-md border border-[#fdba74] shadow-sm">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-[#f97316]"></span> លើសទម្ងន់ (Overweight)
+                                </span>
+                                <span class="flex items-center gap-2 bg-[#fee2e2] text-[#b91c1c] px-3.5 py-2 rounded-md border border-[#fca5a5] shadow-sm">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-[#ef4444]"></span> ធាត់ខ្លាំង (Obese)
+                                </span>
+                            </div>
+                            
+                            <p class="mt-5 text-[12px] text-gray-500 flex items-start gap-2">
+                                <i data-lucide="alert-circle" class="w-4 h-4 text-gray-400 shrink-0 mt-0.5"></i>
+                                <span>ប្រព័ន្ធនឹងទាញយកអាយុដោយស្វ័យប្រវត្តិពី ថ្ងៃខែឆ្នាំកំណើត។ បើមិនមានទិន្នន័យនេះទេ វានឹងប្រើអាយុ ៩ឆ្នាំ ជាមធ្យម។ កម្ពស់ត្រូវតែចាប់ពី 50cm និងទម្ងន់ 5kg ឡើងទៅទើបប្រព័ន្ធធ្វើការគណនា។</span>
+                            </p>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row gap-4 mt-6 pt-6 border-t border-gray-100">
+                            <button onclick="window.saveData(true)" class="flex-1 py-3 bg-[#2da143] hover:bg-[#238535] text-white rounded-lg font-bold shadow-sm transition flex justify-center items-center gap-2">
+                                <i data-lucide="save" class="w-5 h-5"></i>
+                                រក្សាទុកទិន្នន័យ (Cloud)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        <div id="photoModal" class="modal" onclick="this.style.display='none'">
+            <div class="bg-white p-2 rounded-xl shadow-2xl max-w-sm w-full mx-4" onclick="event.stopPropagation()">
+                <img id="modalImg" src="" class="w-full h-auto rounded-lg" alt="Student Photo">
+                <button onclick="document.getElementById('photoModal').style.display='none'" class="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 rounded transition-colors">បិទ</button>
+            </div>
+        </div>
+
+        <!-- BMI Chart Modal / Iframe Wrapper -->
+        <div id="bmiModal" class="modal" onclick="window.closeBMIModal()">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-6xl mx-4 h-[85vh] flex flex-col relative" onclick="event.stopPropagation()">
+                <div class="flex justify-between items-center px-4 py-3 border-b border-gray-200 bg-slate-50 rounded-t-xl">
+                    <h3 class="font-bold text-[15px] text-slate-700 flex items-center gap-2"><i data-lucide="line-chart" class="w-5 h-5 text-indigo-500"></i> ស្តង់ដារ BMI របស់ WHO</h3>
+                    <button onclick="window.closeBMIModal()" class="text-slate-400 hover:text-rose-600 bg-white border border-slate-200 hover:bg-rose-50 hover:border-rose-200 p-1.5 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div class="flex-1 w-full bg-slate-100 overflow-hidden rounded-b-xl">
+                    <iframe src="2_data_analyse_BMI.html" id="bmiIframe" class="w-full h-full border-0"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- វគ្គទី ២៖ ទិដ្ឋភាពបោះពុម្ព (Print UI) -->
+    <div class="print-only">
+        <!-- ក្របមុខ (Cover Page) -->
+        <div class="page-a4 cover-page">
+            <div class="cover-border"></div>
+            <div class="text-center w-full mt-4">
+                <h1 class="font-moul text-xl mb-2">ព្រះរាជាណាចក្រកម្ពុជា</h1>
+                <h2 class="font-moul text-lg">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
+                <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" alt="divider" class="h-[16px] w-auto mx-auto mt-3 mb-8" crossorigin="anonymous">
+            </div>
+
+            <div class="w-full text-left mt-4 pl-8">
+                <p class="font-moul text-base mb-3 leading-relaxed" id="cover-unit1">ការិយាល័យអប់រំ យុវជន និងកីឡានៃរដ្ឋបាលស្រុក</p>
+                <p class="font-moul text-base mb-3" id="cover-unit2">កម្រង...</p>
+                <p class="font-moul text-base mb-3" id="cover-school">សាលាបឋមសិក្សា...</p>
+            </div>
+
+            <div class="flex-1 flex flex-col justify-center items-center w-full space-y-10 mt-10" style="min-height: 400px;">
+                <h1 class="font-moul text-6xl text-blue-600 text-shadow-custom" style="font-weight: normal;">សៀវភៅ</h1>
+                <h2 class="font-moul text-4xl text-red-500 text-shadow-custom leading-normal text-center w-full px-8">តាមដានទម្ងន់ និងកម្ពស់សិស្ស</h2>
+                <h3 class="font-moul text-4xl text-green-600 text-shadow-custom" id="cover-class">ថ្នាក់ទី...</h3>
+            </div>
+
+            <div class="w-full text-center mt-auto mb-8 space-y-4">
+                <p class="font-moul text-3xl" id="cover-teacher">លោកគ្រូ/អ្នកគ្រូ...</p>
+                <p class="font-moul text-3xl">ឆ្នាំសិក្សា <span id="cover-year">២០២៥-២០២៦</span></p>
+            </div>
+        </div>
+
+        <!-- ទំព័រទិន្នន័យ -->
+        <div id="print-pages-container" class="w-full flex flex-col items-center">
+            <!-- Data pages injected here by JS -->
+        </div>
+    </div>
+
+    <!-- Firebase Integration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const PTEC_APP_ID = "ptec-app"; // ត្រូវតែប្រើ ID តែមួយជាមួយ student-listV2.html 
+
+        window.students = [];
+        window.healthData = {};
+        window.classConfig = {};
+        window.printSettings = {}; 
+        window.currentUser = null;
+
+        // --- Authentication Flow ---
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+            }
+        };
+
+        initAuth().then(() => {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    window.currentUser = user;
+                    await loadDataFromFirebase();
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    document.getElementById('mainWorkspace').classList.remove('hidden');
+                    initApp();
+                }
+            });
+        });
+
+        async function loadDataFromFirebase() {
+            try {
+                // Fetch Students Database
+                const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', window.currentUser.uid, 'students');
+                const studentSnap = await getDocs(studentsRef);
+                window.students = [];
+                studentSnap.forEach(doc => {
+                    window.students.push(doc.data());
+                });
+                // Sort array to maintain consistency
+                window.students.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+                // Fetch Health Tracking Database
+                const healthRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', window.currentUser.uid, 'settings', 'health_tracking');
+                const healthSnap = await getDoc(healthRef);
+                if (healthSnap.exists()) {
+                    window.healthData = healthSnap.data();
+                } else {
+                    window.healthData = {}; // start empty
+                }
+            } catch (e) {
+                console.error("Error fetching data from Firebase:", e);
+                // Fallback to offline mode seamlessly
+                window.students = JSON.parse(localStorage.getItem('students') || '[]');
+                window.healthData = JSON.parse(localStorage.getItem('data_health_tracking') || '{}');
+            }
+        }
+
+        function toKhNum(num) {
+            if (num === undefined || num === null) return '';
+            const khNums = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+            return num.toString().split('').map(n => khNums[parseInt(n)] || n).join('');
+        }
+
+        function calcBMI(h_cm, w_kg, genderStr, dobStr) {
+            const h = parseFloat(h_cm);
+            const w = parseFloat(w_kg);
+            
+            if (!h || !w || isNaN(h) || isNaN(w) || h < 50 || w < 5) {
+                return { val: '-', text: '-', color: 'text-gray-500 text-[18px] font-bold' };
+            }
+            
+            const h_m = h / 100;
+            const bmi = (w / (h_m * h_m)).toFixed(1);
+            const raw = parseFloat(bmi);
+            
+            let age = 9; 
+            if (dobStr) {
+                const yearMatch = dobStr.toString().match(/\d{4}/);
+                if (yearMatch) {
+                    const birthYear = parseInt(yearMatch[0]);
+                    const currentYear = new Date().getFullYear();
+                    const calculatedAge = currentYear - birthYear;
+                    if (calculatedAge >= 5 && calculatedAge <= 18) {
+                        age = calculatedAge;
+                    }
+                }
+            }
+
+            let isBoy = true; 
+            if (genderStr && (genderStr.includes('ស្រី') || genderStr.toLowerCase() === 'f')) {
+                isBoy = false;
+            }
+
+            const cutoffs = {
+                boy: {
+                    5: [13.0, 16.6, 18.3], 6: [13.3, 17.0, 18.5], 7: [13.6, 17.3, 19.0], 8: [13.8, 17.7, 19.7],
+                    9: [14.0, 18.3, 20.5], 10: [14.2, 19.0, 21.4], 11: [14.6, 19.9, 22.5], 12: [15.0, 20.8, 23.6],
+                    13: [15.4, 21.8, 24.8], 14: [16.0, 22.7, 25.9], 15: [16.5, 23.6, 27.0]
+                },
+                girl: {
+                    5: [12.7, 16.9, 18.9], 6: [13.0, 17.1, 18.8], 7: [13.2, 17.6, 19.6], 8: [13.5, 18.3, 20.6],
+                    9: [13.8, 19.1, 21.7], 10: [14.0, 20.0, 22.9], 11: [14.4, 21.1, 24.3], 12: [14.8, 22.3, 25.9],
+                    13: [15.3, 23.3, 27.1], 14: [15.8, 24.3, 28.2], 15: [16.3, 25.0, 29.1]
+                }
+            };
+
+            let lookupAge = age;
+            if (lookupAge < 5) lookupAge = 5;
+            if (lookupAge > 15) lookupAge = 15;
+
+            const t = isBoy ? cutoffs.boy[lookupAge] : cutoffs.girl[lookupAge];
+
+            let text = '';
+            let color = '';
+            const baseClass = 'px-3 py-1.5 rounded-md text-[13px] font-bold border shadow-sm inline-block min-w-[85px] text-center';
+
+            if (raw < t[0]) { 
+                text = 'ស្គម'; 
+                color = baseClass + ' bg-[#fef9c3] text-[#a16207] border-[#fde047]'; 
+            } else if (raw >= t[0] && raw < t[1]) { 
+                text = 'ធម្មតា'; 
+                color = baseClass + ' bg-[#dcfce7] text-[#166534] border-[#86efac]'; 
+            } else if (raw >= t[1] && raw < t[2]) { 
+                text = 'លើសទម្ងន់'; 
+                color = baseClass + ' bg-[#ffedd5] text-[#c2410c] border-[#fdba74]'; 
+            } else { 
+                text = 'ធាត់ខ្លាំង'; 
+                color = baseClass + ' bg-[#fee2e2] text-[#b91c1c] border-[#fca5a5]'; 
+            }
+            
+            return { val: bmi, text: text, color: color, raw: raw };
+        }
+
+        function initApp() {
+            if (window.healthData['month_selected']) {
+                document.getElementById('monthSelect').value = window.healthData['month_selected'];
+            }
+
+            loadSettings();
+            updateStats(); 
+            renderWebTables();
+            renderPrintPages(); 
+            lucide.createIcons();
+        }
+
+        function updateStats() {
+            let total = window.students.length;
+            let underweight = 0, normal = 0, overweight = 0, obese = 0, assessed = 0;
+
+            window.students.forEach((s, i) => {
+                const h = window.healthData[`h_${i}`];
+                const w = window.healthData[`w_${i}`];
+                const bmi = calcBMI(h, w, s.gender, s.dob);
+                if (bmi.raw) {
+                    assessed++;
+                    if (bmi.text === 'ស្គម') underweight++;
+                    else if (bmi.text === 'ធម្មតា') normal++;
+                    else if (bmi.text === 'លើសទម្ងន់') overweight++;
+                    else obese++;
+                }
+            });
+
+            document.getElementById('statsContainer').innerHTML = `
+                <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 shadow-sm flex flex-col justify-center items-center relative overflow-hidden">
+                    <div class="absolute -right-3 -top-3 opacity-10"><i data-lucide="users" class="w-16 h-16 text-blue-500"></i></div>
+                    <div class="text-blue-600 text-xs font-bold mb-1 z-10">បានវាស់វែង / សរុប</div>
+                    <div class="text-2xl font-moul text-blue-700 z-10">${toKhNum(assessed)} / ${toKhNum(total)}</div>
+                </div>
+                <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 shadow-sm flex flex-col justify-center items-center relative overflow-hidden">
+                    <div class="absolute -right-3 -top-3 opacity-10"><i data-lucide="activity" class="w-16 h-16 text-emerald-500"></i></div>
+                    <div class="text-emerald-600 text-xs font-bold mb-1 z-10">ធម្មតា (Normal)</div>
+                    <div class="text-2xl font-moul text-emerald-700 z-10">${toKhNum(normal)} <span class="text-sm font-battambang">នាក់</span></div>
+                </div>
+                <div class="bg-yellow-50/50 p-4 rounded-xl border border-yellow-100 shadow-sm flex flex-col justify-center items-center relative overflow-hidden">
+                    <div class="absolute -right-3 -top-3 opacity-10"><i data-lucide="trending-down" class="w-16 h-16 text-yellow-500"></i></div>
+                    <div class="text-yellow-600 text-xs font-bold mb-1 z-10">ស្គម (Underweight)</div>
+                    <div class="text-2xl font-moul text-yellow-700 z-10">${toKhNum(underweight)} <span class="text-sm font-battambang">នាក់</span></div>
+                </div>
+                <div class="bg-rose-50/50 p-4 rounded-xl border border-rose-100 shadow-sm flex flex-col justify-center items-center relative overflow-hidden">
+                    <div class="absolute -right-3 -top-3 opacity-10"><i data-lucide="trending-up" class="w-16 h-16 text-rose-500"></i></div>
+                    <div class="text-rose-600 text-xs font-bold mb-1 z-10">លើសទម្ងន់/ធាត់</div>
+                    <div class="text-2xl font-moul text-rose-700 z-10">${toKhNum(overweight + obese)} <span class="text-sm font-battambang">នាក់</span></div>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+        }
+
+        window.toggleSignatureSettings = function() {
+            const box = document.getElementById('signatureSettingsBox');
+            box.classList.toggle('hidden');
+        }
+
+        function loadSettings() {
+            const defaultSettings = {
+                unit1: "ការិយាល័យអប់រំ យុវជន និងកីឡានៃរដ្ឋបាលស្រុក", 
+                unit2: "កម្រង...", 
+                schoolName: "សាលាបឋមសិក្សា...",
+                className: "ថ្នាក់ទី...", 
+                teacherName: "លោកគ្រូ/អ្នកគ្រូ...",
+                academicYear: "២០២៥-២០២៦",
+                managerName: "",
+                managerSignature: null, managerSigScale: 1.0,
+                teacherSignature: null, teacherSigScale: 1.0,
+                location: "................"
+            };
+            
+            try {
+                window.classConfig = JSON.parse(localStorage.getItem('app_settings')) || defaultSettings;
+                if (typeof window.classConfig.managerSigScale !== 'number') window.classConfig.managerSigScale = 1.0;
+                if (typeof window.classConfig.teacherSigScale !== 'number') window.classConfig.teacherSigScale = 1.0;
+            } catch(e) { window.classConfig = defaultSettings; }
+
+            window.printSettings = window.classConfig; 
+            
+            if(window.classConfig.unit1) document.getElementById('cover-unit1').innerText = window.classConfig.unit1;
+            if(window.classConfig.unit2) document.getElementById('cover-unit2').innerText = window.classConfig.unit2;
+            if(window.classConfig.schoolName) document.getElementById('cover-school').innerText = window.classConfig.schoolName;
+            
+            if(window.classConfig.className) {
+                let classNameStr = window.classConfig.className || '';
+                let cleanClass = classNameStr.replace(/ថ្នាក់ទី/g, '').replace(/ថ្នាក់/g, '').trim();
+                document.getElementById('cover-class').innerText = cleanClass ? 'ថ្នាក់ទី ' + cleanClass : 'ថ្នាក់ទី...';
+                window.printSettings.cleanClassName = cleanClass; 
+            }
+            
+            if(window.classConfig.teacherName) {
+                document.getElementById('cover-teacher').innerText = window.classConfig.teacherName;
+                document.getElementById('teacherNameInput').value = window.classConfig.teacherName || '';
+            }
+            if(window.classConfig.academicYear) document.getElementById('cover-year').innerText = window.classConfig.academicYear;
+            if(window.classConfig.managerName) document.getElementById('managerNameInput').value = window.classConfig.managerName || '';
+
+            window.renderSignaturePreview('manager');
+            window.renderSignaturePreview('teacher');
+        }
+
+        window.updateSignatures = function() {
+            window.classConfig.managerName = document.getElementById('managerNameInput').value;
+            window.classConfig.teacherName = document.getElementById('teacherNameInput').value;
+            localStorage.setItem('app_settings', JSON.stringify(window.classConfig));
+        }
+
+        window.handleSignatureUpload = function(type) {
+            const input = document.getElementById(type + 'SignatureInput');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    if (type === 'manager') {
+                        window.classConfig.managerSignature = base64;
+                        window.classConfig.managerSigScale = 1.0;
+                    } else {
+                        window.classConfig.teacherSignature = base64;
+                        window.classConfig.teacherSigScale = 1.0; 
+                    }
+                    localStorage.setItem('app_settings', JSON.stringify(window.classConfig));
+                    window.renderSignaturePreview(type);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        window.removeSignature = function(type) {
+            if (type === 'manager') {
+                window.classConfig.managerSignature = null;
+            } else {
+                window.classConfig.teacherSignature = null;
+            }
+            localStorage.setItem('app_settings', JSON.stringify(window.classConfig));
+            document.getElementById(type + 'SignatureInput').value = ''; 
+            window.renderSignaturePreview(type);
+        }
+
+        window.zoomSignature = function(type, delta) {
+            const scaleKey = type + 'SigScale';
+            window.classConfig[scaleKey] = (window.classConfig[scaleKey] || 1.0) + delta;
+            window.classConfig[scaleKey] = Math.max(0.2, Math.min(3.0, window.classConfig[scaleKey]));
+            localStorage.setItem('app_settings', JSON.stringify(window.classConfig));
+            window.renderSignaturePreview(type);
+        }
+
+        window.renderSignaturePreview = function(type) {
+            const previewDiv = document.getElementById(type + 'SigPreview');
+            const sigData = type === 'manager' ? window.classConfig.managerSignature : window.classConfig.teacherSignature;
+            const scale = window.classConfig[type + 'SigScale'] || 1.0;
+            
+            if (sigData) {
+                previewDiv.innerHTML = `<img src="${sigData}" style="transform: scale(${scale});" class="h-full w-full object-contain">`;
+            } else {
+                previewDiv.innerHTML = `<span class="text-[10px] text-slate-400">គ្មាន</span>`;
+            }
+        }
+
+        function renderWebTables() {
+            const container = document.getElementById('webTablesContainer');
+            container.innerHTML = '';
+
+            if (window.students.length === 0) {
+                container.innerHTML = `<div class="w-full text-center py-16 text-gray-400"><p class="text-lg font-bold">មិនទាន់មានទិន្នន័យសិស្ស</p></div>`;
+                return;
+            }
+
+            container.appendChild(createWebTableFragment(window.students, 0));
+        }
+
+        function createWebTableFragment(studentList, startIndex) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-wrapper w-full overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm';
+            
+            let headerHTML = `<thead>
+                <tr>
+                    <th class="w-12 text-center text-gray-500">ល.រ</th>
+                    <th class="sticky-col min-w-[180px]">ឈ្មោះសិស្ស</th>
+                    <th class="text-center w-24 text-[14px]">កម្ពស់<br><span class="text-[11px] text-gray-500">(cm)</span></th>
+                    <th class="text-center w-24 text-[14px]">ទម្ងន់<br><span class="text-[11px] text-gray-500">(kg)</span></th>
+                    <th class="text-center w-20 text-[15px] font-extrabold text-slate-700">BMI</th>
+                    <th class="text-center w-28 text-[15px] font-bold text-slate-700">ស្ថានភាព</th>
+                    <th class="text-center min-w-[120px]">ផ្សេងៗ</th>
+                </tr>
+            </thead>`;
+
+            let tbodyHTML = '<tbody>';
+            studentList.forEach((s, i) => {
+                const idx = startIndex + i;
+                const hVal = window.healthData[`h_${idx}`] || '';
+                const wVal = window.healthData[`w_${idx}`] || '';
+                const nVal = window.healthData[`n_${idx}`] || '';
+                const photoSrc = s.photo || 'https://api.dicebear.com/7.x/notionists/svg?seed=' + s.id;
+                
+                const bmiData = calcBMI(hVal, wVal, s.gender, s.dob);
+
+                tbodyHTML += `<tr>
+                    <td class="text-center font-bold text-gray-500">${idx + 1}</td>
+                    <td class="font-bold text-gray-700 sticky-col">
+                        <div class="flex items-center gap-3">
+                            <img src="${photoSrc}" class="w-8 h-8 rounded-full border border-gray-200 object-cover cursor-pointer hover:ring-2 ring-indigo-400 shrink-0" onclick="window.showPhoto(this.src)" alt="Photo">
+                            <span class="whitespace-nowrap">${s.name || '-'}</span>
+                        </div>
+                    </td>
+                    <td class="text-center px-1 py-2"><input type="number" id="web_h_${idx}" class="input-val mx-auto" value="${hVal}" onkeyup="window.updateData(${idx}, 'h', this.value); window.refreshBMI(${idx})" onchange="window.updateData(${idx}, 'h', this.value); window.refreshBMI(${idx})"></td>
+                    <td class="text-center px-1 py-2"><input type="number" id="web_w_${idx}" class="input-val mx-auto" value="${wVal}" onkeyup="window.updateData(${idx}, 'w', this.value); window.refreshBMI(${idx})" onchange="window.updateData(${idx}, 'w', this.value); window.refreshBMI(${idx})"></td>
+                    
+                    <td class="text-center font-bold text-gray-700 text-[15px]" id="bmi_val_${idx}">${bmiData.val !== '-' ? bmiData.val : '-'}</td>
+                    <td class="text-center"><span id="bmi_status_${idx}" class="${bmiData.color} whitespace-nowrap">${bmiData.text}</span></td>
+                    
+                    <td class="text-center px-1"><input type="text" id="web_n_${idx}" class="input-text" value="${nVal}" onchange="window.updateData(${idx}, 'n', this.value)"></td>
+                </tr>`;
+            });
+            tbodyHTML += '</tbody>';
+            const table = document.createElement('table');
+            table.className = 'data-table';
+            table.innerHTML = headerHTML + tbodyHTML;
+            wrapper.appendChild(table);
+            return wrapper;
+        }
+
+        window.refreshBMI = function(idx) {
+            const h = document.getElementById(`web_h_${idx}`).value;
+            const w = document.getElementById(`web_w_${idx}`).value;
+            const s = window.students[idx] || {};
+            
+            const bmiData = calcBMI(h, w, s.gender, s.dob);
+            
+            const valEl = document.getElementById(`bmi_val_${idx}`);
+            const statEl = document.getElementById(`bmi_status_${idx}`);
+            if(valEl) valEl.innerText = bmiData.val;
+            if(statEl) {
+                statEl.innerText = bmiData.text;
+                statEl.className = `${bmiData.color} whitespace-nowrap`;
+            }
+            
+            const printBmiEl = document.getElementById(`print_bmi_${idx}`);
+            if(printBmiEl) {
+                printBmiEl.innerHTML = bmiData.text !== '-' 
+                    ? `<b>${toKhNum(bmiData.val)}</b><br><span style="font-size: 8px;">${bmiData.text}</span>` 
+                    : '-';
+            }
+
+            updateStats();
+        }
+
+        function renderPrintPages() {
+            const container = document.getElementById('print-pages-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const ROWS_FIRST_PAGE_SIG = 12;   
+            const ROWS_OTHER_PAGE_SIG = 18;
+            
+            let pagesChunks = [];
+            let tempStudents = [...window.students];
+
+            if (tempStudents.length === 0) {
+                pagesChunks.push([]);
+            } else {
+                let pageNum = 0;
+                while (tempStudents.length > 0) {
+                    let sigLimit = (pageNum === 0) ? ROWS_FIRST_PAGE_SIG : ROWS_OTHER_PAGE_SIG;
+                    pagesChunks.push(tempStudents.splice(0, sigLimit));
+                    pageNum++;
+                }
+            }
+
+            pagesChunks.forEach((chunk, index) => {
+                const isLast = (index === pagesChunks.length - 1);
+                const isFirst = (index === 0);
+                let startIdx = 0;
+                for(let i=0; i<index; i++) startIdx += pagesChunks[i].length;
+                container.innerHTML += generatePrintPageHTML(chunk, startIdx, isLast, isFirst);
+            });
+        }
+
+        function generatePrintPageHTML(chunk, startIdx, isLastPage, isFirstPage) {
+            const unit = window.printSettings.unit1 || window.printSettings.unit2 || 'ការិយាល័យ...';
+            const school = window.printSettings.schoolName || 'សាលាបឋមសិក្សា...';
+            const classText = window.printSettings.cleanClassName || '...';
+            const teacher = window.classConfig.teacherName || '...';
+            const year = window.printSettings.academicYear || '២០២៥-២០២៦';
+            const location = window.printSettings.location || '................';
+
+            const today = new Date();
+            const khMonths = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
+            const solarDate = `${location}, ថ្ងៃទី ${toKhNum(today.getDate().toString().padStart(2, '0'))} ខែ ${khMonths[today.getMonth()]} ឆ្នាំ ${toKhNum(today.getFullYear())}`;
+            let lunarStr = "ថ្ងៃ................ខែ..........ឆ្នាំ..........";
+            if (typeof momentkh !== 'undefined') {
+                try { lunarStr = momentkh.format(momentkh.fromDate(today)).replace('ពុទ្ធសករាជ', 'ព.ស.'); } catch (e) {}
+            }
+
+            const monthVal = window.healthData['month_selected'] || '';
+
+            let headerHtml = '';
+            if (isFirstPage) {
+                headerHtml = `
+                    <div class="text-center mb-6">
+                        <h1 class="kh-moul text-lg">ព្រះរាជាណាចក្រកម្ពុជា</h1>
+                        <h2 class="kh-moul text-base">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
+                        <div class="flex justify-center mt-2"><img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" alt="divider" class="h-4" crossorigin="anonymous"></div>
+                    </div>
+                    <div class="flex justify-between text-sm leading-relaxed mb-6">
+                        <div class="space-y-1"><p class="kh-moul text-sm">${unit}</p><p class="kh-moul text-sm">${school}</p></div>
+                        <div class="text-right space-y-1"><p>ថ្នាក់ទី៖ <span class="font-bold">${classText}</span></p><p>គ្រូបង្រៀន៖ <span class="kh-moul text-xs">${teacher}</span></p><p>ឆ្នាំសិក្សា៖ <span>${year}</span></p></div>
+                    </div>
+                    <div class="text-center mb-6">
+                        <h2 class="kh-moul text-xl text-blue-700">សៀវភៅតាមដានទម្ងន់ និងកម្ពស់សិស្ស</h2>
+                        <div class="flex justify-center items-center mt-3"><span class="kh-moul text-blue-700">ប្រចាំខែ</span><input type="text" class="w-20 kh-moul text-blue-700 outline-none bg-transparent text-left ml-1 month-input-class pdf-input" value="${monthVal}"></div>
+                    </div>
+                `;
+            }
+
+            let tbodyHtml = chunk.map((s, i) => {
+                const idx = startIdx + i;
+                const hVal = window.healthData[`h_${idx}`] || '';
+                const wVal = window.healthData[`w_${idx}`] || '';
+                const nVal = window.healthData[`n_${idx}`] || '';
+                
+                const bmiData = calcBMI(hVal, wVal, s.gender, s.dob);
+
+                return `<tr class="data-row">
+                    <td>${toKhNum(idx + 1)}</td>
+                    <td class="text-left font-bold pl-2">${s.name || ''}</td>
+                    <td>${s.gender || ''}</td>
+                    <td class="text-xs">${s.dob || ''}</td>
+                    <td><input type="text" id="print_h_${idx}" class="print-input pdf-input" value="${hVal}"></td>
+                    <td><input type="text" id="print_w_${idx}" class="print-input pdf-input" value="${wVal}"></td>
+                    <td class="text-[12px] leading-tight" id="print_bmi_${idx}">
+                        ${bmiData.text !== '-' ? `<b>${toKhNum(bmiData.val)}</b><br><span style="font-size: 8px;">${bmiData.text}</span>` : '-'}
+                    </td>
+                    <td><input type="text" id="print_n_${idx}" class="print-input pdf-input" value="${nVal}"></td>
+                </tr>`;
+            }).join('');
+
+            let sigHtml = '';
+            if (isLastPage) {
+                const mScale = window.classConfig.managerSigScale || 1.0;
+                const tScale = window.classConfig.teacherSigScale || 1.0;
+                sigHtml = `
+                    <tbody class="keep-together">
+                        <tr class="no-border-row">
+                            <td colspan="8">
+                                <div class="mt-8 grid grid-cols-2 text-center text-sm leading-loose">
+                                    <div>
+                                        <p class="kh-moul">បានឃើញ និងឯកភាព</p>
+                                        <p class="kh-moul">នាយកសាលា</p>
+                                        <div class="sig-image-box" style="margin-left: 2cm;">${window.classConfig.managerSignature ? `<img src="${window.classConfig.managerSignature}" style="transform: scale(${mScale})">` : ''}</div>
+                                        <p class="teacher-name-final">${window.classConfig.managerName || ''}</p>
+                                    </div>
+                                    <div>
+                                        <div style="margin-bottom: 2px;">${lunarStr}</div>
+                                        <div style="margin-bottom: 5px;">${solarDate}</div>
+                                        <p class="kh-moul">គ្រូបន្ទុកថ្នាក់</p>
+                                        <div class="sig-image-box">${window.classConfig.teacherSignature ? `<img src="${window.classConfig.teacherSignature}" style="transform: scale(${tScale})">` : ''}</div>
+                                        <p class="teacher-name-final"style="margin-left: 3cm;">${window.classConfig.teacherName || ''}</p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                `;
+            }
+
+            return `<div class="page-a4 page-break">${headerHtml}
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="width: 7%;">ល.រ</th>
+                        <th style="width: 23%;">គោត្តនាម-នាម</th>
+                        <th style="width: 8%;">ភេទ</th>
+                        <th style="width: 14%;">ថ្ងៃកំណើត</th>
+                        <th style="width: 10%;">កម្ពស់ (cm)</th>
+                        <th style="width: 10%;">ទម្ងន់ (kg)</th>
+                        <th style="width: 13%;">BMI</th>
+                        <th style="width: 15%;">ផ្សេងៗ</th>
+                    </tr>
+                </thead>
+                <tbody>${tbodyHtml}</tbody>${sigHtml}
+            </table></div>`;
+        }
+
+        window.updateData = function(idx, type, value) {
+            window.healthData[`${type}_${idx}`] = value;
+            const printEl = document.getElementById(`print_${type}_${idx}`);
+            if (printEl) printEl.value = value;
+        }
+
+        window.updateMonthDisplay = function() {
+            const val = document.getElementById('monthSelect').value;
+            window.healthData['month_selected'] = val;
+            document.querySelectorAll('.month-input-class').forEach(i => i.value = val);
+            window.saveData(false); 
+        }
+
+        window.showPhoto = function(src) {
+            document.getElementById('modalImg').src = src;
+            document.getElementById('photoModal').style.display = 'flex';
+        }
+
+        window.openBMIModal = function() {
+            document.getElementById('bmiModal').style.display = 'flex';
+        }
+
+        window.closeBMIModal = function() {
+            document.getElementById('bmiModal').style.display = 'none';
+        }
+
+        // រក្សាទុកទិន្នន័យ (Online Cloud & Local backup)
+        window.saveData = async function(showToast = true) {
+            localStorage.setItem('data_health_tracking', JSON.stringify(window.healthData));
+            window.updateSignatures();
+            
+            if (window.currentUser) {
+                try {
+                    const healthRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', window.currentUser.uid, 'settings', 'health_tracking');
+                    await setDoc(healthRef, window.healthData);
+                } catch(error) {
+                    console.error("Firebase save error:", error);
+                }
+            }
+
+            if (showToast) {
+                const msg = document.createElement('div');
+                msg.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i> <span>រក្សាទុកទិន្នន័យបានជោគជ័យ!</span>';
+                msg.className = "fixed bottom-5 right-5 bg-emerald-500 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-2 z-[100] font-bold transition-opacity duration-500";
+                document.body.appendChild(msg);
+                lucide.createIcons(); 
+                setTimeout(() => { msg.style.opacity = '0'; setTimeout(() => msg.remove(), 500); }, 2000);
+            }
+        };
+
+        window.downloadPDF = async function() {
+            const btn = document.getElementById('btnDownloadTop');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> កំពុងរៀបចំ...';
+            btn.disabled = true;
+            if (window.lucide) lucide.createIcons();
+
+            const inputsToReplace = document.querySelectorAll('.print-only .pdf-input');
+            const replacements = [];
+            inputsToReplace.forEach(input => {
+                const span = document.createElement('span');
+                span.className = input.className;
+                span.style.cssText = window.getComputedStyle(input).cssText;
+                span.style.display = 'inline-block';
+                span.innerText = input.value || '';
+                input.style.display = 'none';
+                input.parentNode.insertBefore(span, input);
+                replacements.push({ span, input });
+            });
+
+            document.body.classList.add('pdf-exporting');
+            await document.fonts.ready;
+            await new Promise(r => setTimeout(r, 500)); 
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+                const pages = document.querySelectorAll('.print-only .page-a4');
+                for (let i = 0; i < pages.length; i++) {
+                    const canvas = await html2canvas(pages[i], { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 1024 });
+                    if (i > 0) pdf.addPage();
+                    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, 297);
+                }
+                pdf.save(`Healthy_Tracking_${window.classConfig.className || 'Class'}.pdf`);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                document.body.classList.remove('pdf-exporting');
+                replacements.forEach(({ span, input }) => { span.remove(); input.style.display = ''; });
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+    </script>
+</body>
+</html>

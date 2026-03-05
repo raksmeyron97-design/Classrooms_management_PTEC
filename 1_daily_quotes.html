@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>សម្រង់អត្ថបទប្រចាំថ្ងៃ (Online)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- បន្ថែមហ្វុង សម្រាប់ចំណងជើង -->
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Siemreap&family=Taprom&display=swap" rel="stylesheet">
+    <!-- លេខកូដសម្រាប់រូបតំណាង Icons និង បណ្ណាល័យ PDF -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    
+    <style>
+        :root {
+            --khmer-moul: 'Moul', cursive;
+            --khmer-battambang: 'Battambang', sans-serif;
+            --khmer-siemreap: 'Siemreap', sans-serif;
+            --khmer-taprom: 'Taprom', cursive;
+        }
+
+        body {
+            font-family: var(--khmer-battambang);
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 0;
+            color: #1f2937;
+        }
+
+        .kh-moul, .font-moul { font-family: var(--khmer-moul); font-weight: normal; }
+        .font-taprom { font-family: var(--khmer-taprom); }
+        .text-shadow-custom { text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        .pdf-exporting .text-shadow-custom { text-shadow: none !important; }
+
+        /* --- UI Styles --- */
+        .input-text {
+            width: 100%; 
+            text-align: left; 
+            padding: 0.5rem 0.75rem; 
+            border-radius: 0.375rem; 
+            border: 1px solid #e2e8f0; 
+            outline: none; 
+            transition: all 0.2s;
+            background: #f8fafc;
+            font-size: 14px;
+            color: #1f2937;
+        }
+        .input-text:focus { border-color: #4f46e5; background: white; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1); }
+        
+        .input-date {
+            border: none;
+            border-bottom: 1px dashed #94a3b8;
+            background: transparent;
+            text-align: center;
+            outline: none;
+            width: 80px;
+            font-family: var(--khmer-battambang);
+            color: #1e40af;
+            font-weight: bold;
+        }
+        .input-date:focus { border-bottom-color: #4f46e5; }
+
+        /* --- Print UI --- */
+        .page-a4 {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 15mm;
+            margin: 0 auto 20px auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            font-family: var(--khmer-battambang);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .cover-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20mm;
+        }
+        .cover-border {
+            position: absolute;
+            top: 15mm;
+            bottom: 15mm;
+            left: 15mm;
+            right: 15mm;
+            border: 4px solid #d4af37;
+            outline: 2px solid #d4af37;
+            outline-offset: 4px;
+            pointer-events: none;
+        }
+
+        .print-block {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 30px; 
+        }
+        .print-table th, .print-table td {
+            border: 1px solid black;
+            padding: 8px 10px;
+            font-size: 14px;
+        }
+        .print-table th {
+            font-family: var(--khmer-moul);
+            font-weight: normal;
+            font-size: 14px;
+            text-align: center;
+            background-color: #f8fafc !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact; 
+        }
+        .print-table td.col-hour {
+            width: 8%;
+            text-align: center;
+            font-family: var(--khmer-battambang);
+        }
+        .print-table td.col-content {
+            width: 92%;
+            text-align: left;
+        }
+        
+        .print-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            outline: none;
+            padding: 0;
+            font-family: var(--khmer-battambang);
+            line-height: 1.5;
+        }
+        
+        .print-date-input {
+            border: none;
+            background: transparent;
+            outline: none;
+            text-align: center;
+            font-family: var(--khmer-battambang);
+            font-weight: bold;
+            color: #1e40af;
+            padding: 0;
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        
+        .print-date-text {
+            font-family: var(--khmer-battambang);
+            font-size: 15px;
+            color: #1e40af;
+            line-height: 1.5;
+        }
+
+        /* --- Preview Mode --- */
+        .preview-mode { background: #cbd5e1; padding-top: 2rem; padding-bottom: 2rem; }
+        .preview-mode #mainScreen { display: none; }
+        .preview-mode #printAreaWrapper { display: block; }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0 !important;
+            }
+            body, html { 
+                background: white !important; 
+                margin: 0 !important;
+                padding: 0 !important; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+            }
+            #mainScreen { display: none !important; }
+            #printAreaWrapper { display: block !important; padding: 0 !important; }
+            .no-print { display: none !important; }
+            .page-a4 { 
+                width: 210mm !important; 
+                height: 297mm !important; 
+                min-height: 297mm !important;
+                box-sizing: border-box !important;
+                box-shadow: none !important; 
+                margin: 0 !important; 
+                padding: 15mm !important;
+                page-break-after: always; 
+                border: none !important;
+                overflow: hidden !important;
+            }
+            .page-a4:last-child {
+                page-break-after: auto;
+            }
+            .cover-page { padding: 20mm !important; }
+            .print-table th, .print-table td { padding: 6px 8px; }
+            .print-table td.col-content { height: 35px; } 
+        }
+    </style>
+</head>
+<body>
+
+    <!-- វគ្គទី ១៖ ទិដ្ឋភាពលើអេក្រង់ (Web UI) -->
+    <div id="mainScreen" class="min-h-screen">
+        <!-- Navigation Bar -->
+        <nav class="bg-indigo-900 text-white p-4 shadow-lg sticky top-0 z-50">
+            <div class="container mx-auto flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <h1 class="kh-moul text-lg hidden sm:block ml-2">សៀវភៅសម្រង់អត្ថបទប្រចាំថ្ងៃ (Online)</h1>
+                </div>
+                <div class="text-sm font-bold flex items-center gap-4">
+                    <button onclick="window.addBlock()" class="hover:text-indigo-200 transition-colors flex items-center gap-1 bg-white/20 px-3 py-1.5 rounded-md">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> បន្ថែមថ្ងៃថ្មី
+                    </button>
+                    <!-- ប៊ូតុងបើកផ្ទាំង Preview សម្រាប់ Download PDF -->
+                    <button onclick="window.previewPDF()" class="hover:text-indigo-200 transition-colors flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-md border border-white/20">
+                        <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ព / PDF
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mx-auto p-4 md:p-6 mt-4 pb-20 max-w-4xl">
+            <!-- ផ្ទាំងសម្រាប់ផ្ទុកទិន្នន័យនីមួយៗ -->
+            <div id="webBlocksContainer" class="space-y-6">
+                <!-- កាតទិន្នន័យនឹងត្រូវបង្កើតដោយ JavaScript -->
+                <div class="text-center p-10 text-gray-500">
+                    <div class="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-indigo-600 rounded-full" role="status" aria-label="loading"></div>
+                    <span class="ml-2">កំពុងភ្ជាប់ទិន្នន័យ...</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col md:flex-row gap-4 mt-8 pt-6 border-t border-gray-200">
+                <button id="btnSave" onclick="window.saveData(true)" class="flex-1 py-3 bg-[#2da143] hover:bg-[#238535] text-white rounded-lg font-bold shadow-sm transition flex justify-center items-center gap-2">
+                    <i data-lucide="save" class="w-5 h-5"></i>
+                    រក្សាទុកទិន្នន័យ (Cloud)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- វគ្គទី ២៖ ទិដ្ឋភាពបោះពុម្ព (Print UI) និង PDF Export -->
+    <div id="printAreaWrapper" class="hidden">
+        
+        <!-- Preview Controls -->
+        <div class="fixed top-4 right-4 flex flex-col gap-3 z-50 no-print">
+            <button onclick="window.downloadPDF()" class="bg-red-600 text-white p-3 rounded-full shadow-xl hover:bg-red-700 hover:scale-105 transition" title="ទាញយក PDF">
+                <i data-lucide="download" class="w-6 h-6"></i>
+            </button>
+            <button onclick="window.print()" class="bg-blue-600 text-white p-3 rounded-full shadow-xl hover:bg-blue-700 hover:scale-105 transition" title="បោះពុម្ភ">
+                <i data-lucide="printer" class="w-6 h-6"></i>
+            </button>
+            <button onclick="window.closePreview()" class="bg-slate-600 text-white p-3 rounded-full shadow-xl hover:bg-slate-700 hover:scale-105 transition" title="បិទផ្ទាំង Preview">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <div id="printPagesContainer">
+            <!-- ទំព័រក្របមុខ (Cover Page) -->
+            <div class="page-a4 cover-page relative">
+                <div class="cover-border"></div>
+                <div class="text-center w-full mt-4">
+                    <h1 class="font-moul text-xl mb-2">ព្រះរាជាណាចក្រកម្ពុជា</h1>
+                    <h2 class="font-moul text-lg">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
+                    
+                    <img src="divider.jpg" onerror="this.style.display='none'" alt="divider" class="h-6 w-auto object-contain mx-auto mt-4 mb-8">
+                </div>
+
+                <div class="w-full text-left mt-4 pl-8">
+                    <p class="font-moul text-base mb-3 leading-relaxed" id="cover-unit1">ការិយាល័យអប់រំ យុវជន និងកីឡានៃរដ្ឋបាលស្រុក...</p>
+                    <p class="font-moul text-base mb-3" id="cover-unit2">កម្រង...</p>
+                    <p class="font-moul text-base mb-3" id="cover-school">សាលាបឋមសិក្សា...</p>
+                </div>
+
+                <div class="flex-1 flex flex-col justify-center items-center w-full space-y-10 mt-10" style="min-height: 400px;">
+                    <h1 class="kh-moul text-6xl text-blue-600 text-shadow-custom" style="font-weight: normal;">សៀវភៅ</h1>
+                    <h2 class="font-moul text-5xl text-red-600 text-shadow-custom leading-normal text-center w-full px-8">សម្រង់អត្ថបទប្រចាំថ្ងៃ</h2>
+                    <h3 class="font-moul text-4xl text-green-600 text-shadow-custom" id="cover-class">ថ្នាក់ទី...</h3>
+                </div>
+
+                <div class="w-full text-center mt-auto mb-8 space-y-4">
+                    <p class="font-moul text-3xl" id="cover-teacher">លោកគ្រូ/អ្នកគ្រូ...</p>
+                    <p class="font-moul text-3xl">ឆ្នាំសិក្សា <span id="cover-year">២០២៥-២០២៦</span></p>
+                </div>
+            </div>
+            <!-- ទំព័រទិន្នន័យ -->
+        </div>
+    </div>
+
+    <!-- Firebase Logic using Modules -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        // Global Variables
+        let blocksData = [];
+        const khNum = ['១', '២', '៣', '៤', '៥'];
+
+        // Function to generate unique ID
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // --- Fetch Settings From Dashboard ---
+        window.getAppConfig = function() {
+            try {
+                // ប្រសិនបើបើកក្នុង iframe វាអាចចាប់យកទិន្នន័យពី window ដើមបានលឿនជាង (Real-time sync)
+                if (window.parent && window.parent.appSettings) {
+                    return window.parent.appSettings;
+                }
+                return JSON.parse(localStorage.getItem('app_settings') || '{}');
+            } catch (e) {
+                return JSON.parse(localStorage.getItem('app_settings') || '{}');
+            }
+        };
+
+        window.loadSettings = function() {
+            const s = window.getAppConfig();
+            
+            // ភ្ជាប់ព័ត៌មានទៅកាន់ក្របមុខ
+            if(s.unit1) document.getElementById('cover-unit1').innerText = s.unit1;
+            if(s.unit2) document.getElementById('cover-unit2').innerText = s.unit2;
+            if(s.schoolName) document.getElementById('cover-school').innerText = s.schoolName;
+            if(s.className) document.getElementById('cover-class').innerText = s.className;
+            if(s.teacherName) document.getElementById('cover-teacher').innerText = s.teacherName;
+            if(s.academicYear) document.getElementById('cover-year').innerText = s.academicYear;
+        }
+
+        // --- Data Loading ---
+        window.initApp = async function() {
+            window.loadSettings();
+            
+            const container = document.getElementById('webBlocksContainer');
+            
+            try {
+                // Fetch from Firestore
+                const querySnapshot = await getDocs(collection(db, "daily_quotes"));
+                blocksData = [];
+                querySnapshot.forEach((doc) => {
+                    blocksData.push(doc.data());
+                });
+
+                // Sort blocks by ID (since ID starts with timestamp, this approximates chronological order)
+                blocksData.sort((a, b) => (a.id > b.id) ? 1 : -1);
+
+                if (blocksData.length === 0) {
+                    // Start with one empty block if DB is empty
+                    blocksData.push(getEmptyBlock(generateId()));
+                }
+
+                window.renderWebUI();
+            } catch (error) {
+                console.error("Error loading data: ", error);
+                container.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+                        <strong class="font-bold">បរាជ័យ!</strong>
+                        <span class="block sm:inline">មិនអាចភ្ជាប់ទៅកាន់ទិន្នន័យបានទេ។ សូមពិនិត្យមើលអ៊ីនធឺណិតរបស់អ្នក។</span>
+                        <p class="text-sm mt-1 text-gray-600">${error.message}</p>
+                    </div>
+                `;
+            }
+            
+            lucide.createIcons();
+        }
+
+        function getEmptyBlock(id) {
+            return {
+                id: id,
+                l_day: '', l_month: '', l_year: '', l_sak: '',
+                s_day: '', s_month: '', s_year: '',
+                content: ['', '', '', '', ''] 
+            };
+        }
+
+        // --- Core Operations ---
+        
+        window.addBlock = function() {
+            blocksData.push(getEmptyBlock(generateId()));
+            window.renderWebUI();
+            lucide.createIcons();
+            setTimeout(() => {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }, 100);
+        }
+
+        window.deleteBlock = async function(id) {
+            if(confirm('តើអ្នកពិតជាចង់លុបទិន្នន័យសម្រាប់ថ្ងៃនេះមែនទេ? (ទិន្នន័យនឹងត្រូវលុបចេញពី Database ភ្លាមៗ)')) {
+                try {
+                    await deleteDoc(doc(db, "daily_quotes", id));
+                    blocksData = blocksData.filter(b => b.id !== id);
+                    window.renderWebUI();
+                    lucide.createIcons();
+                } catch (e) {
+                    alert("បរាជ័យក្នុងការលុប៖ " + e.message);
+                }
+            }
+        }
+
+        window.saveData = async function(showToast = true) {
+            const btn = document.getElementById('btnSave');
+            const originalContent = btn.innerHTML;
+            
+            btn.innerHTML = `<div class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2"></div> រក្សាទុក...`;
+            btn.disabled = true;
+            btn.classList.add('opacity-75');
+
+            try {
+                const promises = blocksData.map(block => {
+                     return setDoc(doc(db, "daily_quotes", block.id), block);
+                });
+                
+                await Promise.all(promises);
+                
+                if (showToast) {
+                    const msg = document.createElement('div');
+                    msg.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i> <span>រក្សាទុកក្នុង Database ជោគជ័យ!</span>';
+                    msg.className = "fixed bottom-5 right-5 bg-emerald-500 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-2 z-[100] font-bold transition-opacity duration-500";
+                    document.body.appendChild(msg);
+                    lucide.createIcons(); 
+                    
+                    setTimeout(() => {
+                        msg.style.opacity = '0';
+                        setTimeout(() => msg.remove(), 500);
+                    }, 2000);
+                }
+            } catch (error) {
+                console.error("Save error:", error);
+                alert("មានបញ្ហាក្នុងការរក្សាទុក៖ " + error.message);
+            } finally {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75');
+                lucide.createIcons();
+            }
+        };
+
+        // --- Render Web UI ---
+        window.renderWebUI = function() {
+            const container = document.getElementById('webBlocksContainer');
+            container.innerHTML = '';
+
+            blocksData.forEach((block, index) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative group';
+                card.innerHTML = `<div class="h-1.5 w-full bg-indigo-500"></div>`;
+                
+                let contentHTML = `
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="font-bold text-gray-700 flex items-center gap-2">
+                                <span class="bg-indigo-100 text-indigo-800 w-6 h-6 rounded-full flex items-center justify-center text-xs">${index + 1}</span>
+                                កាលបរិច្ឆេទ
+                            </h3>
+                            <button onclick="window.deleteBlock('${block.id}')" class="text-red-400 hover:text-red-600 transition opacity-50 group-hover:opacity-100 p-1 bg-red-50 rounded-md">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="bg-indigo-50/50 p-4 rounded-lg border border-indigo-100/50 mb-5 text-sm space-y-3">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span>ថ្ងៃ</span> <input type="text" class="input-date" placeholder="..." value="${block.l_day || ''}" onchange="window.updateBlockData('${block.id}', 'l_day', this.value)">
+                                <span>ខែ</span> <input type="text" class="input-date" placeholder="..." value="${block.l_month || ''}" onchange="window.updateBlockData('${block.id}', 'l_month', this.value)">
+                                <span>ឆ្នាំ</span> <input type="text" class="input-date" placeholder="..." value="${block.l_year || ''}" onchange="window.updateBlockData('${block.id}', 'l_year', this.value)">
+                                <span>ស័ក ព.ស</span> <input type="text" class="input-date" placeholder="២៥..." value="${block.l_sak || ''}" onchange="window.updateBlockData('${block.id}', 'l_sak', this.value)">
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span>ត្រូវនឹងថ្ងៃទី</span> <input type="text" class="input-date" placeholder="..." value="${block.s_day || ''}" onchange="window.updateBlockData('${block.id}', 's_day', this.value)">
+                                <span>ខែ</span> <input type="text" class="input-date" placeholder="..." value="${block.s_month || ''}" onchange="window.updateBlockData('${block.id}', 's_month', this.value)">
+                                <span>ឆ្នាំ</span> <input type="text" class="input-date" placeholder="២០២..." value="${block.s_year || ''}" onchange="window.updateBlockData('${block.id}', 's_year', this.value)">
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                `;
+
+                for(let i=0; i<5; i++) {
+                    contentHTML += `
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 text-center font-bold text-gray-500 bg-gray-100 py-2 rounded-md border border-gray-200">${khNum[i]}</div>
+                            <input type="text" class="input-text flex-1" placeholder="បញ្ចូលខ្លឹមសារម៉ោងទី ${khNum[i]}..." value="${block.content[i] || ''}" onchange="window.updateBlockContent('${block.id}', ${i}, this.value)">
+                        </div>
+                    `;
+                }
+
+                contentHTML += `</div></div>`;
+                card.innerHTML += contentHTML;
+                container.appendChild(card);
+            });
+        }
+
+        window.updateBlockData = function(id, field, value) {
+            const block = blocksData.find(b => b.id === id);
+            if(block) block[field] = value;
+        }
+
+        window.updateBlockContent = function(id, index, value) {
+            const block = blocksData.find(b => b.id === id);
+            if(block) block.content[index] = value;
+        }
+
+        // --- Print & PDF Logic ---
+        window.renderPrintUI = function() {
+            const printContainer = document.getElementById('printPagesContainer');
+            const cover = printContainer.querySelector('.cover-page');
+            printContainer.innerHTML = '';
+            if(cover) printContainer.appendChild(cover);
+
+            if (blocksData.length === 0) return;
+
+            const s = window.getAppConfig();
+            const blocksPerPage = 3;
+            let pageDiv = null;
+            let contentContainer = null;
+
+            blocksData.forEach((block, index) => {
+                if (index % blocksPerPage === 0) {
+                    pageDiv = document.createElement('div');
+                    pageDiv.className = 'page-a4 flex flex-col';
+                    
+                    contentContainer = document.createElement('div');
+                    contentContainer.className = 'flex-1';
+                    pageDiv.appendChild(contentContainer);
+
+                    // កន្លែងចុះហត្ថលេខានៅខាងក្រោមទំព័រ (ប្រើព័ត៌មានពី Settings)
+                    const footerHTML = `
+                        <div class="mt-auto flex justify-between text-[14px] pt-6 no-print-break">
+                            <div class="text-center w-64">
+                                <p class="font-moul mb-16 mt-6">${s.managerRole || 'នាយកសាលា'}</p>
+                                <p class="font-moul print-manager-name"></p>
+                            </div>
+                            <div class="text-center w-64">
+                                <p class="font-battambang mb-2">${s.location || '....................'}, ថ្ងៃទី.......ខែ...........ឆ្នាំ...........</p>
+                                <p class="font-moul mb-16">គ្រូបន្ទុកថ្នាក់</p>
+                                <p class="font-moul print-teacher-name">${s.teacherName || '......................................................'}</p>
+                            </div>
+                        </div>
+                    `;
+                    pageDiv.insertAdjacentHTML('beforeend', footerHTML);
+                    printContainer.appendChild(pageDiv);
+                }
+
+                const blockHTML = `
+                    <div class="mb-6 print-block">
+                        <div class="flex justify-center items-center gap-1 mb-2">
+                            <span class="print-date-text text-[#1e40af]">ថ្ងៃ</span> 
+                            <input type="text" id="print_l_day_${block.id}" class="print-date-input" value="${block.l_day || ''}" style="width:60px;">
+                            <span class="print-date-text text-[#1e40af] ml-2">ខែ</span> 
+                            <input type="text" id="print_l_month_${block.id}" class="print-date-input" value="${block.l_month || ''}" style="width:70px;">
+                            <span class="print-date-text text-[#1e40af] ml-2">ឆ្នាំ</span> 
+                            <input type="text" id="print_l_year_${block.id}" class="print-date-input" value="${block.l_year || ''}" style="width:60px;">
+                            <span class="print-date-text text-[#1e40af] ml-2">ស័ក ព.ស</span> 
+                            <input type="text" id="print_l_sak_${block.id}" class="print-date-input" value="${block.l_sak || ''}" style="width:80px;">
+                        </div>
+                        <div class="flex justify-center items-center gap-1 mb-3">
+                            <span class="print-date-text !text-black">ត្រូវនឹងថ្ងៃទី</span> 
+                            <input type="text" id="print_s_day_${block.id}" class="print-date-input !text-black" value="${block.s_day || ''}" style="width:50px;">
+                            <span class="print-date-text !text-black ml-2">ខែ</span> 
+                            <input type="text" id="print_s_month_${block.id}" class="print-date-input !text-black" value="${block.s_month || ''}" style="width:80px;">
+                            <span class="print-date-text !text-black ml-2">ឆ្នាំ</span> 
+                            <input type="text" id="print_s_year_${block.id}" class="print-date-input !text-black" value="${block.s_year || ''}" style="width:60px;">
+                        </div>
+                        
+                        <table class="print-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-hour">ម៉ោង</th>
+                                    <th class="col-content">ខ្លឹមសារ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${block.content.map((txt, i) => `
+                                    <tr>
+                                        <td class="col-hour">${khNum[i]}</td>
+                                        <td class="col-content"><input type="text" id="print_content_${block.id}_${i}" class="print-input" value="${txt || ''}"></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                contentContainer.innerHTML += blockHTML;
+            });
+
+            // Re-attach listeners for print view inputs
+            const inputs = document.querySelectorAll('#printPagesContainer input');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    const parts = this.id.split('_');
+                    if(this.id.startsWith('print_content_')) {
+                        const id = parts[2];
+                        const idx = parseInt(parts[3]);
+                        const block = blocksData.find(b => b.id === id);
+                        if(block) block.content[idx] = this.value;
+                    } else {
+                        const field = parts[1] + '_' + parts[2];
+                        const id = parts[3];
+                        const block = blocksData.find(b => b.id === id);
+                        if(block) block[field] = this.value;
+                    }
+                });
+            });
+        }
+
+        window.previewPDF = function() {
+            window.loadSettings();
+            window.renderPrintUI();
+            
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('printAreaWrapper').classList.remove('hidden');
+            document.body.classList.add('preview-mode');
+        }
+
+        window.closePreview = function() {
+            document.getElementById('mainScreen').classList.remove('hidden');
+            document.getElementById('printAreaWrapper').classList.add('hidden');
+            document.body.classList.remove('preview-mode');
+            window.renderWebUI(); 
+        }
+
+        window.downloadPDF = function() {
+            const element = document.getElementById('printPagesContainer');
+            const pages = element.querySelectorAll('.page-a4');
+            
+            const inputs = element.querySelectorAll('input');
+            const replacements = [];
+            
+            inputs.forEach(input => {
+                const span = document.createElement('span');
+                span.className = input.className;
+                span.style.cssText = input.style.cssText;
+                span.textContent = input.value || '\u00A0';
+                
+                if (input.classList.contains('print-input')) {
+                    span.style.display = 'block';
+                    span.style.minHeight = '22px'; 
+                } else {
+                    span.style.display = 'inline-block';
+                }
+                
+                input.parentNode.insertBefore(span, input);
+                input.style.display = 'none';
+                replacements.push({ input, span });
+            });
+
+            element.classList.add('pdf-exporting');
+            pages.forEach(page => {
+                page.style.boxShadow = 'none';
+                page.style.margin = '0'; 
+            });
+
+            html2pdf().from(element).set({
+                margin: 0, 
+                filename: `Daily_Quotes_${new Date().getTime()}.pdf`, 
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, 
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            }).save().then(() => {
+                element.classList.remove('pdf-exporting');
+                pages.forEach(page => {
+                    page.style.boxShadow = '';
+                    page.style.margin = '';
+                });
+                
+                replacements.forEach(({ input, span }) => {
+                    input.style.display = '';
+                    span.remove();
+                });
+            });
+        }
+
+        // Start the app
+        window.onload = window.initApp;
+
+    </script>
+</body>
+</html>

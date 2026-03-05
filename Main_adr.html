@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>រដ្ឋបាលថ្នាក់រៀន - Dashboard</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Siemreap&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --khmer-moul: 'Moul', cursive;
+            --khmer-siemreap: 'Siemreap', sans-serif;
+            --khmer-battambang: 'Battambang', sans-serif;
+        }
+
+        body {
+            font-family: var(--khmer-siemreap);
+            background-color: #f3f4f6;
+        }
+        .font-moul { font-family: var(--khmer-moul); }
+        .font-battambang { font-family: var(--khmer-battambang); }
+
+        /* Sidebar Custom Scroll */
+        #menu-list::-webkit-scrollbar { width: 4px; }
+        #menu-list::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+
+        .iframe-container {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+        @media print {
+            #sidebar, #topbar { display: none !important; }
+            #main-content { padding: 0 !important; }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-gray-800">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-72 bg-slate-900 text-white flex flex-col h-full shadow-2xl z-20 shrink-0 transition-all duration-300">
+        <div class="p-6 text-center border-b border-slate-800 bg-slate-950 flex justify-between items-center relative">
+            <div class="w-full">
+                <h1 class="text-xl font-moul leading-relaxed text-yellow-400">រដ្ឋបាលថ្នាក់រៀន</h1>
+                <p id="sidebar-subtitle" class="text-xs mt-2 opacity-60 font-battambang">សាលាបឋមសិក្សាភូមិធំថ្មី</p>
+            </div>
+            <!-- Optional close button for mobile view, mostly handled by topbar toggle -->
+            <button onclick="window.toggleSidebar()" class="absolute right-4 top-6 md:hidden text-slate-400 hover:text-white">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto py-4" id="menu-list">
+            <ul class="space-y-1 px-3" id="nav-items">
+                <!-- Navigation Items -->
+            </ul>
+        </div>
+        <div class="p-4 border-t border-slate-800 text-[10px] text-center opacity-50 font-battambang" id="sidebar-footer">
+            ឆ្នាំសិក្សា ២០២៤-២០២៥
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full relative overflow-hidden">
+        <header id="topbar" class="bg-white shadow-sm h-16 flex items-center justify-between px-6 z-10">
+            <div class="flex items-center gap-4">
+                <button onclick="window.toggleSidebar()" class="text-slate-600 hover:text-sky-600 focus:outline-none transition-transform hover:scale-110" title="បិទ/បើកបញ្ជី">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h2 id="current-form-title" class="text-sm font-bold text-slate-700 font-moul hidden sm:block">សូមជ្រើសរើសទម្រង់ឯកសារ</h2>
+            </div>
+            <div class="flex items-center gap-2">
+                <!-- Home Button -->
+                <a href="index.html" class="bg-slate-500 hover:bg-slate-600 text-white px-3 sm:px-4 py-2 rounded shadow text-sm transition-all flex items-center gap-2">
+                    <i class="fas fa-home"></i> <span class="hidden sm:inline">ទំព័រដើម</span>
+                </a>
+                
+                <button onclick="window.saveCurrentData()" id="btn-save" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-4 py-2 rounded shadow text-sm transition-all flex items-center gap-2">
+                    <i class="fas fa-save"></i> <span class="hidden sm:inline" id="btn-save-text">រក្សាទុក</span>
+                </button>
+                <button onclick="window.printIframe()" class="bg-sky-600 hover:bg-sky-700 text-white px-3 sm:px-4 py-2 rounded shadow text-sm transition-all flex items-center gap-2">
+                    <i class="fas fa-print"></i> <span class="hidden sm:inline">បោះពុម្ព</span>
+                </button>
+            </div>
+        </header>
+
+        <div id="main-content" class="flex-1 overflow-hidden bg-gray-200">
+            <div id="view-wrapper" class="w-full h-full">
+                <div id="welcome-screen" class="flex flex-col items-center justify-center h-full text-center p-10 bg-gray-100">
+                    <div class="bg-sky-50 p-8 rounded-full mb-6">
+                        <i class="fas fa-book-open text-7xl text-sky-200"></i>
+                    </div>
+                    <h3 class="text-2xl font-moul mb-3 text-slate-400">ប្រព័ន្ធគ្រប់គ្រងឯកសារថ្នាក់រៀន</h3>
+                    <p class="font-battambang text-slate-400 italic">សូមជ្រើសរើសសៀវភៅនៅម៉ឺនុយខាងឆ្វេង</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Changed script to type="module" to enable Firebase imports -->
+    <script type="module">
+        // Import Firebase Functions
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const formsData = [
+            { id: 'attendance', icon: 'fa-calendar-check', title: '១. សៀវភៅសម្រង់អត្ថបទប្រចាំថ្ងៃ', src: '1_daily_quotes.html' },
+            { id: 'health', icon: 'fa-weight', title: '២. តាមដានទម្ងន់ និងកម្ពស់សិស្ស', src: '2_healthy_tracking.html' },
+            { id: 'materials', icon: 'fa-box-open', title: '៣. សៀវភៅទទួល ចែកសម្ភារៈ', src: '3_final.html' },
+            { id: 'recommendation', icon: 'fa-clipboard-list', title: '៤. សៀវភៅអនុសាសន៍', src: '4_recommendation.html' },
+            { id: 'demo_class', icon: 'fa-chalkboard-user', title: '៥. សៀវភៅថ្នាក់និទស្សន៍', src: '5_demo-class.html' },
+            { id: 'production', icon: 'fa-palette', title: '៦. សៀវភៅផលិតសម្ភារៈ', src: '6_material-production.html' },
+            { id: 'parents', icon: 'fa-handshake', title: '៧. សៀវភៅទំនាក់ទំនងមាតាបិតាសិស្ស', src: '7_parents-communication.html' },
+            { id: 'committee', icon: 'fa-users-rectangle', title: '៨. សៀវភៅគណៈកម្មការទ្រទ្រង់ថ្នាក់', src: '8_class-committee.html' },
+            { id: 'slow_learners', icon: 'fa-life-ring', title: '៩. សៀវភៅជួយសិស្សរៀនយឺតភាសាខ្មែរ', src: '9_slow-learners-khmer.html' },
+            { id: 'slow_learners_math', icon: 'fa-life-ring', title: '១០. សៀវភៅជួយសិស្សរៀនយឺតគណិតវិទ្យា', src: '10_slow-learners-math.html' },
+            { id: 'teacher_plan', icon: 'fa-calendar-days', title: '១១. ផែនការសកម្មភាពប្រចាំខែ', src: '11_teacher-plan.html' },
+            { id: 'difficulties', icon: 'fa-user-injured', title: '១២. បញ្ជីឈ្មោះសិស្សជួបការលំបាក', src: '12_students-experiencing-difficulties.html' },
+            { id: 'composition_correction', icon: 'fa-file-pen', title: '១៣. សៀវភៅកែតែងសេចក្តី', src: '13_composition-correction.html' },
+            { id: 'students', icon: 'fa-users', title: 'បញ្ជីឈ្មោះសិស្ស', src: 'student-list.html' },
+            { id: 'settings', icon: 'fa-cog', title: 'ការកំណត់ទូទៅ (Settings)', type: 'internal' }
+        ];
+
+        let currentActiveId = null;
+        
+        // Default Local Settings (Loaded into memory)
+        window.appSettings = {
+            unit1: '', unit2: '', schoolName: '', location: '', className: '', teacherName: '', managerRole: 'នាយកសាលា', academicYear: '២០២៤-២០២៥'
+        };
+
+        // Initialize Local App State First
+        const savedData = localStorage.getItem('app_settings');
+        if (savedData) {
+            window.appSettings = JSON.parse(savedData);
+        }
+
+        window.initMenu = function() {
+            const list = document.getElementById('nav-items');
+            list.innerHTML = '';
+            formsData.forEach(form => {
+                const isSettings = form.id === 'settings';
+                if (isSettings) {
+                    const hr = document.createElement('div');
+                    hr.className = "border-t border-slate-800 my-2 opacity-30";
+                    list.appendChild(hr);
+                }
+
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <button onclick="window.loadPage('${form.src || ''}', '${form.title}', '${form.id}')" id="btn-${form.id}" class="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 transition flex items-center group mb-1">
+                        <i class="fas ${form.icon} w-6 text-center ${isSettings ? 'text-slate-500' : 'text-slate-400'} group-hover:text-sky-400 transition"></i>
+                        <span class="ml-3 text-[13px] font-battambang">${form.title}</span>
+                    </button>
+                `;
+                list.appendChild(li);
+            });
+            window.updateSidebarSubtitle();
+            
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-ml-72');
+            }
+        }
+
+        window.toggleSidebar = function() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-ml-72');
+        }
+
+        window.updateSidebarSubtitle = function() {
+            const s = window.appSettings;
+            if (s.schoolName || s.className) {
+                document.getElementById('sidebar-subtitle').innerText = (s.className ? s.className : 'សាលាបឋមសិក្សា...');
+                document.getElementById('sidebar-footer').innerText = 'ឆ្នាំសិក្សា ' + (s.academicYear || '២០២៤-២០២៥');
+            }
+        }
+
+        window.loadPage = function(src, title, id) {
+            currentActiveId = id;
+            document.querySelectorAll('#nav-items button').forEach(b => b.classList.remove('bg-slate-800', 'text-sky-400', 'border-l-4', 'border-yellow-400'));
+            const btn = document.getElementById(`btn-${id}`);
+            if (btn) btn.classList.add('bg-slate-800', 'text-sky-400', 'border-l-4', 'border-yellow-400');
+            document.getElementById('current-form-title').innerText = title;
+            
+            const wrapper = document.getElementById('view-wrapper');
+            
+            if (id === 'settings') {
+                window.renderSettingsView(wrapper);
+            } else {
+                wrapper.innerHTML = `<iframe src="${src}" id="content-iframe" class="iframe-container"></iframe>`;
+            }
+
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-ml-72');
+            }
+        }
+
+        window.renderSettingsView = function(container) {
+            const s = window.appSettings;
+
+            container.innerHTML = `
+                <div class="h-full overflow-y-auto p-8 bg-gray-200">
+                    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden">
+                        <div class="p-8">
+                            <h2 class="text-center font-moul text-2xl text-blue-900 mb-8">ការកំណត់ព័ត៌មានទូទៅ</h2>
+                            
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-1">អង្គភាពគ្រប់គ្រង ១ ( ឧ. ការិយាល័យ... ) :</label>
+                                    <input type="text" id="set-unit1" value="${s.unit1 || ''}" class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="បញ្ចូលឈ្មោះការិយាល័យ...">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-1">អង្គភាពគ្រប់គ្រង ២ ( ឧ. កម្រង... ) :</label>
+                                    <input type="text" id="set-unit2" value="${s.unit2 || ''}" class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="បញ្ចូលឈ្មោះកម្រង...">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-1">ឈ្មោះសាលា :</label>
+                                    <input type="text" id="set-schoolName" value="${s.schoolName || ''}" class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="បញ្ចូលឈ្មោះសាលារៀន...">
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-1">ទីតាំង ( សម្រាប់សរសេរថ្ងៃខែ ) :</label>
+                                        <input type="text" id="set-location" value="${s.location || ''}" class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="ឧ. ភ្នំពេញ">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-1">ឈ្មោះថ្នាក់ :</label>
+                                        <input type="text" id="set-className" value="${s.className || ''}" class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="ឧ. ថ្នាក់ទី ១ «ក»">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-1">ឈ្មោះគ្រូបន្ទុកថ្នាក់ :</label>
+                                        <input type="text" id="set-teacherName" value="${s.teacherName || ''}" class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="ឈ្មោះលោកគ្រូ/អ្នកគ្រូ...">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-1">តួនាទីអ្នកគ្រប់គ្រង ( ឧ. នាយកសាលា ) :</label>
+                                        <input type="text" id="set-managerRole" value="${s.managerRole || 'នាយកសាលា'}" class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-1">ឆ្នាំសិក្សា :</label>
+                                    <input type="text" id="set-academicYear" value="${s.academicYear || '២០២៤-២០២៥'}" class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                                </div>
+                            </div>
+
+                            <div class="mt-10 flex justify-center">
+                                <button onclick="window.saveSettings()" class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-lg font-bold shadow-lg transition transform hover:scale-105 flex items-center gap-2">
+                                    <i class="fas fa-save"></i> រក្សាទុកការកំណត់
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.saveCurrentData = function() {
+            if (currentActiveId === 'settings') {
+                window.saveSettings();
+            } else {
+                window.saveIframeData();
+            }
+        }
+
+        // Updated function to save to Local Storage AND Firebase Firestore
+        window.saveSettings = async function() {
+            const btnText = document.getElementById('btn-save-text');
+            if(btnText) btnText.innerText = "កំពុងរក្សាទុក...";
+
+            const s = {
+                unit1: document.getElementById('set-unit1').value,
+                unit2: document.getElementById('set-unit2').value,
+                schoolName: document.getElementById('set-schoolName').value,
+                location: document.getElementById('set-location').value,
+                className: document.getElementById('set-className').value,
+                teacherName: document.getElementById('set-teacherName').value,
+                managerRole: document.getElementById('set-managerRole').value,
+                academicYear: document.getElementById('set-academicYear').value
+            };
+            
+            // 1. Save to local state and localStorage for fast offline access
+            window.appSettings = s;
+            localStorage.setItem('app_settings', JSON.stringify(s));
+            window.updateSidebarSubtitle();
+
+            // 2. Save to Firebase Firestore
+            try {
+                const settingsRef = doc(db, "school_data", "general_settings");
+                await setDoc(settingsRef, s);
+                window.showToast("រក្សាទុកការកំណត់អនឡាញបានជោគជ័យ!");
+            } catch (error) {
+                console.error("Firebase Error: ", error);
+                window.showToast("រក្សាទុកបានតែក្នុងម៉ាស៊ីន (Offline) - សូមពិនិត្យអ៊ីនធឺណិត");
+            } finally {
+                if(btnText) btnText.innerText = "រក្សាទុក";
+            }
+        }
+
+        window.saveIframeData = function() {
+            const iframe = document.getElementById('content-iframe');
+            if (iframe && iframe.contentWindow && iframe.contentWindow.saveData) {
+                try {
+                    iframe.contentWindow.saveData();
+                    window.showToast("រក្សាទុកទិន្នន័យឯកសារបានជោគជ័យ!");
+                } catch (e) {
+                    console.error("Iframe save error:", e);
+                }
+            }
+        }
+
+        window.printIframe = function() {
+            const iframe = document.getElementById('content-iframe');
+            if (iframe) {
+                iframe.contentWindow.print();
+            } else {
+                window.print();
+            }
+        }
+
+        window.showToast = function(message) {
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-5 right-5 bg-emerald-600 text-white px-6 py-3 rounded shadow-2xl z-50 animate-bounce transition-all";
+            toast.innerHTML = `<i class="fas fa-check-circle mr-2"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        // On window load, we build the menu and attempt to fetch fresh data from Firebase
+        window.onload = async () => {
+            window.initMenu();
+            
+            try {
+                const settingsRef = doc(db, "school_data", "general_settings");
+                const docSnap = await getDoc(settingsRef);
+                
+                if (docSnap.exists()) {
+                    // Update local state with online database
+                    window.appSettings = { ...window.appSettings, ...docSnap.data() };
+                    localStorage.setItem('app_settings', JSON.stringify(window.appSettings));
+                    window.updateSidebarSubtitle();
+                    
+                    // If the user currently has the settings page open, re-render to show fresh data
+                    if (currentActiveId === 'settings') {
+                        const wrapper = document.getElementById('view-wrapper');
+                        window.renderSettingsView(wrapper);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching data from Firebase:", error);
+                // If it fails, we seamlessly fallback to using what was already in localStorage
+            }
+        };
+    </script>
+</body>
+</html>

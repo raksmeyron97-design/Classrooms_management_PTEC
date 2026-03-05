@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - បញ្ជីឈ្មោះសិស្សខ្ចីសៀវភៅពុម្ព</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Taprom&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- បណ្ណាល័យសម្រាប់បង្កើត PDF ថ្មី -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    
+    <style>
+        :root { --primary: #0054a6; --secondary: #3b82f6; }
+        
+        body { font-family: 'Battambang', cursive; background: #f0f4f8; min-height: 100vh; margin: 0; color: #1e293b; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        .text-shadow-custom { text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        /* Background Animation */
+        .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 10% 20%, #e0e7ff 0%, transparent 40%), radial-gradient(circle at 90% 80%, #dcfce7 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 50%); animation: moveBg 20s infinite alternate ease-in-out; }
+        @keyframes moveBg { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        /* Form Control */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            outline: none;
+            background: #f8fafc;
+            font-family: 'Battambang', cursive;
+            transition: all 0.2s;
+            font-weight: 700;
+        }
+        .input-field:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(0, 84, 166, 0.1); }
+        
+        /* Custom Checkbox */
+        .custom-checkbox {
+            width: 1.5rem; height: 1.5rem; border-radius: 0.375rem; border: 2px solid #cbd5e1;
+            cursor: pointer; accent-color: var(--primary);
+        }
+
+        /* ស្ទាយថ្មីសម្រាប់ប្រអប់រូបភាពហត្ថលេខាដែលអាចត្រួតស៊ីគ្នាបាន */
+        .sig-image-box { height: 60px; margin-top: 5px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; }
+        .sig-image-box img { max-height: 100%; max-width: 160px; object-fit: contain; mix-blend-mode: multiply; pointer-events: none; }
+        .teacher-name-final { font-family: 'Moul', cursive; font-size: 11.5pt; margin-top: 5px; display: block; text-align: center; position: relative; z-index: 10; }
+
+        /* --- សម្រាប់ទិដ្ឋភាពក្រដាសបោះពុម្ព (Print UI) --- */
+        .page-a4 {
+            width: 297mm; /* A4 Landscape */
+            min-height: 210mm;
+            padding: 15mm;
+            margin: 0 auto 20px auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            position: relative;
+        }
+        
+        .report-table { width: 100%; border-collapse: collapse; font-size: 10.5pt; margin-top: 10px; table-layout: fixed; }
+        .report-table th, .report-table td { border: 1px solid #000; padding: 4px; text-align: center; vertical-align: middle; overflow: hidden; }
+        .report-table th { background-color: #f3f4f6 !important; font-family: 'Battambang', cursive; font-weight: bold; font-size: 10pt; }
+        .report-table td.text-left { text-align: left; padding-left: 8px; }
+        .report-table tfoot td { font-weight: bold; background-color: #f9fafb !important; }
+        
+        /* --- PDF Export Specific Styles --- */
+        .pdf-exporting { background: white !important; }
+        .pdf-exporting .screen-only { display: none !important; }
+        .pdf-exporting .print-only { display: flex !important; flex-direction: column; align-items: center; width: 1123px !important; position: absolute; left: 0; top: 0; z-index: -999; }
+        
+        .pdf-exporting .page-a4 {
+            width: 1123px !important; 
+            height: 794px !important; 
+            min-height: 794px !important;
+            max-height: 794px !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            overflow: hidden !important; 
+            page-break-after: always;
+            padding: 56px !important; 
+            background: white !important;
+            transform: scale(1) !important;
+        }
+        
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 1s linear infinite; }
+
+        @media screen { 
+            .print-only { display: none; } 
+        }
+
+        /* Browser Print Styles */
+        @media print {
+            @page { size: A4 landscape; margin: 0 !important; }
+            body, html { background: white !important; margin: 0 !important; padding: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .screen-only { display: none !important; }
+            .print-only { display: block !important; }
+            .bg-animate { display: none; }
+            .page-a4 { 
+                box-shadow: none !important; margin: 0 !important; width: 297mm !important; 
+                min-height: 210mm !important; max-height: 210mm !important; padding: 15mm !important;
+                page-break-after: always; border: none !important; overflow: hidden !important;
+            }
+            .report-table th, .report-table tfoot td { background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+        }
+    </style>
+</head>
+<body spellcheck="false">
+
+    <div class="bg-animate screen-only"></div>
+
+    <!-- វគ្គទី ១៖ ទិដ្ឋភាពលើអេក្រង់ (Web UI) -->
+    <div class="screen-only flex flex-col min-h-screen">
+        
+        <!-- Navigation Bar -->
+        <nav class="bg-indigo-900 text-white p-4 shadow-lg sticky top-0 z-50">
+            <div class="container mx-auto flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <h1 class="kh-moul text-xl hidden sm:block ml-2">បញ្ជីឈ្មោះសិស្សខ្ចីសៀវភៅពុម្ព</h1>
+                </div>
+                <div class="text-sm font-bold flex items-center gap-2 sm:gap-4">
+                    <button onclick="toggleSignatureSettings()" class="hover:text-indigo-200 transition-colors flex items-center gap-1 bg-white/20 px-3 py-1.5 rounded-md">
+                        <i data-lucide="pen-tool" class="w-4 h-4"></i> ហត្ថលេខា
+                    </button>
+                    <button id="btnDownloadTop" onclick="downloadPDF()" class="hover:text-indigo-200 transition-colors flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-md text-red-100 hover:text-red-200 hover:bg-white/20">
+                        <i data-lucide="download" class="w-4 h-4"></i> ទាញយក PDF
+                    </button>
+                    <button onclick="window.print()" class="hover:text-indigo-200 transition-colors flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-md hidden sm:flex">
+                        <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ព
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Screen Content -->
+        <div id="mainScreen" class="flex-1 pt-6 px-4 relative">
+            <div class="max-w-7xl mx-auto w-full pb-20">
+                
+                <!-- ផ្នែកកំណត់ហត្ថលេខាសម្រាប់ការបោះពុម្ព (ចម្លងពី 2_healthy_tracking.html) -->
+                <div id="signatureSettingsBox" class="hidden bg-indigo-50 border border-indigo-100 p-5 md:p-6 rounded-2xl mb-8 shadow-sm transition-all duration-300">
+                    <div class="flex items-center justify-between mb-5">
+                        <h4 class="text-sm font-bold text-indigo-800 flex items-center gap-2">
+                            <i data-lucide="pen-tool" class="w-5 h-5"></i> កំណត់អ្នកចុះហត្ថលេខាសម្រាប់ការបោះពុម្ព
+                        </h4>
+                        <button type="button" onclick="toggleSignatureSettings()" class="text-slate-400 hover:text-slate-600 transition p-1">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- នាយកសាលា -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-indigo-50 shadow-sm">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះនាយកសាលា</label>
+                                <input type="text" id="managerNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="updateSignatures()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា / ត្រា (បើមាន)</label>
+                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                    <input type="file" id="managerSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors w-full" onchange="handleSignatureUpload('manager')">
+                                    
+                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                            <button type="button" onclick="zoomSignature('manager', -0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                            <div id="managerSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded"></div>
+                                            <button type="button" onclick="zoomSignature('manager', 0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                        </div>
+                                        <button type="button" onclick="removeSignature('manager')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- គ្រូបន្ទុកថ្នាក់ -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-indigo-50 shadow-sm">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះគ្រូបន្ទុកថ្នាក់</label>
+                                <input type="text" id="teacherNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="updateSignatures()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា (បើមាន)</label>
+                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                    <input type="file" id="teacherSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors w-full" onchange="handleSignatureUpload('teacher')">
+                                    
+                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                            <button type="button" onclick="zoomSignature('teacher', -0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                            <div id="teacherSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded"></div>
+                                            <button type="button" onclick="zoomSignature('teacher', 0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                        </div>
+                                        <button type="button" onclick="removeSignature('teacher')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 md:p-8 mb-8">
+                    
+                    <!-- Input Form with Sticky behavior -->
+                    <div class="bg-blue-50/95 backdrop-blur-xl border border-blue-200 p-5 rounded-2xl mb-8 sticky top-[72px] z-40 shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all">
+                        
+                        <div class="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-3">
+                            <h3 class="font-bold text-gray-700 flex items-center gap-2" id="formTitle">
+                                <i data-lucide="user-plus" class="w-5 h-5 text-green-600"></i> កត់ត្រាទិន្នន័យសិស្ស
+                            </h3>
+                            
+                            <!-- Button to Import Students from student-list.html -->
+                            <button type="button" onclick="importAllStudents()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition shadow-md">
+                                <i data-lucide="users" class="w-4 h-4"></i> ទាញយកឈ្មោះសិស្សទាំងអស់ពីបញ្ជី
+                            </button>
+                        </div>
+
+                        <form id="borrowForm" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                            <input type="hidden" id="editId" value="">
+                            
+                            <!-- Datalist connected to student list -->
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-bold text-gray-600 mb-1">ឈ្មោះសិស្ស <span class="text-red-500">*</span></label>
+                                <input type="text" id="studentName" list="studentNamesList" required placeholder="ជ្រើសរើស ឬ វាយបញ្ចូលឈ្មោះសិស្ស..." class="input-field">
+                                <datalist id="studentNamesList">
+                                    <!-- Populated by JS -->
+                                </datalist>
+                            </div>
+                            
+                            <div class="md:col-span-1">
+                                <label class="block text-xs font-bold text-gray-600 mb-1 text-center">ខ្មែរ</label>
+                                <input type="number" id="qtyKhmer" min="0" value="0" class="input-field text-center p-2">
+                            </div>
+                            <div class="md:col-span-1">
+                                <label class="block text-xs font-bold text-gray-600 mb-1 text-center">គណិត</label>
+                                <input type="number" id="qtyMath" min="0" value="0" class="input-field text-center p-2">
+                            </div>
+                            <div class="md:col-span-1">
+                                <label class="block text-xs font-bold text-gray-600 mb-1 text-center">សង្គម</label>
+                                <input type="number" id="qtySocial" min="0" value="0" class="input-field text-center p-2">
+                            </div>
+                            <div class="md:col-span-1">
+                                <label class="block text-xs font-bold text-gray-600 mb-1 text-center">វិទ្យាសាស្ត្រ</label>
+                                <input type="number" id="qtyScience" min="0" value="0" class="input-field text-center p-2">
+                            </div>
+                            <div class="md:col-span-1">
+                                <label class="block text-xs font-bold text-gray-600 mb-1 text-center">អង់គ្លេស</label>
+                                <input type="number" id="qtyEnglish" min="0" value="0" class="input-field text-center p-2">
+                            </div>
+
+                            <div class="md:col-span-1 flex flex-col items-center">
+                                <label class="block text-xs font-bold text-gray-600 mb-2 text-center" title="សៀវភៅតាមដាន">តាមដាន</label>
+                                <input type="checkbox" id="chkTracking" class="custom-checkbox">
+                            </div>
+                            <div class="md:col-span-1 flex flex-col items-center">
+                                <label class="block text-xs font-bold text-gray-600 mb-2 text-center" title="ភាគសិស្ស">ភាគសិស្ស</label>
+                                <input type="checkbox" id="chkStudentPart" class="custom-checkbox">
+                            </div>
+                            
+                            <div class="md:col-span-2 flex gap-2">
+                                <button type="submit" id="btnSave" class="w-full bg-[#0054a6] hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl transition shadow flex justify-center items-center gap-2">
+                                    <i data-lucide="save" class="w-4 h-4"></i> រក្សាទុក
+                                </button>
+                                <button type="button" id="btnCancel" onclick="resetForm()" class="hidden bg-gray-400 hover:bg-gray-500 text-white font-bold py-2.5 px-3 rounded-xl transition shadow">
+                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-gray-700 flex items-center gap-2">
+                            <i data-lucide="list" class="w-5 h-5 text-[#0054a6]"></i> តារាងទិន្នន័យខ្ចីសៀវភៅ (<span id="totalStudentsCount">0</span>)
+                        </h3>
+                        <div class="flex gap-2">
+                            <!-- Delete all button -->
+                            <button onclick="deleteAllRecords()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2.5 rounded-xl font-bold transition shadow-sm flex items-center gap-2 text-sm border border-red-200">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i> លុបទាំងអស់
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Data Table -->
+                    <div class="overflow-x-auto rounded-xl border border-gray-200">
+                        <table class="w-full text-sm text-center">
+                            <thead class="bg-gray-100 text-gray-700 font-bold border-b">
+                                <tr>
+                                    <th class="p-3 w-12">ល.រ</th>
+                                    <th class="p-3 text-left">ឈ្មោះសិស្ស</th>
+                                    <th class="p-3">ខ្មែរ</th>
+                                    <th class="p-3">គណិត</th>
+                                    <th class="p-3">សង្គម</th>
+                                    <th class="p-3">វិទ្យា.</th>
+                                    <th class="p-3">អង់គ្លេស</th>
+                                    <th class="p-3 bg-blue-50">សរុប</th>
+                                    <th class="p-3">តាមដាន</th>
+                                    <th class="p-3">ភាគសិស្ស</th>
+                                    <th class="p-3 w-24">គ្រប់គ្រង</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTableBody" class="bg-white divide-y divide-gray-100">
+                                <!-- Items will be generated here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- វគ្គទី ២៖ ទិដ្ឋភាពបោះពុម្ព (Print UI) -->
+    <div class="print-only">
+        <div id="print-pages-container" class="w-full flex flex-col items-center">
+            <!-- Data pages injected here by JS automatically -->
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'ptec_borrow_books_data';
+        const STUDENT_STORAGE_KEY = 'students'; // Key from student-list.html
+        let records = [];
+        let classConfig = {};
+
+        const khDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+        const khMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+        
+        function toKhmerNum(num) { 
+            if (num === undefined || num === null || num === '') return '';
+            return num.toString().split('').map(d => khDigits[d] || d).join(''); 
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadClassConfig();
+            loadData(); // Load data first so records are populated before loading options
+            loadStudentOptions(); 
+        });
+
+        // Toggle Signature Settings Panel
+        function toggleSignatureSettings() {
+            const box = document.getElementById('signatureSettingsBox');
+            box.classList.toggle('hidden');
+        }
+
+        // Handle Signature Settings Updates
+        function updateSignatures() {
+            classConfig.managerName = document.getElementById('managerNameInput').value;
+            classConfig.teacherName = document.getElementById('teacherNameInput').value;
+            localStorage.setItem('app_settings', JSON.stringify(classConfig));
+            renderPrintPages();
+        }
+
+        function handleSignatureUpload(type) {
+            const input = document.getElementById(type + 'SignatureInput');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    if (type === 'manager') {
+                        classConfig.managerSignature = base64;
+                        classConfig.managerSigScale = 1.0;
+                    } else {
+                        classConfig.teacherSignature = base64;
+                        classConfig.teacherSigScale = 1.0; 
+                    }
+                    localStorage.setItem('app_settings', JSON.stringify(classConfig));
+                    renderSignaturePreview(type);
+                    renderPrintPages();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeSignature(type) {
+            if (type === 'manager') {
+                classConfig.managerSignature = null;
+            } else {
+                classConfig.teacherSignature = null;
+            }
+            localStorage.setItem('app_settings', JSON.stringify(classConfig));
+            document.getElementById(type + 'SignatureInput').value = ''; 
+            renderSignaturePreview(type);
+            renderPrintPages();
+        }
+
+        function zoomSignature(type, delta) {
+            const scaleKey = type + 'SigScale';
+            classConfig[scaleKey] = (classConfig[scaleKey] || 1.0) + delta;
+            classConfig[scaleKey] = Math.max(0.2, Math.min(3.0, classConfig[scaleKey]));
+            localStorage.setItem('app_settings', JSON.stringify(classConfig));
+            renderSignaturePreview(type);
+            renderPrintPages();
+        }
+
+        function renderSignaturePreview(type) {
+            const previewDiv = document.getElementById(type + 'SigPreview');
+            const sigData = type === 'manager' ? classConfig.managerSignature : classConfig.teacherSignature;
+            const scale = classConfig[type + 'SigScale'] || 1.0;
+            
+            if (sigData) {
+                previewDiv.innerHTML = `<img src="${sigData}" style="transform: scale(${scale});" class="h-full w-full object-contain">`;
+            } else {
+                previewDiv.innerHTML = `<span class="text-[10px] text-slate-400">គ្មាន</span>`;
+            }
+        }
+
+        // Load Setting Configs for Header/Footer
+        function loadClassConfig() {
+            const defaultSettings = {
+                unit1: "មន្ទីរអប់រំ យុវជន និងកីឡា", 
+                unit2: "ការិយាល័យអប់រំ យុវជន និងកីឡា",
+                className: "................", 
+                schoolName: "សាលាបឋមសិក្សា................",
+                teacherName: "ឈ្មោះគ្រូ", 
+                managerRole: "នាយកសាលា", 
+                location: "................",
+                academicYear: "២០២៤-២០២៥"
+            };
+            try {
+                classConfig = JSON.parse(localStorage.getItem('app_settings')) || defaultSettings;
+                if (typeof classConfig.managerSigScale !== 'number') classConfig.managerSigScale = 1.0;
+                if (typeof classConfig.teacherSigScale !== 'number') classConfig.teacherSigScale = 1.0;
+            } catch(e) {
+                classConfig = defaultSettings;
+            }
+            
+            // Populate signature inputs
+            if(document.getElementById('managerNameInput')) document.getElementById('managerNameInput').value = classConfig.managerName || '';
+            if(document.getElementById('teacherNameInput')) document.getElementById('teacherNameInput').value = classConfig.teacherName || '';
+            renderSignaturePreview('manager');
+            renderSignaturePreview('teacher');
+        }
+
+        // Fetch students from local storage to populate datalist (excluding those already in records)
+        function loadStudentOptions() {
+            const datalist = document.getElementById('studentNamesList');
+            try {
+                const students = JSON.parse(localStorage.getItem(STUDENT_STORAGE_KEY) || '[]');
+                const currentRecords = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                
+                datalist.innerHTML = '';
+                
+                students.forEach(s => {
+                    // Check if student already exists in our borrowing records
+                    const exists = currentRecords.some(r => r.name.trim().toLowerCase() === s.name.trim().toLowerCase());
+                    
+                    if (s.name && !exists) {
+                        const option = document.createElement('option');
+                        option.value = s.name;
+                        datalist.appendChild(option);
+                    }
+                });
+            } catch (error) {
+                console.error("Error loading student options:", error);
+            }
+        }
+
+        // Import all students from student list automatically
+        function importAllStudents() {
+            try {
+                const students = JSON.parse(localStorage.getItem(STUDENT_STORAGE_KEY) || '[]');
+                
+                if (students.length === 0) {
+                    alert("មិនមានទិន្នន័យសិស្សក្នុងបញ្ជីទេ។ សូមបញ្ចូលសិស្សក្នុងទំព័រ 'បញ្ជីឈ្មោះសិស្ស' ជាមុនសិន។");
+                    return;
+                }
+
+                let addedCount = 0;
+                
+                students.forEach(s => {
+                    // Check if student already exists in our borrowing records
+                    const exists = records.some(r => r.name.trim().toLowerCase() === s.name.trim().toLowerCase());
+                    
+                    if (!exists && s.name) {
+                        records.push({
+                            id: Date.now() + Math.random(), // Unique ID
+                            name: s.name,
+                            khmer: 0, math: 0, social: 0, science: 0, english: 0, total: 0,
+                            tracking: false, studentPart: false
+                        });
+                        addedCount++;
+                    }
+                });
+
+                if (addedCount > 0) {
+                    commitData();
+                    alert(`បានទាញយកឈ្មោះសិស្សថ្មីចំនួន ${addedCount} នាក់ចូលក្នុងតារាងដោយជោគជ័យ!`);
+                } else {
+                    alert("ឈ្មោះសិស្សទាំងអស់មានក្នុងតារាងរួចហើយ!");
+                }
+            } catch (error) {
+                console.error("Error importing students:", error);
+                alert("មានបញ្ហាក្នុងការទាញយកទិន្នន័យសិស្ស។");
+            }
+        }
+
+        window.saveData = function() {
+            commitData();
+        };
+
+        function loadData() {
+            records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            renderTable();
+        }
+
+        function commitData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+            renderTable();
+            loadStudentOptions(); // Refresh the dropdown options after saving/deleting
+        }
+
+        document.getElementById('borrowForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const idInput = document.getElementById('editId').value;
+            const name = document.getElementById('studentName').value.trim();
+            const khmer = parseInt(document.getElementById('qtyKhmer').value) || 0;
+            const math = parseInt(document.getElementById('qtyMath').value) || 0;
+            const social = parseInt(document.getElementById('qtySocial').value) || 0;
+            const science = parseInt(document.getElementById('qtyScience').value) || 0;
+            const english = parseInt(document.getElementById('qtyEnglish').value) || 0;
+            const tracking = document.getElementById('chkTracking').checked;
+            const studentPart = document.getElementById('chkStudentPart').checked;
+
+            if (!name) return;
+
+            const total = khmer + math + social + science + english;
+
+            if (idInput) {
+                const index = records.findIndex(item => item.id == idInput);
+                if (index !== -1) {
+                    records[index] = { ...records[index], name, khmer, math, social, science, english, total, tracking, studentPart };
+                }
+            } else {
+                records.push({
+                    id: Date.now(),
+                    name, khmer, math, social, science, english, total, tracking, studentPart
+                });
+            }
+
+            commitData();
+            resetForm();
+        });
+
+        function editItem(id) {
+            const item = records.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('editId').value = item.id;
+            document.getElementById('studentName').value = item.name;
+            document.getElementById('qtyKhmer').value = item.khmer;
+            document.getElementById('qtyMath').value = item.math;
+            document.getElementById('qtySocial').value = item.social;
+            document.getElementById('qtyScience').value = item.science;
+            document.getElementById('qtyEnglish').value = item.english;
+            document.getElementById('chkTracking').checked = item.tracking;
+            document.getElementById('chkStudentPart').checked = item.studentPart;
+
+            document.getElementById('formTitle').innerHTML = '<i data-lucide="edit-3" class="w-5 h-5 text-yellow-600"></i> កែប្រែព័ត៌មាន';
+            const btnSave = document.getElementById('btnSave');
+            btnSave.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> យល់ព្រម';
+            btnSave.className = "w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2.5 rounded-xl transition shadow flex justify-center items-center gap-2";
+            document.getElementById('btnCancel').classList.remove('hidden');
+            
+            lucide.createIcons();
+            document.getElementById('studentName').focus();
+        }
+
+        function deleteItem(id) {
+            if (confirm("តើអ្នកពិតជាចង់លុបទិន្នន័យនេះមែនទេ?")) {
+                records = records.filter(i => i.id !== id);
+                commitData();
+            }
+        }
+        
+        function deleteAllRecords() {
+            if (records.length === 0) return;
+            if (confirm("តើអ្នកពិតជាចង់លុបទិន្នន័យក្នុងតារាងទាំងអស់មែនទេ?")) {
+                records = [];
+                commitData();
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('borrowForm').reset();
+            document.getElementById('editId').value = '';
+            
+            document.getElementById('formTitle').innerHTML = '<i data-lucide="user-plus" class="w-5 h-5 text-green-600"></i> កត់ត្រាទិន្នន័យសិស្ស';
+            const btnSave = document.getElementById('btnSave');
+            btnSave.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> រក្សាទុក';
+            btnSave.className = "w-full bg-[#0054a6] hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl transition shadow flex justify-center items-center gap-2";
+            document.getElementById('btnCancel').classList.add('hidden');
+            
+            lucide.createIcons();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('dataTableBody');
+            document.getElementById('totalStudentsCount').innerText = toKhmerNum(records.length);
+            
+            if (records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-gray-400 font-bold">មិនទាន់មានទិន្នន័យនៅឡើយទេ</td></tr>`;
+            } else {
+                tbody.innerHTML = records.map((item, index) => `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-2 font-bold text-gray-600 border-r border-gray-100">${toKhmerNum(index + 1)}</td>
+                        <td class="p-2 font-bold text-[#0054a6] text-left pl-4">${item.name}</td>
+                        <td class="p-2">${toKhmerNum(item.khmer)}</td>
+                        <td class="p-2">${toKhmerNum(item.math)}</td>
+                        <td class="p-2">${toKhmerNum(item.social)}</td>
+                        <td class="p-2">${toKhmerNum(item.science)}</td>
+                        <td class="p-2">${toKhmerNum(item.english)}</td>
+                        <td class="p-2 font-bold bg-blue-50/50 text-blue-800">${toKhmerNum(item.total)}</td>
+                        <td class="p-2 text-green-600 font-bold">${item.tracking ? '√' : ''}</td>
+                        <td class="p-2 text-green-600 font-bold">${item.studentPart ? '√' : ''}</td>
+                        
+                        <td class="p-2">
+                            <div class="flex justify-center gap-2">
+                                <button onclick="editItem(${item.id})" class="p-1.5 bg-yellow-100 text-yellow-600 rounded-lg hover:bg-yellow-200 transition" title="កែប្រែ"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                                <button onclick="deleteItem(${item.id})" class="p-1.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition" title="លុប"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            if (window.lucide) lucide.createIcons();
+            
+            // ធ្វើបច្ចុប្បន្នភាពទិដ្ឋភាពបោះពុម្ពភ្លាមៗ
+            renderPrintPages();
+        }
+
+        // កសាងរចនាសម្ព័ន្ធ HTML សម្រាប់បោះពុម្ពជាស៊េរីទំព័រ
+        function renderPrintPages() {
+            const container = document.getElementById('print-pages-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            loadClassConfig();
+
+            const unit1 = classConfig.unit1 || '';
+            const unit2 = classConfig.unit2 || '';
+            const school = classConfig.schoolName || '';
+            let classNameStr = classConfig.className || '';
+            const cleanClass = classNameStr.replace(/ថ្នាក់ទី\s*/g, '').replace(/ថ្នាក់\s*/g, '').trim() || '...';
+            const year = classConfig.academicYear || '២០២៤-២០២៥';
+            const managerRole = classConfig.managerRole || 'នាយកសាលា';
+            const teacherName = classConfig.teacherName || '';
+            
+            const mScale = classConfig.managerSigScale || 1.0;
+            const tScale = classConfig.teacherSigScale || 1.0;
+            
+            const today = new Date();
+            let lunarStr = "ថ្ងៃ................ខែ..........ឆ្នាំ..........ព.ស.២៥៦...";
+            if (typeof momentkh !== 'undefined') {
+                try {
+                    const khmerDateObj = momentkh.fromDate(today);
+                    lunarStr = momentkh.format(khmerDateObj).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                } catch (e) { }
+            }
+            const locationTxt = classConfig.location || '....................';
+            const solarDate = `${locationTxt}, ថ្ងៃទី ${toKhmerNum(today.getDate().toString().padStart(2, '0'))} ខែ ${khMonths[today.getMonth()]} ឆ្នាំ ${toKhmerNum(today.getFullYear())}`;
+
+            // ចែកទិន្នន័យជាកង់ៗសម្រាប់ទំព័រនីមួយៗ (12 ជួរក្នុងមួយទំព័រដើម្បីអោយស៊ីគ្នានឹង Landscape)
+            let tempRecords = [...records];
+            if (tempRecords.length < 12) {
+                const emptyCount = 12 - tempRecords.length;
+                for(let i=0; i<emptyCount; i++) tempRecords.push(null);
+            }
+
+            const ROWS_PER_PAGE = 12; 
+            let pagesChunks = [];
+            while (tempRecords.length > 0) {
+                pagesChunks.push(tempRecords.splice(0, ROWS_PER_PAGE));
+            }
+
+            // បូកសរុបលទ្ធផលទាំងអស់
+            let sums = { khmer: 0, math: 0, social: 0, science: 0, english: 0, total: 0, tracking: 0, part: 0 };
+            records.forEach(item => {
+                if(item) {
+                    sums.khmer += item.khmer; sums.math += item.math; sums.social += item.social;
+                    sums.science += item.science; sums.english += item.english; sums.total += item.total;
+                    if(item.tracking) sums.tracking++;
+                    if(item.studentPart) sums.part++;
+                }
+            });
+
+            // បង្កើតកូដ HTML សម្រាប់ទំព័រនីមួយៗ
+            pagesChunks.forEach((chunk, index) => {
+                const isFirstPage = (index === 0);
+                const isLastPage = (index === pagesChunks.length - 1);
+                let startIdx = index * ROWS_PER_PAGE;
+
+                let headerHtml = '';
+                if (isFirstPage) {
+                    // លុប mt-2 ប្តូរទៅ mt-8 វិញដើម្បីអោយវាស្មើបន្ទាត់ "ជាតិ សាសនា ព្រះមហាក្សត្រ"
+                    headerHtml = `
+                        <div class="flex justify-between items-start w-full mb-2">
+                            <div class="text-[11pt] font-bold leading-relaxed text-left mt-8" style="min-width: 250px;">
+                                <p class="kh-moul">${unit1}</p>
+                                <p class="kh-moul">${unit2}</p>
+                                <p class="kh-moul text-[12pt]">${school}</p>
+                            </div>
+                            <div class="text-center" style="min-width: 300px;">
+                                <h3 class="kh-moul text-[13pt] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                                <h3 class="kh-moul text-[13pt] mb-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                                <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12px] w-auto mx-auto mt-2" crossorigin="anonymous">
+                            </div>
+                        </div>
+                        <div class="text-center mb-3">
+                            <h2 class="kh-moul text-[15pt] mb-1">បញ្ជីឈ្មោះសិស្សខ្ចីសៀវភៅពុម្ព</h2>
+                            <p class="font-bold text-[11pt]">ប្រចាំថ្នាក់ទី ${cleanClass} សិក្សាឆ្នាំ ${year}</p>
+                        </div>
+                    `;
+                } 
+
+                let tbodyHtml = '';
+                chunk.forEach((item, i) => {
+                    const rowNum = toKhmerNum(startIdx + i + 1);
+                    if (item) {
+                        tbodyHtml += `
+                            <tr>
+                                <td style="height: 30px;">${rowNum}</td>
+                                <td class="text-left font-bold pl-2">${item.name}</td>
+                                <td>${toKhmerNum(item.khmer)}</td>
+                                <td>${toKhmerNum(item.math)}</td>
+                                <td>${toKhmerNum(item.social)}</td>
+                                <td>${toKhmerNum(item.science)}</td>
+                                <td>${toKhmerNum(item.english)}</td>
+                                <td class="font-bold">${toKhmerNum(item.total)}</td>
+                                <td class="font-bold text-lg">${item.tracking ? '√' : ''}</td>
+                                <td class="font-bold text-lg">${item.studentPart ? '√' : ''}</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        `;
+                    } else {
+                        tbodyHtml += `
+                            <tr>
+                                <td style="height: 30px;">${rowNum}</td>
+                                <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                        `;
+                    }
+                });
+
+                let footerHtml = '';
+                if (isLastPage) {
+                    footerHtml = `
+                        <tfoot>
+                            <tr>
+                                <td colspan="2" class="text-center">សៀវភៅសរុប</td>
+                                <td>${toKhmerNum(sums.khmer)}</td>
+                                <td>${toKhmerNum(sums.math)}</td>
+                                <td>${toKhmerNum(sums.social)}</td>
+                                <td>${toKhmerNum(sums.science)}</td>
+                                <td>${toKhmerNum(sums.english)}</td>
+                                <td>${toKhmerNum(sums.total)}</td>
+                                <td>${toKhmerNum(sums.tracking)}</td>
+                                <td>${toKhmerNum(sums.part)}</td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div class="flex justify-between w-full mt-4 px-10">
+                        <div class="text-center" style="width: 30%;">
+                            <p class="text-[11pt] mb-2 font-bold">បានឃើញ និងឯកភាព</p>
+                            <p class="kh-moul text-[11pt]">${managerRole}</p>
+                            <div class="sig-image-box">${classConfig.managerSignature ? `<img src="${classConfig.managerSignature}" style="transform: scale(${mScale})">` : ''}</div>
+                            <p class="teacher-name-final">${classConfig.managerName || ''}</p>
+                        </div>
+                        <div class="text-center" style="width: 40%;">
+                            <p class="text-[10pt] mb-1 font-bold">${lunarStr}</p>
+                            <p class="text-[10pt] mb-3 font-bold">${solarDate}</p>
+                            <p class="kh-moul text-[11pt]">គ្រូបន្ទុកថ្នាក់</p>
+                            <div class="sig-image-box">${classConfig.teacherSignature ? `<img src="${classConfig.teacherSignature}" style="transform: scale(${tScale})">` : ''}</div>
+                            <p class="teacher-name-final">${classConfig.teacherName || ''}</p>
+                        </div>
+                    </div>
+                    `;
+                } else {
+                    footerHtml = `</table>`;
+                }
+
+                container.innerHTML += `
+                    <div class="page-a4">
+                        ${headerHtml}
+                        <table class="report-table flex-1">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" class="w-[5%]">ល.រ</th>
+                                    <th rowspan="2" class="w-[15%]">ឈ្មោះសិស្ស</th>
+                                    <th colspan="6" class="w-[42%]">បញ្ជីឈ្មោះសិស្សខ្ចីសៀវភៅពុម្ព</th>
+                                    <th colspan="2" class="w-[16%]">ចែកឲ្យសិស្ស</th>
+                                    <th colspan="2" class="w-[22%]">ផ្សេងៗ</th>
+                                </tr>
+                                <tr>
+                                    <th class="w-[7%]">ភាសាខ្មែរ</th>
+                                    <th class="w-[7%]">គណិតវិទ្យា</th>
+                                    <th class="w-[7%]">សិក្សាសង្គម</th>
+                                    <th class="w-[7%]">វិទ្យាសាស្ត្រ</th>
+                                    <th class="w-[7%]">ភាសា<p>អង់គ្លេស</th>
+                                    <th class="w-[7%]">ចំនួនសរុប</th>
+                                    <th class="w-[8%]">សៀវភៅតាមដាន</th>
+                                    <th class="w-[8%]">ភាគសិស្ស</th>
+                                    <th class="w-[11%]">ហត្ថលេខា</th>
+                                    <th class="w-[11%]">ផ្សេងៗ</th>
+                                </tr>
+                            </thead>
+                            <tbody>${tbodyHtml}</tbody>
+                            ${footerHtml}
+                    </div>
+                `;
+            });
+        }
+
+        async function downloadPDF() {
+            const btn = document.getElementById('btnDownloadTop');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> កំពុងរៀបចំ...';
+            btn.disabled = true;
+            if (window.lucide) lucide.createIcons();
+
+            document.body.classList.add('pdf-exporting');
+            await document.fonts.ready;
+            
+            // រង់ចាំបន្តិចអោយ DOM និង Font ដំណើរការពេញលេញ
+            await new Promise(r => setTimeout(r, 500)); 
+
+            try {
+                const { jsPDF } = window.jspdf;
+                // បោះពុម្ពជាទម្រង់ A4 Landscape
+                const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
+                
+                const pages = document.querySelectorAll('.print-only .page-a4');
+                
+                for (let i = 0; i < pages.length; i++) {
+                    const canvas = await html2canvas(pages[i], { 
+                        scale: 2, 
+                        useCORS: true, 
+                        backgroundColor: '#ffffff',
+                        windowWidth: 1123 // ទទឹង Landscape
+                    });
+                    
+                    if (i > 0) pdf.addPage();
+                    // បញ្ចូលរូបភាពពេញក្រដាស A4 Landscape
+                    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 297, 210);
+                }
+
+                pdf.save(`Student_Borrow_Books_List.pdf`);
+
+            } catch (error) {
+                console.error("Error generating PDF:", error);
+                alert("សុំទោស មានបញ្ហាក្នុងការទាញយក PDF។ សូមប្រើប្រាស់ប៊ូតុង 'បោះពុម្ព' (Print) ជំនួសវិញ។");
+            } finally {
+                document.body.classList.remove('pdf-exporting');
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+    </script>
+</body>
+</html>

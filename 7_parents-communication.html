@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>សៀវភៅទំនាក់ទំនងមាតាបិតាសិស្ស</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Siemreap&family=Taprom&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    
+    <style>
+        :root {
+            --khmer-moul: 'Moul', cursive;
+            --khmer-battambang: 'Battambang', sans-serif;
+            --khmer-siemreap: 'Siemreap', sans-serif;
+            --khmer-taprom: 'Taprom', cursive;
+            --primary: #312e81;
+        }
+
+        body {
+            font-family: var(--khmer-battambang);
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 0;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        .kh-moul, .font-moul { font-family: var(--khmer-moul); font-weight: normal; }
+        .font-taprom { font-family: var(--khmer-taprom); }
+        .text-shadow-custom { text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        /* Disable effects during PDF export to prevent Khmer rendering issues */
+        .pdf-exporting * { 
+            text-shadow: none !important; 
+            letter-spacing: normal !important;
+            box-shadow: none !important;
+            -webkit-print-color-adjust: exact;
+        }
+
+        /* Background Animation */
+        .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 10% 20%, #e0e7ff 0%, transparent 40%), radial-gradient(circle at 90% 80%, #dcfce7 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 50%); animation: moveBg 20s infinite alternate ease-in-out; }
+        @keyframes moveBg { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        /* Form Control / Glass Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        /* Web UI Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .data-table th {
+            background-color: #f8fafc;
+            color: #334155;
+            font-weight: bold;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        .data-table td {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+        .data-table tbody tr {
+            background-color: #ffffff;
+            transition: background-color 0.2s;
+        }
+        .data-table tbody tr:nth-child(even) { background-color: #fdfdfd; }
+        .data-table tbody tr:hover { background-color: #f1f5f9; }
+        
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            box-shadow: 2px 0 5px -2px rgba(0,0,0,0.05);
+        }
+        .data-table thead th.sticky-col { background-color: #f8fafc; z-index: 20; text-align: left; }
+        .data-table tbody td.sticky-col { background-color: inherit; }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            background: white;
+        }
+        
+        .input-text {
+            width: 100%; 
+            padding: 0.5rem 0.75rem; 
+            border-radius: 0.5rem; 
+            border: 1px solid #e2e8f0; 
+            outline: none; 
+            transition: all 0.2s;
+            background: #f8fafc;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .input-text:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 2px rgba(49, 46, 129, 0.1); }
+
+        /* Print A4 Styles */
+        .a4-page {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto 2rem auto;
+            padding: 15mm;
+            box-shadow: 0 0 20px rgba(0,0,0,0.15);
+            position: relative;
+            box-sizing: border-box;
+            color: black;
+        }
+        
+        .cover-page {
+            padding: 0 !important; /* Remove padding to handle boundaries with absolute positions */
+            height: 297mm; 
+            max-height: 297mm;
+            overflow: hidden;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+        
+        .cover-border {
+            position: absolute;
+            top: 15mm;
+            bottom: 15mm;
+            left: 15mm;
+            right: 15mm;
+            border: 4px solid #312e81;
+            outline: 2px solid #312e81;
+            outline-offset: 4px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* New strict bounding box for content */
+        .cover-content {
+            position: absolute;
+            top: 25mm;
+            bottom: 25mm;
+            left: 25mm;
+            right: 25mm;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .report-table { width: 100%; border-collapse: collapse; font-size: 11pt; margin-top: 20px; table-layout: fixed; }
+        .report-table th, .report-table td { border: 1px solid #000; padding: 6px 8px; text-align: center; vertical-align: middle; overflow: hidden; }
+        .report-table th { background-color: #f3f4f6 !important; font-family: 'Battambang', cursive; font-weight: bold; font-size: 11pt; }
+        .report-table td.text-left { text-align: left; }
+        
+        .keep-together {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+        
+        .report-table tr {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+        
+        .signature-row td {
+            border: none !important;
+            padding-top: 40px !important;
+        }
+
+        .signature-container { width: 100%; display: grid; grid-template-columns: 1fr 1fr; margin-top: 10px; }
+        .sig-col-left { text-align: center; }
+        .sig-col-right { text-align: center; padding-left: 20mm; }
+        .teacher-name-final { font-family: 'Moul', cursive; font-size: 11.5pt; margin-top: 5px; display: block; text-align: center; position: relative; z-index: 10; }
+        .lunar-date { font-size: 11pt; margin-bottom: 2px; white-space: nowrap; }
+        .solar-date { font-size: 11pt; font-weight: normal; margin-bottom: 8px; }
+        .role-title { font-family: 'Moul', cursive; font-size: 12pt; position: relative; z-index: 10; }
+        
+        /* ស្ទាយថ្មីសម្រាប់ប្រអប់រូបភាពហត្ថលេខាដែលអាចត្រួតស៊ីគ្នាបាន */
+        .sig-image-box { height: 75px; margin-top: 10px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; }
+        .sig-image-box img { max-height: 100%; max-width: 160px; object-fit: contain; mix-blend-mode: multiply; pointer-events: none; }
+        
+        @media screen { .print-only { display: none !important; } }
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { background: white !important; padding: 0; margin: 0; }
+            .no-print { display: none !important; }
+            #printAreaWrapper { display: block !important; padding: 0; width: 100%; margin: 0; }
+            
+            .a4-page { 
+                width: 210mm;
+                height: auto !important; /* អនុញ្ញាតឲ្យតារាងលាតសន្ធឹង */
+                max-height: none !important;
+                box-shadow: none !important;
+                padding: 15mm !important;
+                margin: 0 !important;
+                overflow: visible !important; /* អនុញ្ញាតឲ្យធ្លាក់ទៅទំព័រថ្មី */
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+                box-sizing: border-box;
+            }
+            
+            .cover-page {
+                padding: 0 !important;
+                height: 296.5mm !important; /* ទប់កម្ពស់ត្រឹម១ទំព័រយ៉ាងតឹងរ៉ឹង */
+                max-height: 296.5mm !important;
+                overflow: hidden !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                page-break-after: always;
+            }
+            
+            .text-shadow-custom { text-shadow: none !important; }
+            .report-table th { background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .bg-animate { display: none; }
+            .page-break { page-break-before: always; }
+            .tail-row { height: 52px !important; }
+        }
+
+        .preview-mode { background: #94a3b8; padding-top: 2rem; padding-bottom: 2rem; }
+    </style>
+</head>
+<body spellcheck="false">
+
+    <div class="bg-animate no-print"></div>
+
+    <!-- Web UI Screen -->
+    <div id="mainScreen" class="min-h-screen flex flex-col pt-6 px-4 no-print relative">
+        <div class="max-w-6xl mx-auto w-full">
+            
+            <div class="glass-card p-6 md:p-8 mb-8">
+                <!-- Premium Header Style -->
+                <div class="flex items-center gap-3 mb-6 border-b pb-4 relative">
+                    <div class="p-3 bg-indigo-100 rounded-full text-indigo-900">
+                        <i data-lucide="handshake" class="w-6 h-6"></i>
+                    </div>
+                    <h1 class="kh-moul text-xl md:text-2xl text-indigo-900">សៀវភៅទំនាក់ទំនងមាតាបិតាសិស្ស</h1>
+                    
+                    <div class="ml-auto flex items-center gap-2">
+                        <!-- Back to Home Button -->
+                        <a href="index.html" class="flex items-center gap-2 px-4 py-2.5 bg-white/80 text-indigo-700 hover:text-indigo-900 hover:bg-white rounded-xl transition border border-indigo-200 shadow-sm font-bold text-sm backdrop-blur-md hover:-translate-y-0.5" title="ត្រឡប់ទៅទំព័រដើម">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> <span class="hidden sm:inline">ត្រឡប់ទៅទំព័រដើម</span>
+                        </a>
+
+                        <!-- Toggle Signature Box Button -->
+                        <button type="button" onclick="toggleSignatureSettings()" class="flex items-center gap-2 px-4 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl hover:bg-indigo-100 transition border border-indigo-200 shadow-sm font-bold text-sm" title="កំណត់អ្នកចុះហត្ថលេខា">
+                            <i data-lucide="pen-tool" class="w-4 h-4"></i> <span class="hidden sm:inline">ហត្ថលេខា</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ផ្នែកកំណត់ហត្ថលេខាសម្រាប់ការបោះពុម្ព (លាក់ជាលំនាំដើម) -->
+                <div id="signatureSettingsBox" class="hidden bg-indigo-50/60 border border-indigo-100 p-5 md:p-6 rounded-2xl mb-8 shadow-sm transition-all duration-300">
+                    <div class="flex items-center justify-between mb-5">
+                        <h4 class="text-sm font-bold text-indigo-800 flex items-center gap-2">
+                            <i data-lucide="pen-tool" class="w-5 h-5"></i> កំណត់អ្នកចុះហត្ថលេខាសម្រាប់ការបោះពុម្ព
+                        </h4>
+                        <button type="button" onclick="toggleSignatureSettings()" class="text-slate-400 hover:text-slate-600 transition p-1">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- នាយកសាលា -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-indigo-50 shadow-sm">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះនាយកសាលា</label>
+                                <input type="text" id="managerNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-text py-2.5 px-4 text-sm" onchange="updateSignatures()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា / ត្រា (បើមាន)</label>
+                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                    <input type="file" id="managerSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors w-full" onchange="handleSignatureUpload('manager')">
+                                    
+                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                            <button type="button" onclick="zoomSignature('manager', -0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="បង្រួមទំហំ (Zoom Out)"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                            
+                                            <div id="managerSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded">
+                                                <!-- Preview will be injected here -->
+                                            </div>
+                                            
+                                            <button type="button" onclick="zoomSignature('manager', 0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="ពង្រីកទំហំ (Zoom In)"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                        </div>
+                                        
+                                        <button type="button" onclick="removeSignature('manager')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors" title="លុបរូបភាព">
+                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- គ្រូបន្ទុកថ្នាក់ -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-indigo-50 shadow-sm">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះគ្រូបន្ទុកថ្នាក់</label>
+                                <input type="text" id="teacherNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-text py-2.5 px-4 text-sm" onchange="updateSignatures()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា (បើមាន)</label>
+                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                    <input type="file" id="teacherSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors w-full" onchange="handleSignatureUpload('teacher')">
+                                    
+                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                            <button type="button" onclick="zoomSignature('teacher', -0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="បង្រួមទំហំ (Zoom Out)"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                            
+                                            <div id="teacherSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded">
+                                                <!-- Preview will be injected here -->
+                                            </div>
+                                            
+                                            <button type="button" onclick="zoomSignature('teacher', 0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="ពង្រីកទំហំ (Zoom In)"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                        </div>
+                                        
+                                        <button type="button" onclick="removeSignature('teacher')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors" title="លុបរូបភាព">
+                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controls & Export -->
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-700 flex items-center gap-2">
+                        <i data-lucide="list" class="w-5 h-5 text-indigo-900"></i> បញ្ជីឈ្មោះសិស្ស (<span id="totalCount">0</span>)
+                    </h3>
+                    <button onclick="previewPDF()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl font-bold transition shadow-md flex items-center gap-2 text-sm">
+                        <i data-lucide="printer" class="w-4 h-4"></i> ទាញយក PDF និង Print preview
+                    </button>
+                </div>
+
+                <!-- Main Table -->
+                <div id="webTableContainer" class="table-wrapper">
+                    <!-- Generated by JS -->
+                </div>
+
+                <!-- Save Button -->
+                <div class="mt-8 flex justify-end">
+                    <button id="btnSaveData" onclick="saveData(true)" class="px-10 py-3.5 bg-indigo-900 hover:bg-indigo-800 text-white rounded-xl font-bold shadow-lg transition flex items-center gap-3 transform active:scale-95">
+                        <i data-lucide="save" class="w-5 h-5"></i> <span id="btnSaveText">រក្សាទុកទិន្នន័យ</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Preview Wrapper -->
+    <div id="printAreaWrapper" class="hidden">
+        
+        <!-- Preview Controls -->
+        <div class="fixed top-4 right-4 flex flex-col gap-3 z-50 no-print">
+            <button onclick="downloadPDF()" class="bg-red-600 text-white p-3 rounded-full shadow-xl hover:bg-red-700 hover:scale-105 transition" title="ទាញយក PDF">
+                <i data-lucide="download" class="w-6 h-6"></i>
+            </button>
+            <button onclick="window.print()" class="bg-blue-600 text-white p-3 rounded-full shadow-xl hover:bg-blue-700 hover:scale-105 transition" title="បោះពុម្ភ">
+                <i data-lucide="printer" class="w-6 h-6"></i>
+            </button>
+            <button onclick="closePreview()" class="bg-slate-600 text-white p-3 rounded-full shadow-xl hover:bg-slate-700 hover:scale-105 transition" title="បិទ">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <div id="printContainer">
+            <!-- Cover Page -->
+            <div class="a4-page cover-page relative">
+                <div class="cover-border"></div>
+                
+                <div class="cover-content">
+                    <div class="text-center w-full">
+                        <h1 class="kh-moul text-xl mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h1>
+                        <h2 class="kh-moul text-lg">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
+                        <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" alt="divider" class="h-[14px] w-auto mx-auto mt-2 mb-4" crossorigin="anonymous">
+                    </div>
+
+                    <div class="w-full text-left pl-8 space-y-3 mt-4">
+                        <p class="kh-moul text-base" id="p-unit1">...</p>
+                        <p class="kh-moul text-base" id="p-unit2">...</p>
+                        <p class="kh-moul text-base" id="p-school">...</p>
+                    </div>
+
+                    <div class="flex-1 flex flex-col justify-center items-center w-full space-y-6">
+                        <h1 class="kh-moul text-5xl text-indigo-800">សៀវភៅ</h1>
+                        <h2 class="kh-moul text-3xl text-red-500 leading-normal text-center w-full px-4">ទំនាក់ទំនងមាតាបិតាសិស្ស</h2>
+                        <h3 class="kh-moul text-2xl text-green-600" id="p-class"></h3>
+                    </div>
+
+                    <div class="w-full text-center mt-auto space-y-3">
+                        <p class="kh-moul text-2xl" id="p-teacher">...</p>
+                        <p class="kh-moul text-2xl">ឆ្នាំសិក្សា <span id="p-year">...</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Page -->
+            <div class="a4-page page-break">
+                <div class="text-center w-full mb-6">
+                    <h3 class="kh-moul text-[13pt] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                    <h3 class="kh-moul text-[13pt] mb-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                    <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12pt] w-auto mx-auto mt-2" crossorigin="anonymous">
+                </div>
+
+                <div class="w-full text-[11pt] leading-relaxed mb-6 font-bold">
+                    <p id="h-org1"></p>
+                    <p id="h-org2"></p>
+                    <p id="h-school"></p>
+                </div>
+
+                <h2 class="kh-moul text-center text-[14pt] mb-2 uppercase underline decoration-double underline-offset-8">បញ្ជីទំនាក់ទំនងមាតាបិតាសិស្ស</h2>
+                <p class="text-center font-bold text-[11pt] mb-6">ប្រចាំថ្នាក់ទី <span id="h-class"></span> សិក្សាឆ្នាំ <span id="h-year">...</span></p>
+
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th class="w-[8%]">ល.រ</th>
+                            <th class="w-[25%]">ឈ្មោះសិស្ស</th>
+                            <th class="w-[25%]">អាណាព្យាបាល</th>
+                            <th class="w-[20%]">លេខទូរស័ព្ទអាណាព្យាបាល</th>
+                            <th class="w-[22%]">ផ្សេងៗ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="printBodyMain">
+                        <!-- JS - Main Part -->
+                    </tbody>
+                    
+                    <tbody id="printBodyTail" class="keep-together">
+                        <tr id="signatureRow" class="signature-row">
+                            <td colspan="5">
+                                <div class="signature-container">
+                                    <div class="sig-col-left">
+                                        <p class="text-[11pt] mb-2 invisible">.</p>
+                                        <p class="text-[11pt] mb-2">បានឃើញ និងឯកភាព</p>
+                                        <p id="sig-manager-role" class="role-title uppercase">នាយកសាលា</p>
+                                        <div id="print-sig-manager" class="sig-image-box" style="margin-left: 2cm;"></div>
+                                        <p id="sig-manager-name" class="teacher-name-final" style="padding-left: 3cm;"></p>
+                                    </div>
+                                    <div class="sig-col-right">
+                                        <p id="sig-lunar" class="lunar-date">...</p>
+                                        <p id="sig-solar" class="solar-date"></p>
+                                        <p class="role-title">គ្រូបន្ទុកថ្នាក់</p>
+                                        <div id="print-sig-teacher" class="sig-image-box"></div>
+                                        <p id="sig-teacher" class="teacher-name-final" style="margin-left: 3cm;"></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Integration and Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Setup
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const STORAGE_KEY = 'ptec_parents_comm';
+        let students = [];
+        let commData = {};
+        let classConfig = {};
+
+        const khDigits = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
+        const toKhNum = (n) => n.toString().split('').map(d => khDigits[d] || d).join('');
+        const khMonths = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
+
+        async function init() {
+            // 1. Load local data for fast render
+            students = JSON.parse(localStorage.getItem('students') || '[]');
+            commData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            
+            loadClassConfig();
+            renderWebTable();
+            lucide.createIcons();
+
+            // 2. Fetch fresh data from Firebase
+            await fetchFirebaseData();
+        }
+
+        async function fetchFirebaseData() {
+            try {
+                // Fetch Settings
+                const settingsSnap = await getDoc(doc(db, "school_data", "general_settings"));
+                if (settingsSnap.exists()) {
+                    classConfig = { ...classConfig, ...settingsSnap.data() };
+                    localStorage.setItem('app_settings', JSON.stringify(classConfig));
+                    
+                    if(document.getElementById('managerNameInput')) document.getElementById('managerNameInput').value = classConfig.managerName || '';
+                    if(document.getElementById('teacherNameInput')) document.getElementById('teacherNameInput').value = classConfig.teacherName || '';
+                }
+
+                // Fetch Students List
+                const studentsSnap = await getDoc(doc(db, "school_data", "students_list"));
+                if (studentsSnap.exists() && studentsSnap.data().students) {
+                    students = studentsSnap.data().students;
+                    localStorage.setItem('students', JSON.stringify(students));
+                }
+
+                // Fetch Communication Data
+                const commSnap = await getDoc(doc(db, "school_data", "parents_communication"));
+                if (commSnap.exists()) {
+                    commData = { ...commData, ...commSnap.data() };
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(commData));
+                }
+
+                // Re-render table with fresh data
+                renderWebTable();
+            } catch (error) {
+                console.error("Error fetching online data:", error);
+            }
+        }
+
+        // Toggle Signature Box Visibility
+        function toggleSignatureSettings() {
+            const box = document.getElementById('signatureSettingsBox');
+            box.classList.toggle('hidden');
+        }
+
+        function loadClassConfig() {
+            const defaultSettings = {
+                unit1: "មន្ទីរអប់រំ យុវជន និងកីឡា", unit2: "ការិយាល័យអប់រំ យុវជន និងកីឡា",
+                className: "................", schoolName: "................",
+                teacherName: "ឈ្មោះគ្រូ", managerRole: "នាយកសាលា", managerName: "",
+                managerSignature: null, managerSigScale: 1.0,
+                teacherSignature: null, teacherSigScale: 1.0,
+                location: "................", academicYear: "២០២៤-២០២៥"
+            };
+            try {
+                classConfig = JSON.parse(localStorage.getItem('app_settings')) || defaultSettings;
+                if (typeof classConfig.managerSigScale !== 'number') classConfig.managerSigScale = 1.0;
+                if (typeof classConfig.teacherSigScale !== 'number') classConfig.teacherSigScale = 1.0;
+            } catch(e) { classConfig = defaultSettings; }
+
+            const managerInput = document.getElementById('managerNameInput');
+            const teacherInput = document.getElementById('teacherNameInput');
+            if(managerInput) managerInput.value = classConfig.managerName || '';
+            if(teacherInput) teacherInput.value = classConfig.teacherName || '';
+
+            renderSignaturePreview('manager');
+            renderSignaturePreview('teacher');
+        }
+
+        async function updateSignatures() {
+            classConfig.managerName = document.getElementById('managerNameInput').value;
+            classConfig.teacherName = document.getElementById('teacherNameInput').value;
+            localStorage.setItem('app_settings', JSON.stringify(classConfig));
+
+            // Sync manager and teacher name back to Firebase settings
+            try {
+                await setDoc(doc(db, "school_data", "general_settings"), {
+                    managerName: classConfig.managerName,
+                    teacherName: classConfig.teacherName
+                }, { merge: true });
+            } catch (error) {
+                console.error("Error updating settings online:", error);
+            }
+        }
+
+        function handleSignatureUpload(type) {
+            const input = document.getElementById(type + 'SignatureInput');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    if (type === 'manager') {
+                        classConfig.managerSignature = base64;
+                        classConfig.managerSigScale = 1.0;
+                    } else {
+                        classConfig.teacherSignature = base64;
+                        classConfig.teacherSigScale = 1.0; 
+                    }
+                    localStorage.setItem('app_settings', JSON.stringify(classConfig));
+                    renderSignaturePreview(type);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeSignature(type) {
+            if (type === 'manager') {
+                classConfig.managerSignature = null;
+            } else {
+                classConfig.teacherSignature = null;
+            }
+            localStorage.setItem('app_settings', JSON.stringify(classConfig));
+            document.getElementById(type + 'SignatureInput').value = ''; 
+            renderSignaturePreview(type);
+        }
+
+        function zoomSignature(type, delta) {
+            const scaleKey = type + 'SigScale';
+            if (typeof classConfig[scaleKey] !== 'number') {
+                classConfig[scaleKey] = 1.0;
+            }
+            
+            classConfig[scaleKey] += delta;
+            classConfig[scaleKey] = Math.max(0.2, Math.min(3.0, classConfig[scaleKey]));
+            
+            localStorage.setItem('app_settings', JSON.stringify(classConfig));
+            renderSignaturePreview(type);
+        }
+
+        function renderSignaturePreview(type) {
+            const previewDiv = document.getElementById(type + 'SigPreview');
+            const sigData = type === 'manager' ? classConfig.managerSignature : classConfig.teacherSignature;
+            const scaleKey = type + 'SigScale';
+            const scale = classConfig[scaleKey] !== undefined ? classConfig[scaleKey] : 1.0;
+            
+            if (sigData) {
+                previewDiv.innerHTML = `<img src="${sigData}" style="transform: scale(${scale}); transform-origin: center center;" class="h-full w-full object-contain transition-transform duration-200">`;
+            } else {
+                previewDiv.innerHTML = `<span class="text-[10px] text-slate-400">គ្មានរូបភាព</span>`;
+            }
+        }
+
+        function updateDates() {
+            const today = new Date();
+            const s = JSON.parse(localStorage.getItem('app_settings') || '{}');
+            const loc = s.location || '...';
+            
+            document.getElementById('sig-solar').innerText = `${loc}, ថ្ងៃទី${toKhNum(today.getDate())} ខែ${khMonths[today.getMonth()]} ឆ្នាំ${toKhNum(today.getFullYear())}`;
+            
+            if (typeof momentkh !== 'undefined') {
+                try {
+                    const m = momentkh.fromDate(today);
+                    document.getElementById('sig-lunar').innerText = momentkh.format(m).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                } catch(e) {}
+            }
+        }
+
+        function renderWebTable() {
+            const container = document.getElementById('webTableContainer');
+            document.getElementById('totalCount').innerText = toKhNum(students.length);
+
+            if (students.length === 0) {
+                container.innerHTML = `<div class="p-20 text-center text-gray-400 font-bold italic">មិនទាន់មានទិន្នន័យសិស្ស។ សូមបញ្ចូលសិស្សក្នុងបញ្ជីឈ្មោះសិស្សជាមុនសិន។</div>`;
+                return;
+            }
+
+            let html = `<table class="data-table"><thead><tr>
+                <th class="w-16 text-center">ល.រ</th>
+                <th class="sticky-col min-w-[200px]">ឈ្មោះសិស្ស</th>
+                <th>អាណាព្យាបាល</th>
+                <th class="w-48">លេខទូរស័ព្ទអាណាព្យាបាល</th>
+                <th>ផ្សេងៗ</th>
+            </tr></thead><tbody>`;
+
+            students.forEach((s, i) => {
+                html += `<tr>
+                    <td class="text-center font-bold text-gray-500">${toKhmerNum(i + 1)}</td>
+                    <td class="sticky-col font-bold text-indigo-900 border-r">
+                        <div class="flex items-center gap-3">
+                            <img src="${s.photo || 'https://api.dicebear.com/7.x/notionists/svg?seed=' + s.id}" class="w-8 h-8 rounded-full border border-gray-100 object-cover">
+                            <span>${s.name || '-'}</span>
+                        </div>
+                    </td>
+                    <td><input type="text" class="input-text" data-idx="${i}" data-type="parent" value="${commData[`p_${i}`] || ''}" oninput="sync(this)"></td>
+                    <td><input type="text" class="input-text text-center font-mono" data-idx="${i}" data-type="phone" value="${commData[`t_${i}`] || ''}" oninput="sync(this)"></td>
+                    <td><input type="text" class="input-text" data-idx="${i}" data-type="remark" value="${commData[`r_${i}`] || ''}" oninput="sync(this)"></td>
+                </tr>`;
+            });
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        function toKhmerNum(num) { 
+            return num.toString().split('').map(d => khDigits[d] || d).join(''); 
+        }
+
+        function sync(el) {
+            const idx = el.dataset.idx;
+            const type = el.dataset.type;
+            const key = (type === 'parent' ? 'p_' : type === 'phone' ? 't_' : 'r_') + idx;
+            commData[key] = el.value;
+        }
+
+        async function saveData(toast = true) {
+            const btnText = document.getElementById('btnSaveText');
+            if(btnText) btnText.innerText = 'កំពុងរក្សាទុក...';
+
+            // Save to Local Storage
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(commData));
+            
+            // Save to Firebase
+            try {
+                await setDoc(doc(db, "school_data", "parents_communication"), commData);
+                if (toast) showToast('រក្សាទុកទិន្នន័យអនឡាញបានជោគជ័យ!');
+            } catch (error) {
+                console.error("Firebase error saving data:", error);
+                if (toast) showToast('រក្សាទុកបានតែក្នុងម៉ាស៊ីន (Offline)! សូមពិនិត្យអ៊ីនធឺណិត');
+            } finally {
+                if(btnText) btnText.innerText = 'រក្សាទុកទិន្នន័យ';
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = "fixed bottom-5 right-5 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-2xl z-[2000] flex items-center gap-2 font-bold animate-bounce";
+            t.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5"></i> ${msg}`;
+            document.body.appendChild(t);
+            lucide.createIcons();
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        function previewPDF() {
+            updateSignatures(); // Ensure settings are fresh
+            loadClassConfig();
+            
+            const s = classConfig; // Use classConfig
+            
+            document.getElementById('p-unit1').innerText = s.unit1 || '';
+            document.getElementById('p-unit2').innerText = s.unit2 || '';
+            document.getElementById('p-school').innerText = s.schoolName || '';
+            document.getElementById('p-class').innerText = s.className || '';
+            document.getElementById('p-teacher').innerText = s.teacherName || '';
+            document.getElementById('p-year').innerText = s.academicYear || '';
+
+            document.getElementById('h-org1').innerText = s.unit1 || '';
+            document.getElementById('h-org2').innerText = s.unit2 || '';
+            document.getElementById('h-school').innerText = s.schoolName || '';
+            document.getElementById('h-class').innerText = s.className || '';
+            document.getElementById('h-year').innerText = s.academicYear || '';
+
+            document.getElementById('sig-manager-role').innerText = s.managerRole || 'នាយកសាលា';
+            document.getElementById('sig-manager-name').innerText = s.managerName || ''; 
+            document.getElementById('sig-teacher').innerText = s.teacherName || '';
+            
+            let managerScale = s.managerSigScale !== undefined ? s.managerSigScale : 1.0;
+            let teacherScale = s.teacherSigScale !== undefined ? s.teacherSigScale : 1.0;
+            document.getElementById('print-sig-manager').innerHTML = s.managerSignature ? `<img src="${s.managerSignature}" style="transform: scale(${managerScale}); transform-origin: center center;">` : '';
+            document.getElementById('print-sig-teacher').innerHTML = s.teacherSignature ? `<img src="${s.teacherSignature}" style="transform: scale(${teacherScale}); transform-origin: center center;">` : '';
+            
+            updateDates();
+
+            const mainBody = document.getElementById('printBodyMain');
+            const tailBody = document.getElementById('printBodyTail');
+            mainBody.innerHTML = '';
+            
+            const oldTailRows = tailBody.querySelectorAll('.tail-row');
+            oldTailRows.forEach(row => row.remove());
+
+            const total = students.length;
+            const tailCount = 4; 
+            const splitIndex = total > tailCount ? total - tailCount : 0;
+            const sigRow = document.getElementById('signatureRow');
+
+            for(let i=0; i<total; i++) {
+                const student = students[i];
+                const rowHtml = `
+                    <tr class="${i >= splitIndex ? 'tail-row' : ''}">
+                        <td style="height: 35px;">${toKhmerNum(i + 1)}</td>
+                        <td class="text-left font-bold pl-2">${student.name || '-'}</td>
+                        <td>${commData[`p_${i}`] || ''}</td>
+                        <td class="font-mono">${commData[`t_${i}`] || ''}</td>
+                        <td class="text-xs italic text-gray-500">${commData[`r_${i}`] || ''}</td>
+                    </tr>
+                `;
+                
+                if (i < splitIndex) {
+                    mainBody.innerHTML += rowHtml;
+                } else {
+                    const temp = document.createElement('tbody');
+                    temp.innerHTML = rowHtml;
+                    tailBody.insertBefore(temp.firstElementChild, sigRow);
+                }
+            }
+            
+            if (total < 10) {
+                for (let j = total; j < 10; j++) {
+                    const emptyRow = `<tr><td style="height: 35px;">${toKhmerNum(j + 1)}</td><td></td><td></td><td></td><td></td></tr>`;
+                    mainBody.innerHTML += emptyRow;
+                }
+            }
+
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('printAreaWrapper').classList.remove('hidden');
+            document.body.classList.add('preview-mode');
+        }
+
+        function closePreview() {
+            document.getElementById('mainScreen').classList.remove('hidden');
+            document.getElementById('printAreaWrapper').classList.add('hidden');
+            document.body.classList.remove('preview-mode');
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('printContainer');
+            const s = JSON.parse(localStorage.getItem('app_settings') || '{}');
+            
+            element.classList.add('pdf-exporting');
+            
+            const opt = {
+                margin: 0,
+                filename: `Parents_Comm_${s.className || 'Class'}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, scrollY: 0, letterRendering: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['css', 'legacy'], before: '.page-break', avoid: '.keep-together' }
+            };
+
+            html2pdf().from(element).set(opt).save().then(() => {
+                element.classList.remove('pdf-exporting');
+            });
+        }
+
+        // Export functions to window for inline HTML event handlers since we are using type="module"
+        window.toggleSignatureSettings = toggleSignatureSettings;
+        window.updateSignatures = updateSignatures;
+        window.handleSignatureUpload = handleSignatureUpload;
+        window.zoomSignature = zoomSignature;
+        window.removeSignature = removeSignature;
+        window.sync = sync;
+        window.saveData = saveData;
+        window.previewPDF = previewPDF;
+        window.closePreview = closePreview;
+        window.downloadPDF = downloadPDF;
+
+        window.onload = init;
+    </script>
+</body>
+</html>

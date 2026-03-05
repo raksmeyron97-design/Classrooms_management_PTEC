@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>របាយការណ៍ពិន្ទុកិច្ចការផ្ទះសិស្ស</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&family=Moul&display=swap');
+
+        :root {
+            --primary-font: 'Hanuman', serif;
+            --title-font: 'Moul', cursive;
+        }
+
+        body {
+            font-family: var(--primary-font);
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 1300px;
+            margin: auto;
+        }
+
+        #printArea {
+            width: 100%;
+            max-width: 297mm; /* A4 Landscape */
+            margin: auto;
+        }
+
+        .page-container {
+            width: 297mm; /* A4 Landscape */
+            min-height: 190mm;
+            padding: 10mm 15mm;
+            margin: 0 auto;
+            box-sizing: border-box;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            color: black;
+            position: relative;
+            overflow: hidden;
+            page-break-after: always;
+        }
+
+        .page-container:not(:last-child) {
+            margin-bottom: 30px;
+        }
+
+        .page-container:last-child {
+            margin-bottom: 0;
+            page-break-after: auto;
+        }
+
+        .kh-moul { font-family: var(--title-font); font-weight: normal; }
+
+        .admin-header { text-align: center; margin-bottom: 5px; }
+        .report-header-img { height: 55px; width: auto; margin: 8px auto 0 auto; display: block; }
+        
+        .org-info { line-height: 1.3; text-align: left; font-size: 11pt; font-weight: bold; margin-bottom: 10px; }
+        .org-info p { margin: 0; }
+        .title-section { width: 100%; text-align: center; margin-bottom: 15px; }
+        .info-row { display: flex; justify-content: space-between; width: 100%; font-size: 11pt; font-weight: bold; margin-bottom: 5px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            border: 1.2pt solid black;
+        }
+
+        th, td {
+            border: 0.8pt solid black;
+            text-align: center;
+            vertical-align: middle;
+            padding: 2px 1px;
+            font-size: 10pt;
+            height: 26px; /* Reduced slightly to ensure it fits completely without breaking layout */
+        }
+
+        th { background-color: #fcfcfc; font-weight: bold; }
+
+        .id-col { width: 35px; }
+        .name-col { width: 180px; text-align: left; padding-left: 8px; font-weight: bold; overflow: hidden; white-space: nowrap; }
+        .gender-col { width: 45px; }
+        .total-col { width: 60px; font-weight: bold; color: #0054a6; font-size: 11pt; }
+        
+        /* Sun styles mimicking monthly report */
+        .sun-bg { background-color: #fff1f1 !important; }
+        .sun-text { color: #d93025 !important; font-weight: bold; }
+
+        /* Vertical Text for Days */
+        .vertical-wrapper {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vertical-text {
+            display: block;
+            white-space: nowrap;
+            transform: translate(-50%, -50%) rotate(-90deg); 
+            width: 48px;
+            text-align: center;
+            font-size: 8.5pt;
+            font-weight: bold;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            line-height: 1;
+        }
+
+        .signature-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+            margin-top: 20px;
+            padding-top: 10px;
+        }
+
+        .sig-box { text-align: center; }
+        .lunar-date { font-size: 10.5pt; margin-bottom: 2px; white-space: nowrap; }
+        .solar-date { font-size: 11pt; font-weight: normal; margin-bottom: 8px; }
+        .role { font-weight: bold; margin-top: 5px; margin-bottom: 40px; display: block; font-size: 11pt; }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ddd;
+            flex-wrap: wrap;
+        }
+
+        select, input { padding: 8px; font-family: var(--primary-font); border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        button { padding: 10px 25px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; font-family: var(--primary-font); transition: 0.3s; font-size: 14px; }
+        
+        @media print {
+            .controls { display: none; }
+            body { padding: 0; background: white; }
+            .page-container { 
+                margin: 0 !important; 
+                border: none; 
+                box-shadow: none; 
+                min-height: auto;
+                page-break-after: always;
+            }
+            .page-container:last-child {
+                page-break-after: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="controls">
+        <label>ឆ្នាំសិក្សា៖</label>
+        <select id="yearSelect" onchange="window.updateMonthOptions(); window.render()"></select>
+
+        <label>ខែ៖</label>
+        <select id="monthSelect" onchange="window.render()"></select>
+        
+        <button id="btnDownload" onclick="window.downloadPDF()" style="background: #d93025; color: white;">ទាញយក PDF</button>
+        <button onclick="window.print()" style="background: #1a73e8; color: white;">បោះពុម្ព</button>
+    </div>
+
+    <div id="printArea">
+        <div style="text-align:center; padding: 40px; color: #666;">កំពុងទាញយកទិន្នន័យ...</div>
+    </div>
+</div>
+
+<script type="module">
+    // Import Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+        authDomain: "classroom-management-82382.firebaseapp.com",
+        projectId: "classroom-management-82382",
+        storageBucket: "classroom-management-82382.firebasestorage.app",
+        messagingSenderId: "146641865620",
+        appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+        measurementId: "G-PX867PB723"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const PTEC_APP_ID = "ptec-app";
+    
+    let currentUser = null;
+    let students = [];
+    let hwScores = {}; 
+    let teacherProfile = {};
+
+    const allMonthsMap = [
+        { id: 'nov', label: 'វិច្ឆិកា', isNextYear: false },
+        { id: 'dec', label: 'ធ្នូ', isNextYear: false },
+        { id: 'jan', label: 'មករា', isNextYear: true },
+        { id: 'feb', label: 'កុម្ភៈ', isNextYear: true },
+        { id: 'mar', label: 'មីនា', isNextYear: true },
+        { id: 'apr', label: 'មេសា', isNextYear: true },
+        { id: 'may', label: 'ឧសភា', isNextYear: true },
+        { id: 'jun', label: 'មិថុនា', isNextYear: true },
+        { id: 'jul', label: 'កក្កដា', isNextYear: true },
+        { id: 'aug', label: 'សីហា', isNextYear: true },
+        { id: 'sep', label: 'កញ្ញា', isNextYear: true },
+        { id: 'oct', label: 'តុលា', isNextYear: true }
+    ];
+
+    const monthIndexMapping = {
+        'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+        'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+    };
+
+    const khDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+    const daysKhmer = ["អាទិត្យ", "ច័ន្ទ", "អង្គារ", "ពុធ", "ព្រហស្បតិ៍", "សុក្រ", "សៅរ៍"];
+    
+    function toKhmerNum(num) { 
+        if(num === undefined || num === null || num === '') return '';
+        return num.toString().split('').map(d => khDigits[d] || d).join(''); 
+    }
+
+    const yearSelect = document.getElementById('yearSelect');
+    const monthSelect = document.getElementById('monthSelect');
+    const printArea = document.getElementById('printArea');
+
+    // Fetch Teacher Profile securely from Firestore
+    async function loadTeacherProfile() {
+        if (currentUser) {
+            try {
+                const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'profile', 'data');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    teacherProfile = docSnap.data();
+                    return;
+                }
+            } catch (error) {
+                console.error("Error fetching online profile:", error);
+            }
+        }
+        try { teacherProfile = JSON.parse(localStorage.getItem('teacherProfile') || '{}'); } catch (e) { teacherProfile = {}; }
+    }
+
+    // Smart Present Date Logic (Same as enter-homework-score.html)
+    function setInitialDate() {
+        let d = new Date();
+        let dDay = d.getDate();
+        let dMonth = d.getMonth(); // 0-11
+        let dYear = d.getFullYear();
+
+        let targetMonth = dMonth;
+        let targetYear = dYear;
+
+        // If day is >= 26, it shifts to the next grading month
+        if (dDay >= 26) {
+            targetMonth += 1;
+            if (targetMonth > 11) {
+                targetMonth = 0;
+                targetYear += 1;
+            }
+        }
+
+        let academicStartYear = (targetMonth === 10 || targetMonth === 11) ? targetYear : targetYear - 1;
+        let academicYearStr = `${academicStartYear}-${academicStartYear + 1}`;
+
+        const monthIds = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+        let targetMonthId = monthIds[targetMonth];
+
+        return { year: academicYearStr, month: targetMonthId };
+    }
+
+    // Initialize Setup
+    async function init() {
+        // Setup Years matching enter-homework-score
+        const years = ['2025-2026', '2026-2027', '2027-2028', '2028-2029', '2029-2030'];
+        yearSelect.innerHTML = '';
+        years.forEach(y => {
+            let opt = document.createElement('option');
+            opt.value = y;
+            opt.innerHTML = toKhmerNum(y);
+            yearSelect.appendChild(opt);
+        });
+
+        // Load offline students list
+        try { students = JSON.parse(localStorage.getItem('students') || '[]'); } catch (e) { students = []; }
+
+        // Set Smart Date
+        const defaultDate = setInitialDate();
+        let defaultYear = defaultDate.year;
+        let defaultMonth = defaultDate.month;
+
+        // Automatically set the year depending on Profile info or default date
+        if (teacherProfile.academic_year) {
+            const index = Array.from(yearSelect.options).findIndex(opt => opt.value === teacherProfile.academic_year || opt.innerHTML === teacherProfile.academic_year);
+            if (index !== -1) {
+                yearSelect.selectedIndex = index;
+                defaultYear = teacherProfile.academic_year;
+            }
+        } else {
+            const index = Array.from(yearSelect.options).findIndex(opt => opt.value === defaultYear);
+            if (index !== -1) yearSelect.selectedIndex = index;
+        }
+
+        updateMonthOptions(defaultMonth);
+        await render();
+    }
+
+    function updateMonthOptions(defaultMonthId = null) {
+        const yearVal = yearSelect.value;
+        if (!yearVal) return;
+        
+        const [startYear, endYear] = yearVal.split('-');
+        const currentMonthVal = defaultMonthId || monthSelect.value || 'nov';
+
+        let optionsHTML = '';
+        allMonthsMap.forEach(m => {
+            const y = m.isNextYear ? endYear : startYear;
+            const selected = m.id === currentMonthVal ? 'selected' : '';
+            optionsHTML += `<option value="${m.id}" ${selected}>ខែ${m.label} ឆ្នាំ ${toKhmerNum(y)}</option>`;
+        });
+
+        monthSelect.innerHTML = optionsHTML;
+        monthSelect.value = currentMonthVal;
+    }
+
+    // Fetch Homework Scores securely from Firebase
+    async function loadScores() {
+        const newKey = `hw_scores_v2_${yearSelect.value}_${monthSelect.value}`;
+        const oldKey = `hw_scores_${yearSelect.value}_${monthSelect.value}`;
+        
+        try {
+            const docRef = doc(db, "homework_scores", newKey);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists() && docSnap.data().scores) {
+                hwScores = docSnap.data().scores;
+                return;
+            }
+        } catch (error) {
+            console.error("Error loading scores online:", error);
+        }
+
+        try {
+            let data = JSON.parse(localStorage.getItem(newKey));
+            if (data) {
+                hwScores = data;
+            } else {
+                let oldData = JSON.parse(localStorage.getItem(oldKey));
+                if (oldData) {
+                    hwScores = {};
+                    for (let sid in oldData) hwScores[sid] = { days: {}, total: oldData[sid] };
+                } else {
+                    hwScores = {};
+                }
+            }
+        } catch (e) {
+            hwScores = {};
+        }
+    }
+
+    function generateDateColumns(mId, yearVal) {
+        const selectedMonth = monthIndexMapping[mId];
+        const [startYear, endYear] = yearVal.split('-');
+        
+        let currentYear = parseInt(endYear);
+        if (mId === 'nov' || mId === 'dec') {
+            currentYear = parseInt(startYear);
+        }
+
+        let prevMonth = selectedMonth - 1;
+        let prevYear = currentYear;
+        if (prevMonth < 0) {
+            prevMonth = 11;
+            prevYear--;
+        }
+
+        const daysInPrevMonth = new Date(prevYear, prevMonth + 1, 0).getDate();
+        let columns = [];
+        
+        for (let d = 26; d <= daysInPrevMonth; d++) {
+            const date = new Date(prevYear, prevMonth, d);
+            columns.push({ dayNum: d, isSunday: date.getDay() === 0, dayOfWeek: date.getDay() });
+        }
+        for (let d = 1; d <= 25; d++) {
+            const date = new Date(currentYear, selectedMonth, d);
+            columns.push({ dayNum: d, isSunday: date.getDay() === 0, dayOfWeek: date.getDay() });
+        }
+        
+        return columns;
+    }
+
+    // Refactored to always generate 'rowCapacity' number of lines so the paper is fully drawn
+    function createPage(startIdx, endIdx, rowCapacity, isFirst, isLast) {
+        const mId = monthSelect.value;
+        const yearVal = yearSelect.value;
+        const monthObj = allMonthsMap.find(m => m.id === mId);
+        const monthName = monthObj ? monthObj.label : '';
+        const dateColumns = generateDateColumns(mId, yearVal);
+        
+        // Dynamic Info based on teacher profile fetched from Firebase
+        const org1 = teacherProfile.management_unit_1 || "មន្ទីរអប់រំ យុវជន និងកីឡា រាជធានី/ខេត្ត..................";
+        const org2 = teacherProfile.management_unit_2 || "ការិយាល័យអប់រំ យុវជន និងកីឡា ក្រុង/ស្រុក..................";
+        const school = teacherProfile.school_name_admin || "សាលា..............................";
+        const className = teacherProfile.class_name || "..................";
+        const academicYearText = toKhmerNum(teacherProfile.academic_year || yearVal);
+
+        let html = `<div class="page-container">`;
+        
+        if (isFirst) {
+            html += `
+                <div class="admin-header">
+                    <h3 class="kh-moul" style="font-size: 13pt; margin:0;">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                    <h3 class="kh-moul" style="font-size: 13pt; margin:0;">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                    <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="report-header-img" crossorigin="anonymous" style="height: 18px; width: auto; margin-top:5px;">
+                </div>
+                <div class="org-info" style="margin-top: 10px;">
+                    <p>${org1}</p>
+                    <p>${org2}</p>
+                    <p>${school}</p>
+                </div>
+                <div class="title-section">
+                    <h2 class="kh-moul" style="font-size: 13pt; margin: 0; margin-bottom: 10px;">របាយការណ៍ពិន្ទុកិច្ចការផ្ទះប្រចាំខែ ${monthName}</h2>
+                    <div class="info-row">
+                        <span>ថ្នាក់ទី៖ ${className}</span>
+                        <span>ឆ្នាំសិក្សា ${academicYearText}</span>
+                    </div>
+                </div>`;
+        }
+
+        // Table Header
+        html += `<table><thead>
+            <tr>
+                <th rowspan="3" class="id-col">ល.រ</th>
+                <th rowspan="3" class="name-col">គោត្តនាម និងនាម</th>
+                <th rowspan="3" class="gender-col">ភេទ</th>
+                <th colspan="${dateColumns.length}">កាលបរិច្ឆេទ (២៦ ដល់ ២៥)</th>
+                <th rowspan="3" class="total-col">សរុប</th>
+            </tr>
+            <tr>`;
+        
+        // Row 2: Render Date Numbers
+        dateColumns.forEach(col => {
+            const sunClass = col.isSunday ? 'sun-bg sun-text' : '';
+            html += `<th class="${sunClass}">${col.dayNum}</th>`;
+        });
+        html += `</tr><tr>`;
+
+        // Row 3: Render Vertical Day Names
+        dateColumns.forEach(col => {
+            const sunClass = col.isSunday ? 'sun-bg sun-text' : '';
+            html += `<th class="${sunClass}">
+                <div class="vertical-wrapper">
+                    <span class="vertical-text">${daysKhmer[col.dayOfWeek]}</span>
+                </div>
+            </th>`;
+        });
+        
+        html += `</tr></thead><tbody>`;
+
+        let rowCount = 0;
+        // Table Body for Existing Students
+        for (let i = startIdx; i <= endIdx; i++) {
+            const student = students[i - 1];
+            if (!student) continue;
+            rowCount++;
+
+            let studentData = hwScores[student.id] || { days: {}, total: '' };
+            
+            // Using Universal Numbers for scores and totals
+            let displayTotal = studentData.total !== '' && studentData.total !== 0 ? studentData.total : (studentData.total === 0 && Object.keys(studentData.days||{}).length > 0 ? 0 : '');
+            let displayScore = displayTotal !== '' ? displayTotal : '';
+            
+            let shortGender = (student.gender === 'ស្រី' || student.gender === 'F') ? 'ស' : 'ប';
+
+            html += `<tr>
+                <td>${i}</td>
+                <td class="name-col">${student.name || ''}</td>
+                <td>${shortGender}</td>`;
+            
+            // Render cells for each day
+            dateColumns.forEach(col => {
+                const sunClass = col.isSunday ? 'sun-bg' : '';
+                let dayVal = studentData.days && studentData.days[col.dayNum] !== undefined ? studentData.days[col.dayNum] : '';
+                html += `<td class="${sunClass}">${dayVal !== '' ? dayVal : ''}</td>`;
+            });
+                
+            html += `<td class="total-col">${displayScore}</td>
+            </tr>`;
+        }
+        
+        // Always pad the table with empty rows up to rowCapacity so the paper is never blank
+        for (let j = rowCount + 1; j <= rowCapacity; j++) {
+            let rowNum = startIdx + j - 1;
+            html += `<tr><td>${rowNum}</td><td></td><td></td>`;
+            dateColumns.forEach(col => { html += `<td class="${col.isSunday ? 'sun-bg' : ''}"></td>`; });
+            html += `<td class="total-col"></td></tr>`;
+        }
+
+        html += `</tbody></table>`;
+
+        // Footer & Signatures
+        if (isLast) {
+            const teacherName = teacherProfile.homeroom_teacher || "....................................";
+            const managerRole = teacherProfile.manager_role || "នាយកសាលា";
+            const province = teacherProfile.province_for_date || "......................";
+            
+            let lunarStr = "ថ្ងៃ................ខែ..........ឆ្នាំ..........";
+            const today = new Date();
+            if (typeof momentkh !== 'undefined') {
+                try {
+                    const khmerDateObj = momentkh.fromDate(today);
+                    lunarStr = momentkh.format(khmerDateObj).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                } catch (e) { console.error("Error formatting khmer date", e); }
+            }
+            const solarStr = `ធ្វើនៅ ${province} ថ្ងៃទី${toKhmerNum(today.getDate())} ខែ${allMonthsMap.find(m => m.id === ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'][today.getMonth()]).label} ឆ្នាំ${toKhmerNum(today.getFullYear())}`;
+
+            html += `
+                <div class="signature-section">
+                    <div class="sig-box">
+                        <p style="font-size: 11pt; margin-bottom: 2px;">បានឃើញ និងឯកភាព</p>
+                        <p class="role kh-moul">${managerRole}</p>
+                    </div>
+                    <div class="sig-box">
+                        <p style="font-size: 11pt; margin-bottom: 2px;">${lunarStr}</p>
+                        <p style="font-size: 11pt; margin-bottom: 5px;">${solarStr}</p>
+                        <p class="role kh-moul">គ្រូបន្ទុកថ្នាក់</p>
+                        <p class="kh-moul" style="margin-top:20px; position: relative;">${teacherName}</p>
+                    </div>
+                </div>`;
+        }
+
+        html += `</div>`;
+        return html;
+    }
+
+    async function render() {
+        await loadScores();
+        printArea.innerHTML = "";
+        const total = students.length;
+        
+        const maxRowsFirstPage = 17;      
+        const maxRowsFirstPageSig = 12;   
+        const maxRowsOtherPage = 25;      
+        const maxRowsOtherPageSig = 19;   
+        const rowsToKeepWithSig = 4;      
+        
+        // If there are no students, output a completely blank template form
+        if (total === 0) {
+            printArea.innerHTML = createPage(1, 0, maxRowsFirstPageSig, true, true);
+            return;
+        }
+        
+        let current = 1;
+        let pageNum = 1;
+
+        while (current <= total) {
+            let isFirst = (pageNum === 1);
+            let remaining = total - current + 1;
+            
+            let limitNoSig = isFirst ? maxRowsFirstPage : maxRowsOtherPage;
+            let limitWithSig = isFirst ? maxRowsFirstPageSig : maxRowsOtherPageSig;
+            
+            let studentEnd;
+            let rowCapacity;
+            let isLast = false;
+
+            if (remaining <= limitWithSig) {
+                studentEnd = total;
+                rowCapacity = limitWithSig;
+                isLast = true;
+            } else if (remaining > limitWithSig && remaining <= limitNoSig) {
+                let takeCount = remaining - rowsToKeepWithSig;
+                if (takeCount <= 0) takeCount = remaining;
+                
+                studentEnd = current + takeCount - 1;
+                rowCapacity = limitNoSig;
+                isLast = false;
+            } else {
+                studentEnd = current + limitNoSig - 1;
+                rowCapacity = limitNoSig;
+                isLast = false;
+            }
+            
+            printArea.innerHTML += createPage(current, studentEnd, rowCapacity, isFirst, isLast);
+            
+            if (isLast) break;
+            current = studentEnd + 1;
+            pageNum++;
+        }
+    }
+
+    async function downloadPDF() {
+        const btn = document.getElementById('btnDownload');
+        const originalText = btn.innerText;
+        btn.innerText = "កំពុងទាញយក...";
+        btn.disabled = true;
+
+        const pages = document.querySelectorAll('.page-container');
+        pages.forEach(p => p.style.marginBottom = '0');
+
+        const mId = monthSelect.value;
+        const monthObj = allMonthsMap.find(m => m.id === mId);
+
+        const opt = {
+            margin:       0,
+            filename:     `ពិន្ទុកិច្ចការផ្ទះ_ខែ${monthObj ? monthObj.label : ''}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }, 
+            pagebreak:    { mode: ['css'] } 
+        };
+
+        html2pdf().set(opt).from(printArea).save().then(() => {
+            pages.forEach(p => p.style.marginBottom = ''); 
+            btn.innerText = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    // Expose functions to window (since type="module" shields scope)
+    window.updateMonthOptions = updateMonthOptions;
+    window.render = render;
+    window.downloadPDF = downloadPDF;
+
+    // Trigger initialization on auth state change
+    onAuthStateChanged(auth, async (user) => {
+        currentUser = user;
+        await loadTeacherProfile(); // Loads from Firebase
+        await init();
+    });
+
+</script>
+</body>
+</html>

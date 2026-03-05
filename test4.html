@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - តារាងចំណាត់ថ្នាក់សិស្ស</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root { --primary: #0054a6; --secondary: #3b82f6; }
+        
+        body { font-family: 'Battambang', cursive; background: #f3f4f6; min-height: 100vh; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        
+        /* Form Card Styling */
+        .form-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            max-width: 500px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        /* Print Specific Styles */
+        @media print {
+            @page { size: A4 landscape; margin: 10mm; } /* Landscape layout for 2 columns */
+            body { background: white; margin: 0; padding: 0; }
+            .no-print { display: none !important; }
+            #printContainer { 
+                display: block !important; 
+                width: 100%; 
+                box-shadow: none; 
+                padding: 0; 
+                margin: 0; 
+            }
+            .border-black { border-color: #000 !important; }
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #000 !important; }
+            
+            /* Print Color Adjustments */
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            .bg-gray-200 { background-color: #e5e7eb !important; }
+            .bg-gray-100 { background-color: #f3f4f6 !important; }
+            .text-red-600 { color: #dc2626 !important; }
+            .text-blue-800 { color: #1e40af !important; }
+        }
+
+        /* Screen Preview Styling */
+        #printContainer {
+            background: white;
+            max-width: 297mm; /* A4 Landscape width */
+            min-height: 210mm;
+            margin: 2rem auto;
+            padding: 2rem;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation (Hidden on Print) -->
+    <div class="no-print bg-white shadow-sm p-4 flex items-center justify-between sticky top-0 z-50">
+        <div class="flex items-center gap-3 text-[#0054a6]">
+            <a href="index.html" class="hover:bg-blue-50 p-2 rounded-lg transition-colors">
+                <i data-lucide="arrow-left" class="w-6 h-6"></i>
+            </a>
+            <h1 class="text-xl kh-moul mt-1">បោះពុម្ពចំណាត់ថ្នាក់</h1>
+        </div>
+    </div>
+
+    <!-- Selection Screen -->
+    <div id="selectionScreen" class="form-card no-print">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="printer" class="w-8 h-8"></i>
+            </div>
+            <h2 class="text-xl kh-moul text-gray-800">បង្កើតតារាងចំណាត់ថ្នាក់</h2>
+            <p class="text-sm text-gray-500 mt-2">សូមជ្រើសរើសព័ត៌មានខាងក្រោមដើម្បីទាញយកពិន្ទុ</p>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">ប្រភេទពិន្ទុ</label>
+                <select id="reportType" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="monthly">ប្រចាំខែ</option>
+                    <option value="semester">ប្រចាំឆមាស</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">ខែ / ឆមាស</label>
+                <select id="monthSelect" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="មករា">មករា</option>
+                    <option value="កុម្ភៈ">កុម្ភៈ</option>
+                    <option value="មីនា">មីនា</option>
+                    <option value="មេសា">មេសា</option>
+                    <option value="ឧសភា">ឧសភា</option>
+                    <option value="មិថុនា">មិថុនា</option>
+                    <option value="កក្កដា">កក្កដា</option>
+                    <option value="សីហា">សីហា</option>
+                    <option value="កញ្ញា">កញ្ញា</option>
+                    <option value="តុលា">តុលា</option>
+                    <option value="វិច្ឆិកា">វិច្ឆិកា</option>
+                    <option value="ធ្នូ">ធ្នូ</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">ថ្នាក់ទី</label>
+                    <input type="text" id="className" value="១ «ខ»" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">ឆ្នាំសិក្សា</label>
+                    <input type="text" id="academicYear" value="២០២៣-២០២៤" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+            </div>
+
+            <button onclick="generateReport()" class="w-full bg-[#0054a6] hover:bg-blue-800 text-white font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-2 mt-6">
+                <i data-lucide="file-text" class="w-5 h-5"></i>
+                បង្ហាញតារាង
+            </button>
+        </div>
+    </div>
+
+    <!-- Print Container (A4 Landscape) -->
+    <div id="printContainer">
+        <!-- Floating Print Actions -->
+        <div class="no-print flex justify-end gap-3 mb-4 sticky top-4">
+            <button onclick="closeReport()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg">
+                <i data-lucide="x" class="w-4 h-4"></i> បិទ
+            </button>
+            <button onclick="window.print()" class="bg-[#0054a6] hover:bg-blue-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg">
+                <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ព
+            </button>
+        </div>
+
+        <!-- Official Header -->
+        <div class="flex justify-between items-start mb-2">
+            <div class="text-center">
+                <p class="kh-moul text-sm">ការិយាល័យអប់រំ យុវជន និងកីឡារដ្ឋបាលស្រុក..............</p>
+                <p class="kh-moul text-sm">កម្រងប្រធាតុ</p>
+                <p class="kh-moul text-sm">សាលាបឋមសិក្សា........................</p>
+            </div>
+            <div class="text-center">
+                <p class="kh-moul text-md">ព្រះរាជាណាចក្រកម្ពុជា</p>
+                <p class="kh-moul text-md">ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+                <p class="text-xl font-bold mt-1">~*~</p>
+            </div>
+        </div>
+
+        <!-- Title -->
+        <div class="text-center mb-4 mt-2">
+            <h2 class="kh-moul text-lg">ចំណាត់ថ្នាក់ប្រចាំខែ <span id="displayMonth"></span></h2>
+            <p class="text-md mt-1">ថ្នាក់ទី <span id="displayClass" class="kh-moul"></span> ឆ្នាំសិក្សា <span id="displayYear"></span></p>
+        </div>
+
+        <!-- Two Column Table Layout -->
+        <table class="w-full border-collapse border border-black text-[12px]">
+            <thead class="bg-gray-200 kh-moul text-[11px] text-center">
+                <tr>
+                    <!-- Left Side Header -->
+                    <th class="border border-black py-2 px-1 w-8">ល.រ</th>
+                    <th class="border border-black py-2 px-2">គោត្តនាម.នាម</th>
+                    <th class="border border-black py-2 px-1 w-10">ភេទ</th>
+                    <th class="border border-black py-2 px-1 w-12">ពិន្ទុ</th>
+                    <th class="border border-black py-2 px-1 w-16">មធ្យមភាគ</th>
+                    <th class="border border-black py-2 px-1 w-14">ចំ.ថ្នាក់</th>
+                    <th class="border border-black py-2 px-1 w-14">និទ្ទេស</th>
+
+                    <!-- Right Side Header -->
+                    <th class="border border-black py-2 px-1 w-8 bg-gray-300">ល.រ</th>
+                    <th class="border border-black py-2 px-2 bg-gray-300">គោត្តនាម.នាម</th>
+                    <th class="border border-black py-2 px-1 w-10 bg-gray-300">ភេទ</th>
+                    <th class="border border-black py-2 px-1 w-12 bg-gray-300">ពិន្ទុ</th>
+                    <th class="border border-black py-2 px-1 w-16 bg-gray-300">មធ្យមភាគ</th>
+                    <th class="border border-black py-2 px-1 w-14 bg-gray-300">ចំ.ថ្នាក់</th>
+                    <th class="border border-black py-2 px-1 w-14 bg-gray-300">និទ្ទេស</th>
+                </tr>
+            </thead>
+            <tbody id="reportTableBody">
+                <!-- Data will be injected here via JavaScript -->
+            </tbody>
+        </table>
+
+        <!-- Footer Signatures -->
+        <div class="flex justify-between mt-4 text-sm px-4">
+            <div>
+                <p>បញ្ឈប់បញ្ជីត្រឹមសិស្សចំនួន <span id="totalStudentsCount" class="font-bold"></span> នាក់ ស្រី <span id="femaleStudentsCount" class="font-bold"></span> នាក់។</p>
+                <p class="mt-6 font-bold">បានឃើញ និងឯកភាព</p>
+                <p>នាយកសាលា</p>
+            </div>
+            <div class="text-center">
+                <p>ថ្ងៃ..................ខែ.........ឆ្នាំ..........ព.ស ២៥៦...</p>
+                <p>ធ្វើនៅ...........................ថ្ងៃទី.........ខែ.........ឆ្នាំ ២០២...</p>
+                <p class="mt-4 font-bold">គ្រូបន្ទុកថ្នាក់</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Standard grading logic
+        function getGrade(average) {
+            if (average >= 90) return 'A';
+            if (average >= 80) return 'B';
+            if (average >= 70) return 'C';
+            if (average >= 60) return 'D';
+            if (average >= 50) return 'E';
+            return 'F';
+        }
+
+        function generateReport() {
+            // Get form values
+            const type = document.getElementById('reportType').value;
+            const month = document.getElementById('monthSelect').value;
+            const year = document.getElementById('academicYear').value;
+            const className = document.getElementById('className').value;
+
+            // Update Print Headers
+            document.getElementById('displayMonth').textContent = month;
+            document.getElementById('displayClass').textContent = className;
+            document.getElementById('displayYear').textContent = year;
+
+            // Retrieve Data from LocalStorage
+            const students = JSON.parse(localStorage.getItem('students') || '[]');
+            const subjects = JSON.parse(localStorage.getItem('subjects') || '[]');
+            const subjectCount = subjects.length > 0 ? subjects.length : 1; // Prevent division by zero
+
+            // Construct Storage Key (matches subject-scores.html save logic)
+            const storageKey = `scores_${type}_${month}_${year}`;
+            let scoresData = JSON.parse(localStorage.getItem(storageKey));
+            
+            // Fallback to latest saved if specific key is empty
+            if (!scoresData) {
+                scoresData = JSON.parse(localStorage.getItem('monthly_scores') || '{}');
+            }
+
+            // 1. Process Data (Calculate Totals & Averages)
+            let processedStudents = students.map((student, index) => {
+                const studentScores = scoresData[student.id] || {};
+                let total = 0;
+                
+                // Sum scores for this specific student
+                subjects.forEach(sub => {
+                    total += parseFloat(studentScores[sub.id] || 0);
+                });
+
+                let average = total / subjectCount;
+
+                return {
+                    originalIndex: index + 1, // Store true index for List No (ល.រ)
+                    ...student,
+                    total: total,
+                    average: average.toFixed(2),
+                    grade: getGrade(average),
+                    rank: 0 // Will assign below
+                };
+            });
+
+            // 2. Calculate Rankings
+            // Sort a copy by total score descending
+            let rankedArray = [...processedStudents].sort((a, b) => b.total - a.total);
+            let currentRank = 1;
+
+            for (let i = 0; i < rankedArray.length; i++) {
+                // Handle ties (same total score = same rank)
+                if (i > 0 && rankedArray[i].total < rankedArray[i-1].total) {
+                    currentRank = i + 1;
+                }
+                // Update rank in the original list by reference or by ID
+                let originalStudent = processedStudents.find(s => s.id === rankedArray[i].id);
+                if (originalStudent) {
+                    originalStudent.rank = currentRank;
+                }
+            }
+
+            // Note: processedStudents is still in original ID/Alphabetical order!
+
+            // 3. Generate HTML for Two Columns
+            const tbody = document.getElementById('reportTableBody');
+            tbody.innerHTML = '';
+
+            // Calculate rows needed for two columns (Standard is 20 rows left, 20 rows right)
+            // We use Math.max(20, Math.ceil(length/2)) to ensure it matches typical register sheets
+            const MAX_ROWS = Math.max(20, Math.ceil(processedStudents.length / 2));
+            
+            let totalCount = processedStudents.length;
+            let femaleCount = processedStudents.filter(s => s.gender === 'ស្រី').length;
+
+            for (let i = 0; i < MAX_ROWS; i++) {
+                let leftStudent = processedStudents[i];
+                let rightStudent = processedStudents[i + MAX_ROWS];
+                let tr = document.createElement('tr');
+                tr.className = "text-center hover:bg-blue-50";
+
+                // --- LEFT COLUMN ---
+                if (leftStudent) {
+                    const hasScore = leftStudent.total > 0;
+                    tr.innerHTML += `
+                        <td class="border border-black p-1">${leftStudent.originalIndex}</td>
+                        <td class="border border-black p-1 text-left px-2 font-semibold whitespace-nowrap">${leftStudent.name}</td>
+                        <td class="border border-black p-1">${leftStudent.gender === 'ប្រុស' ? 'ប' : 'ស'}</td>
+                        <td class="border border-black p-1 font-bold">${hasScore ? leftStudent.total : ''}</td>
+                        <td class="border border-black p-1 text-blue-800 font-bold">${hasScore ? leftStudent.average : ''}</td>
+                        <td class="border border-black p-1 text-red-600 font-bold">${hasScore ? leftStudent.rank : ''}</td>
+                        <td class="border border-black p-1 ${leftStudent.grade === 'F' ? 'text-red-600' : 'text-green-700'} font-bold">${hasScore ? leftStudent.grade : ''}</td>
+                    `;
+                } else {
+                    // Empty rows for left side
+                    tr.innerHTML += `
+                        <td class="border border-black p-1 text-gray-400">${i + 1}</td>
+                        <td class="border border-black p-1"></td><td class="border border-black p-1"></td>
+                        <td class="border border-black p-1"></td><td class="border border-black p-1"></td>
+                        <td class="border border-black p-1"></td><td class="border border-black p-1"></td>
+                    `;
+                }
+
+                // --- RIGHT COLUMN ---
+                if (rightStudent) {
+                    const hasScoreRight = rightStudent.total > 0;
+                    tr.innerHTML += `
+                        <td class="border border-black p-1 bg-gray-50">${rightStudent.originalIndex}</td>
+                        <td class="border border-black p-1 text-left px-2 font-semibold whitespace-nowrap bg-gray-50">${rightStudent.name}</td>
+                        <td class="border border-black p-1 bg-gray-50">${rightStudent.gender === 'ប្រុស' ? 'ប' : 'ស'}</td>
+                        <td class="border border-black p-1 font-bold bg-gray-50">${hasScoreRight ? rightStudent.total : ''}</td>
+                        <td class="border border-black p-1 text-blue-800 font-bold bg-gray-50">${hasScoreRight ? rightStudent.average : ''}</td>
+                        <td class="border border-black p-1 text-red-600 font-bold bg-gray-50">${hasScoreRight ? rightStudent.rank : ''}</td>
+                        <td class="border border-black p-1 ${rightStudent.grade === 'F' ? 'text-red-600' : 'text-green-700'} font-bold bg-gray-50">${hasScoreRight ? rightStudent.grade : ''}</td>
+                    `;
+                } else {
+                    // Empty rows for right side
+                    tr.innerHTML += `
+                        <td class="border border-black p-1 bg-gray-50 text-gray-400">${i + 1 + MAX_ROWS}</td>
+                        <td class="border border-black p-1 bg-gray-50"></td><td class="border border-black p-1 bg-gray-50"></td>
+                        <td class="border border-black p-1 bg-gray-50"></td><td class="border border-black p-1 bg-gray-50"></td>
+                        <td class="border border-black p-1 bg-gray-50"></td><td class="border border-black p-1 bg-gray-50"></td>
+                    `;
+                }
+
+                tbody.appendChild(tr);
+            }
+
+            // Update footer totals
+            document.getElementById('totalStudentsCount').textContent = totalCount;
+            document.getElementById('femaleStudentsCount').textContent = femaleCount;
+
+            // Switch views
+            document.getElementById('selectionScreen').style.display = 'none';
+            document.getElementById('printContainer').style.display = 'block';
+        }
+
+        function closeReport() {
+            document.getElementById('selectionScreen').style.display = 'block';
+            document.getElementById('printContainer').style.display = 'none';
+        }
+
+        // Set default academic year automatically
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentYear = new Date().getFullYear();
+            const defaultYear = `${currentYear}-${currentYear + 1}`;
+            document.getElementById('academicYear').value = defaultYear;
+        });
+    </script>
+</body>
+</html>

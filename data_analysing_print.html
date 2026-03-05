@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - របាយការណ៍វឌ្ឍនភាពសិស្សសរុប (Online)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Date Formatter for Khmer Lunar Date -->
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+
+    <style>
+        :root { 
+            --primary: #0054a6; 
+        }
+        
+        body { 
+            font-family: 'Battambang', cursive; 
+            background: #f1f5f9;
+            color: #1e293b;
+            margin: 0;
+        }
+        
+        .kh-moul { 
+            font-family: 'Moul', cursive; 
+        }
+
+        /* Screen Controls */
+        .controls-bar {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .input-field { 
+            width: 100%; 
+            padding: 0.6rem 1rem; 
+            border-radius: 0.75rem; 
+            border: 1px solid #e2e8f0; 
+            outline: none; 
+            background: #f8fafc; 
+            font-family: 'Battambang', cursive; 
+            transition: all 0.2s; 
+            font-weight: 700; 
+        }
+        .input-field:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(0, 84, 166, 0.1); }
+
+        /* A4 Page Container (Screen Preview) */
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            margin: 2rem auto;
+            padding: 15mm 15mm;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* Loading Overlay */
+        #loadingOverlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+            background: rgba(255,255,255,0.9); z-index: 2000; 
+            display: flex; justify-content: center; align-items: center; 
+            flex-direction: column; backdrop-filter: blur(4px);
+        }
+
+        /* Print Specific Styles - FORCING 2 COLUMNS */
+        @media print {
+            @page { size: A4 portrait; margin: 10mm; }
+            body { 
+                background: white; 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
+            }
+            .no-print { display: none !important; }
+            .a4-container {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+            
+            /* FORCE 2 COLUMNS ON PRINT */
+            #studentsGrid {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 1.25rem !important;
+            }
+
+            .student-card {
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+            }
+            
+            .signature-section {
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+            }
+        }
+
+        /* Student Card Structure */
+        .student-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        .chart-wrapper {
+            height: 110px; 
+            width: 100%;
+            position: relative;
+        }
+
+        /* Signature Block */
+        .signature-section { 
+            width: 100%; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            margin-top: 40px; 
+            break-inside: avoid;
+            page-break-inside: avoid; 
+        }
+        .sig-image-box { 
+            height: 80px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin: 10px 0;
+            position: relative;
+            z-index: 5;
+        }
+        .sig-image-box img { 
+            max-height: 100%; 
+            max-width: 160px;
+            object-fit: contain; 
+            mix-blend-mode: multiply;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-[#0054a6] mb-2"></i>
+        <p class="font-bold text-slate-600 text-lg" id="loadingText">កំពុងទាញយកទិន្នន័យពី Cloud...</p>
+    </div>
+
+    <!-- Controls Toolbar (Hidden in Print) -->
+    <div class="controls-bar no-print">
+        <div class="flex items-center gap-4">
+            <a href="data_analysing_score_student.html" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition text-gray-600">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            </a>
+            <h1 class="font-bold text-[#0054a6] text-lg flex items-center gap-2 hidden sm:flex">
+                <i data-lucide="file-bar-chart" class="w-5 h-5"></i>
+                បោះពុម្ពរបាយការណ៍វឌ្ឍនភាព (Cloud Data)
+            </h1>
+            <select id="yearSelect" class="border border-gray-300 rounded-lg px-3 py-1.5 bg-gray-50 text-sm font-bold text-gray-700 outline-none" onchange="window.loadData()">
+                <option value="2025-2026" selected>ឆ្នាំ ២០២៥-២០២៦</option>
+                <option value="2026-2027">ឆ្នាំ ២០២៦-២០២៧</option>
+                <option value="2027-2028">ឆ្នាំ ២០២៧-២០២៨</option>
+                <option value="2028-2029">ឆ្នាំ ២០២៨-២០២៩</option>
+            </select>
+        </div>
+        <button onclick="window.print()" class="bg-[#0054a6] hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-md transition">
+            <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ពរបាយការណ៍
+        </button>
+    </div>
+
+    <!-- Signature Settings Block (Hidden in Print) -->
+    <div class="max-w-4xl mx-auto mt-6 px-4 no-print">
+        <div class="bg-blue-50/60 border border-blue-100 p-5 md:p-6 rounded-2xl shadow-sm transition-all duration-300">
+            <div class="flex justify-between items-center cursor-pointer select-none" onclick="window.toggleSignatureSettings()">
+                <h4 class="text-sm font-bold text-blue-800 flex items-center gap-2 m-0">
+                    <i data-lucide="pen-tool" class="w-5 h-5"></i> កំណត់អ្នកចុះហត្ថលេខាសម្រាប់ការបោះពុម្ព
+                </h4>
+                <button type="button" class="p-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors focus:outline-none">
+                    <i data-lucide="chevron-down" id="sigSettingsIcon" class="w-5 h-5 transition-transform duration-300"></i>
+                </button>
+            </div>
+            
+            <div id="signatureSettingsContent" class="hidden mt-5 pt-5 border-t border-blue-200/60">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- នាយកសាលា -->
+                    <div class="space-y-4 bg-white p-5 rounded-xl border border-blue-50 shadow-sm">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះនាយកសាលា</label>
+                            <input type="text" id="managerNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="window.updateSignatures()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា / ត្រា (បើមាន)</label>
+                            <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                <input type="file" id="managerSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors w-full" onchange="window.handleSignatureUpload('manager')">
+                                
+                                <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                    <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                        <button type="button" onclick="window.zoomSignature('manager', -0.1)" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="បង្រួមទំហំ (Zoom Out)"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                        
+                                        <div id="managerSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded">
+                                        </div>
+                                        
+                                        <button type="button" onclick="window.zoomSignature('manager', 0.1)" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="ពង្រីកទំហំ (Zoom In)"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                    </div>
+                                    
+                                    <button type="button" onclick="window.removeSignature('manager')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors" title="លុបរូបភាព">
+                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- គ្រូបន្ទុកថ្នាក់ -->
+                    <div class="space-y-4 bg-white p-5 rounded-xl border border-blue-50 shadow-sm">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះគ្រូបន្ទុកថ្នាក់</label>
+                            <input type="text" id="teacherNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="window.updateSignatures()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា (បើមាន)</label>
+                            <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                <input type="file" id="teacherSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors w-full" onchange="window.handleSignatureUpload('teacher')">
+                                
+                                <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                    <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                        <button type="button" onclick="window.zoomSignature('teacher', -0.1)" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="បង្រួមទំហំ (Zoom Out)"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                        
+                                        <div id="teacherSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded">
+                                        </div>
+                                        
+                                        <button type="button" onclick="window.zoomSignature('teacher', 0.1)" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="ពង្រីកទំហំ (Zoom In)"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                    </div>
+                                    
+                                    <button type="button" onclick="window.removeSignature('teacher')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors" title="លុបរូបភាព">
+                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- A4 Print Container -->
+    <div class="a4-container mt-6">
+        
+        <!-- Header Section -->
+        <div class="w-full mb-8">
+            <div class="text-center w-full mb-6 mt-2">
+                <h3 class="kh-moul text-[13pt] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                <h3 class="kh-moul text-[13pt] mb-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12pt] w-auto mx-auto mt-2" crossorigin="anonymous" alt="divider">
+            </div>
+            
+            <div class="flex flex-col text-[11pt] font-bold text-left w-full mb-4 space-y-1">
+                <p id="h-org1" class="kh-moul"></p>
+                <p id="h-org2" class="kh-moul"></p>
+                <p id="h-school" class="kh-moul"></p>
+            </div>
+            
+            <div class="text-center mt-6">
+                <h1 class="kh-moul text-[14pt] inline-block uppercase pb-1">របាយការណ៍វឌ្ឍនភាពសិស្ស</h1>
+            </div>
+        </div>
+
+        <!-- Grid for Student Cards -->
+        <div id="studentsGrid" class="grid grid-cols-2 gap-5 w-full">
+            <div class="col-span-2 text-center text-gray-500 py-10 no-print" id="emptyGridMsg">
+                កំពុងរង់ចាំទិន្នន័យ...
+            </div>
+        </div>
+
+        <!-- Signature Section -->
+        <div class="signature-section">
+            <div class="text-center flex flex-col items-center">
+                <p class="text-[11pt] font-bold mb-2 invisible">.</p>
+                <p class="text-[11pt] font-bold mb-2">បានឃើញ និងឯកភាព</p>
+                <p class="kh-moul text-[11pt]" id="roleManager">នាយកសាលា</p>
+                <div class="sig-image-box" style="margin-left: 1cm;" id="sigManager"></div>
+                <p class="kh-moul text-[11pt] z-10 relative" style="margin-left: 3cm;" id="nameManager"></p>
+            </div>
+            <div class="text-center flex flex-col items-center pl-[20mm]">
+                <p id="lunarDate" class="text-[10pt] mb-1 whitespace-nowrap">ថ្ងៃ... ខែ... ឆ្នាំ... ព.ស. ...</p>
+                <p id="solarDate" class="text-[10pt] mb-4">..., ថ្ងៃទី... ខែ... ឆ្នាំ...</p>
+                <p class="kh-moul text-[11pt]">គ្រូបន្ទុកថ្នាក់</p>
+                <div class="sig-image-box" id="sigTeacher"></div>
+                <p class="kh-moul text-[11pt] z-10 relative" style="margin-left: 3cm;" id="nameTeacher"></p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- Globals ---
+        const PTEC_APP_ID = "ptec-app";
+        let currentUserId = null;
+        let profileData = {};
+        let students = [];
+        let scoresHistory = {};
+        let attendanceHistory = {};
+        let classConfig = {};
+
+        const monthsOrder = ['nov', 'dec', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct'];
+        const monthsLabel = {
+            'nov': 'វិច្ឆិកា', 'dec': 'ធ្នូ', 'jan': 'មករា', 'feb': 'កុម្ភៈ',
+            'mar': 'មីនា', 'apr': 'មេសា', 'may': 'ឧសភា', 'jun': 'មិថុនា',
+            'jul': 'កក្កដា', 'aug': 'សីហា', 'sep': 'កញ្ញា', 'oct': 'តុលា'
+        };
+        const khDigits = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
+        const khMonths = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
+
+        lucide.createIcons();
+
+        // Helpers
+        function toKhmerNum(num) { 
+            return num.toString().split('').map(d => khDigits[d] || d).join(''); 
+        }
+
+        // Wait for Auth
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                await fetchProfileFromFirebase();
+                loadLocalConfig();
+                await window.loadData();
+            } else {
+                signInAnonymously(auth).catch(err => {
+                    console.error("Auth failed:", err);
+                    alert("មិនអាចភ្ជាប់ប្រព័ន្ធបានទេ។ សូមពិនិត្យអ៊ីនធឺណិត។");
+                });
+            }
+        });
+
+        // 1. Fetch Profile (School info, Teacher name, etc.)
+        async function fetchProfileFromFirebase() {
+            try {
+                const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUserId, 'profile', 'data');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    profileData = docSnap.data();
+                } else {
+                    // Fallback local storage profile if exists
+                    const localProfile = localStorage.getItem('teacherProfile');
+                    if (localProfile) profileData = JSON.parse(localProfile);
+                }
+            } catch (e) {
+                console.error("Error fetching profile", e);
+            }
+        }
+
+        // 2. Fetch Class Data (Students, Scores, Attendance)
+        window.loadData = async function() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            document.getElementById('loadingText').innerText = "កំពុងទាញយកទិន្នន័យសិស្ស និងពិន្ទុ...";
+            
+            const year = document.getElementById('yearSelect').value;
+            
+            try {
+                // A. Fetch Students
+                students = [];
+                const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUserId, 'students');
+                const studentsSnap = await getDocs(studentsRef);
+                studentsSnap.forEach(doc => {
+                    students.push({ id: doc.id, uid: doc.id, ...doc.data() });
+                });
+
+                // B. Fetch Scores
+                scoresHistory = {};
+                for (const month of monthsOrder) {
+                    const docId = `${year}_${month}`;
+                    let snap = await getDoc(doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUserId, 'scores', docId)).catch(() => null);
+                    
+                    if (!snap || !snap.exists()) {
+                        snap = await getDoc(doc(db, "scores", docId)).catch(() => null); // Backward compatibility
+                    }
+
+                    if (snap && snap.exists()) {
+                        scoresHistory[month] = snap.data();
+                    }
+                }
+
+                // C. Fetch Attendance
+                attendanceHistory = {};
+                let currentClassId = localStorage.getItem('current_class_id') || 'default';
+                
+                const metaSnap = await getDoc(doc(db, "users", currentUserId, "data", "metadata")).catch(() => null);
+                if (metaSnap && metaSnap.exists() && metaSnap.data().currentClassId) {
+                    currentClassId = metaSnap.data().currentClassId;
+                }
+                
+                const classSnap = await getDoc(doc(db, "users", currentUserId, "data", `class_${currentClassId}`)).catch(() => null);
+                if (classSnap && classSnap.exists() && classSnap.data().attendanceHistory) {
+                    attendanceHistory = classSnap.data().attendanceHistory;
+                }
+
+                // Render UI
+                loadHeaderAndFooter();
+                renderStudentsGrid();
+
+            } catch (e) {
+                console.error("Error loading class data", e);
+                alert("បញ្ហាក្នុងការទាញយកទិន្នន័យ។");
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        };
+
+        // --- Signature & Settings Logic ---
+        function loadLocalConfig() {
+            const def = { managerName: "", managerSignature: null, managerSigScale: 1.0, teacherName: "", teacherSignature: null, teacherSigScale: 1.0 };
+            try {
+                classConfig = JSON.parse(localStorage.getItem('app_settings_print')) || def;
+            } catch(e) { classConfig = def; }
+
+            // Autofill inputs from config, OR default from Firebase Profile
+            const mInput = document.getElementById('managerNameInput');
+            const tInput = document.getElementById('teacherNameInput');
+            
+            mInput.value = classConfig.managerName || profileData.manager_name || ''; 
+            tInput.value = classConfig.teacherName || profileData.homeroom_teacher || '';
+
+            // If local storage didn't have it, set it to the profile default
+            classConfig.managerName = mInput.value;
+            classConfig.teacherName = tInput.value;
+
+            renderSignaturePreview('manager');
+            renderSignaturePreview('teacher');
+        }
+
+        window.toggleSignatureSettings = function() {
+            const content = document.getElementById('signatureSettingsContent');
+            const icon = document.getElementById('sigSettingsIcon');
+            content.classList.toggle('hidden');
+            icon.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+
+        window.updateSignatures = function() {
+            classConfig.managerName = document.getElementById('managerNameInput').value;
+            classConfig.teacherName = document.getElementById('teacherNameInput').value;
+            localStorage.setItem('app_settings_print', JSON.stringify(classConfig));
+            loadHeaderAndFooter(); 
+        }
+
+        window.handleSignatureUpload = function(type) {
+            const input = document.getElementById(type + 'SignatureInput');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    classConfig[type + 'Signature'] = e.target.result;
+                    classConfig[type + 'SigScale'] = 1.0;
+                    localStorage.setItem('app_settings_print', JSON.stringify(classConfig));
+                    renderSignaturePreview(type);
+                    loadHeaderAndFooter();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        window.removeSignature = function(type) {
+            classConfig[type + 'Signature'] = null;
+            localStorage.setItem('app_settings_print', JSON.stringify(classConfig));
+            document.getElementById(type + 'SignatureInput').value = ''; 
+            renderSignaturePreview(type);
+            loadHeaderAndFooter();
+        }
+
+        window.zoomSignature = function(type, delta) {
+            const scaleKey = type + 'SigScale';
+            classConfig[scaleKey] = Math.max(0.2, Math.min(3.0, (classConfig[scaleKey] || 1.0) + delta));
+            localStorage.setItem('app_settings_print', JSON.stringify(classConfig));
+            renderSignaturePreview(type);
+            loadHeaderAndFooter();
+        }
+
+        function renderSignaturePreview(type) {
+            const previewDiv = document.getElementById(type + 'SigPreview');
+            const sigData = classConfig[type + 'Signature'];
+            const scale = classConfig[type + 'SigScale'] || 1.0;
+            
+            if (sigData) {
+                previewDiv.innerHTML = `<img src="${sigData}" style="transform: scale(${scale}); transform-origin: center center;" class="h-full w-full object-contain transition-transform duration-200">`;
+            } else {
+                previewDiv.innerHTML = `<span class="text-[10px] text-slate-400">គ្មានរូបភាព</span>`;
+            }
+        }
+
+        // --- Render Header/Footer ---
+        function loadHeaderAndFooter() {
+            document.getElementById('h-org1').innerText = profileData.management_unit_1 || 'ក្រសួងអប់រំ យុវជន និងកីឡា';
+            document.getElementById('h-org2').innerText = profileData.management_unit_2 || 'មន្ទីរអប់រំ យុវជន និងកីឡា';
+            document.getElementById('h-school').innerText = profileData.school_name_admin || 'សាលារៀន...';
+
+            document.getElementById('roleManager').innerText = profileData.manager_role || 'នាយកសាលា';
+            
+            document.getElementById('nameManager').innerText = classConfig.managerName || '';
+            document.getElementById('nameTeacher').innerText = classConfig.teacherName || '';
+
+            if(classConfig.managerSignature) {
+                document.getElementById('sigManager').innerHTML = `<img src="${classConfig.managerSignature}" style="transform: scale(${classConfig.managerSigScale || 1.0});">`;
+            } else {
+                document.getElementById('sigManager').innerHTML = '';
+            }
+
+            if(classConfig.teacherSignature) {
+                document.getElementById('sigTeacher').innerHTML = `<img src="${classConfig.teacherSignature}" style="transform: scale(${classConfig.teacherSigScale || 1.0});">`;
+            } else {
+                document.getElementById('sigTeacher').innerHTML = '';
+            }
+
+            // Dates
+            const today = new Date();
+            const province = profileData.province_for_date || 'ភ្នំពេញ';
+            
+            const solarStr = `${province}, ថ្ងៃទី${toKhmerNum(String(today.getDate()).padStart(2,'0'))} ខែ${khMonths[today.getMonth()]} ឆ្នាំ${toKhmerNum(today.getFullYear())}`;
+            document.getElementById('solarDate').innerText = solarStr;
+
+            if (typeof momentkh !== 'undefined') {
+                try {
+                    const m = momentkh.fromDate(today);
+                    document.getElementById('lunarDate').innerText = momentkh.format(m).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                } catch(e) { document.getElementById('lunarDate').innerText = ''; }
+            }
+        }
+
+        // --- Render Cards & Charts ---
+        function renderStudentsGrid() {
+            const container = document.getElementById('studentsGrid');
+            container.innerHTML = '';
+
+            if(students.length === 0) {
+                container.innerHTML = '<div class="col-span-2 text-center text-gray-500 py-10 font-bold">មិនមានទិន្នន័យសិស្សក្នុងប្រព័ន្ធទេ</div>';
+                return;
+            }
+
+            // Sort students alphabetically
+            students.sort((a,b) => a.name.localeCompare(b.name));
+
+            students.forEach((student) => {
+                const uid = String(student.uid || student.id);
+                
+                // 1. Calculate Attendance
+                let p = 0, l = 0, a = 0;
+                Object.values(attendanceHistory).forEach(dayData => {
+                    const rec = dayData[uid];
+                    if (rec) {
+                        if (rec.status === 'P') p++;
+                        if (rec.status === 'L') l++;
+                        if (rec.status === 'A') a++;
+                    }
+                });
+                const totalDays = p + l + a;
+                const attRate = totalDays > 0 ? ((p / totalDays) * 100).toFixed(1) : "0.0";
+                
+                const wP = totalDays > 0 ? (p/totalDays)*100 : 0;
+                const wL = totalDays > 0 ? (l/totalDays)*100 : 0;
+                const wA = totalDays > 0 ? (a/totalDays)*100 : 0;
+
+                // 2. Calculate Scores
+                let chartLabels = [];
+                let chartData = [];
+                let sumAvg = 0;
+                let monthCount = 0;
+
+                monthsOrder.forEach(month => {
+                    if (scoresHistory[month] && scoresHistory[month][uid]) {
+                        const scores = scoresHistory[month][uid];
+                        let mSum = 0, mCount = 0;
+                        Object.values(scores).forEach(val => {
+                            if(val !== null && val !== "") {
+                                const num = parseFloat(val);
+                                if(!isNaN(num)) { mSum += num; mCount++; }
+                            }
+                        });
+                        
+                        if(mCount > 0) {
+                            const avg = mSum / mCount;
+                            sumAvg += avg;
+                            monthCount++;
+                            chartLabels.push(monthsLabel[month]);
+                            chartData.push(avg.toFixed(2));
+                        }
+                    }
+                });
+
+                const overallAvg = monthCount > 0 ? (sumAvg / monthCount).toFixed(2) : "0.00";
+
+                const canvasId = `chart-${uid}`;
+                const isGirl = (student.gender === 'ស្រី' || student.gender === 'F');
+                const avatarChar = isGirl ? 'ស' : 'ប';
+                const avatarColor = isGirl ? 'bg-pink-100 text-pink-600' : 'bg-blue-100 text-[#0054a6]';
+
+                const cardHTML = `
+                <div class="student-card">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full ${avatarColor} flex items-center justify-center font-bold text-lg shadow-sm">
+                            ${avatarChar}
+                        </div>
+                        <div>
+                            <div class="font-bold text-[#0054a6] text-[13px] tracking-wide">${student.name}</div>
+                            <div class="text-[10px] text-gray-500 font-sans mt-0.5">ID: ${uid}</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="border border-gray-100 rounded-lg p-2.5 bg-white text-center shadow-sm">
+                            <div class="text-[9px] text-gray-400 font-bold mb-1 uppercase tracking-wider">មធ្យមភាគសរុប</div>
+                            <div class="text-[20px] font-bold ${overallAvg < 5 && overallAvg > 0 ? 'text-red-600' : 'text-blue-600'} font-sans leading-none">${overallAvg}</div>
+                        </div>
+                        <div class="border border-gray-100 rounded-lg p-2.5 bg-white text-center shadow-sm">
+                            <div class="text-[9px] text-gray-400 font-bold mb-1 uppercase tracking-wider">អត្រាវត្តមាន</div>
+                            <div class="text-[20px] font-bold ${attRate < 80 ? 'text-red-600' : 'text-green-600'} font-sans leading-none">${attRate}%</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="w-full h-[6px] bg-gray-100 rounded-full overflow-hidden flex mb-1.5 shadow-inner">
+                            <div class="bg-green-500 h-full" style="width: ${wP}%"></div>
+                            <div class="bg-yellow-400 h-full" style="width: ${wL}%"></div>
+                            <div class="bg-red-500 h-full" style="width: ${wA}%"></div>
+                        </div>
+                        <div class="flex justify-between text-[9px] font-bold text-gray-600">
+                            <span class="text-green-600">មក: <span class="font-sans">${p}</span></span>
+                            <span class="text-yellow-500">ច្បាប់: <span class="font-sans">${l}</span></span>
+                            <span class="text-red-600">អវត្ត: <span class="font-sans">${a}</span></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-3 border-t border-dashed border-gray-200">
+                        <div class="text-[9px] font-bold text-gray-400 mb-2 text-center">និន្នាការពិន្ទុផ្ទាល់ខ្លួន</div>
+                        <div class="chart-wrapper">
+                            <canvas id="${canvasId}"></canvas>
+                        </div>
+                    </div>
+                </div>
+                `;
+
+                container.insertAdjacentHTML('beforeend', cardHTML);
+
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            data: chartData,
+                            borderColor: '#8b5cf6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.12)',
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#8b5cf6',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: false,
+                        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                        scales: {
+                            y: { 
+                                beginAtZero: true, max: 10,
+                                ticks: { stepSize: 2, font: { size: 9 }, color: '#64748b', padding: 4 },
+                                border: { display: false }, grid: { color: '#e2e8f0', drawBorder: false }
+                            },
+                            x: { display: false }
+                        },
+                        layout: { padding: { left: -5, right: 0, top: 5, bottom: -5 } }
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>

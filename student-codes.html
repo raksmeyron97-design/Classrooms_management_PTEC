@@ -158,13 +158,9 @@
                 let listHtml = '';
                 let printHtml = '';
 
-                // ទាញយក Domain ឫ Folder បច្ចុប្បន្ន ដើម្បីឱ្យ QR Code ដើរត្រូវទាំងពេល Test និងពេលដាក់លើ Hosting
-                const currentPathUrl = window.location.href.split('?')[0];
-                const baseUrl = currentPathUrl.replace(/student-codes\.html.*$/, '');
-
                 for (const s of students) {
-                    // តំណរទៅកាន់ Parent Portal (index.html) ដោយស្វ័យប្រវត្តិ
-                    const loginUrl = `${baseUrl}index.html?tid=${currentTeacherUid}&sid=${s.id}`;
+                    // តំណរទៅកាន់ Parent Portal ដែលអ្នកបានកំណត់ (Vercel)
+                    const loginUrl = `https://parent-portal-phi.vercel.app/?tid=${currentTeacherUid}&sid=${s.id}`;
                     
                     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=0054a6&data=${encodeURIComponent(loginUrl)}`;
 

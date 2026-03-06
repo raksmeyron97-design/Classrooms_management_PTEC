@@ -608,13 +608,14 @@
                     }
                 });
 
-                const overallAvg = monthCount > 0 ? (sumAvg / monthCount).toFixed(2) : 0;
+                // Set overallAvg to null if they have absolutely no scores yet
+                const overallAvg = monthCount > 0 ? parseFloat((sumAvg / monthCount).toFixed(2)) : null;
 
                 analyticsData[uid] = {
                     student: student,
                     attendance: { p, l, a, total: totalDays, rate: parseFloat(attRate) },
                     scores: monthlyAverages,
-                    overallAvg: parseFloat(overallAvg)
+                    overallAvg: overallAvg
                 };
             });
 
@@ -630,7 +631,7 @@
             let sumAllAvg = 0;
             let validStudents = 0;
             Object.keys(analyticsData).forEach(key => {
-                if (key !== '_global' && analyticsData[key].overallAvg > 0) {
+                if (key !== '_global' && analyticsData[key].overallAvg !== null) {
                     sumAllAvg += analyticsData[key].overallAvg;
                     validStudents++;
                 }
@@ -651,7 +652,11 @@
             Object.keys(analyticsData).forEach(key => {
                 if (key === '_global') return;
                 const d = analyticsData[key];
-                if ((d.overallAvg > 0 && d.overallAvg < 5.0) || d.attendance.a >= 3) {
+                
+                const isScoreRisk = (d.overallAvg !== null && d.overallAvg < 5.0);
+                const isAttRisk = d.attendance.a >= 3 || (d.attendance.total > 0 && d.attendance.rate < 80);
+                
+                if (isScoreRisk || isAttRisk) {
                     riskCount++;
                 }
             });
@@ -710,7 +715,8 @@
                             count++;
                         }
                     });
-                    dataPoints.push(count > 0 ? (sum / count).toFixed(2) : 0);
+                    // Push null instead of 0 if no scores exist to prevent chart from plunging to 0
+                    dataPoints.push(count > 0 ? parseFloat((sum / count).toFixed(2)) : null);
                 }
             });
 
@@ -729,7 +735,8 @@
                         fill: true,
                         tension: 0.4,
                         pointBackgroundColor: '#0054a6',
-                        pointRadius: 4
+                        pointRadius: 4,
+                        spanGaps: true
                     }]
                 },
                 options: {
@@ -904,7 +911,7 @@
             document.getElementById('stName').innerText = st.name;
             document.getElementById('stId').innerText = `ID: ${st.uid || st.id}`;
             
-            document.getElementById('stAvgScore').innerText = data.overallAvg > 0 ? data.overallAvg : 'គ្មានពិន្ទុ';
+            document.getElementById('stAvgScore').innerText = data.overallAvg !== null ? data.overallAvg : 'គ្មានពិន្ទុ';
             document.getElementById('stAttRate').innerText = `${data.attendance.rate}%`;
 
             const t = data.attendance.total;
@@ -985,8 +992,9 @@
                 if (uid === '_global') return;
                 const d = analyticsData[uid];
                 
-                const isScoreRisk = (d.overallAvg > 0 && d.overallAvg < 5.0);
-                const isAttRisk = d.attendance.a >= 3 || d.attendance.rate < 80;
+                const isScoreRisk = (d.overallAvg !== null && d.overallAvg < 5.0);
+                // Fixed: Make sure we only flag low attendance rate if they actually have attendance records
+                const isAttRisk = d.attendance.a >= 3 || (d.attendance.total > 0 && d.attendance.rate < 80);
                 
                 if (isScoreRisk || isAttRisk) {
                     let reasons = [];
@@ -1003,7 +1011,7 @@
                 }
             });
 
-            riskStudents.sort((a, b) => b.absent - a.absent || a.avg - b.avg);
+            riskStudents.sort((a, b) => b.absent - a.absent || (a.avg !== null ? a.avg : 10) - (b.avg !== null ? b.avg : 10));
 
             if (riskStudents.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-500 italic">មិនមានសិស្សប្រឈមហានិភ័យទេ 👏</td></tr>`;
@@ -1013,7 +1021,7 @@
             tbody.innerHTML = riskStudents.map(s => `
                 <tr class="border-b hover:bg-red-50/50 transition border-red-100">
                     <td class="px-4 py-3 font-bold text-gray-800">${s.name}</td>
-                    <td class="px-4 py-3 text-center ${s.avg < 5.0 && s.avg > 0 ? 'text-red-600 font-bold' : 'text-gray-600'}">${s.avg > 0 ? s.avg : '-'}</td>
+                    <td class="px-4 py-3 text-center ${s.avg !== null && s.avg < 5.0 ? 'text-red-600 font-bold' : 'text-gray-600'}">${s.avg !== null ? s.avg : '-'}</td>
                     <td class="px-4 py-3 text-center ${s.absent >= 3 ? 'text-red-600 font-bold' : 'text-gray-600'}">${s.absent}</td>
                     <td class="px-4 py-3 text-center">${s.rate}%</td>
                     <td class="px-4 py-3">

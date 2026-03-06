@@ -466,7 +466,8 @@
     <!-- Firebase Integration and Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase Setup
         const firebaseConfig = {
@@ -479,7 +480,10 @@
             measurementId: "G-PX867PB723"
         };
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
 
         const STORAGE_KEY = 'ptec_parents_comm';
         let students = [];
@@ -490,23 +494,24 @@
         const toKhNum = (n) => n.toString().split('').map(d => khDigits[d] || d).join('');
         const khMonths = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
 
-        async function init() {
-            // 1. Load local data for fast render
-            students = JSON.parse(localStorage.getItem('students') || '[]');
-            commData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-            
-            loadClassConfig();
-            renderWebTable();
-            lucide.createIcons();
-
-            // 2. Fetch fresh data from Firebase
-            await fetchFirebaseData();
-        }
+        // Auth Logic Setup
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+            }
+        };
 
         async function fetchFirebaseData() {
+            if (!currentUser) return;
             try {
-                // Fetch Settings
-                const settingsSnap = await getDoc(doc(db, "school_data", "general_settings"));
+                // Fetch Settings (User Scoped)
+                const settingsSnap = await getDoc(doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'settings', 'general'));
                 if (settingsSnap.exists()) {
                     classConfig = { ...classConfig, ...settingsSnap.data() };
                     localStorage.setItem('app_settings', JSON.stringify(classConfig));
@@ -516,14 +521,21 @@
                 }
 
                 // Fetch Students List
-                const studentsSnap = await getDoc(doc(db, "school_data", "students_list"));
-                if (studentsSnap.exists() && studentsSnap.data().students) {
-                    students = studentsSnap.data().students;
-                    localStorage.setItem('students', JSON.stringify(students));
-                }
+                const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
+                const studentsSnap = await getDocs(studentsRef);
+                const fetchedStudents = [];
+                studentsSnap.forEach((doc) => {
+                    fetchedStudents.push(doc.data());
+                });
+                
+                // Sort students exactly as student-listV2 does
+                fetchedStudents.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+                
+                students = fetchedStudents;
+                localStorage.setItem('students', JSON.stringify(students));
 
                 // Fetch Communication Data
-                const commSnap = await getDoc(doc(db, "school_data", "parents_communication"));
+                const commSnap = await getDoc(doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'school_data', 'parents_communication'));
                 if (commSnap.exists()) {
                     commData = { ...commData, ...commSnap.data() };
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(commData));
@@ -572,8 +584,9 @@
             localStorage.setItem('app_settings', JSON.stringify(classConfig));
 
             // Sync manager and teacher name back to Firebase settings
+            if (!currentUser) return;
             try {
-                await setDoc(doc(db, "school_data", "general_settings"), {
+                await setDoc(doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'settings', 'general'), {
                     managerName: classConfig.managerName,
                     teacherName: classConfig.teacherName
                 }, { merge: true });
@@ -673,17 +686,18 @@
             </tr></thead><tbody>`;
 
             students.forEach((s, i) => {
+                const sId = s.id || i; // Bind to student ID to prevent data mismatch
                 html += `<tr>
                     <td class="text-center font-bold text-gray-500">${toKhmerNum(i + 1)}</td>
                     <td class="sticky-col font-bold text-indigo-900 border-r">
                         <div class="flex items-center gap-3">
-                            <img src="${s.photo || 'https://api.dicebear.com/7.x/notionists/svg?seed=' + s.id}" class="w-8 h-8 rounded-full border border-gray-100 object-cover">
+                            <img src="${s.photo || 'https://api.dicebear.com/7.x/notionists/svg?seed=' + sId}" class="w-8 h-8 rounded-full border border-gray-100 object-cover">
                             <span>${s.name || '-'}</span>
                         </div>
                     </td>
-                    <td><input type="text" class="input-text" data-idx="${i}" data-type="parent" value="${commData[`p_${i}`] || ''}" oninput="sync(this)"></td>
-                    <td><input type="text" class="input-text text-center font-mono" data-idx="${i}" data-type="phone" value="${commData[`t_${i}`] || ''}" oninput="sync(this)"></td>
-                    <td><input type="text" class="input-text" data-idx="${i}" data-type="remark" value="${commData[`r_${i}`] || ''}" oninput="sync(this)"></td>
+                    <td><input type="text" class="input-text" data-idx="${sId}" data-type="parent" value="${commData[`p_${sId}`] || ''}" oninput="sync(this)"></td>
+                    <td><input type="text" class="input-text text-center font-mono" data-idx="${sId}" data-type="phone" value="${commData[`t_${sId}`] || ''}" oninput="sync(this)"></td>
+                    <td><input type="text" class="input-text" data-idx="${sId}" data-type="remark" value="${commData[`r_${sId}`] || ''}" oninput="sync(this)"></td>
                 </tr>`;
             });
 
@@ -710,8 +724,14 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(commData));
             
             // Save to Firebase
+            if (!currentUser) {
+                if (toast) showToast('មិនទាន់ភ្ជាប់គណនី (Offline)! សូមរង់ចាំបន្តិច');
+                if(btnText) btnText.innerText = 'រក្សាទុកទិន្នន័យ';
+                return;
+            }
+
             try {
-                await setDoc(doc(db, "school_data", "parents_communication"), commData);
+                await setDoc(doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'school_data', 'parents_communication'), commData);
                 if (toast) showToast('រក្សាទុកទិន្នន័យអនឡាញបានជោគជ័យ!');
             } catch (error) {
                 console.error("Firebase error saving data:", error);
@@ -774,13 +794,15 @@
 
             for(let i=0; i<total; i++) {
                 const student = students[i];
+                const sId = student.id || i; // Use exact ID mapping for PDF render
+                
                 const rowHtml = `
                     <tr class="${i >= splitIndex ? 'tail-row' : ''}">
                         <td style="height: 35px;">${toKhmerNum(i + 1)}</td>
                         <td class="text-left font-bold pl-2">${student.name || '-'}</td>
-                        <td>${commData[`p_${i}`] || ''}</td>
-                        <td class="font-mono">${commData[`t_${i}`] || ''}</td>
-                        <td class="text-xs italic text-gray-500">${commData[`r_${i}`] || ''}</td>
+                        <td>${commData[`p_${sId}`] || ''}</td>
+                        <td class="font-mono">${commData[`t_${sId}`] || ''}</td>
+                        <td class="text-xs italic text-gray-500">${commData[`r_${sId}`] || ''}</td>
                     </tr>
                 `;
                 
@@ -843,7 +865,26 @@
         window.closePreview = closePreview;
         window.downloadPDF = downloadPDF;
 
-        window.onload = init;
+        // Initialize on Load
+        window.onload = () => {
+             // 1. Load local data for fast render
+             students = JSON.parse(localStorage.getItem('students') || '[]');
+             commData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+             
+             loadClassConfig();
+             renderWebTable();
+             lucide.createIcons();
+             
+             // 2. Setup auth and trigger online fetch
+             initAuth().then(() => {
+                 onAuthStateChanged(auth, (user) => {
+                     if (user) {
+                         currentUser = user;
+                         fetchFirebaseData();
+                     }
+                 });
+             });
+        };
     </script>
 </body>
 </html>

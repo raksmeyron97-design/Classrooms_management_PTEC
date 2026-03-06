@@ -23,7 +23,20 @@
             font-size: 12px;
         }
 
-        /* Action Panel Styling (ជំនួស Settings Panel ចាស់) */
+        /* Loading Overlay */
+        #loadingOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.9); z-index: 2000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid #0054a6; border-top: 4px solid transparent;
+            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-text { font-family: var(--title-font); color: #0054a6; font-size: 16px; }
+
+        /* Action Panel Styling */
         .action-panel {
             background-color: white;
             padding: 15px;
@@ -49,9 +62,9 @@
             transition: background-color 0.3s, opacity 0.3s;
         }
         button:hover { opacity: 0.9; }
-        .btn-print { background-color: #ea4335; } /* ពណ៌ក្រហមសម្រាប់ Print */
-        .btn-excel { background-color: #34a853; } /* ពណ៌បៃតងសម្រាប់ Excel */
-        .btn-back { background-color: #6b7280; } /* ពណ៌ប្រផេះសម្រាប់ត្រឡប់ក្រោយ */
+        .btn-print { background-color: #ea4335; } 
+        .btn-excel { background-color: #34a853; } 
+        .btn-back { background-color: #6b7280; } 
 
         /* Document/Print Area Styling */
         .print-container {
@@ -174,7 +187,7 @@
         }
 
         @media print {
-            .action-panel { display: none !important; }
+            .action-panel, #loadingOverlay { display: none !important; }
             body { 
                 background-color: white; 
                 margin: 0;
@@ -190,16 +203,22 @@
                 padding: 15mm; 
             }
         }
-
     </style>
 </head>
 <body>
 
+    <!-- Loading Overlay for Firebase fetching -->
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <p class="loading-text" id="loadingText">កំពុងរៀបចំទិន្នន័យ...</p>
+    </div>
+
     <!-- Action Buttons Panel -->
     <div class="action-panel no-print">
-        <button class="btn-back" onclick="window.location.href='student-list.html'">ត្រឡប់ក្រោយ</button>
+        <!-- Update URL back to student-listV2.html -->
+        <button class="btn-back" onclick="window.location.href='student-listV2.html'">ត្រឡប់ក្រោយ</button>
         <button id="btnPrint" class="btn-print" onclick="window.print()">បោះពុម្ព (Print)</button>
-        <button id="btnExcel" class="btn-excel" onclick="downloadExcel()">ទាញយក Excel</button>
+        <button id="btnExcel" class="btn-excel" onclick="window.downloadExcel()">ទាញយក Excel</button>
     </div>
 
     <div class="print-container">
@@ -257,6 +276,7 @@
                     </tr>
                 </thead>
                 <tbody id="studentTableBody">
+                    <!-- Rows generated via JS -->
                 </tbody>
             </table>
 
@@ -280,10 +300,145 @@
         </div>
     </div>
 
-    <script>
-        let teacherProfile = {}; // Store the profile data here
+    <!-- Firebase SDK Setup & Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // អនុគមន៍ជំនួយពីប្រព័ន្ធគ្រប់គ្រងសិស្ស
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+        window.teacherProfile = {}; // Store globally for Excel export access
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+
+        // =======================
+        // Authentication Check
+        // =======================
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+            }
+        };
+
+        initAuth().then(() => {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    loadingText.textContent = "កំពុងទាញយកព័ត៌មានគណនី...";
+                    await loadProfileDataFromFirebase();
+                    
+                    loadingText.textContent = "កំពុងទាញយកទិន្នន័យសិស្ស...";
+                    loadStudentsFromFirebase();
+                } else {
+                    alert('សូមចូលគណនីជាមុនសិន!');
+                }
+            });
+        });
+
+        // =======================
+        // Fetch Profile Data
+        // =======================
+        async function loadProfileDataFromFirebase() {
+            try {
+                const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'profile', 'data');
+                const docSnap = await getDoc(docRef);
+                
+                let profile = {};
+                if (docSnap.exists()) {
+                    profile = docSnap.data();
+                }
+
+                window.teacherProfile = {
+                    mgm1: profile.management_unit_1 || "មន្ទីរអប់រំ យុវជន និងកីឡា រាជធានី/ខេត្តព្រៃវែង",
+                    mgm2: profile.management_unit_2 || "ការិយាល័យអប់រំ យុវជន និងកីឡារដ្ឋបាលក្រុង/ស្រុក/ខណ្ឌព្រះស្ដេច",
+                    school: profile.school_name_admin || "សាលាបឋមសិក្សា កគោ",
+                    schoolCode: profile.school_code || "14090207006",
+                    className: profile.class_name ? profile.class_name + (profile.academic_year ? " ឆ្នាំសិក្សា" + profile.academic_year : "") : "ថ្នាក់ទី៦ «ក» ឆ្នាំសិក្សា២០២៤-២០២៥",
+                    teacher: profile.homeroom_teacher || "សាយ ចន្ធី",
+                    teacherGender: profile.gender || "ស្រី",
+                    teacherEdu: profile.education_level || "បរិញ្ញាប័ត្រ",
+                    teacherTraining: profile.training_level || "១២+២",
+                    teacherSeniority: profile.seniority_years || "",
+                    role: profile.manager_role || "នាយកសាលា",
+                    province: profile.province_for_date || "ព្រៃវែង"
+                };
+
+                applySettings();
+            } catch (error) {
+                console.error("Error loading profile:", error);
+            }
+        }
+
+        function applySettings() {
+            document.getElementById('outMgm1').innerText = window.teacherProfile.mgm1;
+            document.getElementById('outMgm2').innerText = window.teacherProfile.mgm2;
+            document.getElementById('outSchool').innerText = window.teacherProfile.school;
+            document.getElementById('outSchoolCode').innerText = window.teacherProfile.schoolCode;
+            document.getElementById('outClass').innerText = window.teacherProfile.className;
+            
+            document.getElementById('outTeacher').innerText = window.teacherProfile.teacher;
+            document.getElementById('outTeacherSign').innerText = window.teacherProfile.teacher;
+            
+            document.getElementById('outTeacherGender').innerText = window.teacherProfile.teacherGender;
+            document.getElementById('outTeacherEdu').innerText = window.teacherProfile.teacherEdu;
+            document.getElementById('outTeacherTraining').innerText = window.teacherProfile.teacherTraining;
+            document.getElementById('outTeacherSeniority').innerText = window.teacherProfile.teacherSeniority;
+            
+            document.getElementById('outRole').innerText = window.teacherProfile.role;
+            document.getElementById('outProvince').innerText = window.teacherProfile.province;
+            
+            updateDates();
+        }
+
+        // =======================
+        // Fetch Student Data
+        // =======================
+        function loadStudentsFromFirebase() {
+            const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
+            
+            onSnapshot(studentsRef, (snapshot) => {
+                let studentsData = [];
+                snapshot.forEach((doc) => {
+                    studentsData.push(doc.data());
+                });
+                
+                // តម្រៀបតាមពេលវេលាបញ្ចូល
+                studentsData.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                
+                renderStudentTable(studentsData);
+                loadingOverlay.style.display = 'none';
+            }, (error) => {
+                console.error("Error fetching students: ", error);
+                loadingOverlay.style.display = 'none';
+                alert("មិនអាចទាញយកទិន្នន័យបានទេ សូមពិនិត្យមើលអ៉ីនធឺណិតរបស់អ្នក!");
+            });
+        }
+
+        // =======================
+        // Table Rendering & Helpers
+        // =======================
         function calculateAge(dobStr) {
             if(!dobStr || dobStr === '-') return '-';
             const dob = new Date(dobStr);
@@ -328,69 +483,60 @@
             return dobStr;
         }
 
-        // ទាញយកទិន្នន័យពី LocalStorage របស់ប្រព័ន្ធ
-        function loadStudentsFromLocal() {
-            let studentsData = [];
-            try {
-                studentsData = JSON.parse(localStorage.getItem('students') || '[]');
-            } catch (e) {
-                console.error("Error loading students", e);
-            }
+        function renderStudentTable(studentsData) {
+            let tbodyHtml = '';
+            
+            studentsData.forEach((s, index) => {
+                let parts = s.name ? s.name.trim().split(/\s+/) : [];
+                let lastName = parts.length > 0 ? parts[0] : '';
+                let firstName = parts.length > 1 ? parts.slice(1).join(' ') : '';
+                let fullName = s.name || '';
 
-            if (studentsData.length > 0) {
-                let tbodyHtml = '';
-                studentsData.forEach((s, index) => {
-                    let parts = s.name ? s.name.trim().split(/\s+/) : [];
-                    let lastName = parts.length > 0 ? parts[0] : '';
-                    let firstName = parts.length > 1 ? parts.slice(1).join(' ') : '';
-                    let fullName = s.name || '';
+                let age = calculateAge(s.dob);
+                let birthPlace = formatLocation(s.village, s.commune, s.district, s.province);
+                let currPlace = formatLocation(s.currVillage, s.currCommune, s.currDistrict, s.currProvince) !== '-' ? 
+                                formatLocation(s.currVillage, s.currCommune, s.currDistrict, s.currProvince) : 
+                                (s.currentAddress || '-'); 
+                                
+                let fatherInfo = formatParent(s.father, s.fatherJob);
+                let motherInfo = formatParent(s.mother, s.motherJob);
+                let displayDob = formatDateDisplay(s.dob);
 
-                    let age = calculateAge(s.dob);
-                    let birthPlace = formatLocation(s.village, s.commune, s.district, s.province);
-                    let currPlace = formatLocation(s.currVillage, s.currCommune, s.currDistrict, s.currProvince) !== '-' ? 
-                                    formatLocation(s.currVillage, s.currCommune, s.currDistrict, s.currProvince) : 
-                                    (s.currentAddress || '-'); 
-                                    
-                    let fatherInfo = formatParent(s.father, s.fatherJob);
-                    let motherInfo = formatParent(s.mother, s.motherJob);
-                    let displayDob = formatDateDisplay(s.dob);
+                tbodyHtml += `<tr>
+                    <td class="center-text">${index + 1}</td>
+                    <td class="center-text">${s.id || ''}</td>
+                    <td>${lastName}</td>
+                    <td>${firstName}</td>
+                    <td>${fullName}</td>
+                    <td class="center-text">${s.gender || ''}</td>
+                    <td class="center-text">${displayDob}</td>
+                    <td class="center-text">${age !== '-' ? age : ''}</td>
+                    <td>${birthPlace}</td>
+                    <td>${fatherInfo}</td>
+                    <td>${motherInfo}</td>
+                    <td>${currPlace}</td>
+                    <td class="center-text">${s.ethnicity || ''}</td>
+                    <td>${s.specialFeatures || ''}</td>
+                    <td>${s.otherRemarks || ''}</td>
+                </tr>`;
+            });
 
+            const defaultRows = 25;
+            if (studentsData.length < defaultRows) {
+                for(let i = studentsData.length + 1; i <= defaultRows; i++) {
                     tbodyHtml += `<tr>
-                        <td class="center-text">${index + 1}</td>
-                        <td class="center-text">${s.id || ''}</td>
-                        <td>${lastName}</td>
-                        <td>${firstName}</td>
-                        <td>${fullName}</td>
-                        <td class="center-text">${s.gender || ''}</td>
-                        <td class="center-text">${displayDob}</td>
-                        <td class="center-text">${age !== '-' ? age : ''}</td>
-                        <td>${birthPlace}</td>
-                        <td>${fatherInfo}</td>
-                        <td>${motherInfo}</td>
-                        <td>${currPlace}</td>
-                        <td class="center-text">${s.ethnicity || ''}</td>
-                        <td>${s.specialFeatures || ''}</td>
-                        <td>${s.otherRemarks || ''}</td>
+                        <td class="center-text">${i}</td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
                     </tr>`;
-                });
-
-                const defaultRows = 25;
-                if (studentsData.length < defaultRows) {
-                    for(let i = studentsData.length + 1; i <= defaultRows; i++) {
-                        tbodyHtml += `<tr>
-                            <td class="center-text">${i}</td>
-                            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                        </tr>`;
-                    }
                 }
-
-                document.getElementById('studentTableBody').innerHTML = tbodyHtml;
-                return true;
             }
-            return false;
+
+            document.getElementById('studentTableBody').innerHTML = tbodyHtml;
         }
 
-        // អនុគមន៍បំប្លែងលេខអារ៉ាប់ទៅលេខខ្មែរ និងឈ្មោះខែ
+        // =======================
+        // Date Utilities
+        // =======================
         function getKhmerDate() {
             const khmerNumbers = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
             const khmerMonths = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
@@ -410,83 +556,20 @@
 
             let lunarStr = "ថ្ងៃ................ខែ..........ឆ្នាំ..........";
             const today = new Date();
-            if (typeof momentkh !== 'undefined') {
+            // window.momentkh is available via CDN link
+            if (typeof window.momentkh !== 'undefined') {
                 try {
-                    const khmerDateObj = momentkh.fromDate(today);
-                    lunarStr = momentkh.format(khmerDateObj).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                    const khmerDateObj = window.momentkh.fromDate(today);
+                    lunarStr = window.momentkh.format(khmerDateObj).replace('ពុទ្ធសករាជ', 'ព.ស.');
                 } catch (e) { console.error("Error formatting khmer date", e); }
             }
             document.getElementById('outLunarDate').innerText = lunarStr;
         }
 
-        function generateEmptyRows(count) {
-            let html = '';
-            for(let i = 1; i <= count; i++) {
-                html += `<tr>
-                    <td class="center-text">${i}</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>`;
-            }
-            document.getElementById('studentTableBody').innerHTML = html;
-        }
-
-        // ----- មុខងារទាញយកទិន្នន័យពី Profile ------------------
-        function loadProfileData() {
-            const saved = localStorage.getItem('teacherProfile');
-            let profile = {};
-            if (saved) {
-                try {
-                    profile = JSON.parse(saved);
-                } catch(e) {
-                    console.error("Error loading profile", e);
-                }
-            }
-            
-            // Map the values or fallback to default blanks
-            teacherProfile = {
-                mgm1: profile.management_unit_1 || "មន្ទីរអប់រំ យុវជន និងកីឡា រាជធានី/ខេត្តព្រៃវែង",
-                mgm2: profile.management_unit_2 || "ការិយាល័យអប់រំ យុវជន និងកីឡារដ្ឋបាលក្រុង/ស្រុក/ខណ្ឌព្រះស្ដេច",
-                school: profile.school_name_admin || "សាលាបឋមសិក្សា កគោ",
-                schoolCode: profile.school_code || "14090207006",
-                className: profile.class_name ? profile.class_name + (profile.academic_year ? " ឆ្នាំសិក្សា" + profile.academic_year : "") : "ថ្នាក់ទី៦ «ក» ឆ្នាំសិក្សា២០២៤-២០២៥",
-                teacher: profile.homeroom_teacher || "សាយ ចន្ធី",
-                teacherGender: profile.gender || "ស្រី",
-                teacherEdu: profile.education_level || "បរិញ្ញាប័ត្រ",
-                teacherTraining: profile.training_level || "១២+២",
-                teacherSeniority: profile.seniority_years || "",
-                role: profile.manager_role || "នាយកសាលា",
-                province: profile.province_for_date || "ព្រៃវែង"
-            };
-        }
-
-        function applySettings() {
-            document.getElementById('outMgm1').innerText = teacherProfile.mgm1;
-            document.getElementById('outMgm2').innerText = teacherProfile.mgm2;
-            document.getElementById('outSchool').innerText = teacherProfile.school;
-            document.getElementById('outSchoolCode').innerText = teacherProfile.schoolCode;
-            document.getElementById('outClass').innerText = teacherProfile.className;
-            
-            document.getElementById('outTeacher').innerText = teacherProfile.teacher;
-            document.getElementById('outTeacherSign').innerText = teacherProfile.teacher;
-            
-            document.getElementById('outTeacherGender').innerText = teacherProfile.teacherGender;
-            document.getElementById('outTeacherEdu').innerText = teacherProfile.teacherEdu;
-            document.getElementById('outTeacherTraining').innerText = teacherProfile.teacherTraining;
-            document.getElementById('outTeacherSeniority').innerText = teacherProfile.teacherSeniority;
-            
-            document.getElementById('outRole').innerText = teacherProfile.role;
-            document.getElementById('outProvince').innerText = teacherProfile.province;
-            
-            updateDates();
-
-            const loaded = loadStudentsFromLocal();
-            if (!loaded) {
-                generateEmptyRows(25);
-            }
-        }
-
-        // អនុគមន៍សម្រាប់ទាញយក Excel
-        function downloadExcel() {
+        // =======================
+        // Excel Export (Exposed to window)
+        // =======================
+        window.downloadExcel = function() {
             const btn = document.getElementById('btnExcel');
             const originalText = btn.innerText;
             btn.innerText = "កំពុងទាញយក...";
@@ -494,19 +577,18 @@
             
             setTimeout(() => {
                 try {
-                    // ទាញយកទិន្នន័យពី Object ដែលបាន Load ចេញពី Profile
-                    const mgm1 = teacherProfile.mgm1;
-                    const mgm2 = teacherProfile.mgm2;
-                    const school = teacherProfile.school;
-                    const schoolCode = teacherProfile.schoolCode;
-                    const className = teacherProfile.className;
-                    const teacher = teacherProfile.teacher;
-                    const gender = teacherProfile.teacherGender;
-                    const edu = teacherProfile.teacherEdu;
-                    const training = teacherProfile.teacherTraining;
-                    const seniority = teacherProfile.teacherSeniority;
-                    const province = teacherProfile.province;
-                    const role = teacherProfile.role;
+                    const mgm1 = window.teacherProfile.mgm1;
+                    const mgm2 = window.teacherProfile.mgm2;
+                    const school = window.teacherProfile.school;
+                    const schoolCode = window.teacherProfile.schoolCode;
+                    const className = window.teacherProfile.className;
+                    const teacher = window.teacherProfile.teacher;
+                    const gender = window.teacherProfile.teacherGender;
+                    const edu = window.teacherProfile.teacherEdu;
+                    const training = window.teacherProfile.teacherTraining;
+                    const seniority = window.teacherProfile.teacherSeniority;
+                    const province = window.teacherProfile.province;
+                    const role = window.teacherProfile.role;
                     
                     const lunarDate = document.getElementById('outLunarDate').innerText;
                     const solarDate = document.getElementById('outKhmerDate').innerText;
@@ -531,7 +613,6 @@
                     aoa[9] = ["ល.រ", "អត្តលេខ", "គោត្តនាម", "នាម", "គោត្តនាម នាម", "ភេទ", "ថ្ងៃខែឆ្នាំកំណើត", "អាយុ", "ទីកន្លែងកំណើត", "ឈ្មោះឪពុក និងមុខរបរ", "ឈ្មោះម្តាយ និងមុខរបរ", "អាសយដ្ឋានសព្វថ្ងៃ", "ជនជាតិដើមភាគតិច", "លក្ខណៈពិសេស", "សេចក្តីផ្សេងៗ"];
                     aoa[10] = ["១", "២", "៣", "៤", "៥", "៦", "៧", "៨", "៩", "១០", "១១", "១២", "១៣", "១៤", "១៥"];
                     
-                    // ទាញយកទិន្នន័យពីតារាង (Table)
                     const tbody = document.getElementById('studentTableBody');
                     const rows = tbody.querySelectorAll('tr');
                     rows.forEach(row => {
@@ -668,12 +749,6 @@
                 btn.disabled = false;
             }, 100);
         }
-
-        // អនុវត្តការកំណត់លើកដំបូងពេលបើក Web ទំព័រ
-        window.onload = () => {
-            loadProfileData(); // ១. ទាញយកទិន្នន័យពី Profile មកជំនួស Settings ចាស់
-            applySettings();   // ២. អនុវត្តទិន្នន័យ និងបង្ហាញតារាង
-        };
     </script>
 </body>
 </html>

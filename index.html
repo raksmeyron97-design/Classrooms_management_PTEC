@@ -117,6 +117,9 @@
                         <span id="btn-text">ចូលគណនី (Login)</span>
                         <i data-lucide="loader-2" id="btn-loader" class="hidden animate-spin ml-2 w-5 h-5"></i>
                     </button>
+                    <button id="install-btn" class="hidden bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg ml-4 shadow-md flex items-center gap-2 transition-all">
+                      <i data-lucide="download" class="w-4 h-4"></i> ដំឡើងកម្មវិធី
+                    </button>
                 </form>
             </div>
         </div>
@@ -140,7 +143,9 @@
                     </div>
 
                     <span id="user-email-display" class="hidden lg:block text-gray-500 font-normal ml-2"></span>
-                    
+                    <button id="mobile-install-btn" class="bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-1.5 px-3 rounded-md shadow-sm flex items-center gap-1.5 transition-all">
+            <i data-lucide="download" class="w-4 h-4"></i> <span class="text-xs md:text-sm">ដំឡើង App</span>
+                         </button>
                     <button id="logout-btn" class="flex items-center text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-md transition">
                         <i data-lucide="log-out" class="w-4 h-4 mr-1.5"></i> ចាកចេញ
                     </button>
@@ -320,6 +325,48 @@
             }
             document.body.removeChild(textArea);
         }
+                window.onload = renderDashboard;
+        // កូដសម្រាប់ដំណើរការការដំឡើង App (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker បានដំណើរការជោគជ័យ'))
+                    .catch(err => console.log('បរាជ័យក្នុងការដំណើរការ Service Worker:', err));
+            });
+        }
+
+        // កូដសម្រាប់គ្រប់គ្រងប៊ូតុង Install PWA ទាំងលើកុំព្យូទ័រ និងទូរស័ព្ទ
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-btn');
+        const mobileInstallBtn = document.getElementById('mobile-install-btn'); // ប៊ូតុងទូរស័ព្ទ
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // រារាំងកុំឱ្យ Browser លោតផ្ទាំងដោយឯកឯង
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // បង្ហាញប៊ូតុង Install ទាំង២ (ដក class hidden ចេញ)
+            if(installBtn) installBtn.classList.remove('hidden');
+            if(mobileInstallBtn) mobileInstallBtn.classList.remove('hidden');
+        });
+
+        // អនុវត្តសកម្មភាពនៅពេលចុចប៊ូតុងណាមួយ
+        const handleInstallClick = async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('អ្នកប្រើប្រាស់យល់ព្រមដំឡើង');
+                }
+                deferredPrompt = null;
+                // លាក់ប៊ូតុងវិញ
+                if(installBtn) installBtn.classList.add('hidden');
+                if(mobileInstallBtn) mobileInstallBtn.classList.add('hidden');
+            }
+        };
+
+        if(installBtn) installBtn.addEventListener('click', handleInstallClick);
+        if(mobileInstallBtn) mobileInstallBtn.addEventListener('click', handleInstallClick);
     </script>
 </body>
 </html>

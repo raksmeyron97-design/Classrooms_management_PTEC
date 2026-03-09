@@ -11,12 +11,13 @@
     
     <style>
         :root { 
-            --primary: #0054a6; 
+            /* Professional Dark Blue */
+            --primary: #002060; 
             --secondary: #3b82f6; 
             
             /* Design Variables */
             --bg-pattern: url('https://www.transparenttextures.com/patterns/stardust.png');
-            --text-color: #0054a6;
+            --text-color: #002060;
             --frame-color: #fbbf24;
         }
         
@@ -60,7 +61,7 @@
             transition: all 0.2s;
             font-weight: 700;
         }
-        .input-field:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(0, 84, 166, 0.1); }
+        .input-field:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(0, 32, 96, 0.1); }
 
         /* Loading Overlay */
         #loadingOverlay {
@@ -202,14 +203,14 @@
             display: grid;
             grid-template-columns: auto auto;
             justify-content: center;
-            row-gap: 20px;
+            row-gap: 5px;
             column-gap: 90px;
             width: 100%;
             margin: 0 auto;
         }
 
         /* Pyramid Positions */
-        .pos-1 { grid-column: 1 / span 2; justify-self: center; margin-bottom: 15px; }
+        .pos-1 { grid-column: 1 / span 2; justify-self: center; margin-bottom: 0px; }
         .pos-2 { grid-column: 1; justify-self: center; }
         .pos-3 { grid-column: 2; justify-self: center; }
         .pos-4 { grid-column: 1; justify-self: center; }
@@ -223,7 +224,7 @@
 
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="no-print">
-        <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-[#0054a6] mb-2"></i>
+        <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-[#002060] mb-2"></i>
         <p class="font-bold text-slate-600">កំពុងគណនា និងទាញយកទិន្នន័យ...</p>
     </div>
 
@@ -232,7 +233,7 @@
         
         <div class="max-w-3xl mx-auto w-full">
             
-            <a href="index.html" class="inline-flex items-center gap-2 text-[#0054a6] hover:text-blue-800 font-bold transition mb-6">
+            <a href="index.html" class="inline-flex items-center gap-2 text-[#002060] hover:text-[#001030] font-bold transition mb-6">
                 <i data-lucide="arrow-left" class="w-5 h-5"></i> ត្រឡប់ទៅទំព័រដើម
             </a>
 
@@ -242,13 +243,13 @@
                         <i data-lucide="award" class="w-8 h-8"></i>
                     </div>
                 </div>
-                <h1 class="kh-moul text-xl md:text-2xl text-[#0054a6] mb-2">តារាកិត្តិយស (Honor Roll)</h1>
+                <h1 class="kh-moul text-xl md:text-2xl text-[#002060] mb-2">តារាកិត្តិយស (Honor Roll)</h1>
                 <p class="text-gray-500 font-bold mb-8">សិស្សឆ្នើមទាំង ៥ នាក់ប្រចាំខែ/ឆមាស/ឆ្នាំ</p>
 
                 <!-- Type Selection -->
                 <div class="mb-6 flex justify-center w-full overflow-x-auto pb-2">
                     <div class="inline-flex bg-gray-100 p-1 rounded-xl whitespace-nowrap">
-                        <button onclick="setType('monthly')" id="btnMonthly" class="px-4 sm:px-6 py-2.5 rounded-lg bg-white shadow text-[#0054a6] font-bold transition flex items-center gap-2">
+                        <button onclick="setType('monthly')" id="btnMonthly" class="px-4 sm:px-6 py-2.5 rounded-lg bg-white shadow text-[#002060] font-bold transition flex items-center gap-2">
                             <i data-lucide="calendar" class="w-4 h-4"></i> ប្រចាំខែ
                         </button>
                         <button onclick="setType('semester')" id="btnSemester" class="px-4 sm:px-6 py-2.5 rounded-lg text-gray-500 font-bold hover:bg-white/50 transition flex items-center gap-2">
@@ -282,7 +283,7 @@
                 </div>
 
                 <div class="flex gap-4 max-w-md mx-auto">
-                    <button onclick="generateHonorRoll()" class="flex-1 px-8 py-3 bg-[#0054a6] hover:bg-[#1e40af] text-white rounded-xl font-bold transition shadow-lg flex items-center justify-center gap-2">
+                    <button onclick="generateHonorRoll()" class="flex-1 px-8 py-3 bg-[#002060] hover:bg-[#001030] text-white rounded-xl font-bold transition shadow-lg flex items-center justify-center gap-2">
                         <i data-lucide="eye" class="w-5 h-5"></i> មើលគំរូ
                     </button>
                 </div>
@@ -294,7 +295,7 @@
     <div id="settingsModal" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-2xl w-full max-w-3xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 class="kh-moul text-xl text-[#0054a6] flex items-center gap-2">
+                <h2 class="kh-moul text-xl text-[#002060] flex items-center gap-2">
                     <i data-lucide="palette" class="w-6 h-6"></i> ការកំណត់ការរចនា (Design Settings)
                 </h2>
                 <button onclick="closeSettingsModal()" class="text-gray-500 hover:text-red-500 bg-gray-100 p-2 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -335,7 +336,7 @@
 
             <div class="mt-8 flex justify-end gap-3 border-t pt-4">
                 <button onclick="closeSettingsModal()" class="px-6 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition">បោះបង់</button>
-                <button onclick="saveSettings()" class="px-6 py-2.5 rounded-xl bg-[#0054a6] text-white font-bold hover:bg-blue-800 transition flex items-center gap-2">
+                <button onclick="saveSettings()" class="px-6 py-2.5 rounded-xl bg-[#002060] text-white font-bold hover:bg-[#001030] transition flex items-center gap-2">
                     <i data-lucide="save" class="w-4 h-4"></i> រក្សាទុក
                 </button>
             </div>
@@ -349,7 +350,7 @@
             <button onclick="window.print()" class="bg-blue-600 text-white p-3 rounded-full shadow-xl hover:bg-blue-700 hover:scale-105 transition" title="បោះពុម្ភ">
                 <i data-lucide="printer" class="w-6 h-6"></i>
             </button>
-            <button onclick="openSettingsModal()" class="bg-white text-gray-600 p-3 rounded-full shadow-xl hover:text-[#0054a6] hover:bg-blue-50 hover:scale-105 transition" title="ការកំណត់រចនាប័ទ្ម">
+            <button onclick="openSettingsModal()" class="bg-white text-gray-600 p-3 rounded-full shadow-xl hover:text-[#002060] hover:bg-blue-50 hover:scale-105 transition" title="ការកំណត់រចនាប័ទ្ម">
                 <i data-lucide="palette" class="w-6 h-6"></i>
             </button>
             <button onclick="closePreview()" class="bg-slate-600 text-white p-3 rounded-full shadow-xl hover:bg-slate-700 hover:scale-105 transition" title="បិទ">
@@ -390,7 +391,6 @@
                 <h2 class="kh-moul text-[16pt] mb-2 tracking-wide drop-shadow-sm">តារាកិត្តិយស</h2>
                 <h3 class="kh-moul text-[12pt]">
                     <span id="out_period">ប្រចាំខែ...</span> 
-                    (<span id="out_class_title">...</span> )
                 </h3>
             </div>
 
@@ -545,7 +545,7 @@
             designConfig = JSON.parse(localStorage.getItem('honorRollDesign')) || {
                 bgPattern: 'stardust',
                 frameStyle: 'corners',
-                textColor: '#0054a6',
+                textColor: '#002060',
                 frameColor: '#fbbf24'
             };
 
@@ -581,7 +581,7 @@
         window.openSettingsModal = function() {
             document.getElementById('design_bg').value = designConfig.bgPattern || 'stardust';
             document.getElementById('design_frame').value = designConfig.frameStyle || 'corners';
-            document.getElementById('design_text_color').value = designConfig.textColor || '#0054a6';
+            document.getElementById('design_text_color').value = designConfig.textColor || '#002060';
             document.getElementById('design_frame_color').value = designConfig.frameColor || '#fbbf24';
 
             document.getElementById('settingsModal').classList.remove('hidden');
@@ -613,24 +613,24 @@
             const periodInputGroup = document.getElementById('periodInputGroup');
 
             [btnMonthly, btnSemester, btnYearly].forEach(btn => {
-                btn.classList.remove('bg-white', 'shadow', 'text-[#0054a6]');
+                btn.classList.remove('bg-white', 'shadow', 'text-[#002060]');
                 btn.classList.add('text-gray-500', 'hover:bg-white/50');
             });
 
             if (type === 'monthly') {
-                btnMonthly.classList.add('bg-white', 'shadow', 'text-[#0054a6]');
+                btnMonthly.classList.add('bg-white', 'shadow', 'text-[#002060]');
                 btnMonthly.classList.remove('text-gray-500', 'hover:bg-white/50');
                 periodInputGroup.style.display = 'block';
                 label.innerText = 'ជ្រើសរើសខែ';
                 window.updateMonthOptions();
             } else if (type === 'semester') {
-                btnSemester.classList.add('bg-white', 'shadow', 'text-[#0054a6]');
+                btnSemester.classList.add('bg-white', 'shadow', 'text-[#002060]');
                 btnSemester.classList.remove('text-gray-500', 'hover:bg-white/50');
                 periodInputGroup.style.display = 'block';
                 label.innerText = 'ជ្រើសរើសឆមាស';
                 window.updateMonthOptions();
             } else if (type === 'yearly') {
-                btnYearly.classList.add('bg-white', 'shadow', 'text-[#0054a6]');
+                btnYearly.classList.add('bg-white', 'shadow', 'text-[#002060]');
                 btnYearly.classList.remove('text-gray-500', 'hover:bg-white/50');
                 periodInputGroup.style.display = 'none'; 
             }
@@ -862,7 +862,6 @@
                 }
 
                 document.getElementById('out_period').textContent = periodText;
-                document.getElementById('out_class_title').textContent = classConfig.className || '';
                 
                 document.getElementById('out_manager').textContent = classConfig.managerRole || 'នាយកសាលា';
                 document.getElementById('out_teacher').textContent = classConfig.teacher || 'ឈ្មោះគ្រូ';

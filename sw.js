@@ -1,7 +1,9 @@
 const CACHE_NAME = 'ptec-Classroom-Management-v2';
 const urlsToCache = [
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 // ពេល Install វាលោតកូដថ្មីចូលភ្លាមៗ

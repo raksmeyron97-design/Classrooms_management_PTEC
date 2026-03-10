@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PTEC - ជំនួយការគ្រូបង្រៀនឌីជីថល</title>
+    
+    <!-- បន្ថែម Web Manifest និង Theme Color សម្រាប់ PWA ឱ្យដំណើរការ -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0054a6">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;700&family=Moul&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -23,10 +29,10 @@
         /* Glowing Border Animation Styles */
         .glowing-wrapper {
             position: relative;
-            padding: 3px; /* Thickness of the animated border */
+            padding: 3px; 
             border-radius: 1.3rem; 
             overflow: hidden;
-            background: rgba(255,255,255,0.1); /* Subtle fallback */
+            background: rgba(255,255,255,0.1); 
         }
 
         .glowing-wrapper::before {
@@ -39,10 +45,10 @@
             background: conic-gradient(
                 from 0deg at 50% 50%,
                 transparent 0%,
-                #ff2d75 25%, /* Neon Pink */
+                #ff2d75 25%, 
                 transparent 25%,
                 transparent 50%,
-                #4facfe 75%, /* Neon Cyan */
+                #4facfe 75%, 
                 transparent 75%,
                 transparent 100%
             );
@@ -77,7 +83,7 @@
         .glowing-inner {
             position: relative;
             background-color: white;
-            border-radius: 1.15rem; /* Matches the inner curve neatly */
+            border-radius: 1.15rem; 
             z-index: 10;
             width: 100%;
             height: 100%;
@@ -95,7 +101,6 @@
     <!-- ផ្ទាំង Login -->
     <div id="auth-section" class="fixed inset-0 z-[100] flex items-center justify-center bg-white/60 backdrop-blur-md transition-opacity duration-300">
         
-        <!-- Animated Glowing Wrapper Added Here -->
         <div class="glowing-wrapper w-full max-w-md mx-4 shadow-2xl">
             <div class="glowing-inner bg-white p-8 border border-white">
                 <div class="text-center mb-8">
@@ -117,8 +122,8 @@
                         <span id="btn-text">ចូលគណនី (Login)</span>
                         <i data-lucide="loader-2" id="btn-loader" class="hidden animate-spin ml-2 w-5 h-5"></i>
                     </button>
-                    <button id="install-btn" class="hidden bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg ml-4 shadow-md flex items-center gap-2 transition-all">
-                      <i data-lucide="download" class="w-4 h-4"></i> ដំឡើងកម្មវិធី
+                    <button id="install-btn" type="button" class="hidden w-full bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-3.5 rounded-lg shadow-md flex items-center justify-center gap-2 transition-all mt-3">
+                      <i data-lucide="download" class="w-5 h-5"></i> ដំឡើងកម្មវិធី (Install App)
                     </button>
                 </form>
             </div>
@@ -143,9 +148,9 @@
                     </div>
 
                     <span id="user-email-display" class="hidden lg:block text-gray-500 font-normal ml-2"></span>
-                    <button id="mobile-install-btn" class="bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-1.5 px-3 rounded-md shadow-sm flex items-center gap-1.5 transition-all">
-            <i data-lucide="download" class="w-4 h-4"></i> <span class="text-xs md:text-sm">ដំឡើង App</span>
-                         </button>
+                    <button id="mobile-install-btn" class="hidden bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-1.5 px-3 rounded-md shadow-sm flex items-center gap-1.5 transition-all">
+                        <i data-lucide="download" class="w-4 h-4"></i> <span class="text-xs md:text-sm">ដំឡើង App</span>
+                    </button>
                     <button id="logout-btn" class="flex items-center text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-md transition">
                         <i data-lucide="log-out" class="w-4 h-4 mr-1.5"></i> ចាកចេញ
                     </button>
@@ -325,7 +330,7 @@
             }
             document.body.removeChild(textArea);
         }
-                window.onload = renderDashboard;
+        
         // កូដសម្រាប់ដំណើរការការដំឡើង App (PWA)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -338,7 +343,7 @@
         // កូដសម្រាប់គ្រប់គ្រងប៊ូតុង Install PWA ទាំងលើកុំព្យូទ័រ និងទូរស័ព្ទ
         let deferredPrompt;
         const installBtn = document.getElementById('install-btn');
-        const mobileInstallBtn = document.getElementById('mobile-install-btn'); // ប៊ូតុងទូរស័ព្ទ
+        const mobileInstallBtn = document.getElementById('mobile-install-btn'); 
 
         window.addEventListener('beforeinstallprompt', (e) => {
             // រារាំងកុំឱ្យ Browser លោតផ្ទាំងដោយឯកឯង

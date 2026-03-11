@@ -15,7 +15,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root { --primary: #0054a6; }
-        body { font-family: 'Kantumruy Pro', sans-serif; background: #f0f4f8; min-height: 100vh; margin: 0; padding: 0; overflow-x: hidden; }
+        body { font-family: 'Kantumruy Pro', sans-serif; background: #f0f4f8; min-height: 100vh; margin: 0; padding: 0; overflow-x: hidden; scroll-behavior: smooth; }
         .kh-moul { font-family: 'Moul', cursive; }
         
         .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 10% 20%, #e0e7ff 0%, transparent 40%), radial-gradient(circle at 90% 80%, #dcfce7 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 50%); animation: moveBg 20s infinite alternate ease-in-out; }
@@ -93,6 +93,11 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Nav Links styling from 1_index */
+        .nav-link { position: relative; transition: color 0.3s; }
+        .nav-link::after { content: ''; position: absolute; width: 0; height: 2px; bottom: -4px; left: 0; background-color: var(--primary); transition: width 0.3s; }
+        .nav-link:hover::after { width: 100%; }
     </style>
 </head>
 <body>
@@ -132,34 +137,74 @@
 
     <!-- ផ្ទាំងមាតិកាដើម -->
     <div id="main-content" class="hidden opacity-0 transition-opacity duration-500">
-        <nav class="sticky top-0 z-50 px-4 md:px-8 py-3 bg-white/80 backdrop-blur-lg border-b border-white/40 shadow-sm">
-            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-                <img src="https://www.ptec.edu.kh/wp-content/uploads/2020/06/cropped-PTEC_Banner-2048x459.png" alt="PTEC Logo" class="h-8 md:h-12 w-auto">
-                
-                <div class="flex flex-wrap items-center justify-center gap-4 text-sm font-bold text-[#0054a6]">
-                    
-                    <!-- Display Teacher UID for Parents -->
-                    <div id="teacher-id-container" class="hidden items-center bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200 shadow-sm">
-                        <span class="text-xs text-gray-600 mr-2 font-medium">លេខកូដថ្នាក់៖</span>
-                        <span id="teacher-uid-display" class="font-mono font-black text-[#0054a6] text-sm tracking-wider">...</span>
-                        <button onclick="copyTeacherId()" class="ml-3 text-blue-500 hover:text-blue-700 bg-white p-1.5 rounded-md shadow-sm transition transform hover:scale-105" title="Copy លេខកូដ">
-                            <i data-lucide="copy" class="w-4 h-4"></i>
+        
+        <!-- Updated Navbar matching 1_index -->
+        <nav class="sticky top-0 z-50 px-4 md:px-8 py-3 md:py-4 bg-white/80 backdrop-blur-lg border-b border-white/40 shadow-sm transition-all duration-300">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <a href="#" onclick="window.scrollTo(0,0); return false;" class="z-10">
+                    <img src="https://www.ptec.edu.kh/wp-content/uploads/2020/06/cropped-PTEC_Banner-2048x459.png" alt="PTEC Logo" class="h-8 md:h-12 w-auto">
+                </a>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-6 lg:space-x-8 text-sm font-bold items-center">
+                    <a href="#" onclick="window.scrollTo(0,0); return false;" class="nav-link text-[#0054a6] hover:text-blue-700">ទំព័រដើម</a>
+                    <a href="App/Tutorial/tutorial.html" target="_blank" class="nav-link text-[#0054a6] hover:text-blue-700 flex items-center gap-1">
+                        <i data-lucide="play-circle" class="w-4 h-4"></i> វីដេអូណែនាំ
+                    </a>
+                    <a href="https://www.ptec.edu.kh/" target="_blank" class="nav-link text-[#0054a6] hover:text-blue-700 flex items-center gap-1">
+                        គេហទំព័រវិទ្យាស្ថាន <i data-lucide="external-link" class="w-3 h-3"></i>
+                    </a>
+
+                    <!-- User and Dashboard Tools -->
+                    <div id="teacher-id-container" class="hidden items-center ml-2">
+                        <button onclick="copyTeacherId()" class="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-md transition font-bold shadow-sm" title="Copy លេខកូដថ្នាក់">
+                            <i data-lucide="copy" class="w-4 h-4"></i> Copy កូដថ្នាក់
                         </button>
                     </div>
 
-                    <span id="user-email-display" class="hidden lg:block text-gray-500 font-normal ml-2"></span>
-                    <button id="mobile-install-btn" class="hidden bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-1.5 px-3 rounded-md shadow-sm flex items-center gap-1.5 transition-all">
-                        <i data-lucide="download" class="w-4 h-4"></i> <span class="text-xs md:text-sm">ដំឡើង App</span>
+                    <button id="nav-install-btn" class="hidden bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center gap-2 transition-all">
+                        <i data-lucide="download" class="w-4 h-4"></i> ដំឡើងកម្មវិធី
                     </button>
-                    <button id="logout-btn" class="flex items-center text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-md transition">
+
+                    <button id="logout-btn" class="flex items-center text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-md transition font-bold ml-2">
                         <i data-lucide="log-out" class="w-4 h-4 mr-1.5"></i> ចាកចេញ
                     </button>
                 </div>
+
+                <!-- Mobile menu button -->
+                <button id="mobile-menu-btn" class="md:hidden text-[#0054a6] focus:outline-none p-2 rounded-lg hover:bg-blue-50 z-10" onclick="toggleMobileMenu()">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden flex-col space-y-4 pt-4 pb-2 text-sm font-bold items-center border-t border-gray-200 mt-3 animate-fade-in-down">
+                <a href="#" onclick="window.scrollTo(0,0); toggleMobileMenu(); return false;" class="text-[#0054a6] hover:bg-blue-50 hover:text-blue-700 w-full text-center py-2 rounded-lg transition-colors">ទំព័រដើម</a>
+                <a href="App/Tutorial/tutorial.html" target="_blank" onclick="toggleMobileMenu();" class="text-[#0054a6] hover:bg-blue-50 hover:text-blue-700 flex items-center justify-center gap-2 w-full py-2 rounded-lg transition-colors">
+                    <i data-lucide="play-circle" class="w-4 h-4"></i> វីដេអូណែនាំ
+                </a>
+                <a href="https://www.ptec.edu.kh/" target="_blank" onclick="toggleMobileMenu()" class="text-[#0054a6] hover:bg-blue-50 hover:text-blue-700 flex items-center justify-center gap-2 w-full py-2 rounded-lg transition-colors">
+                    គេហទំព័រវិទ្យាស្ថាន <i data-lucide="external-link" class="w-3 h-3"></i>
+                </a>
+                
+                <div id="mobile-teacher-id-container" class="hidden w-full">
+                    <button onclick="copyTeacherId()" class="flex items-center justify-center gap-2 w-full bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 py-2 rounded-lg transition-colors font-bold" title="Copy លេខកូដថ្នាក់">
+                        <i data-lucide="copy" class="w-4 h-4"></i> Copy កូដថ្នាក់
+                    </button>
+                </div>
+
+                <button id="mobile-install-btn" class="hidden w-full bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center justify-center gap-2 transition-all">
+                    <i data-lucide="download" class="w-4 h-4"></i> ដំឡើងកម្មវិធី
+                </button>
+                
+                <button id="mobile-logout-btn" class="flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 w-full py-2 rounded-lg transition font-bold">
+                    <i data-lucide="log-out" class="w-4 h-4 mr-1.5"></i> ចាកចេញ
+                </button>
             </div>
         </nav>
 
         <header class="pt-8 pb-8 text-center px-6">
-            <h1 class="kh-moul text-2xl md:text-3xl text-[#0054a6] mb-4">ប្រព័ន្ធជំនួយការគ្រូបង្រៀនឌីជីថល</h1>
+            <h1 class="kh-moul text-2xl md:text-3xl text-[#0054a6] mb-4">ប្រព័ន្ធគ្រប់គ្រងថ្នាក់រៀន</h1>
             <p class="text-[#0054a6]/80 text-sm md:text-lg font-semibold italic">គ្រប់គ្រងព័ត៌មានសិស្ស និងការបង្រៀន</p>
         </header>
 
@@ -172,6 +217,23 @@
 
     <!-- Script បង្កើតម៉ឺនុយ -->
     <script>
+        // Toggle Mobile Menu Function
+        window.toggleMobileMenu = function() {
+            const menu = document.getElementById('mobile-menu');
+            const btn = document.getElementById('mobile-menu-btn');
+            
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                menu.classList.add('flex');
+                btn.innerHTML = '<i data-lucide="x" class="w-6 h-6"></i>';
+            } else {
+                menu.classList.add('hidden');
+                menu.classList.remove('flex');
+                btn.innerHTML = '<i data-lucide="menu" class="w-6 h-6"></i>';
+            }
+            lucide.createIcons();
+        }
+
         const apps = [
             { name: 'បញ្ចូលព័ត៌មានសិស្ស', icon: 'user-plus', url: 'enrollment_V2.html', color: 'from-blue-500 to-blue-600' },
             { name: 'បញ្ជីឈ្មោះសិស្ស', icon: 'users', url: 'student-list.html', color: 'from-purple-500 to-purple-600' },
@@ -182,14 +244,16 @@
             { name: 'វិភាគទិន្នន័យសរុប', icon: 'line-chart', url: 'data_analysing_score_student.html', color: 'from-rose-600 to-pink-700'},
             { name: 'វិភាគតាមមុខវិជ្ជា', icon: 'target', url: 'data_analyses_by_subject.html', color: 'from-blue-600 to-indigo-700' },
             { name: 'រដ្ឋបាលថ្នាក់រៀន', icon: 'folder-open', url: 'Main_adr.html', color: 'from-blue-700 to-indigo-800' },
-            { name: 'របាយការណ៍មាតាបិតា', icon: 'book-open-check', url: 'parent-report.html', color: 'from-sky-500 to-blue-600' },
-            { name: 'លេខកូដសិស្ស (ឪពុកម្តាយ)', icon: 'key', url: 'student-codes.html', color: 'from-emerald-500 to-teal-600' },
             { name: 'បញ្ចូលពិន្ទុកិច្ចការផ្ទះ', icon: 'book-marked', url: 'enter-homework-score.html', color: 'from-indigo-500 to-indigo-600' },
             { name: 'បញ្ជីវត្តមានប្រចាំខែ', icon: 'calendar-check', url: 'attendance-1.html', color: 'from-pink-500 to-pink-600' },
             { name: 'តារាងកិត្តិយស', icon: 'award', url: 'honor-roll.html', color: 'from-rose-500 to-rose-600' },
             { name: 'បញ្ជីបូកសរុបលទ្ធផលប្រចាំឆ្នាំ', icon: 'pie-chart', url: 'Years_score_subject.html', color: 'from-cyan-500 to-cyan-600' },
             { name: 'សៀវភៅតាមដាន', icon: 'book-open', url: 'student-tracking.html', color: 'from-sky-500 to-sky-600' },
             { name: 'បញ្ជីសារពើភ័ណ្ឌ', icon: 'package', url: 'inventory.html', color: 'from-amber-500 to-amber-600' },
+            { name: 'ទាញយកកាតសម្គាល់ខ្លួនសិស្ស', icon: 'contact-2', url: 'print-id-card.html', color: 'from-indigo-600 to-blue-700' },
+            { name: 'ផ្ញើការជូនដំណឹង', icon: 'bell-ring', url: 'teacher-notifications.html', color: 'from-amber-400 to-orange-500' },
+            { name: 'របាយការណ៍មាតាបិតា', icon: 'book-open-check', url: 'parent-report.html', color: 'from-sky-500 to-blue-600' },
+            { name: 'លេខកូដសិស្ស (ឪពុកម្តាយ)', icon: 'key', url: 'student-codes.html', color: 'from-emerald-500 to-teal-600' },
             { name: 'ព័ត៌មានគណនី', icon: 'user-cog', url: 'profile.html', color: 'from-slate-500 to-slate-600' }
         ];
 
@@ -249,9 +313,10 @@
         const btnLoader = document.getElementById('btn-loader');
         const loginBtn = document.getElementById('login-btn');
         const logoutBtn = document.getElementById('logout-btn');
-        const userEmailDisplay = document.getElementById('user-email-display');
-        const teacherUidDisplay = document.getElementById('teacher-uid-display');
+        const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+        
         const teacherIdContainer = document.getElementById('teacher-id-container');
+        const mobileTeacherIdContainer = document.getElementById('mobile-teacher-id-container');
 
         let currentTeacherUid = '';
 
@@ -262,12 +327,17 @@
                 mainContent.classList.remove('hidden');
                 setTimeout(() => mainContent.classList.remove('opacity-0'), 50); 
                 
-                userEmailDisplay.textContent = user.email || 'Teacher';
-                
                 currentTeacherUid = user.uid;
-                teacherUidDisplay.textContent = currentTeacherUid;
+                
+                // Update Desktop Nav UI
                 teacherIdContainer.classList.remove('hidden');
                 teacherIdContainer.classList.add('flex');
+                
+                // Update Mobile Nav UI
+                if(mobileTeacherIdContainer) {
+                    mobileTeacherIdContainer.classList.remove('hidden');
+                    mobileTeacherIdContainer.classList.add('flex');
+                }
 
             } else {
                 mainContent.classList.add('hidden');
@@ -303,11 +373,13 @@
         });
 
         // Handle Logout
-        logoutBtn.addEventListener('click', () => {
+        const handleLogout = () => {
             if(confirm('តើអ្នកពិតជាចង់ចាកចេញពីប្រព័ន្ធមែនទេ?')) {
                 signOut(auth).catch((error) => console.error("Sign Out Error", error));
             }
-        });
+        };
+        logoutBtn.addEventListener('click', handleLogout);
+        if(mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', handleLogout);
 
         window.copyTeacherId = function() {
             if (!currentTeacherUid) return;
@@ -340,9 +412,12 @@
             });
         }
 
-        // កូដសម្រាប់គ្រប់គ្រងប៊ូតុង Install PWA ទាំងលើកុំព្យូទ័រ និងទូរស័ព្ទ
+        // ==========================================
+        // កូដថ្មីកែសម្រួលសម្រាប់ប៊ូតុង Install (PWA)
+        // ==========================================
         let deferredPrompt;
         const installBtn = document.getElementById('install-btn');
+        const navInstallBtn = document.getElementById('nav-install-btn');
         const mobileInstallBtn = document.getElementById('mobile-install-btn'); 
 
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -350,27 +425,51 @@
             e.preventDefault();
             deferredPrompt = e;
             
-            // បង្ហាញប៊ូតុង Install ទាំង២ (ដក class hidden ចេញ)
+            // បង្ហាញប៊ូតុង Install ទាំងអស់ (ដក class hidden ចេញ)
             if(installBtn) installBtn.classList.remove('hidden');
+            if(navInstallBtn) navInstallBtn.classList.remove('hidden');
             if(mobileInstallBtn) mobileInstallBtn.classList.remove('hidden');
+        });
+
+        // ប្រើសម្រាប់លាក់ប៊ូតុង ពេលកម្មវិធីត្រូវបានដំឡើងជោគជ័យ
+        window.addEventListener('appinstalled', () => {
+            console.log('កម្មវិធីត្រូវបានដំឡើងជោគជ័យ (PWA installed)');
+            if(installBtn) installBtn.classList.add('hidden');
+            if(navInstallBtn) navInstallBtn.classList.add('hidden');
+            if(mobileInstallBtn) mobileInstallBtn.classList.add('hidden');
+            deferredPrompt = null;
         });
 
         // អនុវត្តសកម្មភាពនៅពេលចុចប៊ូតុងណាមួយ
         const handleInstallClick = async () => {
-            if (deferredPrompt) {
+            // បើសិនជា Prompt អត់មាន (ដោយសារគេធ្លាប់ចុចហើយ) ប្រាប់ឱ្យ Refresh
+            if (!deferredPrompt) {
+                alert('មុខងារដំឡើងត្រូវបានផ្អាកជាបណ្ដោះអាសន្ន។\\n\\nសូមធ្វើការ Refresh (ទាញទំព័រចុះក្រោម ឬចុច F5) ទំព័រនេះម្ដងទៀត ដើម្បីអាចដំឡើងបាន។');
+                return;
+            }
+
+            try {
+                // បង្ហាញផ្ទាំងសួរអ្នកប្រើប្រាស់
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
+                
                 if (outcome === 'accepted') {
                     console.log('អ្នកប្រើប្រាស់យល់ព្រមដំឡើង');
+                    // ពេលយល់ព្រម Event 'appinstalled' ខាងលើនឹងលាក់ប៊ូតុង
+                } else {
+                    console.log('អ្នកប្រើប្រាស់បានបដិសេធ (Cancel)');
+                    // បើចុច Cancel ប៊ូតុងនៅរក្សាទុកដដែល ដើម្បីឱ្យគេដឹងថាមានមុខងារនេះ
                 }
-                deferredPrompt = null;
-                // លាក់ប៊ូតុងវិញ
-                if(installBtn) installBtn.classList.add('hidden');
-                if(mobileInstallBtn) mobileInstallBtn.classList.add('hidden');
+            } catch (err) {
+                console.error('មានបញ្ហាក្នុងការបង្ហាញផ្ទាំងដំឡើង:', err);
             }
+
+            // Prompt អាចប្រើបានតែម្តងគត់ ទោះយល់ព្រម ឬបដិសេធ ក៏ត្រូវ clear វាចោល
+            deferredPrompt = null;
         };
 
         if(installBtn) installBtn.addEventListener('click', handleInstallClick);
+        if(navInstallBtn) navInstallBtn.addEventListener('click', handleInstallClick);
         if(mobileInstallBtn) mobileInstallBtn.addEventListener('click', handleInstallClick);
     </script>
 </body>

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - គ្រប់គ្រងការជូនដំណឹង</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root { --primary: #0054a6; }
+        body { font-family: 'Battambang', cursive; background: #f4f7f9; min-height: 100vh; margin: 0; color: #1e293b; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            outline: none;
+            background: #f8fafc;
+            font-weight: 700;
+            color: #1e293b;
+            transition: all 0.3s ease;
+        }
+        .input-field:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(0, 84, 166, 0.1); }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        #globalLoader { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+    </style>
+</head>
+<body class="pb-10">
+
+    <!-- Loading Overlay -->
+    <div id="globalLoader">
+        <i data-lucide="loader-2" class="w-12 h-12 text-[#0054a6] animate-spin mb-4"></i>
+        <h2 class="kh-moul text-[#0054a6] text-xl">កំពុងរៀបចំទិន្នន័យ...</h2>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="bg-[#0054a6] text-white p-4 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto max-w-6xl flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="flex items-center gap-2 hover:text-yellow-400 transition font-bold text-sm bg-white/10 px-3 py-1.5 rounded-lg">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> ទំព័រដើម
+                </a>
+                <h1 class="kh-moul text-lg hidden sm:block">ប្រព័ន្ធផ្ញើការជូនដំណឹង (Notifications)</h1>
+            </div>
+            <div class="bg-white/20 p-2 rounded-full">
+                <i data-lucide="bell-ring" class="w-5 h-5 text-yellow-300 animate-pulse"></i>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto max-w-6xl px-4 mt-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Column: Compose Notification -->
+            <div class="lg:col-span-5">
+                <div class="glass-card p-6 border-t-4 border-[#0054a6]">
+                    <div class="flex items-center gap-3 mb-6 border-b pb-4">
+                        <div class="bg-blue-100 p-2 rounded-lg text-[#0054a6]"><i data-lucide="send" class="w-5 h-5"></i></div>
+                        <h2 class="kh-moul text-lg text-gray-800">បង្កើតសារជូនដំណឹងថ្មី</h2>
+                    </div>
+
+                    <form id="notifForm" onsubmit="window.sendNotification(event)" class="space-y-4">
+                        
+                        <!-- Target Selection -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">ផ្ញើទៅកាន់៖</label>
+                            <select id="notifTarget" required class="input-field cursor-pointer">
+                                <option value="all" class="font-bold text-[#0054a6]">👨‍👩‍👧‍👦 សិស្សទាំងអស់ក្នុងថ្នាក់</option>
+                                <optgroup label="ជ្រើសរើសសិស្សជាក់លាក់៖" id="studentListGroup">
+                                    <!-- Populated by JS -->
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <!-- Notification Type -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">ប្រភេទសារ៖</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="notifType" value="info" checked class="peer hidden">
+                                    <div class="text-center p-2 rounded-xl border-2 border-gray-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 text-blue-600 font-bold text-xs transition">
+                                        <i data-lucide="info" class="w-5 h-5 mx-auto mb-1"></i> ព័ត៌មានទូទៅ
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="notifType" value="alert" class="peer hidden">
+                                    <div class="text-center p-2 rounded-xl border-2 border-gray-200 peer-checked:border-red-500 peer-checked:bg-red-50 text-red-600 font-bold text-xs transition">
+                                        <i data-lucide="alert-triangle" class="w-5 h-5 mx-auto mb-1"></i> បន្ទាន់/ព្រមាន
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="notifType" value="success" class="peer hidden">
+                                    <div class="text-center p-2 rounded-xl border-2 border-gray-200 peer-checked:border-green-500 peer-checked:bg-green-50 text-green-600 font-bold text-xs transition">
+                                        <i data-lucide="award" class="w-5 h-5 mx-auto mb-1"></i> ការសរសើរ
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Title -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">ចំណងជើង៖</label>
+                            <input type="text" id="notifTitle" required placeholder="ឧ. ការប្រជុំមាតាបិតាសិស្ស, លទ្ធផលសិក្សា..." class="input-field text-sm">
+                        </div>
+
+                        <!-- Message Body -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">ខ្លឹមសារលម្អិត៖</label>
+                            <textarea id="notifMessage" required rows="4" placeholder="សូមសរសេរខ្លឹមសារសារនៅទីនេះ..." class="input-field text-sm resize-none"></textarea>
+                        </div>
+
+                        <button type="submit" id="btnSubmit" class="w-full bg-[#0054a6] hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 mt-4">
+                            <i data-lucide="paperclip" class="w-5 h-5"></i> ផ្ញើការជូនដំណឹងឥឡូវនេះ
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Column: History -->
+            <div class="lg:col-span-7 flex flex-col h-[calc(100vh-8rem)]">
+                <div class="glass-card flex-1 flex flex-col overflow-hidden border border-gray-200">
+                    <div class="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                        <h2 class="kh-moul text-gray-800 text-base flex items-center gap-2">
+                            <i data-lucide="history" class="w-5 h-5 text-gray-500"></i> ប្រវត្តិសារដែលបានផ្ញើ
+                        </h2>
+                        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold" id="notifCount">សរុប: 0</span>
+                    </div>
+
+                    <div id="historyList" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-slate-50/30">
+                        <!-- History Items Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const PTEC_APP_ID = "ptec-app";
+
+        let currentUserId = null;
+        let studentsList = [];
+        let notificationsList = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    await loadStudents();
+                    await loadNotifications();
+                    document.getElementById('globalLoader').style.display = 'none';
+                } else {
+                    // Fallback if not logged in
+                    try {
+                        await signInAnonymously(auth);
+                    } catch (e) {
+                        alert("មិនអាចភ្ជាប់ទៅកាន់ប្រព័ន្ធបានទេ!");
+                        document.getElementById('globalLoader').style.display = 'none';
+                    }
+                }
+            });
+        });
+
+        // 1. Fetch Students for the Dropdown
+        async function loadStudents() {
+            try {
+                const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUserId, 'students');
+                const snap = await getDocs(studentsRef);
+                studentsList = [];
+                snap.forEach(doc => {
+                    studentsList.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort by name
+                studentsList.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+                const groupEl = document.getElementById('studentListGroup');
+                groupEl.innerHTML = studentsList.map(s => `<option value="${s.id}">${s.name} (ID: ${s.id})</option>`).join('');
+            } catch (error) {
+                console.error("Error loading students:", error);
+            }
+        }
+
+        // 2. Fetch Notifications History
+        async function loadNotifications() {
+            const listEl = document.getElementById('historyList');
+            const countEl = document.getElementById('notifCount');
+            
+            listEl.innerHTML = `<div class="text-center py-10"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto text-gray-400"></i></div>`;
+            lucide.createIcons();
+
+            try {
+                const notifRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUserId, 'notifications');
+                const snap = await getDocs(notifRef);
+                
+                notificationsList = [];
+                snap.forEach(doc => {
+                    notificationsList.push({ docId: doc.id, ...doc.data() });
+                });
+
+                // Sort by date descending (newest first)
+                notificationsList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                
+                countEl.innerText = `សរុប: ${notificationsList.length}`;
+                renderHistory();
+
+            } catch (error) {
+                console.error("Error loading notifications:", error);
+                listEl.innerHTML = `<div class="text-center py-10 text-red-500 font-bold">មានបញ្ហាក្នុងការទាញយកទិន្នន័យ</div>`;
+            }
+        }
+
+        // 3. Render History UI
+        function renderHistory() {
+            const listEl = document.getElementById('historyList');
+            
+            if (notificationsList.length === 0) {
+                listEl.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-gray-400 opacity-60 pt-10">
+                        <i data-lucide="mail-x" class="w-16 h-16 mb-3"></i>
+                        <p class="font-bold text-sm">មិនទាន់មានប្រវត្តិផ្ញើសារទេ</p>
+                    </div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            let html = '';
+            notificationsList.forEach(n => {
+                // Determine styling based on type
+                let icon = 'info', colorClass = 'text-blue-600 bg-blue-100 border-blue-200';
+                if (n.type === 'alert') { icon = 'alert-triangle'; colorClass = 'text-red-600 bg-red-100 border-red-200'; }
+                if (n.type === 'success') { icon = 'award'; colorClass = 'text-green-600 bg-green-100 border-green-200'; }
+
+                // Determine Target Label
+                let targetLabel = 'សិស្សទាំងអស់';
+                let targetBadgeColor = 'bg-indigo-100 text-indigo-700';
+                if (n.target !== 'all') {
+                    const st = studentsList.find(s => s.id === n.target);
+                    targetLabel = st ? `ផ្ញើទៅ៖ ${st.name}` : `ផ្ញើទៅ៖ ID ${n.target}`;
+                    targetBadgeColor = 'bg-purple-100 text-purple-700';
+                }
+
+                // Format Date
+                const d = new Date(n.createdAt);
+                const dateStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+
+                html += `
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition relative group">
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${colorClass}">
+                                <i data-lucide="${icon}" class="w-6 h-6"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 mb-1">
+                                    <h3 class="font-bold text-gray-800 text-sm truncate">${n.title}</h3>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${targetBadgeColor}">${targetLabel}</span>
+                                </div>
+                                <p class="text-xs text-gray-500 leading-relaxed mb-2">${n.message}</p>
+                                <span class="text-[10px] text-gray-400 font-mono"><i data-lucide="clock" class="w-3 h-3 inline mr-1"></i>${dateStr}</span>
+                            </div>
+                        </div>
+                        <!-- Delete Button (Shows on Hover) -->
+                        <button onclick="window.deleteNotification('${n.docId}')" class="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition opacity-0 group-hover:opacity-100" title="លុបសារនេះ">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            listEl.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // 4. Send Notification
+        window.sendNotification = async function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btnSubmit');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> កំពុងផ្ញើ...';
+            btn.disabled = true;
+            lucide.createIcons();
+
+            const target = document.getElementById('notifTarget').value;
+            const title = document.getElementById('notifTitle').value.trim();
+            const message = document.getElementById('notifMessage').value.trim();
+            const type = document.querySelector('input[name="notifType"]:checked').value;
+
+            try {
+                const notifRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUserId, 'notifications');
+                await addDoc(notifRef, {
+                    target: target,
+                    title: title,
+                    message: message,
+                    type: type,
+                    createdAt: new Date().toISOString()
+                });
+
+                // Reset form
+                document.getElementById('notifForm').reset();
+                // Select 'info' radio explicitly after reset
+                document.querySelector('input[value="info"]').checked = true;
+
+                // Reload history
+                await loadNotifications();
+
+                // Success Toast
+                alert('✅ បានផ្ញើសារជូនដំណឹងដោយជោគជ័យ!');
+
+            } catch (error) {
+                console.error("Error sending notification:", error);
+                alert("បរាជ័យក្នុងការផ្ញើសារ។ សូមសាកល្បងម្តងទៀត។");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
+        // 5. Delete Notification
+        window.deleteNotification = async function(docId) {
+            if (!confirm('តើអ្នកពិតជាចង់លុបសារជូនដំណឹងនេះមែនទេ? (មាតាបិតានឹងលែងឃើញវានៅក្នុង Portal ទៀតហើយ)')) return;
+
+            document.getElementById('globalLoader').style.display = 'flex';
+            
+            try {
+                await deleteDoc(doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUserId, 'notifications', docId));
+                await loadNotifications();
+            } catch (error) {
+                console.error("Error deleting:", error);
+                alert("មិនអាចលុបបានទេ!");
+            } finally {
+                document.getElementById('globalLoader').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

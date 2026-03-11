@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0066cc" />
+      <stop offset="100%" stop-color="#003366" />
+    </linearGradient>
+    
+    <linearGradient id="book-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e2e8f0" />
+    </linearGradient>
+  </defs>
+  
+  <rect x="8" y="8" width="176" height="176" rx="40" fill="url(#bg-grad)" />
+  
+  <rect x="40" y="36" width="112" height="120" rx="16" fill="none" stroke="url(#book-grad)" stroke-width="8" />
+  
+  <line x1="84" y1="46" x2="108" y2="46" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.6" />
+  <circle cx="96" cy="144" r="4" fill="#ffffff" opacity="0.8" />
+  
+  <line x1="96" y1="64" x2="96" y2="120" stroke="#ffffff" stroke-width="4" stroke-linecap="round" />
+  
+  <path d="M 96 120 Q 72 128 56 112 L 56 72 Q 72 88 96 68" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <path d="M 96 120 Q 120 128 136 112 L 136 72 Q 120 88 96 68" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <line x1="68" y1="88" x2="86" y2="88" stroke="#4facfe" stroke-width="4" stroke-linecap="round" />
+  <line x1="68" y1="100" x2="80" y2="100" stroke="#ff2d75" stroke-width="4" stroke-linecap="round" />
+  
+  <line x1="124" y1="88" x2="106" y2="88" stroke="#4facfe" stroke-width="4" stroke-linecap="round" />
+  <line x1="124" y1="100" x2="112" y2="100" stroke="#ff2d75" stroke-width="4" stroke-linecap="round" />
+</svg>

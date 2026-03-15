@@ -121,7 +121,6 @@
                             <div class="flex bg-slate-100 p-1 rounded-xl">
                                 <button onclick="window.setType('monthly')" id="btnMonthly" class="flex-1 py-2 rounded-lg bg-white shadow text-[#0054a6] font-bold transition text-sm">ប្រចាំខែ</button>
                                 <button onclick="window.setType('semester')" id="btnSemester" class="flex-1 py-2 rounded-lg text-slate-500 font-bold hover:bg-white/50 transition text-sm">ប្រចាំឆមាស</button>
-                                <button onclick="window.setType('yearly')" id="btnYearly" class="flex-1 py-2 rounded-lg text-slate-500 font-bold hover:bg-white/50 transition text-sm">ប្រចាំឆ្នាំ</button>
                             </div>
                         </div>
 
@@ -315,8 +314,8 @@
         let rankedStudentsData = [];
         let selectedSemesterMonths = ['nov', 'dec', 'jan', 'feb'];
         let allMonthsScoresCache = {};
-        let currentType = 'monthly'; // default
-        let uploadedTemplateUrl = ''; 
+        let currentType = 'monthly';
+        let uploadedTemplateUrl = ''; // Path or Base64 of image
 
         const allMonthsMap = [
             { id: 'nov', label: 'វិច្ឆិកា', isNextYear: false }, { id: 'dec', label: 'ធ្នូ', isNextYear: false },
@@ -346,7 +345,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            window.updateMonthOptions(); 
+            window.updateMonthOptions(); // Auto select current month right on load
             
             const initAuth = async () => {
                 try {
@@ -366,6 +365,7 @@
                     currentUser = user;
                     try { 
                         await fetchProfile(); 
+                        // ទាញយកទិន្នន័យដោយស្វ័យប្រវត្តិពេល Login រួចរាល់
                         await window.loadRankings(); 
                     } catch (e) { console.error(e); }
                 }
@@ -439,10 +439,12 @@
                     if (scoresSnap.exists()) {
                         parsedScores = scoresSnap.data();
                     } else {
+                        // Legacy fallback ដូច subject-scores.html
                         const oldSnap = await getDoc(doc(db, "scores", docId)).catch(() => null);
                         if (oldSnap && oldSnap.exists()) parsedScores = oldSnap.data();
                     }
                 }
+                // Fallback Local Storage
                 if (Object.keys(parsedScores).length === 0) {
                     const localScores = localStorage.getItem(`scores_${docId}`);
                     if (localScores) parsedScores = JSON.parse(localScores);
@@ -454,45 +456,32 @@
             }
         }
 
-        // --- Centralized Averages Logic (Replaced to support Yearly) ---
-        function getMonthsAvg(studentId, monthsArr) {
+        function getMonthlyAverageForStudent(studentId) {
+            if (!selectedSemesterMonths || selectedSemesterMonths.length === 0) return 0;
             let sumOfAverages = 0;
-            monthsArr.forEach(m => {
-                const sScores = (allMonthsScoresCache[m] || {})[studentId];
-                if (sScores) {
-                    let mSum = 0; let mCount = 0;
+            
+            selectedSemesterMonths.forEach(month => {
+                const studentScores = (allMonthsScoresCache[month] || {})[studentId];
+                if (studentScores) {
+                    let mSum = 0; 
+                    let mCount = 0;
                     config.monthly.columns.forEach(key => {
-                        const val = sScores[key];
+                        const val = studentScores[key];
                         if (val !== null && val !== undefined && val !== "") {
                             const numVal = parseFloat(val);
-                            if (!isNaN(numVal)) { mSum += numVal; mCount++; }
+                            if (!isNaN(numVal)) { 
+                                mSum += numVal; 
+                                mCount++; 
+                            }
                         }
                     });
-                    if (mCount > 0) sumOfAverages += (mSum / mCount);
+                    // រូបមន្តបូកមធ្យមភាគ១០០%ដូច subject-scores.html
+                    if (mCount > 0) {
+                        sumOfAverages += (mSum / mCount);
+                    }
                 }
             });
-            return monthsArr.length > 0 ? sumOfAverages / monthsArr.length : 0;
-        }
-
-        function getSemAvg(studentId, semId) {
-            const semScores = (allMonthsScoresCache[semId] || {})[studentId];
-            let sum = 0; let count = 0;
-            if (semScores) {
-                config.semester.columns.forEach(key => {
-                    const raw = semScores[key];
-                    if (raw !== null && raw !== undefined && raw !== "") {
-                        const val = parseFloat(raw);
-                        if (!isNaN(val)) { sum += val; count++; }
-                    }
-                });
-            }
-            const examAvg = count > 0 ? (sum / count) : 0;
-            const months = semId === 'sem1' ? ['nov', 'dec', 'jan', 'feb'] : ['mar', 'apr', 'may', 'jun'];
-            const monthlyAvg = getMonthsAvg(studentId, months);
-            
-            let semAvg = (examAvg + monthlyAvg) / 2;
-            if (count === 0 && monthlyAvg === 0) semAvg = 0;
-            return { semAvg, sum };
+            return sumOfAverages / selectedSemesterMonths.length;
         }
 
         // --- Core Application Logic ---
@@ -501,22 +490,24 @@
             currentType = type;
             const btnMonthly = document.getElementById('btnMonthly');
             const btnSemester = document.getElementById('btnSemester');
-            const btnYearly = document.getElementById('btnYearly');
             const monthGroup = document.getElementById('monthInputGroup');
             const semGroup = document.getElementById('semesterInputGroup');
 
-            btnMonthly.className = "flex-1 py-2 rounded-lg font-bold transition text-sm " + (type === 'monthly' ? "bg-white shadow text-[#0054a6]" : "text-slate-500 hover:bg-white/50");
-            btnSemester.className = "flex-1 py-2 rounded-lg font-bold transition text-sm " + (type === 'semester' ? "bg-white shadow text-[#0054a6]" : "text-slate-500 hover:bg-white/50");
-            btnYearly.className = "flex-1 py-2 rounded-lg font-bold transition text-sm " + (type === 'yearly' ? "bg-white shadow text-[#0054a6]" : "text-slate-500 hover:bg-white/50");
-
             if (type === 'monthly') {
+                btnMonthly.classList.add('bg-white', 'shadow', 'text-[#0054a6]');
+                btnMonthly.classList.remove('text-slate-500', 'hover:bg-white/50');
+                btnSemester.classList.remove('bg-white', 'shadow', 'text-[#0054a6]');
+                btnSemester.classList.add('text-slate-500', 'hover:bg-white/50');
                 monthGroup.classList.remove('hidden'); semGroup.classList.add('hidden');
-            } else if (type === 'semester') {
+            } else {
+                btnSemester.classList.add('bg-white', 'shadow', 'text-[#0054a6]');
+                btnSemester.classList.remove('text-slate-500', 'hover:bg-white/50');
+                btnMonthly.classList.remove('bg-white', 'shadow', 'text-[#0054a6]');
+                btnMonthly.classList.add('text-slate-500', 'hover:bg-white/50');
                 monthGroup.classList.add('hidden'); semGroup.classList.remove('hidden');
-            } else { // yearly
-                monthGroup.classList.add('hidden'); semGroup.classList.add('hidden');
             }
             
+            // ទាញយកទិន្នន័យដោយស្វ័យប្រវត្តិពេលប្តូរប្រភេទ
             window.loadRankings();
         };
 
@@ -528,6 +519,7 @@
             const monthSelect = document.getElementById('monthSelect');
             let currentMonthVal = monthSelect.value;
 
+            // Auto-select current month if not already selected (Matches subject-scores.html)
             if (!currentMonthVal) {
                 const currentMonthIndex = new Date().getMonth();
                 const jsMonthToId = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
@@ -542,15 +534,20 @@
             });
 
             monthSelect.innerHTML = optionsHTML;
-            if (currentMonthVal) monthSelect.value = currentMonthVal;
+            
+            if (currentMonthVal) {
+                monthSelect.value = currentMonthVal;
+            }
         };
 
         window.handleSemesterChange = function() {
             const sem = document.getElementById('semesterSelect').value;
             selectedSemesterMonths = sem === 'sem1' ? ['nov', 'dec', 'jan', 'feb'] : ['mar', 'apr', 'may', 'jun'];
+            // ទាញយកទិន្នន័យដោយស្វ័យប្រវត្តិ
             window.loadRankings();
         };
 
+        // Select pre-defined template from Folder
         window.handlePredefinedTemplate = function() {
             const select = document.getElementById('predefinedTemplate');
             const preview = document.getElementById('templatePreview');
@@ -558,7 +555,8 @@
             const placeholder = document.getElementById('uploadPlaceholder');
             
             if (select.value) {
-                uploadedTemplateUrl = select.value; 
+                uploadedTemplateUrl = select.value; // Path string
+                
                 preview.src = uploadedTemplateUrl;
                 preview.classList.remove('hidden');
                 overlay.classList.remove('hidden');
@@ -580,6 +578,7 @@
             btn.disabled = true; lucide.createIcons();
 
             try {
+                // ១. ទាញឈ្មោះសិស្ស (ជាមួយ Local Storage Fallback)
                 studentsList = [];
                 const studentsSnap = await getDocs(collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students'));
                 studentsSnap.forEach(doc => studentsList.push({ ...doc.data(), id: doc.id }));
@@ -596,81 +595,60 @@
                 }
 
                 const year = document.getElementById('yearSelect').value;
+                const currentCols = config[currentType].columns;
                 let scoresData = {};
                 allMonthsScoresCache = {};
 
-                // កំណត់ទាញយកទិន្នន័យដោយប្រើ Promise.all ឲ្យបានលឿន
                 if (currentType === 'monthly') {
                     const month = document.getElementById('monthSelect').value;
                     scoresData = await fetchScores(year, month);
-                } else if (currentType === 'semester') {
+                } else {
                     const semester = document.getElementById('semesterSelect').value;
                     scoresData = await fetchScores(year, semester);
-                    await Promise.all(selectedSemesterMonths.map(async m => {
-                        allMonthsScoresCache[m] = await fetchScores(year, m);
-                    }));
-                } else if (currentType === 'yearly') {
-                    const allNeeded = ['sem1', 'sem2', 'nov', 'dec', 'jan', 'feb', 'mar', 'apr', 'may', 'jun'];
-                    await Promise.all(allNeeded.map(async p => {
-                        allMonthsScoresCache[p] = await fetchScores(year, p);
-                    }));
+                    for (const month of selectedSemesterMonths) {
+                        allMonthsScoresCache[month] = await fetchScores(year, month);
+                    }
                 }
 
-                // គណនាពិន្ទុ
+                // ២. គណនាពិន្ទុ (ប្រើរូបមន្តដូច subject-scores.html បេះបិទ)
                 rankedStudentsData = studentsList.map(s => {
-                    let totalScore = 0;
-                    let finalAvg = 0;
+                    const sScores = scoresData[s.id] || {};
+                    let sum = 0; let count = 0;
+                    currentCols.forEach(key => {
+                        const raw = sScores[key];
+                        if (raw !== null && raw !== undefined && raw !== "") {
+                            const val = parseFloat(raw);
+                            if (!isNaN(val)) { sum += val; count++; }
+                        }
+                    });
 
+                    let finalAvg = 0;
                     if (currentType === 'monthly') {
-                        const sScores = scoresData[s.id] || {};
-                        let sum = 0; let count = 0;
-                        config.monthly.columns.forEach(key => {
-                            const raw = sScores[key];
-                            if (raw !== null && raw !== undefined && raw !== "") {
-                                const val = parseFloat(raw);
-                                if (!isNaN(val)) { sum += val; count++; }
-                            }
-                        });
-                        totalScore = sum;
-                        finalAvg = count > 0 ? (sum / count) : 0;
-                    } 
-                    else if (currentType === 'semester') {
-                        const sScores = scoresData[s.id] || {};
-                        let sum = 0; let count = 0;
-                        config.semester.columns.forEach(key => {
-                            const raw = sScores[key];
-                            if (raw !== null && raw !== undefined && raw !== "") {
-                                const val = parseFloat(raw);
-                                if (!isNaN(val)) { sum += val; count++; }
-                            }
-                        });
-                        const examAvg = count > 0 ? (sum / count) : 0;
-                        const monthlyAvg = getMonthsAvg(s.id, selectedSemesterMonths);
-                        let semAvg = (examAvg + monthlyAvg) / 2;
-                        if (count === 0 && monthlyAvg === 0) semAvg = 0;
+                        const avgStr = count > 0 ? (sum / count).toFixed(2) : "0.00";
+                        finalAvg = parseFloat(avgStr);
+                    } else {
+                        const examAvg = count > 0 ? (sum / count).toFixed(2) : "0.00";
+                        const monthlyAvg = getMonthlyAverageForStudent(s.id);
                         
-                        totalScore = sum; 
+                        let semAvg = (parseFloat(examAvg) + monthlyAvg) / 2;
+                        if (count === 0 && monthlyAvg === 0) {
+                            semAvg = 0;
+                        }
                         finalAvg = semAvg;
-                    } 
-                    else if (currentType === 'yearly') {
-                        const sem1 = getSemAvg(s.id, 'sem1');
-                        const sem2 = getSemAvg(s.id, 'sem2');
-                        finalAvg = (sem1.semAvg > 0 || sem2.semAvg > 0) ? ((sem1.semAvg + sem2.semAvg) / 2) : 0;
-                        totalScore = sem1.sum + sem2.sum; 
                     }
 
-                    return { ...s, totalScore, average: finalAvg };
+                    return { ...s, totalScore: sum, average: finalAvg };
                 });
 
-                // វាយតម្លៃចំណាត់ថ្នាក់
+                // ៣. វាយតម្លៃចំណាត់ថ្នាក់
                 rankedStudentsData.sort((a, b) => b.average - a.average);
                 let currentRank = 1;
                 rankedStudentsData.forEach((item, index) => {
                     if (index > 0 && item.average < rankedStudentsData[index - 1].average) {
                         currentRank = index + 1;
                     }
-                    item.rank = item.average > 0 ? currentRank : '-';
-                    item.grade = item.average > 0 ? calculateGrade(item.average) : '-';
+                    item.rank = currentRank;
+                    item.grade = calculateGrade(item.average);
                 });
 
                 renderStudentTable();
@@ -690,10 +668,7 @@
             if (rankedStudentsData.length === 0) return;
 
             tbody.innerHTML = rankedStudentsData.map((s, idx) => {
-                let gradeColor = s.grade === 'F' ? 'text-red-500' : (['A','B'].includes(s.grade) ? 'text-green-600' : '');
-                let totalDisplay = s.totalScore > 0 ? s.totalScore.toFixed(2) : '-';
-                let avgDisplay = s.average > 0 ? s.average.toFixed(2) : '-';
-                
+                let gradeColor = s.grade === 'F' ? 'text-red-500' : 'text-green-600';
                 return `
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="p-3 text-center">
@@ -707,8 +682,8 @@
                             </div>
                         </td>
                         <td class="p-3 text-slate-600">${s.gender || '-'}</td>
-                        <td class="p-3 font-mono font-bold text-slate-700">${totalDisplay}</td>
-                        <td class="p-3 font-mono font-bold">${avgDisplay}</td>
+                        <td class="p-3 font-mono font-bold text-slate-700">${s.totalScore.toFixed(2)}</td>
+                        <td class="p-3 font-mono font-bold">${s.average.toFixed(2)}</td>
                         <td class="p-3 font-bold ${gradeColor}">${s.grade}</td>
                     </tr>
                 `;
@@ -728,13 +703,8 @@
             document.getElementById('selectAllCb').checked = false;
             document.querySelectorAll('.cert-cb').forEach(cb => {
                 const sIndex = parseInt(cb.value);
-                const sRankStr = rankedStudentsData[sIndex].rank;
-                if (sRankStr !== '-') {
-                    const sRank = parseInt(sRankStr);
-                    cb.checked = (sRank >= minRank && sRank <= maxRank);
-                } else {
-                    cb.checked = false;
-                }
+                const sRank = rankedStudentsData[sIndex].rank;
+                cb.checked = (sRank >= minRank && sRank <= maxRank);
             });
             window.updatePrintButton();
         };
@@ -753,7 +723,7 @@
             }
 
             const printContainer = document.getElementById('printContainer');
-            printContainer.innerHTML = ''; 
+            printContainer.innerHTML = ''; // clear old
 
             const officeName = document.getElementById('certOffice').value;
             const schoolName = document.getElementById('certSchool').value;
@@ -761,7 +731,9 @@
             const date1 = document.getElementById('certDate1').value;
             const date2 = document.getElementById('certDate2').value;
             
+            // Photo Toggle Check
             const usePhoto = document.getElementById('togglePhoto').checked;
+
             const yearText = document.getElementById('yearSelect').value;
             const [startYear, endYear] = yearText.split('-');
             const khmerYearDisplay = `${toKhmerNum(startYear)}-${toKhmerNum(endYear)}`;
@@ -773,7 +745,7 @@
                     const mText = monthSelect.options[monthSelect.selectedIndex].text;
                     periodDisplay = `ប្រចាំ${mText.split(' ')[0]} ឆ្នាំសិក្សា`;
                 }
-            } else if (currentType === 'semester') {
+            } else {
                 const semesterSelect = document.getElementById('semesterSelect');
                 if (semesterSelect.selectedIndex >= 0) {
                     const sText = semesterSelect.options[semesterSelect.selectedIndex].text;
@@ -787,16 +759,21 @@
                 const s = rankedStudentsData[idx];
                 const dobKhmer = formatKhmerDOB(s.dob);
                 const genderKh = isFemale(s.gender) ? 'ស្រី' : 'ប្រុស';
-                const rankKh = s.rank !== '-' ? toKhmerNum(s.rank) : '-';
+                const rankKh = toKhmerNum(s.rank);
 
+                // បង្កើតកូដ HTML សម្រាប់បង្ហាញរូបថត ឬប្រអប់ទទេ
                 let photoBoxHtml = '';
                 if (usePhoto) {
+                    // ប្រសិនបើបើកមុខងារបង្ហាញរូបថត នឹងទាញរូបថតពីបញ្ជីឈ្មោះមកដាក់ (មានរូបសំណងបើអត់រូប)
                     const imgSrc = s.photo || `https://api.dicebear.com/7.x/notionists/svg?seed=${s.id}`;
                     photoBoxHtml = `
                         <div style="position: absolute; top: 62%; left: 50%; transform: translateX(-50%); width: 3.5cm; height: 4.5cm; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                             <img src="${imgSrc}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
                         </div>
                     `;
+                } else {
+                    // បើបិទ មិនបង្ហាញប្រអប់ទទេឡើយ
+                    photoBoxHtml = '';
                 }
 
                 const certPage = document.createElement('div');
@@ -821,7 +798,7 @@
                             នាយក${schoolName.replace('សាលា', '')}
                         </div>
 
-                        <!-- Main Paragraph Block -->
+                        <!-- Main Paragraph Block (Matching the uploaded photo) -->
                         <div style="position: absolute; top: 52.5%; left: 5%; width: 90%; text-align: center; color: #000080; font-family: 'Battambang', cursive; font-size: 13pt; line-height: 1.2;">
                             សូមសរសើរចំពោះសិស្សឈ្មោះ <span style="color: #dc2626; font-family: 'Moul', cursive; font-size: 12pt;">${s.name}</span> 
                             ភេទ <span style="color: #dc2626; font-family: 'Moul', cursive;">${genderKh}</span> 
@@ -844,7 +821,7 @@
                         ${photoBoxHtml}
 
                         <!-- Bottom Right Dates & Role -->
-                        <div style="position: absolute; top: 62%; left: 75%; transform: translateX(-50%); text-align: center; color: #000080; width: 40%;">
+                        <div style="position: absolute; top: 62%; left: 78%; transform: translateX(-50%); text-align: center; color: #000080; width: 40%;">
                             <div style="font-family: 'Battambang', cursive; font-size: 11pt; white-space: nowrap;">${date1}</div>
                             <div style="font-family: 'Battambang', cursive; font-size: 11pt; white-space: nowrap;">............${date2}</div>
                             <div style="font-family: 'Moul', cursive; font-size: 13pt; margin-top: 10px;">គ្រូបន្ទុកថ្នាក់</div>

@@ -1,0 +1,125 @@
+<style>
+    /* ទាញយកពុម្ពអក្សរខ្មែរគ្រប់ប្រភេទពី Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Chenla&family=Hanuman:wght@400;700&family=Kantumruy+Pro:wght@300;400;500;600;700&family=Moul&family=Nokora:wght@400;700&family=Siemreap&family=Suwannaphum:wght@400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap');
+
+    .md-doc { color: #334155; line-height: 1.6; font-size: calc(1 * 16px) !important; font-family: 'Kantumruy Pro', 'Noto Color Emoji', sans-serif !important; }
+    
+.md-h1 { font-family: 'Moul', cursive, 'Noto Color Emoji', sans-serif; font-size: calc(1 * 24.8px) !important; font-weight: normal; margin-top: 0; margin-bottom: 1.5rem; color: #1e293b; line-height: 1.6; word-wrap: break-word; background-color: #1e293b; color: #ffffff !important; padding: 1rem; border-radius: 8px; text-align: center; box-sizing: border-box; text-align: center !important; width: 100% !important; }
+
+.md-h2 { font-family: 'Kantumruy Pro', sans-serif, 'Noto Color Emoji', sans-serif; font-size: calc(1 * 28.8px) !important; font-weight: normal; margin-top: 1.75rem; margin-bottom: 1rem; color: #1d4ed8; line-height: 1.6; word-wrap: break-word; background-color: #1d4ed8; color: #ffffff !important; padding: 1rem; border-radius: 8px; text-align: center; box-sizing: border-box; text-align: left !important; width: 100% !important; }
+
+.md-h3 { font-family: 'Kantumruy Pro', sans-serif, 'Noto Color Emoji', sans-serif; font-size: calc(1 * 28.8px) !important; font-weight: normal; margin-top: 0.85rem; margin-bottom: 0.85rem; color: #3b82f6; line-height: 1.6; word-wrap: break-word; background: #f8fafc; border-left: 12px solid #3b82f6; border-right: 12px solid #3b82f6; padding: 0.75rem; text-align: center; box-sizing: border-box; color: #1e293b; text-align: left !important; width: 100% !important; }
+
+.md-h4 { font-family: 'Kantumruy Pro', sans-serif, 'Noto Color Emoji', sans-serif; font-size: calc(1 * 29.6px) !important; font-weight: normal; margin-top: 0.75rem; margin-bottom: 0.75rem; color: #ff5792; line-height: 1.6; word-wrap: break-word; background-color: #ff5792; color: #ffffff !important; padding: 1rem; border-radius: 8px; text-align: center; box-sizing: border-box; text-align: left !important; width: 100% !important; }
+
+.md-h5 { font-family: 'Kantumruy Pro', sans-serif, 'Noto Color Emoji', sans-serif; font-size: calc(1 * 17.6px) !important; font-weight: normal; margin-top: 0.75rem; margin-bottom: 0.75rem; color: #475569; line-height: 1.6; word-wrap: break-word; background-color: #475569; color: #ffffff !important; padding: 1rem; border-radius: 8px; text-align: center; box-sizing: border-box; text-align: center !important; width: 100% !important; }
+
+    .md-quote { background: #eff6ff; border-left: 5px solid #2563eb; color: #1e293b; padding: 1.25rem; border-radius: 8px; margin-top: 1.25rem; margin-bottom: 1.25rem; white-space: pre-wrap; font-size: calc(1 * 15px) !important; font-style: italic; box-sizing: border-box; }
+    .md-grid { display: grid; gap: 1rem; margin-top: 0.5rem; margin-bottom: 1.5rem; width: 100%; box-sizing: border-box; }
+    @media (max-width: 600px) { .md-grid { grid-template-columns: 1fr !important; } }
+    .md-card { border: 1px solid #e2e8f0; padding: 1rem; border-radius: 12px; display: flex; gap: 0.75rem; align-items: flex-start; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); box-sizing: border-box; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; }
+    .md-icon { background: #eff6ff; padding: 8px; border-radius: 8px; font-size: 24px !important; line-height: 1; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); font-family: 'Noto Color Emoji', sans-serif !important; display: flex; align-items: center; justify-content: center; }
+    .md-card-body { min-width: 0; flex: 1; word-wrap: break-word; overflow-wrap: break-word; }
+    .md-card-body h4 { font-weight: bold; margin-top: 0; margin-bottom: 4px; font-size: calc(1 * 16px) !important; color: #334155; word-wrap: break-word; white-space: normal; font-family: 'Kantumruy Pro', sans-serif !important; }
+    .md-card-body p { margin: 0; font-size: calc(1 * 14.5px) !important; color: #334155; opacity: 0.85; line-height: 1.6; word-wrap: break-word; white-space: pre-wrap; font-family: 'Kantumruy Pro', sans-serif !important; }
+    .md-p { margin-top: 0; margin-bottom: 1rem; white-space: pre-wrap; text-align: justify; word-wrap: break-word; overflow-wrap: break-word; font-size: calc(1 * 16px) !important; font-family: 'Kantumruy Pro', sans-serif !important; }
+    .md-p:empty { display: none; margin: 0; padding: 0; }
+    .page-break { page-break-before: always; break-before: page; height: 24px; background: #f8717122; border: 1px dashed #ef4444; margin: 30px 0; display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 12px; font-weight: bold; border-radius: 4px; position: relative; z-index: 10; }
+    .page-break::after { content: "--- ផ្តាច់ទំព័រ (Page Break) --- (នឹងបាត់នៅពេលអ្នកទាញយក)"; }
+    .md-page-section { overflow: hidden; box-sizing: border-box; width: 100%; max-width: 100%; }
+    
+    @keyframes animFade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes animSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes animSlideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes animSlideLeft { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes animSlideRight { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes animZoomIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+    @keyframes animZoomOut { from { opacity: 0; transform: scale(1.5); } to { opacity: 1; transform: scale(1); } }
+    @keyframes animBounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-30px);} 60% {transform: translateY(-15px);} }
+    @keyframes animBounceInUp { 0% { opacity: 0; transform: translateY(100px); } 60% { opacity: 1; transform: translateY(-10px); } 100% { transform: translateY(0); } }
+    @keyframes animBounceInDown { 0% { opacity: 0; transform: translateY(-100px); } 60% { opacity: 1; transform: translateY(10px); } 100% { transform: translateY(0); } }
+    @keyframes animBounceInLeft { 0% { opacity: 0; transform: translateX(-100px); } 60% { opacity: 1; transform: translateX(10px); } 100% { transform: translateX(0); } }
+    @keyframes animBounceInRight { 0% { opacity: 0; transform: translateX(100px); } 60% { opacity: 1; transform: translateX(-10px); } 100% { transform: translateX(0); } }
+    @keyframes animRotateIn { from { opacity: 0; transform: rotate(-90deg); } to { opacity: 1; transform: rotate(0); } }
+    @keyframes animRotateInDL { from { opacity: 0; transform: rotate(-45deg); transform-origin: left bottom; } to { opacity: 1; transform: rotate(0); } }
+    @keyframes animRotateInDR { from { opacity: 0; transform: rotate(45deg); transform-origin: right bottom; } to { opacity: 1; transform: rotate(0); } }
+    @keyframes animFlipInX { from { opacity: 0; transform: perspective(400px) rotateX(90deg); } to { opacity: 1; transform: perspective(400px) rotateX(0deg); } }
+    @keyframes animFlipInY { from { opacity: 0; transform: perspective(400px) rotateY(90deg); } to { opacity: 1; transform: perspective(400px) rotateY(0deg); } }
+    @keyframes animRollIn { from { opacity: 0; transform: translateX(-100%) rotate(-120deg); } to { opacity: 1; transform: translateX(0) rotate(0deg); } }
+    @keyframes animLightSpeedIn { from { opacity: 0; transform: translateX(100%) skewX(-30deg); } to { opacity: 1; transform: translateX(0) skewX(0); } }
+    @keyframes animSwing { 20% { transform: rotate3d(0, 0, 1, 15deg); } 40% { transform: rotate3d(0, 0, 1, -10deg); } 60% { transform: rotate3d(0, 0, 1, 5deg); } 80% { transform: rotate3d(0, 0, 1, -5deg); } to { transform: rotate3d(0, 0, 1, 0deg); } }
+    @keyframes animTada { from { transform: scale3d(1, 1, 1); } 10%, 20% { transform: scale3d(0.9, 0.9, 0.9) rotate3d(0, 0, 1, -3deg); } 30%, 50%, 70%, 90% { transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg); } 40%, 60%, 80% { transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg); } to { transform: scale3d(1, 1, 1); opacity: 1; } }
+    @keyframes animWobble { from { transform: translate3d(0, 0, 0); } 15% { transform: translate3d(-25%, 0, 0) rotate3d(0, 0, 1, -5deg); } 30% { transform: translate3d(20%, 0, 0) rotate3d(0, 0, 1, 3deg); } 45% { transform: translate3d(-15%, 0, 0) rotate3d(0, 0, 1, -3deg); } 60% { transform: translate3d(10%, 0, 0) rotate3d(0, 0, 1, 2deg); } 75% { transform: translate3d(-5%, 0, 0) rotate3d(0, 0, 1, -1deg); } to { transform: translate3d(0, 0, 0); opacity: 1; } }
+    @keyframes animJello { from, 11.1%, to { transform: translate3d(0, 0, 0); } 22.2% { transform: skewX(-12.5deg) skewY(-12.5deg); } 33.3% { transform: skewX(6.25deg) skewY(6.25deg); } 44.4% { transform: skewX(-3.125deg) skewY(-3.125deg); } 55.5% { transform: skewX(1.5625deg) skewY(1.5625deg); } 66.6% { transform: skewX(-0.78125deg) skewY(-0.78125deg); } 77.7% { transform: skewX(0.390625deg) skewY(0.390625deg); } 88.8% { transform: skewX(-0.1953125deg) skewY(-0.1953125deg); } }
+    @keyframes animPulse { from { transform: scale3d(1, 1, 1); } 50% { transform: scale3d(1.05, 1.05, 1.05); } to { transform: scale3d(1, 1, 1); opacity: 1; } }
+    @keyframes animRubberBand { from { transform: scale3d(1, 1, 1); } 30% { transform: scale3d(1.25, 0.75, 1); } 40% { transform: scale3d(0.75, 1.25, 1); } 50% { transform: scale3d(1.15, 0.85, 1); } 65% { transform: scale3d(0.95, 1.05, 1); } 75% { transform: scale3d(1.05, 0.95, 1); } to { transform: scale3d(1, 1, 1); opacity: 1;} }
+    @keyframes animFlash { from, 50%, to { opacity: 1; } 25%, 75% { opacity: 0; } }
+    @keyframes animBackInDown { 0% { opacity: 0; transform: translateY(-300px) scale(0.7); } 80% { opacity: 0.7; transform: translateY(0px) scale(0.7); } 100% { opacity: 1; transform: scale(1); } }
+    @keyframes animBackInUp { 0% { opacity: 0; transform: translateY(300px) scale(0.7); } 80% { opacity: 0.7; transform: translateY(0px) scale(0.7); } 100% { opacity: 1; transform: scale(1); } }
+    @keyframes animJackInTheBox { from { opacity: 0; transform: scale(0.1) rotate(30deg); transform-origin: center bottom; } 50% { transform: rotate(-10deg); } 70% { transform: rotate(3deg); } to { opacity: 1; transform: scale(1); } }
+    @keyframes animBlurIn { from { opacity: 0; filter: blur(10px); } to { opacity: 1; filter: blur(0); } }
+  
+    .style-anim-fade .md-anim-item { opacity: 0; animation: animFade var(--anim-dur) ease-out forwards; }
+.style-anim-slideUp .md-anim-item { opacity: 0; animation: animSlideUp var(--anim-dur) ease-out forwards; }
+.style-anim-slideDown .md-anim-item { opacity: 0; animation: animSlideDown var(--anim-dur) ease-out forwards; }
+.style-anim-slideLeft .md-anim-item { opacity: 0; animation: animSlideLeft var(--anim-dur) ease-out forwards; }
+.style-anim-slideRight .md-anim-item { opacity: 0; animation: animSlideRight var(--anim-dur) ease-out forwards; }
+.style-anim-zoomIn .md-anim-item { opacity: 0; animation: animZoomIn var(--anim-dur) ease-out forwards; }
+.style-anim-zoomOut .md-anim-item { opacity: 0; animation: animZoomOut var(--anim-dur) ease-out forwards; }
+.style-anim-bounce .md-anim-item { opacity: 0; animation: animBounce var(--anim-dur) ease-out forwards; }
+.style-anim-bounceInUp .md-anim-item { opacity: 0; animation: animBounceInUp var(--anim-dur) ease-out forwards; }
+.style-anim-bounceInDown .md-anim-item { opacity: 0; animation: animBounceInDown var(--anim-dur) ease-out forwards; }
+.style-anim-bounceInLeft .md-anim-item { opacity: 0; animation: animBounceInLeft var(--anim-dur) ease-out forwards; }
+.style-anim-bounceInRight .md-anim-item { opacity: 0; animation: animBounceInRight var(--anim-dur) ease-out forwards; }
+.style-anim-rotateIn .md-anim-item { opacity: 0; animation: animRotateIn var(--anim-dur) ease-out forwards; }
+.style-anim-rotateInDL .md-anim-item { opacity: 0; animation: animRotateInDL var(--anim-dur) ease-out forwards; }
+.style-anim-rotateInDR .md-anim-item { opacity: 0; animation: animRotateInDR var(--anim-dur) ease-out forwards; }
+.style-anim-flipInX .md-anim-item { opacity: 0; animation: animFlipInX var(--anim-dur) ease-out forwards; }
+.style-anim-flipInY .md-anim-item { opacity: 0; animation: animFlipInY var(--anim-dur) ease-out forwards; }
+.style-anim-rollIn .md-anim-item { opacity: 0; animation: animRollIn var(--anim-dur) ease-out forwards; }
+.style-anim-lightSpeedIn .md-anim-item { opacity: 0; animation: animLightSpeedIn var(--anim-dur) ease-out forwards; }
+.style-anim-swing .md-anim-item { opacity: 0; animation: animSwing var(--anim-dur) ease-out forwards; }
+.style-anim-tada .md-anim-item { opacity: 0; animation: animTada var(--anim-dur) ease-out forwards; }
+.style-anim-wobble .md-anim-item { opacity: 0; animation: animWobble var(--anim-dur) ease-out forwards; }
+.style-anim-jello .md-anim-item { opacity: 0; animation: animJello var(--anim-dur) ease-out forwards; }
+.style-anim-pulse .md-anim-item { opacity: 0; animation: animPulse var(--anim-dur) ease-out forwards; }
+.style-anim-rubberBand .md-anim-item { opacity: 0; animation: animRubberBand var(--anim-dur) ease-out forwards; }
+.style-anim-flash .md-anim-item { opacity: 0; animation: animFlash var(--anim-dur) ease-out forwards; }
+.style-anim-backInDown .md-anim-item { opacity: 0; animation: animBackInDown var(--anim-dur) ease-out forwards; }
+.style-anim-backInUp .md-anim-item { opacity: 0; animation: animBackInUp var(--anim-dur) ease-out forwards; }
+.style-anim-jackInTheBox .md-anim-item { opacity: 0; animation: animJackInTheBox var(--anim-dur) ease-out forwards; }
+.style-anim-blurIn .md-anim-item { opacity: 0; animation: animBlurIn var(--anim-dur) ease-out forwards; }
+
+  </style><div class="md-page-section md-doc style-anim-slideUp" style="padding: 60px; box-sizing: border-box; background-color: transparent; min-height: 1123px; position: relative;"><h1 class="md-h1 md-anim-item" style="animation-delay: 0.15s; --anim-dur: 0.3s; ">ប្រព័ន្ធគ្រប់គ្រងវត្តមានសិស្ស</h1><p class="md-p md-anim-item" style="animation-delay: 0.3s; --anim-dur: 0.3s; ">&emsp;&emsp;<span style="font-size: 22px;">សូមស្វាគមន៍មកកាន់ប្រព័ន្ធគ្រប់គ្រងវត្តមានសិស្ស (Multi-Class Attendance System)! កម្មវិធីនេះត្រូវបានរចនាឡើងយ៉ាងពិសេស ដើម្បីជួយសម្រួលដល់កិច្ចការងាររបស់លោកគ្រូ អ្នកគ្រូ ក្នុងការគ្រប់គ្រងបញ្ជីឈ្មោះ កត់ត្រាវត្តមានប្រចាំថ្ងៃ និងទាញយករបាយការណ៍ប្រចាំថ្ងៃ ខែ ឬឆមាសបានយ៉ាងរហ័ស មានរបៀបរៀបរយ និងមានភាពសុក្រឹតបំផុត។ សូមអានការណែនាំខាងក្រោម ដើម្បីស្វែងយល់បន្ថែមអំពីគុណសម្បត្តិ របៀបប្រើប្រាស់ និងបម្រាមសំខាន់ៗមួយចំនួននៃប្រព័ន្ធនេះ។</span></p><h2 class="md-h2 md-anim-item" style="animation-delay: 0.44999999999999996s; --anim-dur: 0.3s; ">🚀 មុខងារចម្បងៗ (Features)</h2><div class="md-grid" style="grid-template-columns: repeat(2, 1fr);"><div class="md-card md-anim-item" style="background-color: #e0e7ff !important; animation-delay: 0.8999999999999999s; --anim-dur: 0.3s;"><div class="md-icon">🏫</div><div class="md-card-body"><h4>គ្រប់គ្រងថ្នាក់រៀនច្រើន</h4><p>&emsp;&emsp;<span style="font-size: 16px;">អនុញ្ញាតឱ្យលោកគ្រូអ្នកគ្រូបង្កើតថ្នាក់ថ្មី (ឧ. ១២ ក, ១២ ខ) កែប្រែឈ្មោះថ្នាក់ និងផ្លាស់ប្តូរការគ្រប់គ្រងពីថ្នាក់មួយទៅថ្នាក់មួយទៀតបានយ៉ាងងាយស្រួលដោយមិនច្រឡំទិន្នន័យគ្នា។</span></p></div></div><div class="md-card md-anim-item" style="background-color: #dcfce7 !important; animation-delay: 1.05s; --anim-dur: 0.3s;"><div class="md-icon">👥</div><div class="md-card-body"><h4>ការគ្រប់គ្រងទិន្នន័យសិស្ស</h4><p>&emsp;&emsp;<span style="font-size: 16px;">អាចបញ្ចូលឈ្មោះសិស្សម្តងម្នាក់ៗ ឬបញ្ចូលជាឯកសារ Excel (.xlsx) ក្នុងពេលតែមួយក៏បាន។ ពិសេសជាងនេះទៅទៀត មានមុខងារកំណត់រូបតំណាង (Avatar) ឬបញ្ចូលរូបថតផ្ទាល់ខ្លួនរបស់សិស្សម្នាក់ៗ។</span></p></div></div><div class="md-card md-anim-item" style="background-color: #fef08a !important; animation-delay: 1.2s; --anim-dur: 0.3s;"><div class="md-icon">📝</div><div class="md-card-body"><h4>ការកត់វត្តមានឆ្លាតវៃ</h4><p>&emsp;&emsp;<span style="font-size: 16px;">អាចកត់ត្រា "មក (P)", "ច្បាប់ (L)" <br>និង "អវត្តមាន (A)"។ ក្នុងករណីសុំច្បាប់ ឬអវត្តមាន ប្រព័ន្ធនឹងលោតផ្ទាំងឱ្យបញ្ជាក់មូលហេតុ។ ប្រព័ន្ធក៏បានភ្ជាប់មុខងារការពារដោយស្វ័យប្រវត្តិ មិនអនុញ្ញាត ឱ្យកត់វត្តមាននៅថ្ងៃអាទិត្យឡើយ។</span></p></div></div><div class="md-card md-anim-item" style="background-color: #fee2e2 !important; animation-delay: 1.3499999999999999s; --anim-dur: 0.3s;"><div class="md-icon">📊</div><div class="md-card-body"><h4>របាយការណ៍ និងទិន្នន័យ</h4><p>&emsp;&emsp;<span style="font-size: 16px;">បង្ហាញសង្ខេបទិន្នន័យជាកាត និងតារាងច្បាស់លាស់ ព្រមទាំងអាចទាញ យករបាយការណ៍ផ្លូវការជាឯកសារ PDF ឬ Excel ដែលមានកាលបរិច្ឆេទចន្ទគតិខ្មែរ (ព.ស.) និងការរៀបចំទម្រង់ត្រឹមត្រូវតាមស្តង់ដារ។</span></p></div></div></div><h2 class="md-h2 md-anim-item" style="animation-delay: 1.5s; --anim-dur: 0.3s; ">📖 របៀបប្រើប្រាស់កម្មវិធី (How to Use)</h2><p class="md-p md-anim-item" style="animation-delay: 1.65s; --anim-dur: 0.3s; ">&emsp;&emsp;<span style="font-size: 22px;">ដើម្បីចាប់ផ្តើមប្រើប្រាស់កម្មវិធីនេះឱ្យមានប្រសិទ្ធភាពខ្ពស់ សូមអនុវត្តតាមជំហានងាយៗដូចខាងក្រោម៖</span></p><h3 class="md-h3 md-anim-item" style="animation-delay: 1.7999999999999998s; --anim-dur: 0.3s; ">១. ការកំណត់ថ្នាក់រៀន និងព័ត៌មានទូទៅ</h3><p class="md-p md-anim-item" style="animation-delay: 1.95s; --anim-dur: 0.3s; ">&emsp;&emsp;<span style="font-size: 22px;">ចូលទៅកាន់ម៉ឺនុយ "កំណត់ថ្នាក់"។ បន្ទាប់មកបំពេញព័ត៌មានចាំបាច់នានាដូចជា ឈ្មោះអង្គភាព ឈ្មោះសាលា ឈ្មោះថ្នាក់ ឈ្មោះគ្រូបន្ទុក និងរាជធានី-ខេត្ត រួចចុចប៊ូតុង "រក្សាទុកការកំណត់"។ ព័ត៌មានទាំងនេះនឹងលោតចូលដោយស្វ័យប្រវត្តិទៅក្នុងរបាយការណ៍ PDF/Excel របស់អ្នក។</span></p><h3 class="md-h3 md-anim-item" style="animation-delay: 2.1s; --anim-dur: 0.3s; ">២. ការបញ្ចូលបញ្ជីឈ្មោះសិស្ស</h3><p class="md-p md-anim-item" style="animation-delay: 2.25s; --anim-dur: 0.3s; ">&emsp;&emsp;<span style="font-size: 22px;">ចូលទៅកាន់ម៉ឺនុយ "បញ្ជីកំណត់សិស្ស"។ អ្នកអាចបន្ថែមសិស្សដោយបំពេញទម្រង់ម្តងម្នាក់ ឬដើម្បីចំណេញពេល អ្នកអាចចុចប៊ូតុង "ទាញយកគំរូ Excel" រួចបំពេញទិន្នន័យសិស្សក្នុង Excel នោះ ហើយចុច "បញ្ជូល file ជា Excel" ដើម្បីទាញបញ្ចូលសិស្សទាំងអស់ចូលក្នុងប្រព័ន្ធតែម្តង។
+</span></p><h3 class="md-h3 md-anim-item" style="animation-delay: 2.4s; --anim-dur: 0.3s; ">៣. ការកត់ត្រាវត្តមានប្រចាំថ្ងៃ</h3><p class="md-p md-anim-item" style="animation-delay: 2.55s; --anim-dur: 0.3s; ">&emsp;&emsp;<span style="font-size: 22px;">ចូលទៅកាន់ម៉ឺនុយ "វត្តមាន" រួចជ្រើសរើសកាលបរិច្ឆេទថ្ងៃនេះ។ ចុចលើប៊ូតុង "មក", "ច្បាប់" ឬ "អវត្ត" នៅលើឈ្មោះសិស្សនីមួយៗ។ ក្រោយពេលកត់រួចរាល់ សូមកុំភ្លេចចុចប៊ូតុង "រក្សាទុកវត្តមានថ្ងៃនេះ" នៅខាងក្រោមគេបំផុត។</span></p><h3 class="md-h3 md-anim-item" style="animation-delay: 2.6999999999999997s; --anim-dur: 0.3s; ">៤. ការតាមដាន និងទាញយករបាយការណ៍</h3><p class="md-p md-anim-item" style="animation-delay: 2.85s; --anim-dur: 0.3s; ">&emsp;&emsp;<span style="font-size: 22px;">ចូលទៅកាន់ម៉ឺនុយ "របាយការណ៍"។ ជ្រើសរើសប្រភេទរបាយការណ៍ដែលអ្នកចង់បាន (ប្រចាំថ្ងៃ, ប្រចាំខែ, ឆមាសទី១, ឆមាសទី២ ឬតាមចន្លោះខែ) រួចជ្រើសរើសខែ/ឆ្នាំ បន្ទាប់មកចុចប៊ូតុង "ទាញយក PDF" ឬ "ទាញយក Excel" ដើម្បីរក្សាទុកឯកសារជាការស្រេច។</span></p><h4 class="md-h4 md-anim-item" style="animation-delay: 3s; --anim-dur: 0.3s; ">🚫 បម្រាម និងសេចក្តីជូនដំណឹងអំពីទិន្នន័យ</h4><div class="md-grid" style="grid-template-columns: repeat(2, 1fr);"><div class="md-card md-anim-item" style="background-color: #fee2e2 !important; animation-delay: 3.3s; --anim-dur: 0.3s;"><div class="md-icon">⚠</div><div class="md-card-body"><h4>️ សូមកុំលុប Browser Data</h4><p>&emsp;&emsp;សូមលោកគ្រូ អ្នកគ្រូ មេត្តាកុំលុបទិន្នន័យ (Clear Data / Clear Cache) របស់ Browser ឱ្យសោះ ព្រោះវានឹងនាំឱ្យបាត់បង់ព័ត៌មានសិស្ស និងកំណត់ត្រាវត្តមានទាំងអស់ពីក្នុងប្រព័ន្ធ។</p></div></div><div class="md-card md-anim-item" style="background-color: #dbeafe !important; animation-delay: 3.4499999999999997s; --anim-dur: 0.3s;"><div class="md-icon">🚀</div><div class="md-card-body"><h4>គម្រោងអាប់ដេតថ្មី</h4><p>&emsp;&emsp;ក្រុមការងារពួកយើងកំពុងតែខិតខំប្រឹងប្រែងអភិវឌ្ឍបន្ត ហើយនឹងធ្វើការអាប់ដេត (Update) ប្រព័ន្ធនេះទៅជាទម្រង់ផ្ទុកទិន្នន័យអនឡាញ (Cloud Database) ក្នុងពេលឆាប់ៗខាងមុខនេះ។</p></div></div><div class="md-card md-anim-item" style="background-color: #fef08a !important; animation-delay: 3.5999999999999996s; --anim-dur: 0.3s;"><div class="md-icon">💡</div><div class="md-card-body"><h4>ដំណើរការបណ្តោះអាសន្ន</h4><p>&emsp;&emsp;ក្នុងអំឡុងពេលរង់ចាំប្រព័ន្ធអនឡាញ សូមលោកគ្រូ អ្នកគ្រូ ឧស្សាហ៍ទាញយកទិន្នន័យរបាយការណ៍ជាឯកសារ Excel ឬ PDF រក្សាទុកក្នុងម៉ាស៊ីន ដើម្បីធ្វើជាទិន្នន័យបម្រុង (Backup)។</p></div></div><div class="md-card md-anim-item" style="background-color: #dcfce7 !important; animation-delay: 3.75s; --anim-dur: 0.3s;"><div class="md-icon">🙏🏻</div><div class="md-card-body"><h4>សូមអរគុណ</h4><p>&emsp;&emsp;សូមអរគុណលោកគ្រូ អ្នកគ្រូ ដែលបានគាំទ្រ និងប្រើប្រាស់ប្រព័ន្ធនេះ។ ពួកយើងនឹងព្យាយាមអភិវឌ្ឍវាឱ្យកាន់តែល្អប្រសើរឡើងថែមទៀត។</p></div></div></div></div>
+<style>
+  /* * ក្បាច់ពិសេស៖ បិទចលនា (animation: none) និងលាក់អត្ថបទ (opacity: 0) 
+   * នៅពេលដែលវាមិនទាន់មាន class is-visible (មានន័យថាអូសមិនទាន់ដល់ ឬអូសហួស)
+   */
+  .md-anim-item:not(.is-visible) { 
+    animation: none !important; 
+    opacity: 0 !important; 
+  }
+</style>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          // ពេលអូសមកដល់៖ ដាក់ class is-visible ចូល 
+          // ពេលនោះវាលែងជាប់លក្ខខណ្ឌខាងលើ ធ្វើឱ្យ CSS ចលនាដើមរបស់ Page ចាប់ផ្តើមលេងសារថ្មីដោយស្វ័យប្រវត្តិ
+          entry.target.classList.add('is-visible');
+        } else {
+          // ពេលអូសហួស (ទាំងឡើងលើ និងចុះក្រោម)៖ ដក class is-visible ចេញ 
+          // ដើម្បីកាត់ផ្តាច់ចលនា (Reset) ត្រៀមលេងម្តងទៀតពេលអូសមកវិញ
+          entry.target.classList.remove('is-visible');
+        }
+      });
+    }, { threshold: 0.15 }); // លោតពេលឃើញ 15% នៃកម្ពស់អត្ថបទ ឬ កាត
+
+    // ចាប់យកគ្រប់ Element ដែលកំណត់ថាមានចលនា
+    document.querySelectorAll('.md-anim-item').forEach(el => observer.observe(el));
+  });
+
+</script>

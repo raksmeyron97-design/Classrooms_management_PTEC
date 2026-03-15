@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - សៀវភៅរបៀបវារៈកិច្ចប្រជុំ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Taprom&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- PDF Export Libraries (Reverted to html-to-image for PERFECT Khmer Font Support) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Khmer Date formatting -->
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    
+    <style>
+        :root { --primary: #2563eb; --secondary: #3b82f6; }
+        
+        body { font-family: 'Battambang', cursive; background: #eff6ff; min-height: 100vh; margin: 0; color: #1e293b; }
+        .kh-moul { font-family: 'Moul', cursive; font-weight: normal; }
+        .font-taprom { font-family: 'Taprom', cursive; }
+        .text-shadow-custom { text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        
+        /* Background Animation */
+        .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 10% 20%, #eff6ff 0%, transparent 40%), radial-gradient(circle at 90% 80%, #dbeafe 0%, transparent 40%), radial-gradient(circle at 50% 50%, #f0fdf4 0%, transparent 50%); animation: moveBg 20s infinite alternate ease-in-out; }
+        @keyframes moveBg { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        /* Form Control */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            outline: none;
+            background: #f8fafc;
+            font-family: 'Battambang', cursive;
+            transition: all 0.2s;
+            font-weight: 700;
+        }
+        .input-field:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        textarea.input-field { min-height: 120px; resize: vertical; }
+
+        /* Print Container & A4 Styling */
+        .a4-page {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto 2rem auto;
+            padding: 15mm 20mm;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            box-sizing: border-box;
+            color: black;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Battambang', cursive;
+        }
+        
+        .cover-page {
+            align-items: center;
+            padding: 20mm;
+        }
+        .cover-border {
+            position: absolute;
+            top: 15mm;
+            bottom: 15mm;
+            left: 15mm;
+            right: 15mm;
+            border: 4px solid #2563eb;
+            outline: 2px solid #2563eb;
+            outline-offset: 4px;
+            pointer-events: none;
+        }
+
+        /* Print Typography & Layout */
+        .print-title { font-family: 'Moul', cursive; font-size: 16pt; text-align: center; margin-bottom: 5px; margin-top: 10px; font-weight: normal; }
+        .print-section-title { font-family: 'Moul', cursive; font-size: 13pt; margin-bottom: 5px; margin-top: 10px; font-weight: normal; }
+        .print-content-text { 
+            font-family: 'Battambang', cursive;
+            font-size: 12pt; 
+            line-height: 1.75rem; 
+            text-align: justify;
+            text-indent: 40px;
+            white-space: pre-wrap;
+        }
+        
+        .signature-container { width: 100%; margin-top: auto; padding-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; page-break-inside: avoid;}
+        .sig-col-left { text-align: center; }
+        .sig-col-right { text-align: center; }
+        .teacher-name-final { font-family: 'Moul', cursive; font-weight: normal; font-size: 12pt; display: block; text-align: center; margin-top: 10px; }
+        .lunar-date { font-family: 'Battambang', cursive; font-size: 11.5pt; margin-bottom: 5px; white-space: nowrap; }
+        .solar-date { font-family: 'Battambang', cursive; font-size: 11.5pt; font-weight: normal; margin-bottom: 10px; }
+        .role-title { font-family: 'Moul', cursive; font-weight: normal; font-size: 12.5pt; }
+        
+        .sig-image-box { height: 75px; margin-top: 5px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; }
+        .sig-image-box img { max-height: 100%; max-width: 160px; object-fit: contain; mix-blend-mode: multiply; pointer-events: none; }
+
+        /* PDF Exporting Overrides */
+        .pdf-exporting .text-shadow-custom { text-shadow: none !important; }
+        .pdf-exporting .a4-page {
+            width: 210mm !important;
+            min-height: 297mm !important; 
+            height: auto !important; /* Allow growing to full content height for snapshot */
+            max-height: none !important;
+            margin: 0 !important;
+            padding: 10mm 20mm 15mm 20mm !important; /* Visual spacing */
+            box-shadow: none !important;
+            border: none !important;
+            overflow: visible !important; 
+            page-break-after: always;
+        }
+        .pdf-exporting .cover-page {
+            padding: 5mm 20mm !important;
+        }
+        .pdf-exporting .cover-border {
+            top: 0 !important;
+            bottom: 0 !important;
+        }
+
+        /* Browser Print Styles */
+        @media print {
+            @page { size: A4 portrait; margin: 15mm 0 !important; } /* Global print margins */
+            body, html { background: white !important; padding: 0 !important; margin: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .no-print { display: none !important; }
+            #mainScreen { display: none !important; }
+            #printAreaWrapper { display: block !important; padding: 0 !important; background: transparent !important; }
+            .a4-page { 
+                width: 210mm !important;
+                min-height: 267mm !important; 
+                height: auto !important;
+                max-height: none !important;
+                box-sizing: border-box !important;
+                box-shadow: none !important; 
+                padding: 10mm 20mm 0 20mm !important;
+                margin: 0 !important;
+                page-break-after: always;
+                border: none !important;
+                position: relative !important;
+                overflow: visible !important;
+            }
+            .a4-page:last-child { page-break-after: auto; }
+            .cover-page {
+                padding: 5mm 20mm !important;
+            }
+            .cover-border {
+                top: 0 !important;
+                bottom: 0 !important;
+            }
+            .text-shadow-custom { text-shadow: none !important; }
+            .bg-animate { display: none; }
+        }
+
+        .preview-mode { background: #475569; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 1s linear infinite; }
+    </style>
+</head>
+<body spellcheck="false">
+
+    <div class="bg-animate no-print"></div>
+
+    <!-- Main Screen -->
+    <div id="mainScreen" class="min-h-screen flex flex-col pt-6 px-4 no-print relative">
+        <div class="max-w-6xl mx-auto w-full">
+            
+            <div class="glass-card p-6 md:p-8 mb-8">
+                <div class="flex flex-wrap items-center gap-3 mb-6 border-b pb-4">
+                    <div class="p-3 bg-blue-100 rounded-full text-blue-600">
+                        <i data-lucide="book-open" class="w-6 h-6"></i>
+                    </div>
+                    <h1 class="kh-moul text-xl md:text-2xl text-blue-700">សៀវភៅរបៀបវារៈកិច្ចប្រជុំ</h1>
+                    
+                    <div class="ml-auto flex flex-wrap items-center gap-2 mt-2 sm:mt-0">
+                        <button type="button" onclick="window.toggleSignatureSettings()" class="flex items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-100 transition border border-blue-200 shadow-sm font-bold text-sm" title="កំណត់អ្នកចុះហត្ថលេខា">
+                            <i data-lucide="pen-tool" class="w-4 h-4"></i> <span class="hidden sm:inline">ហត្ថលេខា</span>
+                        </button>
+                        <button onclick="window.previewPDF()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold transition shadow-md flex items-center gap-2 text-sm" title="បោះពុម្ព">
+                            <i data-lucide="printer" class="w-4 h-4"></i> <span class="hidden sm:inline">បោះពុម្ព</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Signature Settings Box (Hidden by default) -->
+                <div id="signatureSettingsBox" class="hidden bg-blue-50/60 border border-blue-100 p-5 md:p-6 rounded-2xl mb-8 shadow-sm transition-all duration-300">
+                    <div class="flex items-center justify-between mb-5">
+                        <h4 class="text-sm font-bold text-blue-800 flex items-center gap-2">
+                            <i data-lucide="pen-tool" class="w-5 h-5"></i> កំណត់អ្នកចុះហត្ថលេខាសម្រាប់ការបោះពុម្ព
+                        </h4>
+                        <button type="button" onclick="window.toggleSignatureSettings()" class="text-slate-400 hover:text-slate-600 transition p-1">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Left Column (Manager/Director) -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-blue-50 shadow-sm">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះអ្នកពិនិត្យ (នាយកសាលា)</label>
+                                <input type="text" id="inspectorNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="window.updateSignatures()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា</label>
+                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                    <input type="file" id="inspectorSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors w-full" onchange="window.handleSignatureUpload('inspector')">
+                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                            <button type="button" onclick="window.zoomSignature('inspector', -0.1)" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                            <div id="inspectorSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded"></div>
+                                            <button type="button" onclick="window.zoomSignature('inspector', 0.1)" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                        </div>
+                                        <button type="button" onclick="window.removeSignature('inspector')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column (Teacher/Recorder) -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-blue-50 shadow-sm">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះអ្នកកត់ត្រា (គ្រូបន្ទុកថ្នាក់)</label>
+                                <input type="text" id="teacherNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="window.updateSignatures()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា</label>
+                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                    <input type="file" id="teacherSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors w-full" onchange="window.handleSignatureUpload('teacher')">
+                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                            <button type="button" onclick="window.zoomSignature('teacher', -0.1)" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                            <div id="teacherSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded"></div>
+                                            <button type="button" onclick="window.zoomSignature('teacher', 0.1)" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                        </div>
+                                        <button type="button" onclick="window.removeSignature('teacher')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Form -->
+                <div class="bg-blue-50/50 border border-blue-100 p-5 rounded-2xl mb-8">
+                    <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2" id="formTitle">
+                        <i data-lucide="plus-circle" class="w-5 h-5 text-blue-600"></i> កត់ត្រាកិច្ចប្រជុំថ្មី
+                    </h3>
+                    <form id="meetingForm" class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                        <input type="hidden" id="editId" value="">
+                        
+                        <!-- Left Column: Basics & Details -->
+                        <div class="flex flex-col gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-600 mb-1">កាលបរិច្ឆេទ <span class="text-red-500">*</span></label>
+                                <input type="date" id="meetDate" required class="input-field">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-600 mb-1">កម្មវត្ថុនៃកិច្ចប្រជុំ <span class="text-red-500">*</span></label>
+                                <input type="text" id="meetTitle" required placeholder="ឧ. កិច្ចប្រជុំបូកសរុបលទ្ធផលសិក្សាប្រចាំខែ..." class="input-field">
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-sm font-bold text-gray-600 mb-1 flex items-center gap-2">
+                                    <i data-lucide="file-text" class="w-4 h-4 text-blue-500"></i> សេចក្តីលម្អិត
+                                </label>
+                                <textarea id="meetDetails" placeholder="រៀបរាប់សេចក្តីលម្អិតនៃអង្គប្រជុំនៅទីនេះ... (ទុកចោលបើចង់បោះពុម្ពទទេរដើម្បីសរសេរដៃ)" class="input-field"></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column: Agendas -->
+                        <div class="bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
+                            <label class="block text-sm font-bold text-red-600 mb-3 border-b border-red-100 pb-2 flex items-center gap-2">
+                                <i data-lucide="list" class="w-4 h-4"></i> របៀបវារៈទាំង ៦
+                            </label>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="kh-moul text-gray-400 w-6 text-right">១.</span>
+                                    <input type="text" id="ag1" placeholder="របៀបវារៈទី ១..." class="input-field py-2 text-sm">
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="kh-moul text-gray-400 w-6 text-right">២.</span>
+                                    <input type="text" id="ag2" placeholder="របៀបវារៈទី ២..." class="input-field py-2 text-sm">
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="kh-moul text-gray-400 w-6 text-right">៣.</span>
+                                    <input type="text" id="ag3" placeholder="របៀបវារៈទី ៣..." class="input-field py-2 text-sm">
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="kh-moul text-gray-400 w-6 text-right">៤.</span>
+                                    <input type="text" id="ag4" placeholder="របៀបវារៈទី ៤..." class="input-field py-2 text-sm">
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="kh-moul text-gray-400 w-6 text-right">៥.</span>
+                                    <input type="text" id="ag5" placeholder="របៀបវារៈទី ៥..." class="input-field py-2 text-sm">
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="kh-moul text-gray-400 w-6 text-right">៦.</span>
+                                    <input type="text" id="ag6" placeholder="របៀបវារៈទី ៦..." class="input-field py-2 text-sm">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="lg:col-span-2 flex justify-end gap-3 mt-2 pt-4 border-t border-blue-100">
+                            <button type="button" id="btnCancel" onclick="window.resetForm()" class="hidden bg-gray-400 hover:bg-gray-500 text-white font-bold py-2.5 px-6 rounded-xl transition shadow">
+                                បោះបង់
+                            </button>
+                            <button type="submit" id="btnSave" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-xl transition shadow flex items-center gap-2">
+                                <i data-lucide="save" class="w-4 h-4"></i> រក្សាទុក
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- History Header -->
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-700 flex items-center gap-2">
+                        <i data-lucide="history" class="w-5 h-5 text-blue-600"></i> ប្រវត្តិកិច្ចប្រជុំ (<span id="totalItemsCount">0</span>)
+                    </h3>
+                </div>
+
+                <!-- Data Table -->
+                <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-50 text-slate-700 font-bold border-b">
+                            <tr>
+                                <th class="p-4 text-center w-16">ល.រ</th>
+                                <th class="p-4 text-center w-32">កាលបរិច្ឆេទ</th>
+                                <th class="p-4 w-1/3">កម្មវត្ថុនៃកិច្ចប្រជុំ</th>
+                                <th class="p-4">របៀបវារៈទី១</th>
+                                <th class="p-4 text-center w-32">គ្រប់គ្រង</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody" class="bg-white divide-y divide-gray-100">
+                            <!-- Data injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Preview Wrapper -->
+    <div id="printAreaWrapper" class="hidden flex-col items-center">
+        
+        <!-- Top Sticky Action Bar -->
+        <div class="sticky top-0 z-50 w-full bg-slate-800/95 backdrop-blur-md shadow-lg border-b border-slate-700 py-4 px-6 mb-8 flex flex-wrap justify-between items-center no-print gap-4">
+            <div class="text-white font-bold text-lg flex items-center gap-2">
+                <i data-lucide="file-text" class="w-5 h-5 text-indigo-400"></i> មើលមុនបោះពុម្ព (Print Preview)
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <button id="btnDownload" onclick="window.downloadPDF()" class="flex justify-center items-center gap-2 bg-red-600 text-white px-4 py-2.5 rounded-xl shadow hover:bg-red-700 transition text-sm font-bold">
+                    <i data-lucide="download" class="w-4 h-4"></i> ទាញយក PDF
+                </button>
+                <button onclick="window.print()" class="flex justify-center items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl shadow hover:bg-indigo-700 transition text-sm font-bold">
+                    <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ភ
+                </button>
+                <button onclick="window.closePreview()" class="flex justify-center items-center gap-2 bg-slate-600 text-white px-4 py-2.5 rounded-xl shadow hover:bg-slate-700 transition text-sm font-bold">
+                    <i data-lucide="x" class="w-4 h-4"></i> បិទការបោះពុម្ព
+                </button>
+            </div>
+        </div>
+
+        <div id="printContainer" class="flex flex-col items-center pb-12 w-full">
+            <!-- Cover Page -->
+            <div id="mainCoverPage" class="a4-page cover-page relative no-print-bg">
+                <div class="cover-border"></div>
+                <div class="text-center w-full mt-4">
+                    <h1 class="kh-moul text-2xl mb-2">ព្រះរាជាណាចក្រកម្ពុជា</h1>
+                    <h2 class="kh-moul text-xl">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
+                    <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12px] w-auto mx-auto mt-2 mb-8" crossorigin="anonymous">
+                </div>
+                <div class="w-full text-left mt-4 pl-8 font-bold">
+                    <p class="kh-moul text-base mb-3" id="cover_org_1"></p>
+                    <p class="kh-moul text-base mb-3" id="cover_org_2"></p>
+                    <p class="kh-moul text-base mb-3" id="cover_school"></p>
+                </div>
+                <div class="flex-1 flex flex-col justify-center items-center w-full space-y-10 mt-10">
+                    <h1 class="kh-moul text-6xl text-blue-600 text-shadow-custom" style="font-weight: normal;">សៀវភៅ</h1>
+                    <h2 class="kh-moul text-5xl text-red-600 text-shadow-custom leading-normal text-center w-full px-8" style="font-weight: normal;">របៀបវារៈ និងកិច្ចប្រជុំ</h2>
+                    <h3 class="kh-moul text-4xl text-green-600 text-shadow-custom mt-6" id="cover_class" style="font-weight: normal;"></h3>
+                </div>
+                <div class="w-full text-center mt-auto mb-8 space-y-4">
+                    <p class="kh-moul text-3xl" id="cover_teacher"></p>
+                    <p class="kh-moul text-3xl">ឆ្នាំសិក្សា <span id="cover_year">...</span></p>
+                </div>
+            </div>
+
+            <!-- Dynamic Print Pages Container -->
+            <div id="printPagesContainer" class="w-full flex flex-col items-center">
+                <!-- Pages injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+
+        // Firebase Config (Standard shared config for this environment)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const PTEC_APP_ID = "ptec-app";
+
+        window.currentUser = null;
+        window.agendasList = [];
+        window.classConfig = {};
+
+        // Load Settings from parent or localStorage
+        window.loadDashboardSettings = function() {
+            try {
+                let dashboardSettings = {};
+                if (window.parent && window.parent.appSettings) {
+                    dashboardSettings = window.parent.appSettings;
+                } else {
+                    dashboardSettings = JSON.parse(localStorage.getItem('app_settings') || '{}');
+                }
+                
+                const defaultSettings = {
+                    unit1: "មន្ទីរអប់រំ យុវជន និងកីឡា", unit2: "ការិយាល័យអប់រំ យុវជន និងកីឡា",
+                    className: "................", schoolName: "................",
+                    teacherName: "ឈ្មោះគ្រូ", inspectorName: "ឈ្មោះនាយកសាលា", managerRole: "នាយកសាលា", 
+                    teacherSignature: null, teacherSigScale: 1.0,
+                    inspectorSignature: null, inspectorSigScale: 1.0,
+                    location: "................", academicYear: "២០២៤-២០២៥"
+                };
+                
+                window.classConfig = { ...defaultSettings, ...window.classConfig, ...dashboardSettings };
+                
+                // Sync inputs
+                const teacherInput = document.getElementById('teacherNameInput');
+                const inspectorInput = document.getElementById('inspectorNameInput');
+                if(teacherInput) teacherInput.value = window.classConfig.teacherName || '';
+                if(inspectorInput) inspectorInput.value = window.classConfig.inspectorName || '';
+
+                if(window.renderSignaturePreview) {
+                    window.renderSignaturePreview('teacher');
+                    window.renderSignaturePreview('inspector');
+                }
+            } catch (e) { 
+                console.error("Error loading dashboard settings:", e); 
+            }
+        };
+
+        window.loadDashboardSettings();
+
+        const khDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+        const khMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+        const agendaLabels = ['១.', '២.', '៣.', '៤.', '៥.', '៦.'];
+        
+        function toKhmerNum(num) { 
+            return num ? num.toString().split('').map(d => khDigits[d] || d).join('') : ''; 
+        }
+
+        function formatDateKhmer(dateString) {
+            if(!dateString) return '';
+            const d = new Date(dateString);
+            return `${toKhmerNum(d.getDate().toString().padStart(2, '0'))}-${khMonths[d.getMonth()]}-${toKhmerNum(d.getFullYear())}`;
+        }
+
+        function getLunarDateStr(dateObj) {
+            let lunarStr = "ថ្ងៃ................ខែ..........ឆ្នាំ..........ស័ក ព.ស.២៥៦...";
+            if (typeof momentkh !== 'undefined') {
+                try { 
+                    lunarStr = momentkh.format(momentkh.fromDate(dateObj)).replace('ពុទ្ធសករាជ', 'ព.ស.'); 
+                } catch (e) {}
+            }
+            return lunarStr;
+        }
+
+        // Firebase Auth Init
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+            }
+        };
+
+        initAuth().then(() => {
+            onAuthStateChanged(auth, user => {
+                if (user) {
+                    window.currentUser = user;
+                    setupFirebaseListeners();
+                }
+            });
+        });
+
+        function setupFirebaseListeners() {
+            // Settings Listener
+            onSnapshot(doc(db, 'artifacts', PTEC_APP_ID, 'users', window.currentUser.uid, 'settings', 'general'), snap => {
+                if (snap.exists()) {
+                    window.classConfig = { ...window.classConfig, ...snap.data() };
+                }
+                window.loadDashboardSettings();
+            }, err => console.error(err));
+
+            // Meeting Agendas Listener
+            onSnapshot(collection(db, 'artifacts', PTEC_APP_ID, 'users', window.currentUser.uid, 'meeting_agendas'), snap => {
+                window.agendasList = [];
+                snap.forEach(doc => {
+                    window.agendasList.push({ id: doc.id, ...doc.data() });
+                });
+                window.renderTable();
+            }, err => console.error(err));
+        }
+
+        // Signature Logic
+        window.toggleSignatureSettings = function() {
+            const box = document.getElementById('signatureSettingsBox');
+            box.classList.toggle('hidden');
+        }
+
+        window.updateSignatures = async function() {
+            window.classConfig.teacherName = document.getElementById('teacherNameInput').value;
+            window.classConfig.inspectorName = document.getElementById('inspectorNameInput').value;
+            if (window.currentUser) {
+                const settingsRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', window.currentUser.uid, 'settings', 'general');
+                await setDoc(settingsRef, window.classConfig, { merge: true });
+            }
+        }
+
+        window.handleSignatureUpload = function(type) {
+            const input = document.getElementById(type + 'SignatureInput');
+            const file = input.files[0];
+            if (file && window.currentUser) {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const base64 = e.target.result;
+                    if (type === 'teacher') {
+                        window.classConfig.teacherSignature = base64;
+                        window.classConfig.teacherSigScale = 1.0;
+                    } else {
+                        window.classConfig.inspectorSignature = base64;
+                        window.classConfig.inspectorSigScale = 1.0; 
+                    }
+                    
+                    const settingsRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', window.currentUser.uid, 'settings', 'general');
+                    await setDoc(settingsRef, window.classConfig, { merge: true });
+                    window.renderSignaturePreview(type);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        window.removeSignature = async function(type) {
+            if (type === 'teacher') window.classConfig.teacherSignature = null;
+            else window.classConfig.inspectorSignature = null;
+            
+            if (window.currentUser) {
+                const settingsRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', window.currentUser.uid, 'settings', 'general');
+                await setDoc(settingsRef, window.classConfig, { merge: true });
+            }
+            document.getElementById(type + 'SignatureInput').value = ''; 
+            window.renderSignaturePreview(type);
+        }
+
+        window.zoomSignature = async function(type, delta) {
+            const scaleKey = type + 'SigScale';
+            window.classConfig[scaleKey] = (window.classConfig[scaleKey] || 1.0) + delta;
+            window.classConfig[scaleKey] = Math.max(0.2, Math.min(3.0, window.classConfig[scaleKey]));
+            
+            if (window.currentUser) {
+                const settingsRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', window.currentUser.uid, 'settings', 'general');
+                await setDoc(settingsRef, window.classConfig, { merge: true });
+            }
+            window.renderSignaturePreview(type);
+        }
+
+        window.renderSignaturePreview = function(type) {
+            const previewDiv = document.getElementById(type + 'SigPreview');
+            const sigData = type === 'teacher' ? window.classConfig.teacherSignature : window.classConfig.inspectorSignature;
+            const scale = window.classConfig[type + 'SigScale'] || 1.0;
+            
+            if (sigData) {
+                previewDiv.innerHTML = `<img src="${sigData}" style="transform: scale(${scale}); transform-origin: center center;" class="h-full w-full object-contain">`;
+            } else {
+                previewDiv.innerHTML = `<span class="text-[10px] text-slate-400">គ្មានរូបភាព</span>`;
+            }
+        }
+
+        // Form Submit
+        document.getElementById('meetingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!window.currentUser) return alert('កំពុងភ្ជាប់ទៅកាន់ប្រព័ន្ធ...');
+
+            const btnSave = document.getElementById('btnSave');
+            const originalBtnHTML = btnSave.innerHTML;
+            btnSave.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> កំពុងរក្សាទុក...';
+            btnSave.disabled = true;
+
+            try {
+                const idInput = document.getElementById('editId').value;
+                const date = document.getElementById('meetDate').value;
+                const title = document.getElementById('meetTitle').value.trim();
+                const details = document.getElementById('meetDetails').value.trim();
+                
+                const agendas = [
+                    document.getElementById('ag1').value.trim(),
+                    document.getElementById('ag2').value.trim(),
+                    document.getElementById('ag3').value.trim(),
+                    document.getElementById('ag4').value.trim(),
+                    document.getElementById('ag5').value.trim(),
+                    document.getElementById('ag6').value.trim(),
+                ];
+
+                const id = idInput ? idInput : Date.now().toString();
+                const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', window.currentUser.uid, 'meeting_agendas', id);
+                
+                await setDoc(docRef, { id, date, title, agendas, details }, { merge: true });
+                
+                // Show Success Toast Notification
+                const toast = document.createElement('div');
+                toast.className = "fixed bottom-5 right-5 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-2xl z-[100] flex items-center gap-2 transition-all duration-300 font-bold";
+                toast.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5"></i> បានរក្សាទុកក្នុង Database ជោគជ័យ!`;
+                document.body.appendChild(toast);
+                if (window.lucide) lucide.createIcons();
+                
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+
+                window.resetForm();
+            } catch (error) {
+                console.error("Error saving to database: ", error);
+                alert("មានបញ្ហាក្នុងការរក្សាទុក៖ " + error.message);
+            } finally {
+                btnSave.innerHTML = originalBtnHTML;
+                btnSave.disabled = false;
+                if (window.lucide) lucide.createIcons();
+            }
+        });
+
+        window.editItem = function(id) {
+            const item = window.agendasList.find(i => i.id == id);
+            if (!item) return;
+            document.getElementById('editId').value = item.id;
+            document.getElementById('meetDate').value = item.date;
+            document.getElementById('meetTitle').value = item.title;
+            document.getElementById('meetDetails').value = item.details || '';
+            
+            for(let i=0; i<6; i++) {
+                document.getElementById(`ag${i+1}`).value = (item.agendas && item.agendas[i]) ? item.agendas[i] : '';
+            }
+
+            document.getElementById('formTitle').innerHTML = '<i data-lucide="edit-3" class="w-5 h-5 text-yellow-600"></i> កែប្រែព័ត៌មានកិច្ចប្រជុំ';
+            document.getElementById('btnSave').innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> យល់ព្រម';
+            document.getElementById('btnCancel').classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.getElementById('meetTitle').focus();
+        }
+
+        window.deleteItem = async function(id) {
+            if (!window.currentUser) return;
+            if (confirm("តើអ្នកពិតជាចង់លុបទិន្នន័យនេះមែនទេ?")) {
+                await deleteDoc(doc(db, 'artifacts', PTEC_APP_ID, 'users', window.currentUser.uid, 'meeting_agendas', id.toString()));
+            }
+        }
+
+        window.resetForm = function() {
+            document.getElementById('meetingForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('meetDate').valueAsDate = new Date();
+            document.getElementById('formTitle').innerHTML = '<i data-lucide="plus-circle" class="w-5 h-5 text-blue-600"></i> កត់ត្រាកិច្ចប្រជុំថ្មី';
+            document.getElementById('btnSave').innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> រក្សាទុក';
+            document.getElementById('btnCancel').classList.add('hidden');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        window.renderTable = function() {
+            const tbody = document.getElementById('dataTableBody');
+            document.getElementById('totalItemsCount').innerText = toKhmerNum(window.agendasList.length);
+            
+            if (window.agendasList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold italic">មិនទាន់មានទិន្នន័យនៅឡើយទេ</td></tr>`;
+                return;
+            }
+            const sorted = [...window.agendasList].sort((a,b) => new Date(b.date) - new Date(a.date));
+            
+            tbody.innerHTML = sorted.map((item, idx) => {
+                const ag1 = (item.agendas && item.agendas[0]) ? item.agendas[0] : '';
+                return `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-4 text-center font-bold text-gray-500 border-r">${toKhmerNum(idx + 1)}</td>
+                    <td class="p-4 text-center text-blue-700 font-bold">${formatDateKhmer(item.date)}</td>
+                    <td class="p-4 font-bold text-slate-700">${item.title}</td>
+                    <td class="p-4 text-gray-600 italic text-xs leading-relaxed">${ag1 ? (ag1.length > 40 ? ag1.substring(0, 40) + '...' : ag1) : 'គ្មាន'}</td>
+                    <td class="p-4 text-center">
+                        <div class="flex justify-center gap-3">
+                            <button onclick="window.printSingleItem('${item.id}')" class="p-2.5 bg-indigo-50 text-indigo-700 rounded-xl hover:bg-indigo-100 transition shadow-sm border border-indigo-100/50" title="បោះពុម្ពកិច្ចប្រជុំនេះ"><i data-lucide="printer" class="w-[18px] h-[18px]"></i></button>
+                            <button onclick="window.editItem('${item.id}')" class="p-2.5 bg-amber-50 text-amber-700 rounded-xl hover:bg-amber-100 transition shadow-sm border border-amber-100/50" title="កែប្រែ"><i data-lucide="edit" class="w-[18px] h-[18px]"></i></button>
+                            <button onclick="window.deleteItem('${item.id}')" class="p-2.5 bg-rose-50 text-rose-700 rounded-xl hover:bg-rose-100 transition shadow-sm border border-rose-100/50" title="លុប"><i data-lucide="trash-2" class="w-[18px] h-[18px]"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `}).join('');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        window.printSingleItem = function(id) {
+            const item = window.agendasList.find(i => i.id == id);
+            if (!item) return;
+            
+            window.loadDashboardSettings();
+            
+            // Populate Cover Page
+            document.getElementById('cover_org_1').textContent = window.classConfig.unit1 || '';
+            document.getElementById('cover_org_2').textContent = window.classConfig.unit2 || '';
+            document.getElementById('cover_school').textContent = window.classConfig.schoolName || '';
+            
+            let classNameStr = window.classConfig.className || '';
+            document.getElementById('cover_class').textContent = classNameStr ? (classNameStr.includes('ថ្នាក់') ? classNameStr : 'ថ្នាក់ទី ' + classNameStr) : 'ថ្នាក់ទី...';
+            
+            document.getElementById('cover_teacher').textContent = window.classConfig.teacherName || '';
+            document.getElementById('cover_year').textContent = window.classConfig.academicYear || '២០២៤-២០២៥';
+
+            // Hide the cover page for single print
+            document.getElementById('mainCoverPage').style.display = 'none';
+
+            // Populate Content Pages with ONLY this specific meeting
+            const pagesContainer = document.getElementById('printPagesContainer');
+            pagesContainer.innerHTML = window.generatePrintPageHTML(item);
+
+            // Ensure injected icons are rendered
+            if (window.lucide) lucide.createIcons();
+
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('printAreaWrapper').classList.remove('hidden');
+            document.getElementById('printAreaWrapper').classList.add('flex');
+            document.body.classList.add('preview-mode');
+        }
+
+        window.generatePrintPageHTML = function(item = null) {
+            const loc = window.classConfig.location || '....................';
+            const teacherName = window.classConfig.teacherName || '';
+            const inspectorPrintName = window.classConfig.inspectorName || '';
+            const managerRole = window.classConfig.managerRole || 'នាយកសាលា';
+            const schoolName = window.classConfig.schoolName || '';
+            const unit1 = window.classConfig.unit1 || '';
+            const unit2 = window.classConfig.unit2 || '';
+            const tScale = window.classConfig.teacherSigScale || 1.0;
+            const iScale = window.classConfig.inspectorSigScale || 1.0;
+            
+            let dateObj = new Date();
+            let title = '';
+            let agendas = ['', '', '', '', '', ''];
+            let detailsHtml = '';
+
+            if (item) {
+                if (item.date) dateObj = new Date(item.date);
+                title = item.title || '';
+                if(item.agendas) agendas = [...item.agendas];
+                
+                if (item.details && item.details.trim()) {
+                    detailsHtml = `<div class="print-content-text w-full" style="word-break: break-all; line-break: anywhere;">${item.details}</div>`;
+                }
+            }
+
+            let lunarStr = getLunarDateStr(dateObj);
+            let solarDateStr = `${loc}, ថ្ងៃទី${toKhmerNum(dateObj.getDate().toString().padStart(2, '0'))} ខែ${khMonths[dateObj.getMonth()]} ឆ្នាំ${toKhmerNum(dateObj.getFullYear())}`;
+
+            // Generate Agendas rows (Only filled items)
+            let agendaHtml = '';
+            for(let i=0; i<6; i++) {
+                if (agendas[i] && agendas[i].trim() !== '') {
+                    agendaHtml += `
+                        <div class="flex items-start mb-3 w-full">
+                            <span class="kh-moul shrink-0 text-[13pt] w-8 text-left mt-0.5">${agendaLabels[i]}</span>
+                            <div class="flex-1 min-w-0 font-battambang text-[12pt] leading-[1.75rem] text-justify" style="word-break: break-word; line-break: auto; white-space: pre-wrap;">${agendas[i]}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            // Meeting Title display
+            let meetingTitleDisplay = title ? `កិច្ចប្រជុំ ${title}` : 'កិច្ចប្រជុំ ........................................................................';
+
+            return `
+            <div class="a4-page page-break flex flex-col pt-10 px-8" style="padding-top: 15mm;">
+                
+                <!-- National Header for Content Page -->
+                <div class="text-center w-full mb-6">
+                    <h1 class="kh-moul text-[16pt] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h1>
+                    <h2 class="kh-moul text-[14pt]">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
+                    <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12px] w-auto mx-auto mt-2" crossorigin="anonymous">
+                </div>
+
+                <!-- School Header -->
+                <div class="w-full text-left kh-moul text-[12pt] leading-relaxed mb-8">
+                    ${unit1 ? `<p>${unit1}</p>` : ''}
+                    ${unit2 ? `<p>${unit2}</p>` : ''}
+                    <p>${schoolName}</p>
+                </div>
+
+                <!-- Meeting Title -->
+                <div class="text-center mb-8">
+                    <div class="kh-moul text-[14pt]">${meetingTitleDisplay}</div>
+                </div>
+
+                <!-- Agenda Section -->
+                <div class="text-center mb-6">
+                    <span class="text-red-600 kh-moul text-[13pt] border-b-[3px] border-red-600 border-solid inline-block pb-1 px-1 tracking-wider">របៀបវារៈ:</span>
+                </div>
+                
+                <div class="mb-8 w-full px-4">
+                    ${agendaHtml}
+                </div>
+
+                <!-- Details Section -->
+                <div class="text-center mb-6">
+                    <span class="text-red-600 kh-moul text-[13pt] border-b-[3px] border-red-600 border-solid inline-block pb-1 px-1 tracking-wider">សេចក្តីលម្អិត</span>
+                </div>
+                
+                <div class="mb-8 w-full px-4">
+                    ${detailsHtml}
+                </div>
+
+                <!-- Signatures -->
+                <div class="signature-container mt-auto" style="page-break-inside: avoid;">
+                    <div class="sig-col-left">
+                        <p class="lunar-date invisible">.</p>
+                        <p class="solar-date font-bold">បានឃើញ និងឯកភាព</p>
+                        <p class="role-title">${managerRole}</p>
+                        <div class="sig-image-box" style="margin-left: 1cm;">
+                            ${window.classConfig.inspectorSignature ? `<img src="${window.classConfig.inspectorSignature}" style="transform: scale(${iScale}); transform-origin: center center;">` : ''}
+                        </div>
+                        <p class="teacher-name-final" style="padding-left: 2cm;">${inspectorPrintName}</p>
+                    </div>
+                    <div class="sig-col-right">
+                        <p class="lunar-date">${lunarStr}</p>
+                        <p class="solar-date">${solarDateStr}</p>
+                        <p class="role-title">អ្នកកត់ត្រា</p>
+                        <div class="sig-image-box">
+                            ${window.classConfig.teacherSignature ? `<img src="${window.classConfig.teacherSignature}" style="transform: scale(${tScale}); transform-origin: center center;">` : ''}
+                        </div>
+                        <p class="teacher-name-final">${teacherName}</p>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        window.previewPDF = function() {
+            window.loadDashboardSettings();
+            
+            // Show the cover page for all printing
+            document.getElementById('mainCoverPage').style.display = 'flex';
+
+            // Populate Cover Page
+            document.getElementById('cover_org_1').textContent = window.classConfig.unit1 || '';
+            document.getElementById('cover_org_2').textContent = window.classConfig.unit2 || '';
+            document.getElementById('cover_school').textContent = window.classConfig.schoolName || '';
+            
+            let classNameStr = window.classConfig.className || '';
+            document.getElementById('cover_class').textContent = classNameStr ? (classNameStr.includes('ថ្នាក់') ? classNameStr : 'ថ្នាក់ទី ' + classNameStr) : 'ថ្នាក់ទី...';
+            
+            document.getElementById('cover_teacher').textContent = window.classConfig.teacherName || '';
+            document.getElementById('cover_year').textContent = window.classConfig.academicYear || '២០២៤-២០២៥';
+
+            // Populate Content Pages
+            const pagesContainer = document.getElementById('printPagesContainer');
+            pagesContainer.innerHTML = '';
+
+            const sorted = [...window.agendasList].sort((a,b) => new Date(a.date) - new Date(b.date)); // Chronological for printing
+            
+            if (sorted.length === 0) {
+                // Render one blank template if no data
+                pagesContainer.innerHTML = window.generatePrintPageHTML(null);
+            } else {
+                sorted.forEach(item => {
+                    pagesContainer.innerHTML += window.generatePrintPageHTML(item);
+                });
+            }
+
+            // Ensure injected icons are rendered on the dynamically generated content pages
+            if (window.lucide) lucide.createIcons();
+
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('printAreaWrapper').classList.remove('hidden');
+            document.getElementById('printAreaWrapper').classList.add('flex');
+            document.body.classList.add('preview-mode');
+        }
+
+        window.closePreview = function() {
+            // Restore cover page display state if it was hidden
+            document.getElementById('mainCoverPage').style.display = 'flex';
+
+            document.getElementById('mainScreen').classList.remove('hidden');
+            document.getElementById('printAreaWrapper').classList.add('hidden');
+            document.getElementById('printAreaWrapper').classList.remove('flex');
+            document.body.classList.remove('preview-mode');
+        }
+
+        window.downloadPDF = async function() {
+            const element = document.getElementById('printContainer');
+            const btn = document.getElementById('btnDownload');
+            const originalHtml = btn.innerHTML;
+            
+            element.classList.add('pdf-exporting');
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> កំពុងទាញយក...';
+            btn.disabled = true;
+            if (window.lucide) lucide.createIcons();
+
+            // លាក់ Box Shadow ពេលទាញយក
+            const pages = element.querySelectorAll('.a4-page');
+            pages.forEach(page => {
+                page.style.boxShadow = 'none';
+                page.style.margin = '0';
+            });
+
+            try {
+                await document.fonts.ready;
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+                
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                
+                let isFirstPage = true;
+
+                for (let i = 0; i < pages.length; i++) {
+                    const page = pages[i];
+                    
+                    // Use html-to-image to snapshot the individual page/meeting block
+                    const dataUrl = await htmlToImage.toPng(page, { 
+                        quality: 1.0,
+                        pixelRatio: 2, 
+                        backgroundColor: '#ffffff'
+                    });
+                    
+                    const imgProps = pdf.getImageProperties(dataUrl);
+                    const imgHeightInMm = (imgProps.height * pdfWidth) / imgProps.width;
+                    
+                    let heightLeft = imgHeightInMm;
+                    let position = 0;
+
+                    if (!isFirstPage) {
+                        pdf.addPage();
+                    }
+                    isFirstPage = false;
+
+                    // First slice of this DOM element
+                    pdf.addImage(dataUrl, 'PNG', 0, position, pdfWidth, imgHeightInMm, undefined, 'FAST');
+                    heightLeft -= pdfHeight;
+
+                    // Slice loop for content exceeding 1 A4 page
+                    while (heightLeft > 0) {
+                        position = position - pdfHeight;
+                        pdf.addPage();
+                        pdf.addImage(dataUrl, 'PNG', 0, position, pdfWidth, imgHeightInMm, undefined, 'FAST');
+                        heightLeft -= pdfHeight;
+                    }
+                }
+
+                pdf.save(`Meeting_Agenda_Book_${window.classConfig.className || 'Class'}.pdf`);
+
+            } catch (error) {
+                console.error("Error generating PDF:", error);
+                alert("សុំទោស មានបញ្ហាក្នុងការទាញយក PDF។ សូមប្រើប្រាស់ប៊ូតុង 'បោះពុម្ភ' (Print) ជំនួសវិញ។");
+            } finally {
+                element.classList.remove('pdf-exporting');
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+                if (window.lucide) lucide.createIcons();
+                
+                pages.forEach(page => {
+                    page.style.boxShadow = '';
+                    page.style.margin = '';
+                });
+            }
+        }
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+            document.getElementById('meetDate').valueAsDate = new Date();
+        });
+    </script>
+</body>
+</html>

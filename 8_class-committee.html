@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Taprom&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- PDF Export Libraries (Replaced for better accuracy) -->
+    <!-- PDF Export Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
@@ -75,9 +75,7 @@
         .sig-image-box { height: 75px; margin-top: 10px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; }
         .sig-image-box img { max-height: 100%; max-width: 160px; object-fit: contain; mix-blend-mode: multiply; pointer-events: none; }
         
-        /* ---------------------------------------------------
-           PDF EXPORT SPECIFIC STYLES
-           --------------------------------------------------- */
+        /* PDF EXPORT SPECIFIC STYLES */
         .pdf-exporting .text-shadow-custom { text-shadow: none !important; }
         .pdf-exporting .a4-page {
             width: 210mm !important;
@@ -109,7 +107,7 @@
             #printAreaWrapper { display: block !important; padding: 0 !important; background: transparent !important; }
             .a4-page { 
                 width: 210mm !important;
-                height: 297mm !important; /* Fixed: explicitly 297mm prevents cover layout collapse */
+                height: 297mm !important; 
                 min-height: 297mm !important;
                 max-height: 297mm !important;
                 box-sizing: border-box !important;
@@ -121,12 +119,8 @@
                 position: relative !important;
                 overflow: hidden !important;
             }
-            .cover-page { 
-                padding: 20mm !important;
-            }
-            .a4-page:last-child {
-                page-break-after: auto;
-            }
+            .cover-page { padding: 20mm !important; }
+            .a4-page:last-child { page-break-after: auto; }
             .text-shadow-custom { text-shadow: none !important; }
             .bg-animate { display: none; }
         }
@@ -184,11 +178,7 @@
                                         <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
                                             <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
                                                 <button type="button" onclick="zoomSignature('manager', -0.1)" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="បង្រួមទំហំ (Zoom Out)"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
-                                                
-                                                <div id="managerSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded">
-                                                    <!-- Preview will be injected here -->
-                                                </div>
-                                                
+                                                <div id="managerSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded"></div>
                                                 <button type="button" onclick="zoomSignature('manager', 0.1)" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="ពង្រីកទំហំ (Zoom In)"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
                                             </div>
                                             
@@ -214,11 +204,7 @@
                                         <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
                                             <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
                                                 <button type="button" onclick="zoomSignature('teacher', -0.1)" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="បង្រួមទំហំ (Zoom Out)"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
-                                                
-                                                <div id="teacherSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded">
-                                                    <!-- Preview will be injected here -->
-                                                </div>
-                                                
+                                                <div id="teacherSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded"></div>
                                                 <button type="button" onclick="zoomSignature('teacher', 0.1)" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="ពង្រីកទំហំ (Zoom In)"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
                                             </div>
                                             
@@ -301,7 +287,7 @@
                     </div>
                 </div>
 
-                <!-- TAB 2: Contributions -->
+                <!-- TAB 2: Contributions (UPDATED) -->
                 <div id="section-contributions" class="hidden">
                     <div class="bg-green-50/50 border border-green-100 p-5 rounded-2xl mb-6">
                         <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2">
@@ -309,13 +295,24 @@
                         </h3>
                         <form id="formCont" onsubmit="saveCont(event)" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                             <input type="hidden" id="editContId" value="">
-                            <div class="md:col-span-5">
-                                <label class="block text-sm font-bold text-gray-600 mb-1">ឈ្មោះមាតាបិតាសិស្ស <span class="text-red-500">*</span></label>
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-bold text-gray-600 mb-1">ឈ្មោះមាតាបិតា <span class="text-red-500">*</span></label>
                                 <input type="text" id="contName" required placeholder="ឈ្មោះ..." class="input-field">
                             </div>
-                            <div class="md:col-span-5">
-                                <label class="block text-sm font-bold text-gray-600 mb-1">ថវិកាចូលរួម (រៀល) <span class="text-red-500">*</span></label>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-bold text-gray-600 mb-1">ចំនួនថវិកា <span class="text-red-500">*</span></label>
                                 <input type="number" id="contAmount" required min="0" placeholder="ឧ. 10000" class="input-field text-center font-sans">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-bold text-gray-600 mb-1">រូបិយប័ណ្ណ <span class="text-red-500">*</span></label>
+                                <select id="contCurrency" required class="input-field cursor-pointer">
+                                    <option value="KHR">រៀល (៛)</option>
+                                    <option value="USD">ដុល្លារ ($)</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-bold text-gray-600 mb-1">ផ្សេងៗ (សម្គាល់)</label>
+                                <input type="text" id="contRemark" placeholder="ឧ. ABA, ទាន់ចិត្ត..." class="input-field">
                             </div>
                             <div class="md:col-span-2 flex gap-2">
                                 <button type="submit" id="btnSaveCont" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-xl transition shadow flex justify-center items-center gap-2">
@@ -330,19 +327,26 @@
 
                     <div class="overflow-x-auto rounded-xl border border-gray-200">
                         <table class="w-full text-sm text-left">
-                            <thead class="bg-gray-100 text-gray-700 font-bold border-b">
+                            <thead class="bg-gray-100 text-gray-700 font-bold border-b border-t">
                                 <tr>
-                                    <th class="p-3 text-center w-16">ល.រ</th>
-                                    <th class="p-3">ឈ្មោះមាតាបិតាសិស្ស</th>
-                                    <th class="p-3 text-center w-48">ថវិកាចូលរួម</th>
-                                    <th class="p-3 text-center w-24">គ្រប់គ្រង</th>
+                                    <th rowspan="2" class="p-3 text-center w-16 border-r border-b">ល.រ</th>
+                                    <th rowspan="2" class="p-3 border-r border-b">ឈ្មោះមាតាបិតាសិស្ស</th>
+                                    <th colspan="2" class="p-3 text-center border-r border-b">ថវិកាចូលរួម</th>
+                                    <th rowspan="2" class="p-3 text-center border-r border-b">ផ្សេងៗ</th>
+                                    <th rowspan="2" class="p-3 text-center w-24 border-b">គ្រប់គ្រង</th>
+                                </tr>
+                                <tr>
+                                    <th class="p-2 text-center border-r border-b w-32">ប្រាក់រៀល</th>
+                                    <th class="p-2 text-center border-r border-b w-32">ប្រាក់ដុល្លារ</th>
                                 </tr>
                             </thead>
                             <tbody id="tableCont" class="bg-white divide-y divide-gray-100"></tbody>
-                            <tfoot class="bg-gray-50 font-bold border-t">
+                            <tfoot class="bg-gray-50 font-bold border-t border-b">
                                 <tr>
-                                    <td colspan="2" class="p-3 text-center text-gray-700">សរុប</td>
-                                    <td class="p-3 text-center text-green-700" id="totalContAmount">0 ៛</td>
+                                    <td colspan="2" class="p-3 text-center text-gray-700 border-r">សរុប</td>
+                                    <td class="p-3 text-center text-green-700 border-r" id="totalContAmountKHR">0 ៛</td>
+                                    <td class="p-3 text-center text-green-700 border-r" id="totalContAmountUSD">0$</td>
+                                    <td class="p-3 border-r"></td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -435,20 +439,18 @@
                     <h2 class="kh-moul text-lg">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
                     <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" alt="divider" class="h-[16px] w-auto mx-auto mt-3 mb-8" crossorigin="anonymous">
                 </div>
-                <div class="w-full text-left mt-4 pl-8 font-bold">
+                <div class="w-full text-left mt-4 pl-8 kh-moul">
                     <p class="kh-moul text-base mb-3" id="cover_org_1"></p>
                     <p class="kh-moul text-base mb-3" id="cover_org_2"></p>
                     <p class="kh-moul text-base mb-3" id="cover_school"></p>
                 </div>
                 
-                <!-- Fixed spacing here (mt-6 and space-y-8 instead of 10) -->
                 <div class="flex-1 flex flex-col justify-center items-center w-full space-y-8 mt-6">
                     <h1 class="kh-moul text-6xl text-[#0054a6] text-shadow-custom" style="font-weight: normal;">សៀវភៅ</h1>
                     <h2 class="kh-moul text-5xl text-red-500 text-shadow-custom leading-normal text-center w-full px-8" style="font-weight: normal;">គណៈកម្មការទ្រទ្រង់ថ្នាក់</h2>
                     <h3 class="kh-moul text-4xl text-blue-600 text-shadow-custom mt-6" id="cover_class" style="font-weight: normal;"></h3>
                 </div>
                 
-                <!-- Fixed bottom margin (mb-4 instead of mb-8) -->
                 <div class="w-full text-center mt-auto mb-4 space-y-4">
                     <p class="kh-moul text-3xl" id="cover_teacher"></p>
                     <p class="kh-moul text-3xl">ឆ្នាំសិក្សា <span id="cover_year">...</span></p>
@@ -462,7 +464,7 @@
                     <h3 class="kh-moul text-[13pt] mb-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
                     <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12pt] w-auto mx-auto mt-2" crossorigin="anonymous">
                 </div>
-                <div class="w-full text-[11pt] leading-relaxed mb-6 font-bold">
+                <div class="w-full text-[11pt] leading-relaxed mb-6 kh-moul">
                     <p id="h-org1"></p>
                     <p id="h-org2"></p>
                     <p id="h-school"></p>
@@ -470,33 +472,20 @@
                 <h2 class="kh-moul text-center text-[14pt] mb-2 uppercase underline decoration-double underline-offset-8">បញ្ជីឈ្មោះគណៈកម្មការទ្រទ្រង់ថ្នាក់</h2>
                 <p class="text-center font-bold text-[11pt] mb-6">ប្រចាំថ្នាក់ទី <span id="h-class"></span> សិក្សាឆ្នាំ <span id="h-year">...</span></p>
 
-                <!-- Dynamic Wrapper for Committee Table -->
                 <div id="printTableCommWrapper"></div>
             </div>
 
-            <!-- PAGE 3: Contributions Page -->
+            <!-- PAGE 3: Contributions Page (UPDATED) -->
             <div class="a4-page flex flex-col">
-                <div class="text-center w-full mb-6 mt-4">
-                    <h3 class="kh-moul text-[13pt] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h3>
-                    <h3 class="kh-moul text-[13pt] mb-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
-                    <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12pt] w-auto mx-auto mt-2" crossorigin="anonymous">
-                </div>
-                <h2 class="kh-moul text-center text-[14pt] mb-6 mt-4 uppercase">បញ្ជីថវិកាចូលរួមពីមាតាបិតាសិស្ស</h2>
+                <h2 class="kh-moul text-center text-[14pt] mb-6 mt-8 uppercase">បញ្ជីថវិកាចូលរួមពីមាតាបិតាសិស្ស</h2>
                 
-                <!-- Dynamic Wrapper for Contribution Table -->
                 <div id="printTableContWrapper"></div>
             </div>
 
             <!-- PAGE 4: Items Purchased Page -->
             <div class="a4-page flex flex-col">
-                <div class="text-center w-full mb-6 mt-4">
-                    <h3 class="kh-moul text-[13pt] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h3>
-                    <h3 class="kh-moul text-[13pt] mb-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
-                    <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12pt] w-auto mx-auto mt-2" crossorigin="anonymous">
-                </div>
-                <h2 class="kh-moul text-center text-[14pt] mb-6 mt-4 uppercase">បញ្ជីទិញទំនិញសម្រាប់ថ្នាក់រៀន</h2>
+                <h2 class="kh-moul text-center text-[14pt] mb-6 mt-8 uppercase">បញ្ជីទិញទំនិញសម្រាប់ថ្នាក់រៀន</h2>
                 
-                <!-- Dynamic Wrapper for Items Table -->
                 <div id="printTableItemWrapper"></div>
             </div>
 
@@ -566,7 +555,6 @@
             }
         }
 
-        // មុខងារបិទបើកផ្ទាំងកំណត់ហត្ថលេខា
         function toggleSignatureSettings() {
             const content = document.getElementById('signatureSettingsContent');
             const icon = document.getElementById('sigSettingsIcon');
@@ -612,7 +600,6 @@
             renderSignaturePreview('teacher');
         }
 
-        // មុខងារសម្រាប់ធ្វើបច្ចុប្បន្នភាព និងគ្រប់គ្រងហត្ថលេខា
         async function updateSignatures() {
             classConfig.managerName = document.getElementById('managerNameInput').value;
             classConfig.teacherName = document.getElementById('teacherNameInput').value;
@@ -706,12 +693,10 @@
         }
 
         async function commitData() {
-            // Local save
             localStorage.setItem(STORE_COMM, JSON.stringify(dataComm));
             localStorage.setItem(STORE_CONT, JSON.stringify(dataCont));
             localStorage.setItem(STORE_ITEM, JSON.stringify(dataItem));
 
-            // Online save
             try {
                 await setDoc(doc(db, "school_data", "class_committee"), {
                     members: dataComm,
@@ -728,13 +713,13 @@
             const tbody = document.getElementById('tableComm');
             if (dataComm.length === 0) { tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-400 font-bold">មិនទាន់មានទិន្នន័យ</td></tr>`; return; }
             tbody.innerHTML = dataComm.map((item, i) => `
-                <tr class="hover:bg-gray-50 transition">
+                <tr class="hover:bg-gray-50 transition border-b">
                     <td class="p-2 text-center font-bold text-gray-600 border-r align-middle">${toKhmerNum(i + 1)}</td>
                     <td class="p-2 font-bold text-[#0054a6] align-middle">${item.name}</td>
                     <td class="p-2 text-center align-middle">${item.gender}</td>
                     <td class="p-2 text-center align-middle">${item.village}</td>
                     <td class="p-2 text-center align-middle font-sans">${item.phone || '-'}</td>
-                    <td class="p-2 text-center align-middle">
+                    <td class="p-2 text-center align-middle border-l">
                         <div class="flex justify-center gap-2">
                             <button onclick="editRow('comm', ${item.id})" class="p-1.5 bg-yellow-100 text-yellow-600 rounded-lg hover:bg-yellow-200"><i data-lucide="edit" class="w-4 h-4"></i></button>
                             <button onclick="delRow('comm', ${item.id})" class="p-1.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
@@ -754,14 +739,37 @@
             commitData(); renderComm(); resetForm('comm');
         }
 
+        // UPDATED renderCont logic
         function renderCont() {
-            const tbody = document.getElementById('tableCont'); let total = 0;
-            if (dataCont.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-400 font-bold">មិនទាន់មានទិន្នន័យ</td></tr>`; document.getElementById('totalContAmount').innerText = '0 ៛'; return; }
-            tbody.innerHTML = dataCont.map((item, i) => { total += item.amount; return `
-                <tr class="hover:bg-gray-50 transition">
+            const tbody = document.getElementById('tableCont'); 
+            let totalKHR = 0; let totalUSD = 0;
+            
+            if (dataCont.length === 0) { 
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-400 font-bold">មិនទាន់មានទិន្នន័យ</td></tr>`; 
+                document.getElementById('totalContAmountKHR').innerText = '0 ៛'; 
+                document.getElementById('totalContAmountUSD').innerText = '0$'; 
+                return; 
+            }
+            
+            tbody.innerHTML = dataCont.map((item, i) => { 
+                let curr = item.currency || 'KHR';
+                let strKHR = ''; let strUSD = '';
+                
+                if (curr === 'USD') {
+                    totalUSD += item.amount;
+                    strUSD = item.amount + '$';
+                } else {
+                    totalKHR += item.amount;
+                    strKHR = formatCurrency(item.amount);
+                }
+                
+                return `
+                <tr class="hover:bg-gray-50 transition border-b">
                     <td class="p-2 text-center font-bold text-gray-600 border-r align-middle">${toKhmerNum(i + 1)}</td>
-                    <td class="p-2 font-bold text-green-700 align-middle">${item.name}</td>
-                    <td class="p-2 text-center align-middle font-sans font-bold">${formatCurrency(item.amount)}</td>
+                    <td class="p-2 font-bold text-green-700 border-r align-middle">${item.name}</td>
+                    <td class="p-2 text-center border-r align-middle font-sans font-bold">${strKHR}</td>
+                    <td class="p-2 text-center border-r align-middle font-sans font-bold">${strUSD}</td>
+                    <td class="p-2 text-center border-r align-middle font-sans">${item.remark || ''}</td>
                     <td class="p-2 text-center align-middle">
                         <div class="flex justify-center gap-2">
                             <button onclick="editRow('cont', ${item.id})" class="p-1.5 bg-yellow-100 text-yellow-600 rounded-lg"><i data-lucide="edit" class="w-4 h-4"></i></button>
@@ -770,13 +778,23 @@
                     </td>
                 </tr>
             `}).join('');
-            document.getElementById('totalContAmount').innerText = toKhmerNum(formatCurrency(total)); lucide.createIcons();
+            
+            document.getElementById('totalContAmountKHR').innerText = toKhmerNum(formatCurrency(totalKHR)); 
+            document.getElementById('totalContAmountUSD').innerText = totalUSD > 0 ? totalUSD + '$' : '0$';
+            lucide.createIcons();
         }
 
+        // UPDATED saveCont logic
         function saveCont(e) {
             if(e) e.preventDefault();
             const id = document.getElementById('editContId').value;
-            const obj = { id: id ? parseInt(id) : Date.now(), name: document.getElementById('contName').value.trim(), amount: parseFloat(document.getElementById('contAmount').value) || 0 };
+            const obj = { 
+                id: id ? parseInt(id) : Date.now(), 
+                name: document.getElementById('contName').value.trim(), 
+                amount: parseFloat(document.getElementById('contAmount').value) || 0,
+                currency: document.getElementById('contCurrency').value,
+                remark: document.getElementById('contRemark').value.trim()
+            };
             if(!obj.name || obj.amount <= 0) return;
             if(id) { const idx = dataCont.findIndex(i => i.id == id); if(idx>-1) dataCont[idx] = obj; } else dataCont.push(obj);
             commitData(); renderCont(); resetForm('cont');
@@ -786,11 +804,11 @@
             const tbody = document.getElementById('tableItem'); let total = 0;
             if (dataItem.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-400 font-bold">មិនទាន់មានទិន្នន័យ</td></tr>`; document.getElementById('totalItemPrice').innerText = '0 ៛'; return; }
             tbody.innerHTML = dataItem.map((item, i) => { total += item.price; return `
-                <tr class="hover:bg-gray-50 transition">
+                <tr class="hover:bg-gray-50 transition border-b">
                     <td class="p-2 text-center font-bold text-gray-600 border-r align-middle">${toKhmerNum(i + 1)}</td>
                     <td class="p-2 font-bold text-orange-600 align-middle">${item.name}</td>
-                    <td class="p-2 text-center align-middle font-sans font-bold">${formatCurrency(item.price)}</td>
-                    <td class="p-2 text-center align-middle">
+                    <td class="p-2 text-center border-l align-middle font-sans font-bold">${formatCurrency(item.price)}</td>
+                    <td class="p-2 text-center border-l align-middle">
                         <div class="flex justify-center gap-2">
                             <button onclick="editRow('item', ${item.id})" class="p-1.5 bg-yellow-100 text-yellow-600 rounded-lg"><i data-lucide="edit" class="w-4 h-4"></i></button>
                             <button onclick="delRow('item', ${item.id})" class="p-1.5 bg-red-100 text-red-600 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
@@ -810,6 +828,7 @@
             commitData(); renderItem(); resetForm('item');
         }
 
+        // UPDATED editRow logic to load new fields
         function editRow(type, id) {
             if(type === 'comm') {
                 const item = dataComm.find(i=>i.id===id); if(!item) return;
@@ -819,7 +838,10 @@
             } else if(type === 'cont') {
                 const item = dataCont.find(i=>i.id===id); if(!item) return;
                 document.getElementById('editContId').value = item.id; document.getElementById('contName').value = item.name;
-                document.getElementById('contAmount').value = item.amount; toggleEditMode('Cont', true); document.getElementById('contName').focus();
+                document.getElementById('contAmount').value = item.amount; 
+                document.getElementById('contCurrency').value = item.currency || 'KHR';
+                document.getElementById('contRemark').value = item.remark || '';
+                toggleEditMode('Cont', true); document.getElementById('contName').focus();
             } else if(type === 'item') {
                 const item = dataItem.find(i=>i.id===id); if(!item) return;
                 document.getElementById('editItemId').value = item.id; document.getElementById('itemName').value = item.name;
@@ -874,11 +896,10 @@
         }
 
         function previewPDF() {
-            updateSignatures(); // ធ្វើបច្ចុប្បន្នភាពទិន្នន័យហត្ថលេខាមុនពេលបង្ហាញ
+            updateSignatures();
             loadConfig();
             const dates = getFormattedDates();
             
-            // Map basic headers
             document.getElementById('cover_org_1').textContent = classConfig.unit1 || '';
             document.getElementById('cover_org_2').textContent = classConfig.unit2 || '';
             document.getElementById('cover_school').textContent = classConfig.schoolName || '';
@@ -889,7 +910,6 @@
             document.getElementById('cover_teacher').textContent = classConfig.teacherName || '';
             document.getElementById('cover_year').textContent = classConfig.academicYear || '២០២៤-២០២៥';
             
-            // Map internal headers
             let cleanClass = (classConfig.className || '').replace(/ថ្នាក់ទី\s*/g, '').replace(/ថ្នាក់\s*/g, '').trim();
             document.getElementById('h-org1').innerText = classConfig.unit1 || '';
             document.getElementById('h-org2').innerText = classConfig.unit2 || '';
@@ -900,7 +920,28 @@
             let managerScale = classConfig.managerSigScale !== undefined ? classConfig.managerSigScale : 1.0;
             let teacherScale = classConfig.teacherSigScale !== undefined ? classConfig.teacherSigScale : 1.0;
 
-            // --- COMMITTEE TABLE (Single Dynamic Table Based on Filled Information) ---
+            const signatureHTML = `
+                <div class="keep-together-block mt-8">
+                    <div class="signature-container">
+                        <div class="sig-col-left">
+                            <div class="mb-4 invisible">.</div>
+                            <p class="text-[11pt] mb-2 font-bold">បានឃើញ និងឯកភាព</p>
+                            <p class="role-title uppercase">${classConfig.managerRole || 'នាយកសាលា'}</p>
+                            <div class="sig-image-box" style="padding-left: 2cm;">${classConfig.managerSignature ? `<img src="${classConfig.managerSignature}" style="transform: scale(${managerScale}); transform-origin: center center;">` : ''}</div>
+                            <p class="teacher-name-final" style="padding-left: 3cm;">${classConfig.managerName || ''}</p>
+                        </div>
+                        <div class="sig-col-right">
+                            <p class="lunar-date">${dates.lunar}</p>
+                            <p class="solar-date">${dates.solar}</p>
+                            <p class="role-title">គ្រូបន្ទុកថ្នាក់</p>
+                            <div class="sig-image-box">${classConfig.teacherSignature ? `<img src="${classConfig.teacherSignature}" style="transform: scale(${teacherScale}); transform-origin: center center;">` : ''}</div>
+                            <p class="teacher-name-final" style="margin-left: 3cm;">${classConfig.teacherName || ''}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // --- COMMITTEE TABLE ---
             let allCommRows = '';
             if (dataComm.length === 0) {
                 allCommRows = `<tr><td colspan="5" class="p-4 text-center text-gray-500">មិនមានទិន្នន័យ</td></tr>`;
@@ -936,41 +977,43 @@
                     </thead>
                     <tbody>${allCommRows}</tbody>
                 </table>
-                <div class="keep-together-block mt-8">
-                    <div class="signature-container">
-                        <div class="sig-col-left">
-                            <div class="mb-4 invisible">.</div>
-                            <p class="text-[11pt] mb-2 font-bold">បានឃើញ និងឯកភាព</p>
-                            <p class="role-title uppercase">${classConfig.managerRole || 'នាយកសាលា'}</p>
-                            <div class="sig-image-box" style="padding-left: 2cm;">${classConfig.managerSignature ? `<img src="${classConfig.managerSignature}" style="transform: scale(${managerScale}); transform-origin: center center;">` : ''}</div>
-                            <p class="teacher-name-final" style="padding-left: 3cm;">${classConfig.managerName || ''}</p>
-                        </div>
-                        <div class="sig-col-right">
-                            <p class="lunar-date">${dates.lunar}</p>
-                            <p class="solar-date">${dates.solar}</p>
-                            <p class="role-title">គ្រូបន្ទុកថ្នាក់</p>
-                            <div class="sig-image-box" ">${classConfig.teacherSignature ? `<img src="${classConfig.teacherSignature}" style="transform: scale(${teacherScale}); transform-origin: center center;">` : ''}</div>
-                            <p class="teacher-name-final" style="margin-left: 3cm;">${classConfig.teacherName || ''}</p>
-                        </div>
-                    </div>
-                </div>
+                ${signatureHTML}
             `;
             document.getElementById('printTableCommWrapper').innerHTML = commTableHTML;
 
-            // --- CONTRIBUTIONS TABLE (Single Dynamic Table Based on Filled Information) ---
-            let allContRows = ''; let tCont = 0;
+            // --- CONTRIBUTIONS TABLE (UPDATED FOR DUAL CURRENCY & REMARKS) ---
+            let allContRows = ''; let tContKHR = 0; let tContUSD = 0;
             if (dataCont.length === 0) {
-                allContRows = `<tr><td colspan="3" class="p-4 text-center text-gray-500">មិនមានទិន្នន័យ</td></tr>`;
+                allContRows = `<tr><td colspan="5" class="p-4 text-center text-gray-500">មិនមានទិន្នន័យ</td></tr>`;
             } else {
                 allContRows = dataCont.map((c, i) => {
-                    tCont += c.amount;
-                    return `<tr><td>${toKhmerNum(i+1)}</td><td class="text-left font-bold pl-2">${c.name}</td><td class="font-sans font-bold">${toKhmerNum(formatCurrency(c.amount))}</td></tr>`;
+                    let curr = c.currency || 'KHR';
+                    let strKHR = ''; let strUSD = '';
+                    
+                    if (curr === 'USD') {
+                        tContUSD += c.amount;
+                        strUSD = c.amount + '$';
+                    } else {
+                        tContKHR += c.amount;
+                        // Format the number but based on your image we keep just commas, not the "៛" sign in table
+                        strKHR = formatCurrency(c.amount).replace(' ៛', ''); 
+                    }
+
+                    return `<tr>
+                        <td>${toKhmerNum(i+1)}</td>
+                        <td class="text-left font-bold pl-2">${c.name}</td>
+                        <td class="font-sans font-bold">${strKHR}</td>
+                        <td class="font-sans font-bold">${strUSD}</td>
+                        <td class="font-sans font-bold">${c.remark || ''}</td>
+                    </tr>`;
                 }).join('');
                 
                 allContRows += `
                     <tr class="font-bold bg-gray-50 border-t-2 border-black">
                         <td colspan="2" class="text-center p-2">សរុប</td>
-                        <td class="text-center p-2 font-sans text-green-700">${toKhmerNum(formatCurrency(tCont))}</td>
+                        <td class="text-center p-2 font-sans">${tContKHR > 0 ? toKhmerNum(formatCurrency(tContKHR).replace(' ៛', '')) : ''}</td>
+                        <td class="text-center p-2 font-sans">${tContUSD > 0 ? tContUSD + '$' : ''}</td>
+                        <td></td>
                     </tr>
                 `;
             }
@@ -978,23 +1021,31 @@
             const contTableHTML = `
                 <table class="report-table">
                     <colgroup>
-                        <col style="width: 15%;">
-                        <col style="width: 50%;">
+                        <col style="width: 10%;">
                         <col style="width: 35%;">
+                        <col style="width: 20%;">
+                        <col style="width: 15%;">
+                        <col style="width: 20%;">
                     </colgroup>
                     <thead>
                         <tr>
-                            <th>ល.រ</th>
-                            <th>ឈ្មោះមាតាបិតាសិស្ស</th>
-                            <th>ថវិកាចូលរួម</th>
+                            <th rowspan="2">ល.រ</th>
+                            <th rowspan="2">ឈ្មោះមាតាបិតាសិស្ស</th>
+                            <th colspan="2">ថវិកាចូលរួម</th>
+                            <th rowspan="2">ផ្សេងៗ</th>
+                        </tr>
+                        <tr>
+                            <th>ប្រាក់រៀល</th>
+                            <th>ប្រាក់ដុល្លារ</th>
                         </tr>
                     </thead>
                     <tbody>${allContRows}</tbody>
                 </table>
+                ${signatureHTML}
             `;
             document.getElementById('printTableContWrapper').innerHTML = contTableHTML;
 
-            // --- ITEMS TABLE (Single Dynamic Table Based on Filled Information) ---
+            // --- ITEMS TABLE ---
             let allItemRows = ''; let tItem = 0;
             if (dataItem.length === 0) {
                 allItemRows = `<tr><td colspan="3" class="p-4 text-center text-gray-500">មិនមានទិន្នន័យ</td></tr>`;
@@ -1028,6 +1079,7 @@
                     </thead>
                     <tbody>${allItemRows}</tbody>
                 </table>
+                ${signatureHTML}
             `;
             document.getElementById('printTableItemWrapper').innerHTML = itemTableHTML;
 

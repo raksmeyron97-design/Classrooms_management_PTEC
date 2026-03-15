@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>សេចក្តីជូនដំណឹងដល់អាណាព្យាបាល</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            --khmer-moul: 'Moul', cursive;
+            --khmer-battambang: 'Battambang', sans-serif;
+            --primary: #0054a6;
+            --text-green: #16a34a; /* Tailwind green-600 */
+            --text-blue: #2563eb;  /* Tailwind blue-600 */
+            --text-red: #dc2626;   /* Tailwind red-600 */
+        }
+
+        body {
+            font-family: var(--khmer-battambang);
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 0;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        .kh-moul { font-family: var(--khmer-moul); font-weight: normal; }
+
+        /* Form Control */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            font-family: var(--khmer-battambang);
+            outline: none;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+        .input-field:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(0,84,166,0.1); }
+
+        /* Print A4 Styles */
+        .a4-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .a4-page {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 15mm 20mm;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+            box-sizing: border-box;
+            color: black;
+            flex-shrink: 0;
+            transform-origin: top center;
+        }
+
+        /* Responsive scale for preview */
+        @media (max-width: 1024px) {
+            .a4-page { transform: scale(0.8); margin-bottom: -60mm; }
+        }
+        @media (max-width: 768px) {
+            .a4-page { transform: scale(0.6); margin-bottom: -110mm; margin-left: -20%; }
+        }
+        @media (max-width: 480px) {
+            .a4-page { transform: scale(0.45); margin-bottom: -150mm; margin-left: -40%; }
+        }
+
+        /* Letter Styling */
+        .letter-header-green { color: var(--text-green); }
+        .letter-data-blue { color: var(--text-blue); font-family: var(--khmer-moul); }
+        .letter-title-red { color: var(--text-red); }
+
+        .parent-reply-lines {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .parent-reply-lines div {
+            border-bottom: 2px dotted var(--text-blue);
+            height: 35px;
+            width: 100%;
+        }
+
+        /* Print Specifics */
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { background: white !important; padding: 0; margin: 0; }
+            .no-print { display: none !important; }
+            .grid { display: block !important; } /* Disable grid during print */
+            .bg-slate-300\/50 { background: transparent !important; box-shadow: none !important; }
+            .a4-wrapper { padding: 0; display: block; overflow: visible; }
+            .a4-page { 
+                box-shadow: none !important;
+                margin: 0 !important;
+                transform: scale(1) !important;
+                width: 210mm;
+                height: 297mm;
+                page-break-after: always;
+            }
+            .letter-header-green { color: #16a34a !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .letter-data-blue { color: #2563eb !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .letter-title-red { color: #dc2626 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+        }
+
+        /* Loading Overlay */
+        #loadingOverlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(4px); transition: opacity 0.3s; }
+    </style>
+</head>
+<body class="pb-20">
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="w-12 h-12 border-4 border-[#0054a6] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="kh-moul text-[#0054a6] text-lg animate-pulse">កំពុងរៀបចំទិន្នន័យ...</p>
+    </div>
+
+    <!-- Main UI (Removed no-print from this main container) -->
+    <div class="max-w-[1400px] mx-auto pt-6 px-4 relative">
+        
+        <!-- Header (Added no-print here) -->
+        <div class="flex items-center justify-between mb-6 no-print">
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="p-2.5 bg-white rounded-xl shadow-sm hover:shadow-md text-blue-600 transition-all border border-slate-200">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </a>
+                <div>
+                    <h1 class="text-xl md:text-2xl kh-moul text-[#0054a6] flex items-center gap-2">
+                        <i data-lucide="mail-warning" class="w-6 h-6 text-red-500"></i> លិខិតជូនដំណឹងអវត្តមាន
+                    </h1>
+                </div>
+            </div>
+            
+            <button onclick="window.print()" class="bg-[#0054a6] hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl font-bold transition shadow-md flex items-center gap-2 text-sm">
+                <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ព (Print)
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Controls Form (Added no-print here) -->
+            <div class="lg:col-span-4 flex flex-col gap-4 no-print">
+                
+                <!-- School & Location Form -->
+                <div class="glass-card p-5">
+                    <h2 class="font-bold text-slate-700 mb-4 flex items-center gap-2 border-b pb-2">
+                        <i data-lucide="school" class="w-5 h-5 text-green-600"></i> ព័ត៌មានសាលា និងទីតាំង
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">ការិយាល័យអប់រំ</label>
+                            <input type="text" id="inpOffice" class="input-field font-bold text-slate-700" value="" oninput="updatePreview()">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">សាលារៀន</label>
+                                <input type="text" id="inpSchool" class="input-field" value="" oninput="updatePreview()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1">ថ្នាក់ទី</label>
+                                <input type="text" id="inpClass" class="input-field" value="" oninput="updatePreview()">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">ឈ្មោះគ្រូបន្ទុកថ្នាក់</label>
+                            <input type="text" id="inpTeacher" class="input-field" value="" oninput="updatePreview()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">លេខទូរស័ព្ទគ្រូ</label>
+                            <input type="text" id="inpPhone" class="input-field" value="" placeholder="០១២ ៣៤៥ ៦៧៨" oninput="updatePreview()">
+                        </div>
+
+                        <!-- Location Settings -->
+                        <div class="mt-4 pt-4 border-t border-slate-100">
+                            <label class="block text-xs font-bold text-slate-600 mb-2">ប្រភេទទីតាំងសាលា</label>
+                            <div class="flex gap-4 mb-3">
+                                <label class="flex items-center gap-1 text-sm cursor-pointer">
+                                    <input type="radio" name="locType" value="province" checked onchange="toggleLocationLabels(); updatePreview();" class="text-blue-600"> ខេត្ត
+                                </label>
+                                <label class="flex items-center gap-1 text-sm cursor-pointer">
+                                    <input type="radio" name="locType" value="capital" onchange="toggleLocationLabels(); updatePreview();" class="text-blue-600"> រាជធានី
+                                </label>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label id="lblLevel1" class="block text-xs font-bold text-slate-600 mb-1">ខេត្ត</label>
+                                    <input type="text" id="inpLevel1" class="input-field text-sm px-2" value="" oninput="updatePreview()">
+                                </div>
+                                <div>
+                                    <label id="lblLevel2" class="block text-xs font-bold text-slate-600 mb-1">ស្រុក</label>
+                                    <input type="text" id="inpLevel2" class="input-field text-sm px-2" value="" oninput="updatePreview()">
+                                </div>
+                                <div>
+                                    <label id="lblLevel3" class="block text-xs font-bold text-slate-600 mb-1">ឃុំ</label>
+                                    <input type="text" id="inpLevel3" class="input-field text-sm px-2" value="" oninput="updatePreview()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student & Absence Form -->
+                <div class="glass-card p-5">
+                    <h2 class="font-bold text-slate-700 mb-4 flex items-center gap-2 border-b pb-2">
+                        <i data-lucide="user-x" class="w-5 h-5 text-red-500"></i> ព័ត៌មានអវត្តមាន
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">ជ្រើសរើសសិស្ស</label>
+                            <select id="studentSelect" class="input-field font-bold text-blue-700" onchange="updatePreview()">
+                                <option value="">-- សូមជ្រើសរើសសិស្ស --</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2">ចន្លោះពេលអវត្តមាន</label>
+                            
+                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label class="block text-[10px] text-slate-500 mb-1">ចាប់ពីថ្ងៃទី</label>
+                                    <input type="number" id="inpStartDay" class="input-field" min="1" max="31" placeholder="ឧ. ១២" oninput="calculateDaysFromInputs(); updatePreview();">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-slate-500 mb-1">ដល់ថ្ងៃទី</label>
+                                    <input type="number" id="inpEndDay" class="input-field" min="1" max="31" placeholder="ឧ. ១៥" oninput="calculateDaysFromInputs(); updatePreview();">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] text-slate-500 mb-1">ខែ</label>
+                                    <select id="inpMonth" class="input-field" onchange="updatePreview()">
+                                        <option value="មករា">មករា</option>
+                                        <option value="កុម្ភៈ">កុម្ភៈ</option>
+                                        <option value="មីនា">មីនា</option>
+                                        <option value="មេសា">មេសា</option>
+                                        <option value="ឧសភា">ឧសភា</option>
+                                        <option value="មិថុនា">មិថុនា</option>
+                                        <option value="កក្កដា">កក្កដា</option>
+                                        <option value="សីហា">សីហា</option>
+                                        <option value="កញ្ញា">កញ្ញា</option>
+                                        <option value="តុលា">តុលា</option>
+                                        <option value="វិច្ឆិកា">វិច្ឆិកា</option>
+                                        <option value="ធ្នូ">ធ្នូ</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-slate-500 mb-1">ឆ្នាំ២០២...</label>
+                                    <select id="inpYear" class="input-field" onchange="updatePreview()">
+                                        <!-- Fixed Values: standard digits allow JavaScript string slicing to match correctly -->
+                                        <option value="6">២០២៦</option>
+                                        <option value="7">២០២៧</option>
+                                        <option value="8">២០២៨</option>
+                                        <option value="9">២០២៩</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">ចំនួនថ្ងៃឈប់សរុប</label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="totalDays" class="input-field w-24 text-center font-bold text-red-600" value="0" min="1" oninput="updatePreview()">
+                                <span class="text-sm font-bold text-slate-600">ថ្ងៃ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Preview Area -->
+            <div class="lg:col-span-8 bg-slate-300/50 rounded-2xl overflow-hidden shadow-inner">
+                <div class="a4-wrapper custom-scrollbar">
+                    
+                    <!-- A4 Page Print Container -->
+                    <div id="printDocument" class="a4-page text-left">
+                        
+                        <!-- Header Section -->
+                        <div class="flex justify-between items-start mb-8">
+                            <!-- Left: Office & School -->
+                            <div class="w-[50%] text-left letter-header-green kh-moul text-[9pt] leading-[1.3]">
+                                <div class="flex justify-center mb-1">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Emblem_of_the_Ministry_of_Education%2C_Youth_and_Sport_%28Cambodia%29.svg" class="h-14 w-auto opacity-80 mix-blend-multiply" onerror="this.style.display='none'">
+                                </div>
+                                <div id="outOffice" class="whitespace-pre-wrap break-words">ការិយាល័យអប់រំ...</div>
+                                <div>សាលាបឋមសិក្សា <span id="outSchoolLeft">...</span></div>
+                                <div class="text-left mt-2 font-bold">លេខ</div>
+                            </div>
+
+                            <!-- Right: Kingdom of Cambodia -->
+                            <div class="w-[45%] text-center letter-header-green pt-2">
+                                <h3 class="kh-moul text-[13pt] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                                <h3 class="kh-moul text-[13pt] mb-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                                <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12px] w-auto mx-auto mt-2" crossorigin="anonymous">
+                            </div>
+                        </div>
+
+                        <!-- Title -->
+                        <div class="text-center mb-8">
+                            <h2 class="kh-moul letter-title-red text-[18pt]">សេចក្តីជូនដំណឹង</h2>
+                        </div>
+
+                        <!-- Body Paragraph 1: Teacher Info -->
+                        <div class="text-[12pt] leading-[2.2] letter-header-green mb-4" style="text-indent: 40px;">
+                            <span id="outTeacherPrefix">ខ្ញុំបាទ/នាងខ្ញុំឈ្មោះ៖</span> <span id="outTeacher" class="letter-data-blue font-bold px-1">............</span>
+                            ជាគ្រូប្រចាំ <span id="outClass1" class="letter-data-blue font-bold px-1">....</span>
+                            នៃសាលាបឋមសិក្សា <span id="outSchoolBody" class="letter-data-blue font-bold px-1">............</span>
+                            <span id="txtCommune">ឃុំ</span> <span id="outCommune" class="letter-data-blue font-bold px-1">....</span>
+                            <span id="txtDistrict">ស្រុក</span> <span id="outDistrict" class="letter-data-blue font-bold px-1">....</span>
+                            <span id="txtProvince">ខេត្ត</span> <span id="outProvince" class="letter-data-blue font-bold px-1">............</span> ។
+                        </div>
+
+                        <!-- Body Paragraph 2: Notice -->
+                        <div class="text-center kh-moul letter-header-green text-[13pt] mb-4 mt-6">
+                            សូមជម្រាបមក
+                        </div>
+
+                        <!-- Body Paragraph -->
+                        <div class="text-[12pt] leading-[2.2] letter-header-green mb-4" style="text-indent: 40px;">
+                            លោក/លោកស្រីដែលជាអាណាព្យាបាលរបស់សិស្សឈ្មោះ៖ 
+                            <span id="outStudent" class="letter-data-blue font-bold px-1">........................</span> 
+                            ជាសិស្ស <span id="outClass2" class="letter-data-blue font-bold px-1">....</span> 
+                            បានជ្រាបថា៖ សិស្សមានឈ្មោះខាងលើនេះបានឈប់មិនឃើញមករៀនចំនួន 
+                            <span id="outDays" class="letter-data-blue font-bold px-1">....</span> ថ្ងៃ មកហើយ ចាប់ពីថ្ងៃទី 
+                            <span id="outStartDay" class="letter-data-blue font-bold px-1">....</span> ដល់ថ្ងៃទី 
+                            <span id="outEndDay" class="letter-data-blue font-bold px-1">....</span> ខែ 
+                            <span id="outMonth" class="letter-data-blue font-bold px-1">............</span> ឆ្នាំ២០២<span id="outYear" class="letter-data-blue font-bold">....</span> 
+                            ដោយខាងសាលាមិនបានដឹងមូលហេតុ ។
+                        </div>
+
+                        <!-- Body Paragraph 3: Conclusion -->
+                        <div class="text-[12pt] leading-[2.2] letter-header-green mb-10" style="text-indent: 40px;">
+                            អាស្រ័យហេតុនេះ សូមលោក លោកស្រីជ្រាបជាព័ត៌មាន និងមេត្តាជួយផ្តល់ដំណឹងតាមរយៈសៀវភៅនេះដល់ ខ្ញុំបាទ/នាងខ្ញុំ ដោយក្តីអនុគ្រោះ ។
+                        </div>
+
+                        <!-- Footer: Signatures -->
+                        <div class="flex justify-between items-start letter-header-green text-[12pt] mb-4">
+                            <div class="w-[45%] text-center pt-8">
+                                <div class="mb-2">បានឃើញ និងឯកភាព</div>
+                                <div class="kh-moul">នាយកសាលា</div>
+                            </div>
+                            <div class="w-[50%] text-center">
+                                <div class="mb-2 text-[10pt]">
+                                    ថ្ងៃ....................ខែ...............ឆ្នាំ...............ស័ក ព.ស. ២៥........
+                                </div>
+                                <div class="mb-2 text-[10pt]">
+                                    ....................ថ្ងៃទី...........ខែ..................ឆ្នាំ២០........
+                                </div>
+                                <div class="kh-moul">គ្រូបន្ទុកថ្នាក់</div>
+                            </div>
+                        </div>
+
+                        <!-- Parent Reply Section -->
+                        <div class="mt-8">
+                            <div class="text-right letter-data-blue mb-2 mr-10 text-[11pt] font-bold">
+                                ទូរស័ព្ទ៖ <span id="outPhone" class="font-bold">.....................................</span>
+                            </div>
+                            <div class="text-center kh-moul letter-header-green text-[13pt] mb-4">
+                                មតិឆ្លើយតបរបស់អាណាព្យាបាល
+                            </div>
+                            <div class="parent-reply-lines">
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Firebase SDK & Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Handle Canvas Environment injected config, fallback to user defined config
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Dynamically get app ID if executing inside canvas
+        const PTEC_APP_ID = typeof __app_id !== 'undefined' ? __app_id : "ptec-app";
+        
+        let currentUser = null;
+        let studentsList = [];
+        window.teacherGender = ''; // To store teacher's gender
+
+        // Khmer formatting helpers
+        const khmerDigits = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
+        const khmerMonths = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+        
+        window.toKhmerNum = function(num) {
+            if (num === null || num === undefined || num === '') return '';
+            return num.toString().split('').map(d => /[0-9]/.test(d) ? khmerDigits[parseInt(d)] : d).join('');
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            
+            // Set current month and year automatically
+            const today = new Date();
+            const currentMonthName = khmerMonths[today.getMonth()];
+            document.getElementById('inpMonth').value = currentMonthName;
+            
+            const currentYearLastDigit = today.getFullYear().toString().slice(-1);
+            const yearSelect = document.getElementById('inpYear');
+            
+            for(let i = 0; i < yearSelect.options.length; i++) {
+                if(yearSelect.options[i].value === currentYearLastDigit) {
+                    yearSelect.selectedIndex = i;
+                    break;
+                }
+            }
+            
+            // Initialize preview so that blank form placeholders load immediately
+            window.updatePreview();
+            
+            const initAuth = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Auth init failed:", error);
+                    hideLoading(); 
+                }
+            };
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    try { 
+                        await fetchProfileData(); 
+                        await fetchStudents();
+                        window.updatePreview(); 
+                    } catch (e) { console.error(e); }
+                }
+                hideLoading(); 
+            });
+
+            initAuth();
+        });
+
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if(overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.style.display = 'none', 300);
+            }
+        }
+
+        async function fetchProfileData() {
+            if (!currentUser) return;
+            try {
+                const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'profile', 'data');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    if(data.management_unit_2) {
+                        document.getElementById('inpOffice').value = data.management_unit_2;
+                    }
+                    if(data.school_name_admin) {
+                        document.getElementById('inpSchool').value = data.school_name_admin.replace('សាលាបឋមសិក្សា', '').trim();
+                    }
+                    if(data.class_name) document.getElementById('inpClass').value = data.class_name;
+                    if(data.homeroom_teacher) document.getElementById('inpTeacher').value = data.homeroom_teacher;
+                    if(data.phone) document.getElementById('inpPhone').value = data.phone;
+                    if(data.gender) window.teacherGender = data.gender; // Set teacher gender
+                    
+                    // Fetch location properly based on profile data fields
+                    if(data.admin_province) document.getElementById('inpLevel1').value = data.admin_province;
+                    if(data.admin_district) document.getElementById('inpLevel2').value = data.admin_district;
+                    if(data.admin_commune) document.getElementById('inpLevel3').value = data.admin_commune;
+                    
+                    // Auto-detect capital vs province
+                    if(data.admin_province && (data.admin_province.includes('ភ្នំពេញ') || data.admin_province.includes('Phnom Penh') || data.admin_province === 'រាជធានីភ្នំពេញ')) {
+                        document.querySelector('input[name="locType"][value="capital"]').checked = true;
+                    } else {
+                        document.querySelector('input[name="locType"][value="province"]').checked = true;
+                    }
+                    window.toggleLocationLabels();
+                }
+            } catch (e) { console.error("Error loading profile:", e); }
+        }
+
+        async function fetchStudents() {
+            if (!currentUser) return;
+            try {
+                const studentsSnap = await getDocs(collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students'));
+                studentsList = [];
+                studentsSnap.forEach(doc => studentsList.push({ ...doc.data(), id: doc.id }));
+                
+                // Sort alphabetically
+                studentsList.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'km'));
+
+                const select = document.getElementById('studentSelect');
+                studentsList.forEach(s => {
+                    const option = document.createElement('option');
+                    option.value = s.name;
+                    option.textContent = s.name;
+                    select.appendChild(option);
+                });
+            } catch (e) { console.error("Error loading students:", e); }
+        }
+
+        window.toggleLocationLabels = function() {
+            const isCapital = document.querySelector('input[name="locType"]:checked').value === 'capital';
+            
+            document.getElementById('lblLevel1').textContent = isCapital ? 'រាជធានី' : 'ខេត្ត';
+            document.getElementById('lblLevel2').textContent = isCapital ? 'ខណ្ឌ' : 'ស្រុក';
+            document.getElementById('lblLevel3').textContent = isCapital ? 'សង្កាត់' : 'ឃុំ';
+
+            document.getElementById('txtProvince').textContent = isCapital ? 'រាជធានី' : 'ខេត្ត';
+            document.getElementById('txtDistrict').textContent = isCapital ? 'ខណ្ឌ' : 'ស្រុក';
+            document.getElementById('txtCommune').textContent = isCapital ? 'សង្កាត់' : 'ឃុំ';
+        };
+
+        window.calculateDaysFromInputs = function() {
+            const startDay = parseInt(document.getElementById('inpStartDay').value);
+            const endDay = parseInt(document.getElementById('inpEndDay').value);
+            
+            if (!isNaN(startDay) && !isNaN(endDay)) {
+                if (endDay >= startDay) {
+                    const diffDays = (endDay - startDay) + 1;
+                    document.getElementById('totalDays').value = diffDays;
+                }
+            }
+        };
+
+        window.updatePreview = function() {
+            // Get Values
+            const office = document.getElementById('inpOffice').value || '.............................................';
+            const school = document.getElementById('inpSchool').value || '.........................';
+            const className = document.getElementById('inpClass').value || '......';
+            const teacher = document.getElementById('inpTeacher').value || '.........................';
+            const phone = document.getElementById('inpPhone').value || '.....................................';
+            
+            const level1 = document.getElementById('inpLevel1').value || '............';
+            const level2 = document.getElementById('inpLevel2').value || '........';
+            const level3 = document.getElementById('inpLevel3').value || '........';
+            
+            const student = document.getElementById('studentSelect').value || '........................';
+            const days = window.toKhmerNum(document.getElementById('totalDays').value) || '....';
+            
+            // Date Parsing
+            const startDayNum = document.getElementById('inpStartDay').value;
+            const endDayNum = document.getElementById('inpEndDay').value;
+            
+            const startDay = startDayNum ? window.toKhmerNum(startDayNum.padStart(2, '0')) : '....';
+            const endDay = endDayNum ? window.toKhmerNum(endDayNum.padStart(2, '0')) : '....';
+            const monthStr = document.getElementById('inpMonth').value || '............';
+            const yearLastDigit = window.toKhmerNum(document.getElementById('inpYear').value) || '....';
+
+            // Handle Teacher Gender Prefix
+            const genderPrefixEl = document.getElementById('outTeacherPrefix');
+            if (window.teacherGender === 'ស្រី') {
+                genderPrefixEl.textContent = 'នាងខ្ញុំឈ្មោះ៖';
+            } else if (window.teacherGender === 'ប្រុស') {
+                genderPrefixEl.textContent = 'ខ្ញុំបាទឈ្មោះ៖';
+            } else {
+                genderPrefixEl.textContent = 'ខ្ញុំបាទ/នាងខ្ញុំឈ្មោះ៖';
+            }
+
+            // Update DOM
+            document.getElementById('outOffice').textContent = office;
+            document.getElementById('outSchoolLeft').textContent = school;
+            document.getElementById('outSchoolBody').textContent = school;
+            
+            document.getElementById('outTeacher').textContent = teacher;
+            document.getElementById('outClass1').textContent = className;
+            document.getElementById('outClass2').textContent = className;
+            
+            document.getElementById('outProvince').textContent = level1;
+            document.getElementById('outDistrict').textContent = level2;
+            document.getElementById('outCommune').textContent = level3;
+            
+            document.getElementById('outPhone').textContent = window.toKhmerNum(phone);
+            
+            document.getElementById('outStudent').textContent = student;
+            document.getElementById('outDays').textContent = days;
+            
+            document.getElementById('outStartDay').textContent = startDay;
+            document.getElementById('outEndDay').textContent = endDay;
+            document.getElementById('outMonth').textContent = monthStr;
+            document.getElementById('outYear').textContent = yearLastDigit;
+        };
+
+    </script>
+</body>
+</html>

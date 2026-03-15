@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>វីដេអូណែនាំ - PTEC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Kantumruy Pro', sans-serif; background: #f8fafc; color: #334155; overflow-x: hidden; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        .tab-btn { transition: all 0.3s ease; }
+        .tab-btn.active { background-color: #0054a6; color: white; border-color: #0054a6; box-shadow: 0 4px 12px rgba(0, 84, 166, 0.2); }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        /* =========================================
+           កូដ Responsive សម្រាប់ទូរសព្ទ (បង្រួមចំណងជើងទាំងអស់)
+           ========================================= */
+        @media (max-width: 768px) {
+            /* ១. បង្រួមចំណងជើងធំខាងលើគេ (Header App) កុំឱ្យធ្លាក់ជួរវែងពេក */
+            header h1.kh-moul {
+                font-size: 15px !important; 
+                line-height: 1.4 !important;
+            }
+            header h1.kh-moul i {
+                width: 26px !important; 
+                height: 26px !important;
+            }
+
+            /* ២. ទម្លាយគែម 60px ចោល ឱ្យសល់ត្រឹម 10px */
+            #dynamic-content .md-page-section {
+                padding: 10px !important;
+                min-height: auto !important;
+            }
+
+            /* ៣. បង្រួមចំណងជើងប្រអប់ក្នុងអត្ថបទឱ្យតូច (១៣px ដល់ ១៥px) */
+            #dynamic-content .md-h1 { 
+                font-size: 15px !important; 
+                padding: 10px !important; 
+                line-height: 1.5 !important;
+                margin-bottom: 12px !important;
+            }
+            #dynamic-content .md-h2 { 
+                font-size: 14px !important; 
+                padding: 8px !important; 
+                margin-top: 12px !important;
+            }
+            #dynamic-content .md-h3, 
+            #dynamic-content .md-h4 { 
+                font-size: 13px !important; 
+                padding: 8px !important; 
+            }
+            
+            /* ៤. រៀបកាតឱ្យនៅបញ្ឈរ និងរុញ Icon ទៅខាងលើអក្សរ */
+            #dynamic-content .md-card {
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+                padding: 12px !important;
+            }
+            #dynamic-content .md-icon {
+                margin: 0 auto 8px auto !important; 
+                font-size: 20px !important;
+                padding: 6px !important;
+            }
+            
+            /* ៥. បង្រួមអក្សរធម្មតាឱ្យតូចល្មមអាន */
+            #dynamic-content .md-p, 
+            #dynamic-content .md-p span, 
+            #dynamic-content .md-card-body p, 
+            #dynamic-content .md-card-body p span {
+                font-size: 12px !important; 
+                line-height: 1.6 !important;
+                text-align: justify !important; 
+                white-space: normal !important;
+            }
+            #dynamic-content .md-card-body h4 {
+                font-size: 13px !important;
+                margin-bottom: 6px !important;
+                text-align: center !important;
+            }
+            
+            /* ៦. ធានាថា Grid បង្ហាញត្រឹម ១ ជួរពេញៗ */
+            #dynamic-content .md-grid {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center relative">
+            <h1 class="kh-moul text-[#0054a6] text-lg md:text-2xl flex items-center gap-2">
+                <i data-lucide="book-open" class="text-orange-500 w-10 h-10 md:w-14 md:h-14"></i> ការណែនាំអំពីកម្មវិធី
+            </h1>
+            
+            <div class="flex items-center gap-3 md:gap-4">
+                <button id="mobile-menu-toggle" class="md:hidden text-gray-500 hover:text-[#0054a6] transition-colors p-1">
+                    <i data-lucide="menu" class="w-7 h-7"></i>
+                </button>
+                
+                <button onclick="window.parent.closeApp()" class="text-gray-400 hover:text-red-500 transition-colors">
+                    <i data-lucide="x-circle" class="w-7 h-7 md:w-8 md:h-8"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 absolute w-full z-40 shadow-lg">
+            <div id="mobile-tabs" class="flex flex-col p-4 gap-2 max-h-[60vh] overflow-y-auto">
+                </div>
+        </div>
+
+        <div class="hidden md:block bg-white border-b border-gray-100">
+            <div class="max-w-7xl mx-auto px-4">
+                <div id="app-tabs" class="flex gap-2 overflow-x-auto py-3 hide-scroll">
+                    </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-[1400px] mx-auto w-full flex flex-col lg:flex-row gap-4 xl:gap-6 px-4 py-6 md:py-8 items-start">
+
+        <aside class="hidden lg:flex flex-col w-[160px] xl:w-[200px] flex-shrink-0 sticky top-[150px]">
+            <div class="bg-white border-2 border-dashed border-slate-300 w-full h-[600px] rounded-xl flex flex-col items-center justify-center text-slate-400 p-4 text-center overflow-hidden hover:border-blue-400 transition-colors cursor-pointer">
+                <i data-lucide="megaphone" class="w-8 h-8 mb-2 text-slate-300"></i>
+                <span class="font-bold text-sm">ពាណិជ្ជកម្ម</span>
+                <span class="text-xs mt-1">ឆ្វេង (Desktop)</span>
+                <span class="text-[10px] mt-2">160 x 600</span>
+             </div>
+        </aside>
+
+        <main class="flex-1 w-full max-w-5xl mx-auto">
+            
+            <div class="flex lg:hidden w-full h-[100px] bg-white border-2 border-dashed border-slate-300 rounded-xl mb-6 flex-col items-center justify-center text-slate-400">
+                 <i data-lucide="megaphone" class="w-5 h-5 mb-1 text-slate-300"></i>
+                 <span class="font-bold text-sm">ពាណិជ្ជកម្មទូរសព្ទ (ខាងលើ)</span>
+            </div>
+
+            <div class="flex flex-col gap-6 lg:gap-8">
+                
+                <div class="w-full">
+                    <div id="dynamic-content" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[300px]">
+                        </div>
+                </div>
+
+                <div class="w-full">
+                    <div class="video-container rounded-2xl shadow-xl border-4 border-white">
+                        <iframe id="video-iframe" src="" frameborder="0" allowfullscreen class="rounded-xl"></iframe>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="flex lg:hidden w-full h-[250px] bg-white border-2 border-dashed border-slate-300 rounded-xl mt-8 flex-col items-center justify-center text-slate-400">
+                <i data-lucide="megaphone" class="w-6 h-6 mb-2 text-slate-300"></i>
+                <span class="font-bold text-sm">ពាណិជ្ជកម្មទូរសព្ទ (ខាងក្រោម)</span>
+                <span class="text-[10px] mt-1">300 x 250</span>
+           </div>
+
+        </main>
+
+        <aside class="hidden lg:flex flex-col w-[160px] xl:w-[200px] flex-shrink-0 sticky top-[150px]">
+             <div class="bg-white border-2 border-dashed border-slate-300 w-full h-[600px] rounded-xl flex flex-col items-center justify-center text-slate-400 p-4 text-center overflow-hidden hover:border-blue-400 transition-colors cursor-pointer">
+                <i data-lucide="megaphone" class="w-8 h-8 mb-2 text-slate-300"></i>
+                <span class="font-bold text-sm">ពាណិជ្ជកម្ម</span>
+                <span class="text-xs mt-1">ស្តាំ (Desktop)</span>
+                <span class="text-[10px] mt-2">160 x 600</span>
+            </div>
+        </aside>
+
+    </div>
+
+    <script>
+        const tutorials = [
+            {
+                id: 'attendance',
+                name: 'វត្តមានសិស្ស',
+                icon: 'clipboard-check',
+                contentFile: 'content-attendance.html', 
+                videoUrl: 'https://www.youtube.com/embed/jExkYSByzNI'
+            },
+            {
+                id: 'picker',
+                name: 'Magic Picker',
+                icon: 'box',
+                contentFile: 'content-picker.html',
+                videoUrl: 'https://www.youtube.com/embed/4GvfFCrOrE4?si=0L-RGivLofJA7nQa'
+            },
+            {
+                id: 'Timer',
+                name: 'កម្មវិធីកំណត់ពេល',
+                icon: 'timer',
+                contentFile: 'content-timer.html',
+                videoUrl: 'https://www.youtube.com/embed/z0XFgqvW8JE?list=RDz0XFgqvW8JE'
+            },
+            {
+                id: 'poster',
+                name: 'Poster Splitter',
+                icon: 'layout-grid',
+                contentFile: 'content-poster.html',
+                videoUrl: 'https://www.youtube.com/embed/LWeAXRYqTFI?list=RDLWeAXRYqTFI'
+            },
+            {
+                id: 'piano',
+                name: 'Piano App',
+                icon: 'piano',
+                contentFile: 'content-piano.html',
+                videoUrl: 'https://www.youtube.com/embed/RKJ9Fjnrb8A?list=RDRKJ9Fjnrb8A'
+            }
+        ];
+
+        // មុខងារសម្រាប់បើក/បិទ ម៉ឺនុយទូរសព្ទ
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.getElementById('mobile-menu-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            toggleBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        });
+
+        async function selectTutorial(id) {
+            async function selectTutorial(id) {
+    // បន្ថែមជួរនេះ ដើម្បីឱ្យវាអូសទៅលើគេវិញរាល់ពេលចុច Tab
+    window.scrollTo({ top: 0, behavior: 'smooth' }); 
+
+    const data = tutorials.find(t => t.id === id);
+    // ... កូដផ្សេងទៀតរបស់អ្នក ...
+}
+            const data = tutorials.find(t => t.id === id);
+            if (!data) return;
+
+            const contentContainer = document.getElementById('dynamic-content');
+            
+            // បង្ហាញសញ្ញា Loading
+            contentContainer.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-20 text-blue-500">
+                    <i data-lucide="loader-2" class="w-10 h-10 animate-spin mb-3"></i>
+                    <span class="text-base font-bold">កំពុងទាញយកទិន្នន័យ...</span>
+                </div>
+            `;
+            lucide.createIcons();
+
+            try {
+                const response = await fetch(data.contentFile);
+                if (response.ok) {
+                    const htmlContent = await response.text();
+                    contentContainer.innerHTML = htmlContent;
+
+                    // រៀបចំចលនា Animation អោយដើរដោយស្វ័យប្រវត្តិ
+                    setTimeout(() => {
+                        const observer = new IntersectionObserver((entries) => {
+                            entries.forEach(entry => {
+                                if (entry.isIntersecting) {
+                                    entry.target.classList.add('is-visible');
+                                } else {
+                                    entry.target.classList.remove('is-visible');
+                                }
+                            });
+                        }, { threshold: 0.10 }); 
+
+                        contentContainer.querySelectorAll('.md-anim-item').forEach(el => {
+                            observer.observe(el);
+                        });
+                    }, 100);
+
+                } else {
+                    contentContainer.innerHTML = `
+                        <div class="bg-red-50 text-red-500 p-8 text-center">
+                            <i data-lucide="file-warning" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
+                            រកមិនឃើញ File: <strong>${data.contentFile}</strong> ទេ!
+                        </div>`;
+                    lucide.createIcons();
+                }
+            } catch (error) {
+                console.error("Error loading file:", error);
+                contentContainer.innerHTML = `
+                    <div class="bg-orange-50 text-orange-600 p-8 text-center">
+                        សូមបើកដំណើរការតាមរយៈ Live Server!
+                    </div>`;
+            }
+
+            // ប្តូរ Video
+            document.getElementById('video-iframe').src = data.videoUrl;
+
+            // បិទម៉ឺនុយទូរសព្ទពេលចុចជ្រើសរើសរួច
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+
+            // ប្តូរពណ៌ Tab ខាងលើ (ទាំង Desktop និង Mobile)
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll(`[data-id="${id}"]`).forEach(btn => btn.classList.add('active'));
+        }
+
+        function renderTabs() {
+            const tabsContainer = document.getElementById('app-tabs');
+            const mobileTabsContainer = document.getElementById('mobile-tabs');
+            
+            // កូដសម្រាប់បង្កើតប៊ូតុង
+            const tabsHTML = tutorials.map(t => `
+                <button 
+                    data-id="${t.id}"
+                    onclick="selectTutorial('${t.id}')"
+                    class="tab-btn flex items-center gap-2 px-4 py-2 md:rounded-full rounded-lg border border-gray-200 bg-white text-sm font-bold whitespace-nowrap text-gray-600 hover:border-[#0054a6] hover:text-[#0054a6] text-left md:w-auto w-full"
+                >
+                    <i data-lucide="${t.icon}" class="w-4 h-4"></i> ${t.name}
+                </button>
+            `).join('');
+            
+            // បញ្ចូលប៊ូតុងទៅកាន់ Desktop និង Mobile Menu
+            if(tabsContainer) tabsContainer.innerHTML = tabsHTML;
+            if(mobileTabsContainer) mobileTabsContainer.innerHTML = tabsHTML;
+            
+            lucide.createIcons();
+            if (tutorials.length > 0) selectTutorial(tutorials[0].id);
+        }
+
+        window.onload = renderTabs;
+    </script>
+</body>
+</html>

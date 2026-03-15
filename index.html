@@ -4,18 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PTEC - ជំនួយការគ្រូបង្រៀនឌីជីថល</title>
-    
-    <!-- បន្ថែម Web Manifest និង Theme Color សម្រាប់ PWA ឱ្យដំណើរការ -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0054a6">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;700&family=Moul&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root { --primary: #0054a6; }
-        body { font-family: 'Kantumruy Pro', sans-serif; background: #f0f4f8; min-height: 100vh; margin: 0; padding: 0; overflow-x: hidden; scroll-behavior: smooth; }
+        body { font-family: 'Kantumruy Pro', sans-serif; background: #f0f4f8; min-height: 100vh; margin: 0; padding: 0; overflow-x: hidden; }
         .kh-moul { font-family: 'Moul', cursive; }
         
         .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 10% 20%, #e0e7ff 0%, transparent 40%), radial-gradient(circle at 90% 80%, #dcfce7 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 50%); animation: moveBg 20s infinite alternate ease-in-out; }
@@ -56,7 +50,6 @@
             z-index: 0;
         }
 
-        /* Outer Glow Effect */
         .glowing-wrapper::after {
             content: '';
             position: absolute;
@@ -94,117 +87,147 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Nav Links styling from 1_index */
-        .nav-link { position: relative; transition: color 0.3s; }
-        .nav-link::after { content: ''; position: absolute; width: 0; height: 2px; bottom: -4px; left: 0; background-color: var(--primary); transition: width 0.3s; }
-        .nav-link:hover::after { width: 100%; }
+        .auth-tab.active {
+            border-bottom: 2px solid #0054a6;
+            color: #0054a6;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div class="bg-animate"></div>
 
-    <!-- ផ្ទាំង Login -->
+    <!-- ផ្ទាំង Auth -->
     <div id="auth-section" class="fixed inset-0 z-[100] flex items-center justify-center bg-white/60 backdrop-blur-md transition-opacity duration-300">
         
         <div class="glowing-wrapper w-full max-w-md mx-4 shadow-2xl">
-            <div class="glowing-inner bg-white p-8 border border-white">
-                <div class="text-center mb-8">
-                    <img src="https://www.ptec.edu.kh/wp-content/uploads/2020/06/cropped-PTEC_Banner-2048x459.png" alt="PTEC Logo" class="h-10 md:h-12 mx-auto mb-6 relative z-20">
-                    <h2 class="kh-moul text-xl text-[#0054a6]">ចូលគណនីប្រព័ន្ធ</h2>
-                    <p class="text-gray-500 text-sm mt-2">ប្រព័ន្ធជំនួយការគ្រូបង្រៀនឌីជីថល</p>
+            <div class="glowing-inner bg-white p-6 md:p-8 border border-white">
+                <div class="text-center mb-6">
+                    <img src="https://www.ptec.edu.kh/wp-content/uploads/2020/06/cropped-PTEC_Banner-2048x459.png" alt="PTEC Logo" class="h-10 md:h-12 mx-auto mb-4 relative z-20">
+                    <h2 id="auth-title" class="kh-moul text-xl text-[#0054a6]">ចូលគណនីប្រព័ន្ធ</h2>
+                    <p class="text-gray-500 text-sm mt-1">ប្រព័ន្ធជំនួយការគ្រូបង្រៀនឌីជីថល</p>
                 </div>
-                <form id="login-form" class="space-y-5">
+
+                <!-- Tabs (Login / Register) -->
+                <div id="auth-tabs" class="flex border-b border-gray-200 mb-6">
+                    <button id="tab-login" class="flex-1 py-2 text-sm text-gray-500 auth-tab active transition">ចូលគណនី</button>
+                    <button id="tab-register" class="flex-1 py-2 text-sm text-gray-500 auth-tab transition">បង្កើតគណនីថ្មី</button>
+                </div>
+
+                <!-- Email/Password Form -->
+                <form id="email-auth-form" class="space-y-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">អុីមែល (Email)</label>
-                        <input type="email" id="email" required placeholder="admin@ptec.edu.kh" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0054a6] focus:border-transparent outline-none transition bg-gray-50">
+                        <input type="email" id="email" required placeholder="name@ptec.edu.kh" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0054a6] focus:border-transparent outline-none transition bg-gray-50">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">ពាក្យសម្ងាត់ (Password)</label>
-                        <input type="password" id="password" required placeholder="••••••••" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0054a6] focus:border-transparent outline-none transition bg-gray-50">
+                        <input type="password" id="password" required placeholder="••••••••" minlength="6" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0054a6] focus:border-transparent outline-none transition bg-gray-50">
+                        <!-- Forgot Password Button -->
+                        <div class="text-right mt-1.5">
+                            <button type="button" id="forgot-password-btn" class="text-xs text-[#0054a6] hover:text-blue-800 hover:underline transition font-medium">ភ្លេចពាក្យសម្ងាត់?</button>
+                        </div>
                     </div>
-                    <div id="auth-error" class="text-red-500 text-sm hidden bg-red-50 p-3 rounded-md border border-red-100"></div>
-                    <button type="submit" id="login-btn" class="w-full bg-[#0054a6] hover:bg-blue-800 text-white font-bold py-3.5 rounded-lg transition shadow-lg flex justify-center items-center">
-                        <span id="btn-text">ចូលគណនី (Login)</span>
+                    
+                    <button type="submit" id="main-auth-btn" class="w-full bg-[#0054a6] hover:bg-blue-800 text-white font-bold py-3 rounded-lg transition shadow-md flex justify-center items-center mt-2">
+                        <span id="btn-text">ចូលគណនី</span>
                         <i data-lucide="loader-2" id="btn-loader" class="hidden animate-spin ml-2 w-5 h-5"></i>
                     </button>
-                    <button id="install-btn" type="button" class="hidden w-full bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-3.5 rounded-lg shadow-md flex items-center justify-center gap-2 transition-all mt-3">
-                      <i data-lucide="download" class="w-5 h-5"></i> ដំឡើងកម្មវិធី (Install App)
-                    </button>
                 </form>
+
+                <!-- Divider -->
+                <div id="social-divider" class="flex items-center my-6">
+                    <div class="flex-grow border-t border-gray-300"></div>
+                    <span class="flex-shrink-0 mx-4 text-gray-400 text-sm">ឬ</span>
+                    <div class="flex-grow border-t border-gray-300"></div>
+                </div>
+
+                <!-- Social/Google Buttons -->
+                <div id="social-buttons" class="space-y-3">
+                    <button id="google-login-btn" type="button" class="w-full bg-white border border-gray-300 text-gray-700 font-semibold py-2.5 rounded-lg hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-2">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        ចូលគណនីតាម Google
+                    </button>
+                </div>
+
+                <!-- Forgot Password View (Hidden by default) -->
+                <div id="forgot-password-container" class="hidden">
+                    <div class="flex items-center mb-4">
+                        <button id="back-to-login-btn" type="button" class="text-gray-500 hover:text-gray-800 transition">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        </button>
+                        <h3 class="flex-1 text-center font-bold text-gray-700 mr-5">ភ្លេចពាក្យសម្ងាត់</h3>
+                    </div>
+                    <p class="text-sm text-gray-500 text-center mb-5">សូមបញ្ចូលអុីមែលរបស់អ្នក ដើម្បីទទួលបានតំណភ្ជាប់ក្នុងការកំណត់ពាក្យសម្ងាត់ថ្មី។</p>
+                    
+                    <form id="forgot-password-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">អុីមែល (Email)</label>
+                            <input type="email" id="reset-email" required placeholder="name@ptec.edu.kh" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0054a6] focus:border-transparent outline-none transition bg-gray-50">
+                        </div>
+                        <button type="submit" id="send-reset-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg transition shadow-md flex justify-center items-center">
+                            <span id="reset-btn-text">ផ្ញើតំណភ្ជាប់ (Send Link)</span>
+                            <i data-lucide="loader-2" id="reset-btn-loader" class="hidden animate-spin ml-2 w-5 h-5"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div id="auth-error" class="text-red-600 text-sm hidden bg-red-50 p-3 rounded-md border border-red-200 mt-4 text-center break-words"></div>
+
+                <div class="mt-4 flex justify-center">
+                    <button id="install-btn" class="hidden bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center gap-2 transition-all">
+                      <i data-lucide="download" class="w-4 h-4"></i> ដំឡើងកម្មវិធី PTEC
+                    </button>
+                </div>
+
             </div>
         </div>
     </div>
 
     <!-- ផ្ទាំងមាតិកាដើម -->
     <div id="main-content" class="hidden opacity-0 transition-opacity duration-500">
-        
-        <!-- Updated Navbar matching 1_index -->
-        <nav class="sticky top-0 z-50 px-4 md:px-8 py-3 md:py-4 bg-white/80 backdrop-blur-lg border-b border-white/40 shadow-sm transition-all duration-300">
-            <div class="max-w-7xl mx-auto flex justify-between items-center">
-                <a href="#" onclick="window.scrollTo(0,0); return false;" class="z-10">
-                    <img src="https://www.ptec.edu.kh/wp-content/uploads/2020/06/cropped-PTEC_Banner-2048x459.png" alt="PTEC Logo" class="h-8 md:h-12 w-auto">
-                </a>
-
-                <!-- Desktop Menu -->
-                <div class="hidden md:flex space-x-6 lg:space-x-8 text-sm font-bold items-center">
-                    <a href="#" onclick="window.scrollTo(0,0); return false;" class="nav-link text-[#0054a6] hover:text-blue-700">ទំព័រដើម</a>
-                    <a href="App/Tutorial/tutorial.html" target="_blank" class="nav-link text-[#0054a6] hover:text-blue-700 flex items-center gap-1">
+        <!-- Header / Navbar -->
+        <nav class="sticky top-0 z-50 px-4 md:px-8 py-3 bg-white/90 backdrop-blur-lg border-b border-gray-100 shadow-sm">
+            <div class="max-w-7xl mx-auto flex flex-col xl:flex-row justify-between items-center gap-4">
+                <!-- Logo -->
+                <img src="https://www.ptec.edu.kh/wp-content/uploads/2020/06/cropped-PTEC_Banner-2048x459.png" alt="PTEC Logo" class="h-10 md:h-12 w-auto">
+                
+                <!-- Navigation Links & Actions -->
+                <div class="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm font-bold text-[#0054a6]">
+                    
+                    <a href="#" class="hover:text-blue-800 transition">ទំព័រដើម</a>
+                    
+                    <a href="#" class="flex items-center gap-1.5 hover:text-blue-800 transition">
                         <i data-lucide="play-circle" class="w-4 h-4"></i> វីដេអូណែនាំ
                     </a>
-                    <a href="https://www.ptec.edu.kh/" target="_blank" class="nav-link text-[#0054a6] hover:text-blue-700 flex items-center gap-1">
-                        គេហទំព័រវិទ្យាស្ថាន <i data-lucide="external-link" class="w-3 h-3"></i>
+                    
+                    <a href="https://www.ptec.edu.kh/" target="_blank" class="flex items-center gap-1.5 hover:text-blue-800 transition">
+                        គេហទំព័រវិទ្យាស្ថាន <i data-lucide="external-link" class="w-4 h-4"></i>
                     </a>
 
-                    <!-- User and Dashboard Tools -->
-                    <div id="teacher-id-container" class="hidden items-center ml-2">
-                        <button onclick="copyTeacherId()" class="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-md transition font-bold shadow-sm" title="Copy លេខកូដថ្នាក់">
-                            <i data-lucide="copy" class="w-4 h-4"></i> Copy កូដថ្នាក់
-                        </button>
-                    </div>
-
-                    <button id="nav-install-btn" class="hidden bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center gap-2 transition-all">
-                        <i data-lucide="download" class="w-4 h-4"></i> ដំឡើងកម្មវិធី
-                    </button>
-
-                    <button id="logout-btn" class="flex items-center text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-md transition font-bold ml-2">
-                        <i data-lucide="log-out" class="w-4 h-4 mr-1.5"></i> ចាកចេញ
-                    </button>
-                </div>
-
-                <!-- Mobile menu button -->
-                <button id="mobile-menu-btn" class="md:hidden text-[#0054a6] focus:outline-none p-2 rounded-lg hover:bg-blue-50 z-10" onclick="toggleMobileMenu()">
-                    <i data-lucide="menu" class="w-6 h-6"></i>
-                </button>
-            </div>
-
-            <!-- Mobile Menu -->
-            <div id="mobile-menu" class="hidden md:hidden flex-col space-y-4 pt-4 pb-2 text-sm font-bold items-center border-t border-gray-200 mt-3 animate-fade-in-down">
-                <a href="#" onclick="window.scrollTo(0,0); toggleMobileMenu(); return false;" class="text-[#0054a6] hover:bg-blue-50 hover:text-blue-700 w-full text-center py-2 rounded-lg transition-colors">ទំព័រដើម</a>
-                <a href="App/Tutorial/tutorial.html" target="_blank" onclick="toggleMobileMenu();" class="text-[#0054a6] hover:bg-blue-50 hover:text-blue-700 flex items-center justify-center gap-2 w-full py-2 rounded-lg transition-colors">
-                    <i data-lucide="play-circle" class="w-4 h-4"></i> វីដេអូណែនាំ
-                </a>
-                <a href="https://www.ptec.edu.kh/" target="_blank" onclick="toggleMobileMenu()" class="text-[#0054a6] hover:bg-blue-50 hover:text-blue-700 flex items-center justify-center gap-2 w-full py-2 rounded-lg transition-colors">
-                    គេហទំព័រវិទ្យាស្ថាន <i data-lucide="external-link" class="w-3 h-3"></i>
-                </a>
-                
-                <div id="mobile-teacher-id-container" class="hidden w-full">
-                    <button onclick="copyTeacherId()" class="flex items-center justify-center gap-2 w-full bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 py-2 rounded-lg transition-colors font-bold" title="Copy លេខកូដថ្នាក់">
+                    <!-- Copy Code Button (Visible when logged in) -->
+                    <button id="copy-code-btn" onclick="copyTeacherId()" class="hidden items-center gap-1.5 bg-[#eff6ff] hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-lg transition shadow-sm border border-blue-100">
                         <i data-lucide="copy" class="w-4 h-4"></i> Copy កូដថ្នាក់
                     </button>
+                    
+                    <button id="mobile-install-btn" class="hidden bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-1.5 px-3 rounded-md shadow-sm items-center gap-1.5 transition-all">
+                        <i data-lucide="download" class="w-4 h-4"></i> <span class="text-xs md:text-sm">App</span>
+                    </button>
+                    
+                    <button id="logout-btn" class="flex items-center gap-1.5 text-red-600 hover:text-red-800 py-1.5 rounded-md transition font-bold">
+                        <i data-lucide="log-out" class="w-4 h-4"></i> ចាកចេញ
+                    </button>
                 </div>
-
-                <button id="mobile-install-btn" class="hidden w-full bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md flex items-center justify-center gap-2 transition-all">
-                    <i data-lucide="download" class="w-4 h-4"></i> ដំឡើងកម្មវិធី
-                </button>
-                
-                <button id="mobile-logout-btn" class="flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 w-full py-2 rounded-lg transition font-bold">
-                    <i data-lucide="log-out" class="w-4 h-4 mr-1.5"></i> ចាកចេញ
-                </button>
             </div>
         </nav>
 
         <header class="pt-8 pb-8 text-center px-6">
-            <h1 class="kh-moul text-2xl md:text-3xl text-[#0054a6] mb-4">ប្រព័ន្ធគ្រប់គ្រងថ្នាក់រៀន</h1>
+            <h1 class="kh-moul text-2xl md:text-3xl text-[#0054a6] mb-4">ប្រព័ន្ធជំនួយការគ្រូបង្រៀនឌីជីថល</h1>
             <p class="text-[#0054a6]/80 text-sm md:text-lg font-semibold italic">គ្រប់គ្រងព័ត៌មានសិស្ស និងការបង្រៀន</p>
         </header>
 
@@ -217,23 +240,6 @@
 
     <!-- Script បង្កើតម៉ឺនុយ -->
     <script>
-        // Toggle Mobile Menu Function
-        window.toggleMobileMenu = function() {
-            const menu = document.getElementById('mobile-menu');
-            const btn = document.getElementById('mobile-menu-btn');
-            
-            if (menu.classList.contains('hidden')) {
-                menu.classList.remove('hidden');
-                menu.classList.add('flex');
-                btn.innerHTML = '<i data-lucide="x" class="w-6 h-6"></i>';
-            } else {
-                menu.classList.add('hidden');
-                menu.classList.remove('flex');
-                btn.innerHTML = '<i data-lucide="menu" class="w-6 h-6"></i>';
-            }
-            lucide.createIcons();
-        }
-
         const apps = [
             { name: 'បញ្ចូលព័ត៌មានសិស្ស', icon: 'user-plus', url: 'enrollment_V2.html', color: 'from-blue-500 to-blue-600' },
             { name: 'បញ្ជីឈ្មោះសិស្ស', icon: 'users', url: 'student-list.html', color: 'from-purple-500 to-purple-600' },
@@ -244,16 +250,16 @@
             { name: 'វិភាគទិន្នន័យសរុប', icon: 'line-chart', url: 'data_analysing_score_student.html', color: 'from-rose-600 to-pink-700'},
             { name: 'វិភាគតាមមុខវិជ្ជា', icon: 'target', url: 'data_analyses_by_subject.html', color: 'from-blue-600 to-indigo-700' },
             { name: 'រដ្ឋបាលថ្នាក់រៀន', icon: 'folder-open', url: 'Main_adr.html', color: 'from-blue-700 to-indigo-800' },
+            { name: 'របាយការណ៍មាតាបិតា', icon: 'book-open-check', url: 'parent-report.html', color: 'from-sky-500 to-blue-600' },
+            { name: 'លេខកូដសិស្ស (ឪពុកម្តាយ)', icon: 'key', url: 'student-codes.html', color: 'from-emerald-500 to-teal-600' },
             { name: 'បញ្ចូលពិន្ទុកិច្ចការផ្ទះ', icon: 'book-marked', url: 'enter-homework-score.html', color: 'from-indigo-500 to-indigo-600' },
             { name: 'បញ្ជីវត្តមានប្រចាំខែ', icon: 'calendar-check', url: 'attendance-1.html', color: 'from-pink-500 to-pink-600' },
             { name: 'តារាងកិត្តិយស', icon: 'award', url: 'honor-roll.html', color: 'from-rose-500 to-rose-600' },
             { name: 'បញ្ជីបូកសរុបលទ្ធផលប្រចាំឆ្នាំ', icon: 'pie-chart', url: 'Years_score_subject.html', color: 'from-cyan-500 to-cyan-600' },
             { name: 'សៀវភៅតាមដាន', icon: 'book-open', url: 'student-tracking.html', color: 'from-sky-500 to-sky-600' },
+            { name: 'ទាញយកវិញ្ញាបនបត្រ', icon: 'file-badge', url: 'certificate.html', color: 'from-yellow-500 to-orange-500' },
+            { name: 'កាលវិភាគសម្អាតថ្នាក់', icon: 'sparkles', url: 'cleaning-schedule.html', color: 'from-cyan-400 to-blue-500' },
             { name: 'បញ្ជីសារពើភ័ណ្ឌ', icon: 'package', url: 'inventory.html', color: 'from-amber-500 to-amber-600' },
-            { name: 'ទាញយកកាតសម្គាល់ខ្លួនសិស្ស', icon: 'contact-2', url: 'print-id-card.html', color: 'from-indigo-600 to-blue-700' },
-            { name: 'ផ្ញើការជូនដំណឹង', icon: 'bell-ring', url: 'teacher-notifications.html', color: 'from-amber-400 to-orange-500' },
-            { name: 'របាយការណ៍មាតាបិតា', icon: 'book-open-check', url: 'parent-report.html', color: 'from-sky-500 to-blue-600' },
-            { name: 'លេខកូដសិស្ស (ឪពុកម្តាយ)', icon: 'key', url: 'student-codes.html', color: 'from-emerald-500 to-teal-600' },
             { name: 'ព័ត៌មានគណនី', icon: 'user-cog', url: 'profile.html', color: 'from-slate-500 to-slate-600' }
         ];
 
@@ -290,7 +296,16 @@
     <!-- Firebase Authentication & Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword,
+            GoogleAuthProvider,
+            signInWithPopup,
+            sendPasswordResetEmail,
+            onAuthStateChanged, 
+            signOut 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
@@ -307,18 +322,102 @@
         // UI Elements
         const authSection = document.getElementById('auth-section');
         const mainContent = document.getElementById('main-content');
-        const loginForm = document.getElementById('login-form');
         const authError = document.getElementById('auth-error');
+        const copyCodeBtn = document.getElementById('copy-code-btn');
+
+        // Email/Password Elements
+        const emailAuthForm = document.getElementById('email-auth-form');
+        const emailInput = document.getElementById('email');
+        const authTitle = document.getElementById('auth-title');
         const btnText = document.getElementById('btn-text');
         const btnLoader = document.getElementById('btn-loader');
-        const loginBtn = document.getElementById('login-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+        const mainAuthBtn = document.getElementById('main-auth-btn');
+        const forgotPasswordBtn = document.getElementById('forgot-password-btn');
         
-        const teacherIdContainer = document.getElementById('teacher-id-container');
-        const mobileTeacherIdContainer = document.getElementById('mobile-teacher-id-container');
+        // Tabs & Dividers
+        const authTabs = document.getElementById('auth-tabs');
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+        const socialDivider = document.getElementById('social-divider');
+        const socialButtons = document.getElementById('social-buttons');
+
+        // Forgot Password Container Elements
+        const forgotPasswordContainer = document.getElementById('forgot-password-container');
+        const forgotPasswordForm = document.getElementById('forgot-password-form');
+        const resetEmailInput = document.getElementById('reset-email');
+        const sendResetBtn = document.getElementById('send-reset-btn');
+        const resetBtnText = document.getElementById('reset-btn-text');
+        const resetBtnLoader = document.getElementById('reset-btn-loader');
+        const backToLoginBtn = document.getElementById('back-to-login-btn');
+
+        // Google Auth Elements
+        const googleLoginBtn = document.getElementById('google-login-btn');
 
         let currentTeacherUid = '';
+        let isLoginMode = true; // true = Login, false = Register
+
+        // --- Helper Function ---
+        const showError = (msg, isSuccess = false) => {
+            authError.textContent = msg;
+            if (isSuccess) {
+                authError.classList.remove('bg-red-50', 'border-red-200', 'text-red-600');
+                authError.classList.add('bg-green-50', 'border-green-200', 'text-green-700');
+            } else {
+                authError.classList.remove('bg-green-50', 'border-green-200', 'text-green-700');
+                authError.classList.add('bg-red-50', 'border-red-200', 'text-red-600');
+            }
+            authError.classList.remove('hidden');
+        };
+        const hideError = () => authError.classList.add('hidden');
+
+        // --- Layout Toggles ---
+        tabLogin.addEventListener('click', () => {
+            isLoginMode = true;
+            tabLogin.classList.add('active');
+            tabRegister.classList.remove('active');
+            authTitle.textContent = "ចូលគណនីប្រព័ន្ធ";
+            btnText.textContent = "ចូលគណនី";
+            forgotPasswordBtn.classList.remove('hidden'); // Show link when in Login Mode
+            hideError();
+        });
+
+        tabRegister.addEventListener('click', () => {
+            isLoginMode = false;
+            tabRegister.classList.add('active');
+            tabLogin.classList.remove('active');
+            authTitle.textContent = "បង្កើតគណនីថ្មី";
+            btnText.textContent = "ចុះឈ្មោះ (Register)";
+            forgotPasswordBtn.classList.add('hidden'); // Hide link when in Register Mode
+            hideError();
+        });
+
+        // Show Forgot Password View
+        forgotPasswordBtn.addEventListener('click', () => {
+            emailAuthForm.classList.add('hidden');
+            authTabs.classList.add('hidden');
+            socialDivider.classList.add('hidden');
+            socialButtons.classList.add('hidden');
+            authTitle.textContent = "កំណត់ពាក្យសម្ងាត់ថ្មី";
+            
+            // pre-fill email if they already typed it
+            if(emailInput.value) resetEmailInput.value = emailInput.value;
+            
+            forgotPasswordContainer.classList.remove('hidden');
+            hideError();
+        });
+
+        // Back to Login View
+        backToLoginBtn.addEventListener('click', () => {
+            forgotPasswordContainer.classList.add('hidden');
+            emailAuthForm.classList.remove('hidden');
+            authTabs.classList.remove('hidden');
+            socialDivider.classList.remove('hidden');
+            socialButtons.classList.remove('hidden');
+            authTitle.textContent = isLoginMode ? "ចូលគណនីប្រព័ន្ធ" : "បង្កើតគណនីថ្មី";
+            hideError();
+        });
+
+        // --- Authentication Logic ---
 
         // Track Authentication State
         onAuthStateChanged(auth, (user) => {
@@ -329,14 +428,9 @@
                 
                 currentTeacherUid = user.uid;
                 
-                // Update Desktop Nav UI
-                teacherIdContainer.classList.remove('hidden');
-                teacherIdContainer.classList.add('flex');
-                
-                // Update Mobile Nav UI
-                if(mobileTeacherIdContainer) {
-                    mobileTeacherIdContainer.classList.remove('hidden');
-                    mobileTeacherIdContainer.classList.add('flex');
+                if (copyCodeBtn) {
+                    copyCodeBtn.classList.remove('hidden');
+                    copyCodeBtn.classList.add('flex');
                 }
 
             } else {
@@ -345,45 +439,103 @@
                 authSection.style.display = 'flex';
                 authSection.classList.remove('opacity-0');
                 currentTeacherUid = '';
+                
+                if (copyCodeBtn) {
+                    copyCodeBtn.classList.add('hidden');
+                    copyCodeBtn.classList.remove('flex');
+                }
             }
         });
 
-        // Handle Login
-        loginForm.addEventListener('submit', async (e) => {
+        // 1. Email / Password (Login & Register)
+        emailAuthForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            const email = emailInput.value;
             const password = document.getElementById('password').value;
 
-            btnText.textContent = 'កំពុងចូល...';
+            btnText.textContent = 'កំពុងដំណើរការ...';
             btnLoader.classList.remove('hidden');
-            authError.classList.add('hidden');
-            loginBtn.disabled = true;
+            hideError();
+            mainAuthBtn.disabled = true;
 
             try {
-                await signInWithEmailAndPassword(auth, email, password);
+                if (isLoginMode) {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } else {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                }
             } catch (error) {
-                console.error("Login Error:", error);
-                authError.textContent = 'អុីមែល ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវឡើយ។ សូមព្យាយាមម្តងទៀត!';
-                authError.classList.remove('hidden');
+                console.error("Auth Error:", error);
+                if (error.code === 'auth/email-already-in-use') {
+                    showError('អុីមែលនេះមានគេប្រើរួចហើយ។ សូមចូលគណនី!');
+                } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+                    showError('អុីមែល ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវឡើយ។');
+                } else if (error.code === 'auth/weak-password') {
+                    showError('ពាក្យសម្ងាត់ត្រូវមានយ៉ាងហោចណាស់ ៦ តួ។');
+                } else {
+                    showError('មានបញ្ហាក្នុងការភ្ជាប់។ សូមព្យាយាមម្តងទៀត!');
+                }
             } finally {
-                btnText.textContent = 'ចូលគណនី (Login)';
+                btnText.textContent = isLoginMode ? 'ចូលគណនី' : 'ចុះឈ្មោះ (Register)';
                 btnLoader.classList.add('hidden');
-                loginBtn.disabled = false;
+                mainAuthBtn.disabled = false;
+            }
+        });
+
+        // 1.5 Submit Forgot Password Form
+        forgotPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = resetEmailInput.value.trim();
+            hideError();
+            
+            resetBtnText.textContent = 'កំពុងផ្ញើ...';
+            resetBtnLoader.classList.remove('hidden');
+            sendResetBtn.disabled = true;
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                showError(`✅ តំណភ្ជាប់ត្រូវបានផ្ញើទៅកាន់ ${email} ហើយ។ សូមពិនិត្យមើលប្រអប់សារ (Inbox) ព្រមទាំងថត Spam/Junk របស់អ្នក។`, true);
+                resetEmailInput.value = ''; // clear input
+            } catch (error) {
+                console.error("Password Reset Error:", error);
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email') {
+                    showError('មិនមានគណនីដែលប្រើប្រាស់អុីមែលនេះទេ ឬអុីមែលមិនត្រឹមត្រូវ។');
+                } else if (error.code === 'auth/too-many-requests') {
+                    showError('អ្នកបានស្នើសុំច្រើនដងពេកហើយ។ សូមរង់ចាំមួយសន្ទុះសិនរួចព្យាយាមម្តងទៀត។');
+                } else {
+                    // Show exact error from Firebase to help debug setup issues
+                    showError('បរាជ័យក្នុងការផ្ញើ៖ ' + error.message);
+                }
+            } finally {
+                resetBtnText.textContent = 'ផ្ញើតំណភ្ជាប់ (Send Link)';
+                resetBtnLoader.classList.add('hidden');
+                sendResetBtn.disabled = false;
+            }
+        });
+
+        // 2. Google Login
+        googleLoginBtn.addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            hideError();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Google Auth Error:", error);
+                showError('ការចូលដោយប្រើ Google មិនជោគជ័យ។');
             }
         });
 
         // Handle Logout
-        const handleLogout = () => {
+        document.getElementById('logout-btn').addEventListener('click', () => {
             if(confirm('តើអ្នកពិតជាចង់ចាកចេញពីប្រព័ន្ធមែនទេ?')) {
                 signOut(auth).catch((error) => console.error("Sign Out Error", error));
             }
-        };
-        logoutBtn.addEventListener('click', handleLogout);
-        if(mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', handleLogout);
+        });
 
+        // Utilities
         window.copyTeacherId = function() {
             if (!currentTeacherUid) return;
-            copyFallback(currentTeacherUid, "លេខកូដថ្នាក់");
+            copyFallback(currentTeacherUid, "លេខកូដ");
         };
 
         function copyFallback(text, label = "លេខកូដ") {
@@ -397,80 +549,42 @@
                 document.execCommand('copy');
                 alert(`✅ បានចម្លង${label}៖ ` + text);
             } catch (err) {
-                console.error('Copy failed', err);
                 alert('បរាជ័យក្នុងការ Copy។ សូម Copy លេខកូដដោយផ្ទាល់។');
             }
             document.body.removeChild(textArea);
         }
-        
-        // កូដសម្រាប់ដំណើរការការដំឡើង App (PWA)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker បានដំណើរការជោគជ័យ'))
-                    .catch(err => console.log('បរាជ័យក្នុងការដំណើរការ Service Worker:', err));
-            });
-        }
 
-        // ==========================================
-        // កូដថ្មីកែសម្រួលសម្រាប់ប៊ូតុង Install (PWA)
-        // ==========================================
+        // PWA Install Logic
         let deferredPrompt;
         const installBtn = document.getElementById('install-btn');
-        const navInstallBtn = document.getElementById('nav-install-btn');
-        const mobileInstallBtn = document.getElementById('mobile-install-btn'); 
+        const mobileInstallBtn = document.getElementById('mobile-install-btn');
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            // រារាំងកុំឱ្យ Browser លោតផ្ទាំងដោយឯកឯង
             e.preventDefault();
             deferredPrompt = e;
-            
-            // បង្ហាញប៊ូតុង Install ទាំងអស់ (ដក class hidden ចេញ)
             if(installBtn) installBtn.classList.remove('hidden');
-            if(navInstallBtn) navInstallBtn.classList.remove('hidden');
             if(mobileInstallBtn) mobileInstallBtn.classList.remove('hidden');
         });
 
-        // ប្រើសម្រាប់លាក់ប៊ូតុង ពេលកម្មវិធីត្រូវបានដំឡើងជោគជ័យ
-        window.addEventListener('appinstalled', () => {
-            console.log('កម្មវិធីត្រូវបានដំឡើងជោគជ័យ (PWA installed)');
-            if(installBtn) installBtn.classList.add('hidden');
-            if(navInstallBtn) navInstallBtn.classList.add('hidden');
-            if(mobileInstallBtn) mobileInstallBtn.classList.add('hidden');
-            deferredPrompt = null;
-        });
-
-        // អនុវត្តសកម្មភាពនៅពេលចុចប៊ូតុងណាមួយ
         const handleInstallClick = async () => {
-            // បើសិនជា Prompt អត់មាន (ដោយសារគេធ្លាប់ចុចហើយ) ប្រាប់ឱ្យ Refresh
-            if (!deferredPrompt) {
-                alert('មុខងារដំឡើងត្រូវបានផ្អាកជាបណ្ដោះអាសន្ន។\\n\\nសូមធ្វើការ Refresh (ទាញទំព័រចុះក្រោម ឬចុច F5) ទំព័រនេះម្ដងទៀត ដើម្បីអាចដំឡើងបាន។');
-                return;
-            }
-
-            try {
-                // បង្ហាញផ្ទាំងសួរអ្នកប្រើប្រាស់
+            if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
-                
-                if (outcome === 'accepted') {
-                    console.log('អ្នកប្រើប្រាស់យល់ព្រមដំឡើង');
-                    // ពេលយល់ព្រម Event 'appinstalled' ខាងលើនឹងលាក់ប៊ូតុង
-                } else {
-                    console.log('អ្នកប្រើប្រាស់បានបដិសេធ (Cancel)');
-                    // បើចុច Cancel ប៊ូតុងនៅរក្សាទុកដដែល ដើម្បីឱ្យគេដឹងថាមានមុខងារនេះ
-                }
-            } catch (err) {
-                console.error('មានបញ្ហាក្នុងការបង្ហាញផ្ទាំងដំឡើង:', err);
+                deferredPrompt = null;
+                if(installBtn) installBtn.classList.add('hidden');
+                if(mobileInstallBtn) mobileInstallBtn.classList.add('hidden');
             }
-
-            // Prompt អាចប្រើបានតែម្តងគត់ ទោះយល់ព្រម ឬបដិសេធ ក៏ត្រូវ clear វាចោល
-            deferredPrompt = null;
         };
 
         if(installBtn) installBtn.addEventListener('click', handleInstallClick);
-        if(navInstallBtn) navInstallBtn.addEventListener('click', handleInstallClick);
         if(mobileInstallBtn) mobileInstallBtn.addEventListener('click', handleInstallClick);
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .catch(err => console.log('បរាជ័យក្នុងការដំណើរការ Service Worker:', err));
+            });
+        }
     </script>
 </body>
 </html>

@@ -270,68 +270,76 @@
                     </form>
                 </div>
 
-                <!-- ផ្នែកកំណត់ហត្ថលេខាសម្រាប់ការបោះពុម្ព ជំនាន់ថ្មី -->
-                <div class="bg-indigo-50/60 border border-indigo-100 p-5 md:p-6 rounded-2xl mb-8 shadow-sm">
-                    <h4 class="text-sm font-bold text-indigo-800 mb-5 flex items-center gap-2">
-                        <i data-lucide="pen-tool" class="w-5 h-5"></i> កំណត់អ្នកចុះហត្ថលេខាសម្រាប់ការបោះពុម្ព
-                    </h4>
+                <!-- ផ្នែកកំណត់ហត្ថលេខាសម្រាប់ការបោះពុម្ព ជំនាន់ថ្មី (Collapsible) -->
+                <div class="bg-indigo-50/60 border border-indigo-100 rounded-2xl mb-8 shadow-sm overflow-hidden transition-all duration-300">
+                    <button type="button" onclick="toggleSignatureSection()" class="w-full p-4 md:p-5 flex items-center justify-between text-left focus:outline-none hover:bg-indigo-50/80 transition-colors group">
+                        <h4 class="text-sm font-bold text-indigo-800 flex items-center gap-3">
+                            <div class="p-1.5 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors"><i data-lucide="pen-tool" class="w-4 h-4 text-indigo-600"></i></div>
+                            កំណត់អ្នកចុះហត្ថលេខាសម្រាប់ការបោះពុម្ព
+                        </h4>
+                        <div class="p-1.5 rounded-full bg-white text-indigo-500 shadow-sm border border-indigo-100 group-hover:border-indigo-200 transition-all">
+                            <i id="signatureToggleIcon" data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300"></i>
+                        </div>
+                    </button>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- នាយកសាលា -->
-                        <div class="space-y-4 bg-white p-5 rounded-xl border border-indigo-50 shadow-sm">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះនាយកសាលា</label>
-                                <input type="text" id="managerNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="updateSignatures()">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា / ត្រា (បើមាន)</label>
-                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
-                                    <input type="file" id="managerSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors w-full" onchange="handleSignatureUpload('manager')">
-                                    
-                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
-                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
-                                            <button type="button" onclick="zoomSignature('manager', -0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="បង្រួមទំហំ (Zoom Out)"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
-                                            
-                                            <div id="managerSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded">
-                                                <!-- Preview will be injected here -->
+                    <div id="signatureContent" class="hidden px-5 pb-5 md:px-6 md:pb-6 border-t border-indigo-100/50 pt-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- នាយកសាលា -->
+                            <div class="space-y-4 bg-white p-5 rounded-xl border border-indigo-50 shadow-sm">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះនាយកសាលា</label>
+                                    <input type="text" id="managerNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="updateSignatures()">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា / ត្រា (បើមាន)</label>
+                                    <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                        <input type="file" id="managerSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors w-full" onchange="handleSignatureUpload('manager')">
+                                        
+                                        <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                            <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                                <button type="button" onclick="zoomSignature('manager', -0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="បង្រួមទំហំ (Zoom Out)"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                                
+                                                <div id="managerSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded">
+                                                    <!-- Preview will be injected here -->
+                                                </div>
+                                                
+                                                <button type="button" onclick="zoomSignature('manager', 0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="ពង្រីកទំហំ (Zoom In)"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
                                             </div>
                                             
-                                            <button type="button" onclick="zoomSignature('manager', 0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="ពង្រីកទំហំ (Zoom In)"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                            <button type="button" onclick="removeSignature('manager')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors" title="លុបរូបភាព">
+                                                <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                            </button>
                                         </div>
-                                        
-                                        <button type="button" onclick="removeSignature('manager')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors" title="លុបរូបភាព">
-                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
-                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- គ្រូបន្ទុកថ្នាក់ -->
-                        <div class="space-y-4 bg-white p-5 rounded-xl border border-indigo-50 shadow-sm">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះគ្រូបន្ទុកថ្នាក់</label>
-                                <input type="text" id="teacherNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="updateSignatures()">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា (បើមាន)</label>
-                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
-                                    <input type="file" id="teacherSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors w-full" onchange="handleSignatureUpload('teacher')">
-                                    
-                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
-                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
-                                            <button type="button" onclick="zoomSignature('teacher', -0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="បង្រួមទំហំ (Zoom Out)"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
-                                            
-                                            <div id="teacherSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded">
-                                                <!-- Preview will be injected here -->
+                            <!-- គ្រូបន្ទុកថ្នាក់ -->
+                            <div class="space-y-4 bg-white p-5 rounded-xl border border-indigo-50 shadow-sm">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះគ្រូបន្ទុកថ្នាក់</label>
+                                    <input type="text" id="teacherNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="updateSignatures()">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា (បើមាន)</label>
+                                    <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                        <input type="file" id="teacherSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors w-full" onchange="handleSignatureUpload('teacher')">
+                                        
+                                        <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                            <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                                <button type="button" onclick="zoomSignature('teacher', -0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="បង្រួមទំហំ (Zoom Out)"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                                
+                                                <div id="teacherSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded">
+                                                    <!-- Preview will be injected here -->
+                                                </div>
+                                                
+                                                <button type="button" onclick="zoomSignature('teacher', 0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="ពង្រីកទំហំ (Zoom In)"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
                                             </div>
                                             
-                                            <button type="button" onclick="zoomSignature('teacher', 0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors" title="ពង្រីកទំហំ (Zoom In)"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                            <button type="button" onclick="removeSignature('teacher')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors" title="លុបរូបភាព">
+                                                <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                            </button>
                                         </div>
-                                        
-                                        <button type="button" onclick="removeSignature('teacher')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors" title="លុបរូបភាព">
-                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -1133,6 +1141,19 @@
             setTimeout(() => t.remove(), 3000);
         }
 
+        function toggleSignatureSection() {
+            const content = document.getElementById('signatureContent');
+            const icon = document.getElementById('signatureToggleIcon');
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                content.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
         // Export functions to window for module script accessibility
         window.updateMonthLabels = updateMonthLabels;
         window.renderTable = renderTable;
@@ -1149,6 +1170,7 @@
         window.closePreview = closePreview;
         window.downloadPDF = downloadPDF;
         window.saveData = submitForm;
+        window.toggleSignatureSection = toggleSignatureSection;
     </script>
 </body>
 </html>

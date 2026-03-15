@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - តារាងវេនសម្អាតប្រចាំសប្ដាហ៍</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Taprom&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Libraries for Date formatting -->
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    
+    <style>
+        :root { 
+            --primary: #2563eb;
+            --secondary: #3b82f6;
+            --bg-color: #f8fafc;
+        }
+        
+        body { font-family: 'Battambang', cursive; background: var(--bg-color); min-height: 100vh; margin: 0; color: #1e293b; overflow-x: hidden; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        .text-gradient { background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        /* Animated Background */
+        .bg-animate { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; 
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(37, 99, 235, 0.1), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.1), transparent 25%),
+                radial-gradient(circle at 50% 80%, rgba(14, 165, 233, 0.1), transparent 40%);
+            animation: moveBg 15s infinite alternate ease-in-out; 
+            filter: blur(40px);
+        }
+        @keyframes moveBg { 
+            0% { transform: scale(1) translate(0, 0); } 
+            100% { transform: scale(1.1) translate(2%, 2%); } 
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 40px -15px rgba(37, 99, 235, 0.1), 0 0 10px rgba(255,255,255,0.5) inset;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid #e2e8f0;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            font-family: 'Battambang', cursive;
+            transition: all 0.3s ease;
+            font-weight: 700;
+            color: #334155;
+        }
+        .input-field:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+        /* Print Layout (A4 Landscape) Desktop scaling */
+        .a4-page {
+            background: white;
+            width: 1123px; /* Standard A4 landscape pixel width */
+            height: 794px;
+            margin: 0 auto;
+            padding: 10px 40px 10px 40px; /* Reduced bottom padding */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            position: relative;
+            box-sizing: border-box;
+            color: black;
+            overflow: hidden; /* Prevent visual spill */
+            border-radius: 4px;
+            display: flex;               /* Flexbox for dynamic stretching */
+            flex-direction: column;      /* Flexbox for dynamic stretching */
+            page-break-inside: avoid;
+        }
+
+        /* Printable Table Styles */
+        .print-table { width: 100%; height: 100%; border-collapse: collapse; font-size: 9pt; table-layout: fixed; }
+        .print-table thead tr { height: 1%; } /* Force header to not stretch */
+        .print-table th, .print-table td { border: 1px solid #3b82f6; padding: 1px 2px; text-align: center; vertical-align: middle; line-height: 1.1; } 
+        .print-table th { font-family: 'Moul', cursive; font-size: 9pt; color: #dc2626; font-weight: normal; }
+        
+        .inner-th { font-family: 'Battambang', cursive !important; color: #dc2626 !important; font-size: 8pt !important; font-weight: bold !important; background-color: #f0fdf4; }
+        .row-text-blue { color: #2563eb; }
+
+        /* Hierarchy Chart Styles */
+        .chart-box { border: 1px solid #3b82f6; padding: 1px 6px; display: inline-block; font-weight: bold; font-size: 8.5pt; color: #2563eb; background: #fff; position: relative; z-index: 10; min-width: 160px; text-align: center; }
+        .chart-title { font-family: 'Moul', cursive; color: #dc2626; font-size: 9pt; margin-bottom: 0px; }
+        
+        /* Footer Stats */
+        .footer-stats { color: #166534; font-weight: bold; font-size: 8.5pt; }
+
+        /* Signatures */
+        .signature-container { width: 100%; margin-top: 4px; display: grid; grid-template-columns: 1fr 1fr; font-size: 9pt; color: #4c1d95; font-weight: bold; break-inside: avoid; page-break-inside: avoid; } 
+        .sig-col-left { text-align: center; }
+        .sig-col-right { text-align: center; color: #2563eb; } 
+        .sig-image-box { height: 26px; margin-top: 2px; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; }
+        .sig-image-box img { max-height: 100%; max-width: 140px; object-fit: contain; mix-blend-mode: multiply; }
+
+        /* Preview container wrapper styling */
+        #printAreaWrapper { display: flex; flex-direction: column; align-items: center; width: 100%; overflow-x: hidden; }
+        #printContainer { transform-origin: top center; transition: transform 0.2s ease; padding-bottom: 20px; } 
+
+        @media print {
+            @page { size: A4 landscape; margin: 0mm; } /* Force zero margin on paper */
+            body { background: white !important; padding: 0; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            #printAreaWrapper { display: block !important; padding: 0 !important; }
+            .a4-page { 
+                width: 297mm !important; 
+                height: 200mm !important; /* Reduced to 200mm to safely avoid browser hardware margins */
+                max-height: 200mm !important;
+                box-shadow: none !important; 
+                padding: 5mm 10mm 5mm 10mm !important; 
+                margin: 0 !important; 
+                border-radius: 0; 
+                transform: none !important; 
+                overflow: hidden !important; /* Force cut-off if it tries to break page */
+                page-break-after: avoid !important;
+                page-break-before: avoid !important;
+                page-break-inside: avoid !important;
+            }
+            .bg-animate { display: none; }
+        }
+
+        .preview-mode { background: #cbd5e1; padding-top: 2rem; padding-bottom: 2rem; min-height: 100vh; }
+        
+        /* Custom Scrollbar for dropdowns */
+        .dropdown-scroll::-webkit-scrollbar { width: 6px; }
+        .dropdown-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        .dropdown-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+
+        /* Group Card Styles */
+        .day-group-card { border: 1px solid #e2e8f0; border-radius: 1rem; overflow: hidden; background: white; transition: all 0.2s; }
+        .day-group-card:hover { border-color: #bfdbfe; box-shadow: 0 4px 12px rgba(37,99,235,0.05); }
+        .day-header { padding: 0.75rem 1rem; font-family: 'Moul', cursive; color: white; display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body spellcheck="false">
+
+    <div class="bg-animate no-print"></div>
+
+    <!-- Main Entry Screen -->
+    <div id="mainScreen" class="min-h-screen flex flex-col pt-8 px-4 md:px-6 no-print relative">
+        <div class="max-w-7xl mx-auto w-full mb-20">
+            
+            <a href="index.html" class="inline-flex items-center gap-2 text-blue-700 hover:text-blue-900 font-bold transition mb-6 bg-white/60 px-5 py-2.5 rounded-2xl backdrop-blur-md shadow-sm w-fit border border-white/50">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i> ត្រឡប់ទៅទំព័រដើម
+            </a>
+
+            <div class="glass-card p-6 md:p-8 mb-8">
+                <!-- Header Title -->
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-blue-100 pb-6 mb-8 gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3.5 bg-gradient-to-br from-blue-100 to-sky-100 rounded-2xl shadow-sm border border-white">
+                            <i data-lucide="calendar-days" class="w-7 h-7 text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-blue-500 mb-1">PTEC កម្មវិធីកត់ត្រា</p>
+                            <h1 class="kh-moul text-xl md:text-2xl text-gradient bg-gradient-to-r from-blue-700 to-sky-600">រៀបចំវេនសម្អាតប្រចាំសប្ដាហ៍</h1>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="saveScheduleData()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold transition shadow-sm flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i> រក្សាទុក
+                        </button>
+                        <button onclick="previewPDF()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold transition shadow-sm flex items-center gap-2">
+                            <i data-lucide="printer" class="w-4 h-4"></i> មើលតារាងបោះពុម្ព
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Section 1: Leaders -->
+                <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2"><i data-lucide="crown" class="w-5 h-5 text-amber-500"></i> គណៈកម្មការថ្នាក់</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8 bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
+                    
+                    <!-- President -->
+                    <div class="relative group">
+                        <label class="block text-sm font-bold text-blue-800 mb-1.5 ml-1">ប្រធានថ្នាក់</label>
+                        <div class="relative">
+                            <input type="text" id="presInput" onfocus="openSearch('pres')" oninput="filterSearch('pres')" placeholder="ស្វែងរកសិស្ស..." class="input-field pr-10 bg-white" autocomplete="off">
+                            <i data-lucide="search" class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        </div>
+                        <div id="presDropdown" class="hidden absolute top-full left-0 z-50 w-full mt-1 bg-white border border-blue-100 rounded-xl shadow-lg max-h-48 overflow-y-auto dropdown-scroll"></div>
+                        <!-- Selected Badge -->
+                        <div id="presSelected" class="hidden mt-2 flex items-center justify-between bg-white border border-blue-200 p-2 rounded-lg shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <img id="presImg" src="" class="w-6 h-6 rounded-full object-cover border border-slate-200">
+                                <span id="presName" class="text-sm font-bold text-slate-700"></span>
+                            </div>
+                            <button onclick="removeLeader('pres')" class="text-rose-400 hover:text-rose-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- VP1 -->
+                    <div class="relative group">
+                        <label class="block text-sm font-bold text-blue-800 mb-1.5 ml-1">អនុប្រធានទី១</label>
+                        <div class="relative">
+                            <input type="text" id="vp1Input" onfocus="openSearch('vp1')" oninput="filterSearch('vp1')" placeholder="ស្វែងរកសិស្ស..." class="input-field pr-10 bg-white" autocomplete="off">
+                            <i data-lucide="search" class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        </div>
+                        <div id="vp1Dropdown" class="hidden absolute top-full left-0 z-50 w-full mt-1 bg-white border border-blue-100 rounded-xl shadow-lg max-h-48 overflow-y-auto dropdown-scroll"></div>
+                        <div id="vp1Selected" class="hidden mt-2 flex items-center justify-between bg-white border border-blue-200 p-2 rounded-lg shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <img id="vp1Img" src="" class="w-6 h-6 rounded-full object-cover border border-slate-200">
+                                <span id="vp1Name" class="text-sm font-bold text-slate-700"></span>
+                            </div>
+                            <button onclick="removeLeader('vp1')" class="text-rose-400 hover:text-rose-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- VP2 -->
+                    <div class="relative group">
+                        <label class="block text-sm font-bold text-blue-800 mb-1.5 ml-1">អនុប្រធានទី២</label>
+                        <div class="relative">
+                            <input type="text" id="vp2Input" onfocus="openSearch('vp2')" oninput="filterSearch('vp2')" placeholder="ស្វែងរកសិស្ស..." class="input-field pr-10 bg-white" autocomplete="off">
+                            <i data-lucide="search" class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        </div>
+                        <div id="vp2Dropdown" class="hidden absolute top-full left-0 z-50 w-full mt-1 bg-white border border-blue-100 rounded-xl shadow-lg max-h-48 overflow-y-auto dropdown-scroll"></div>
+                        <div id="vp2Selected" class="hidden mt-2 flex items-center justify-between bg-white border border-blue-200 p-2 rounded-lg shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <img id="vp2Img" src="" class="w-6 h-6 rounded-full object-cover border border-slate-200">
+                                <span id="vp2Name" class="text-sm font-bold text-slate-700"></span>
+                            </div>
+                            <button onclick="removeLeader('vp2')" class="text-rose-400 hover:text-rose-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Groups (Days) -->
+                <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2"><i data-lucide="users" class="w-5 h-5 text-indigo-500"></i> បែងចែកសមាជិកតាមវេន</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Javascript will generate the 6 day cards here -->
+                    <div id="dayCardsContainer" class="col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Area -->
+    <div id="printAreaWrapper" class="hidden">
+        <!-- Toolbar replacing floating circle buttons -->
+        <div class="w-[95%] max-w-[1123px] flex justify-between items-center p-4 bg-white/90 backdrop-blur-md rounded-2xl shadow-sm border border-slate-200 mb-6 mt-6 no-print z-50">
+            <button onclick="closePreview()" class="text-slate-600 hover:text-rose-600 font-bold flex items-center gap-2 transition-colors px-4 py-2 rounded-xl hover:bg-rose-50">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i> ត្រឡប់ក្រោយ
+            </button>
+            <div class="flex gap-3">
+                <button onclick="window.print()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold transition shadow-sm flex items-center gap-2">
+                    <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ព
+                </button>
+            </div>
+        </div>
+
+        <div id="printContainer">
+            <!-- Content injected by JS -->
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+
+        // State Data
+        let classConfig = {};
+        let masterStudents = [];
+        let scheduleData = {
+            leaders: { pres: null, vp1: null, vp2: null },
+            groups: {
+                monday: [], tuesday: [], wednesday: [],
+                thursday: [], friday: [], saturday: []
+            }
+        };
+
+        const daysConfig = [
+            { id: 'monday', name: 'ថ្ងៃចន្ទ', color: 'bg-orange-500' },
+            { id: 'tuesday', name: 'ថ្ងៃអង្គារ', color: 'bg-purple-500' },
+            { id: 'wednesday', name: 'ថ្ងៃពុធ', color: 'bg-emerald-500' },
+            { id: 'thursday', name: 'ថ្ងៃព្រហស្បតិ៍', color: 'bg-green-600' },
+            { id: 'friday', name: 'ថ្ងៃសុក្រ', color: 'bg-blue-500' },
+            { id: 'saturday', name: 'ថ្ងៃសៅរ៍', color: 'bg-rose-700' }
+        ];
+
+        const khDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+        function toKhmerNum(num) { return num.toString().split('').map(d => khDigits[d] || d).join(''); }
+
+        // Init Flow
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderDayCards();
+            
+            initAuth().then(() => {
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        currentUser = user;
+                        await loadProfile();
+                        loadStudentsRealtime();
+                        await loadScheduleData();
+                    }
+                });
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.relative.group')) {
+                    document.querySelectorAll('[id$="Dropdown"]').forEach(el => el.classList.add('hidden'));
+                }
+            });
+        });
+
+        // ==========================================
+        // Data Loading
+        // ==========================================
+        async function loadProfile() {
+            try {
+                const profileRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'profile', 'data');
+                const profileSnap = await getDoc(profileRef);
+                if (profileSnap.exists()) {
+                    classConfig = profileSnap.data();
+                }
+            } catch (error) {
+                console.error("Error loading profile data:", error);
+            }
+        }
+
+        function loadStudentsRealtime() {
+            if (!currentUser) return;
+            const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
+            
+            onSnapshot(studentsRef, (snapshot) => {
+                masterStudents = [];
+                snapshot.forEach(doc => {
+                    masterStudents.push(doc.data());
+                });
+                masterStudents.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            }, (error) => {
+                console.error("Error fetching students: ", error);
+            });
+        }
+
+        async function loadScheduleData() {
+            try {
+                const scheduleRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'cleaning_schedule', 'data');
+                const snap = await getDoc(scheduleRef);
+                if (snap.exists()) {
+                    scheduleData = snap.data();
+                    // Rehydrate UI
+                    ['pres', 'vp1', 'vp2'].forEach(role => {
+                        if (scheduleData.leaders && scheduleData.leaders[role]) {
+                            selectLeader(role, scheduleData.leaders[role]);
+                        }
+                    });
+                    if (scheduleData.groups) {
+                        daysConfig.forEach(day => {
+                            if(!scheduleData.groups[day.id]) scheduleData.groups[day.id] = [];
+                            
+                            // Re-sync roles based on their index (0 = ប្រធាន, 1 = អនុប្រធាន)
+                            scheduleData.groups[day.id].forEach((s, index) => {
+                                if (index === 0) s.role = 'ប្រធាន';
+                                else if (index === 1) s.role = 'អនុប្រធាន';
+                                else s.role = 'សមាជិក';
+                            });
+
+                            renderGroupList(day.id);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading schedule:", error);
+            }
+        }
+
+        window.saveScheduleData = async function() {
+            if (!currentUser) {
+                alert("សូមចូលគណនីជាមុនសិន!");
+                return;
+            }
+            try {
+                const btn = document.querySelector('button[onclick="saveScheduleData()"]');
+                const originalContent = btn.innerHTML;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> កំពុងរក្សាទុក...';
+                btn.disabled = true;
+                lucide.createIcons();
+
+                const scheduleRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'cleaning_schedule', 'data');
+                await setDoc(scheduleRef, scheduleData);
+                
+                btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> រក្សាទុករួចរាល់';
+                lucide.createIcons();
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                    lucide.createIcons();
+                }, 2000);
+            } catch (error) {
+                console.error("Error saving schedule:", error);
+                alert('មានបញ្ហាក្នុងការរក្សាទុក!');
+            }
+        }
+
+        // ==========================================
+        // UI Interaction Logic
+        // ==========================================
+        function getAvatar(student) {
+            return student.photo || `https://api.dicebear.com/7.x/notionists/svg?seed=${student.id || student.name}`;
+        }
+        
+        function getAssignedStudentIds() {
+            const assignedIds = new Set();
+            if (scheduleData.leaders.pres) assignedIds.add(String(scheduleData.leaders.pres.id || scheduleData.leaders.pres.name));
+            if (scheduleData.leaders.vp1) assignedIds.add(String(scheduleData.leaders.vp1.id || scheduleData.leaders.vp1.name));
+            if (scheduleData.leaders.vp2) assignedIds.add(String(scheduleData.leaders.vp2.id || scheduleData.leaders.vp2.name));
+            
+            for (const day in scheduleData.groups) {
+                scheduleData.groups[day].forEach(s => assignedIds.add(String(s.id || s.name)));
+            }
+            return assignedIds;
+        }
+
+        window.openSearch = function(targetKey) {
+            document.querySelectorAll('[id$="Dropdown"]').forEach(el => el.classList.add('hidden'));
+            const dropdown = document.getElementById(`${targetKey}Dropdown`);
+            dropdown.classList.remove('hidden');
+            filterSearch(targetKey);
+        }
+
+        window.filterSearch = function(targetKey) {
+            const input = document.getElementById(`${targetKey}Input`).value.toLowerCase();
+            const dropdown = document.getElementById(`${targetKey}Dropdown`);
+            
+            if (masterStudents.length === 0) {
+                dropdown.innerHTML = `<div class="p-3 text-sm text-slate-500 text-center bg-slate-50">មិនទាន់មានទិន្នន័យសិស្សក្នុងប្រព័ន្ធទេ សូមបញ្ចូលសិស្សជាមុនសិន។</div>`;
+                return;
+            }
+
+            const assignedIds = getAssignedStudentIds();
+
+            const filtered = masterStudents.filter(s => 
+                s.name && 
+                s.name.toLowerCase().includes(input) &&
+                !assignedIds.has(String(s.id || s.name))
+            );
+            
+            if (filtered.length === 0) {
+                dropdown.innerHTML = `<div class="p-3 text-sm text-slate-500 text-center bg-slate-50">រកមិនឃើញឈ្មោះសិស្ស ឬសិស្សត្រូវបានចាត់តាំងរួចហើយ។</div>`;
+                return;
+            }
+
+            dropdown.innerHTML = filtered.map(s => {
+                const studentJson = encodeURIComponent(JSON.stringify(s)).replace(/'/g, "%27");
+                const action = targetKey.includes('day_') ? 
+                    `addStudentToGroup('${targetKey.replace('day_', '')}', '${studentJson}')` : 
+                    `selectLeader('${targetKey}', '${studentJson}')`;
+
+                return `
+                <div onclick="${action}" class="flex items-center gap-3 p-2.5 hover:bg-blue-50 cursor-pointer border-b border-slate-100 transition-colors">
+                    <img src="${getAvatar(s)}" class="w-8 h-8 rounded-full border border-slate-200 object-cover shadow-sm">
+                    <div class="flex-1">
+                        <div class="font-bold text-sm text-slate-700">${s.name}</div>
+                        <div class="text-[11px] text-slate-500">${s.gender || '-'}</div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.selectLeader = function(role, studentDataStr) {
+            let student = typeof studentDataStr === 'string' ? JSON.parse(decodeURIComponent(studentDataStr)) : studentDataStr;
+            scheduleData.leaders[role] = student;
+            
+            document.getElementById(`${role}Input`).classList.add('hidden');
+            document.getElementById(`${role}Dropdown`).classList.add('hidden');
+            
+            const selectedDiv = document.getElementById(`${role}Selected`);
+            document.getElementById(`${role}Img`).src = getAvatar(student);
+            document.getElementById(`${role}Name`).textContent = student.name;
+            selectedDiv.classList.remove('hidden');
+            selectedDiv.classList.add('flex');
+        }
+
+        window.removeLeader = function(role) {
+            scheduleData.leaders[role] = null;
+            document.getElementById(`${role}Input`).value = '';
+            document.getElementById(`${role}Input`).classList.remove('hidden');
+            
+            const selectedDiv = document.getElementById(`${role}Selected`);
+            selectedDiv.classList.add('hidden');
+            selectedDiv.classList.remove('flex');
+        }
+
+        function renderDayCards() {
+            const container = document.getElementById('dayCardsContainer');
+            container.innerHTML = daysConfig.map(day => `
+                <div class="day-group-card flex flex-col h-full">
+                    <div class="day-header ${day.color}">
+                        <span>${day.name}</span>
+                        <span class="text-xs bg-white/20 px-2 py-0.5 rounded-full backdrop-blur-sm" id="count_${day.id}">០ នាក់</span>
+                    </div>
+                    <div class="p-4 flex-1 flex flex-col">
+                        <div class="relative group mb-3">
+                            <input type="text" id="day_${day.id}Input" onfocus="openSearch('day_${day.id}')" oninput="filterSearch('day_${day.id}')" placeholder="បន្ថែមសិស្ស..." class="input-field py-1.5 px-3 text-sm bg-slate-50 border-slate-200" autocomplete="off">
+                            <div id="day_${day.id}Dropdown" class="hidden absolute top-full left-0 z-50 w-full mt-1 bg-white border border-blue-100 rounded-xl shadow-lg max-h-40 overflow-y-auto dropdown-scroll"></div>
+                        </div>
+                        
+                        <div id="list_${day.id}" class="space-y-2 overflow-y-auto max-h-48 pr-1 custom-scrollbar flex-1">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.addStudentToGroup = function(dayId, studentDataStr) {
+            let student = typeof studentDataStr === 'string' ? JSON.parse(decodeURIComponent(studentDataStr)) : studentDataStr;
+            
+            if (scheduleData.groups[dayId].some(s => String(s.id || s.name) === String(student.id || student.name))) {
+                alert("សិស្សនេះមានក្នុងបញ្ជីវេននេះរួចហើយ!");
+                return;
+            }
+
+            let role = 'សមាជិក';
+            const currentLen = scheduleData.groups[dayId].length;
+            if (currentLen === 0) role = 'ប្រធាន';
+            else if (currentLen === 1) role = 'អនុប្រធាន';
+
+            scheduleData.groups[dayId].push({ ...student, role: role });
+            
+            document.getElementById(`day_${dayId}Input`).value = '';
+            document.getElementById(`day_${dayId}Dropdown`).classList.add('hidden');
+            renderGroupList(dayId);
+        }
+
+        window.removeStudentFromGroup = function(dayId, studentId) {
+            scheduleData.groups[dayId] = scheduleData.groups[dayId].filter(s => String(s.id || s.name) !== String(studentId));
+            
+            // Re-assign roles to keep indexes synced (1st is ប្រធាន, 2nd is អនុប្រធាន, rest are សមាជិក)
+            scheduleData.groups[dayId].forEach((s, index) => {
+                if (index === 0) s.role = 'ប្រធាន';
+                else if (index === 1) s.role = 'អនុប្រធាន';
+                else s.role = 'សមាជិក';
+            });
+            renderGroupList(dayId);
+        }
+
+        function renderGroupList(dayId) {
+            const listContainer = document.getElementById(`list_${dayId}`);
+            const countLabel = document.getElementById(`count_${dayId}`);
+            const students = scheduleData.groups[dayId] || [];
+            
+            countLabel.textContent = `${toKhmerNum(students.length)} នាក់`;
+
+            if (students.length === 0) {
+                listContainer.innerHTML = `<p class="text-xs text-center text-slate-400 mt-4 italic">មិនទាន់មានសមាជិក</p>`;
+                return;
+            }
+
+            listContainer.innerHTML = students.map((s, index) => {
+                const safeId = String(s.id || s.name).replace(/'/g, "\\'");
+                
+                let roleBadge = '';
+                if (s.role === 'ប្រធាន') {
+                    roleBadge = '<span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded border border-amber-200 ml-1 flex-shrink-0">ប្រធាន</span>';
+                } else if (s.role === 'អនុប្រធាន') {
+                    roleBadge = '<span class="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200 ml-1 flex-shrink-0">អនុប្រធាន</span>';
+                }
+
+                return `
+                <div class="flex items-center justify-between bg-slate-50 border border-slate-100 p-2 rounded-lg group/item">
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <span class="text-xs font-bold text-slate-400 w-4">${index + 1}.</span>
+                        <div class="truncate text-sm font-bold text-slate-700">${s.name}</div>
+                        ${roleBadge}
+                    </div>
+                    <button type="button" onclick="removeStudentFromGroup('${dayId}', '${safeId}')" class="text-slate-300 hover:text-rose-500 transition-colors px-1 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        // ==========================================
+        // Print Logic 
+        // ==========================================
+        function getSchoolInfoStr() {
+            return `
+                <p>${classConfig.school_name_admin || 'សាលាបឋមសិក្សា .................'}</p>
+                <p>${classConfig.class_name || '.................'}</p>
+            `;
+        }
+
+        function generateHierarchyHTML() {
+            const pres = scheduleData.leaders.pres || { name: '.....................', gender: '.....' };
+            const vp1 = scheduleData.leaders.vp1 || { name: '.....................', gender: '.....' };
+            const vp2 = scheduleData.leaders.vp2 || { name: '.....................', gender: '.....' };
+
+            return `
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 2px;">
+                    <tr>
+                        <td colspan="4" align="center">
+                            <div class="chart-box">
+                                <div class="chart-title">ប្រធានថ្នាក់</div>
+                                ${pres.name} &nbsp;&nbsp;&nbsp; ${pres.gender || 'ប/ស'}
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" align="center">
+                            <div style="width: 2px; height: 6px; background: #3b82f6; margin: 0 auto;"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="25%"></td>
+                        <td width="25%" style="border-top: 2px solid #3b82f6; border-left: 2px solid #3b82f6; height: 6px;"></td>
+                        <td width="25%" style="border-top: 2px solid #3b82f6; border-right: 2px solid #3b82f6; height: 6px;"></td>
+                        <td width="25%"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" align="center" style="padding-top: 1px;">
+                            <div class="chart-box" style="min-width: 160px;">
+                                <div class="chart-title">អនុប្រធានទី១</div>
+                                 &nbsp;&nbsp; ${vp1.name} &nbsp;&nbsp; ${vp1.gender || 'ប/ស'}
+                            </div>
+                        </td>
+                        <td colspan="2" align="center" style="padding-top: 1px;">
+                            <div class="chart-box" style="min-width: 160px;">
+                                <div class="chart-title">អនុប្រធានទី២</div>
+                                 &nbsp;&nbsp; ${vp2.name} &nbsp;&nbsp; ${vp2.gender || 'ប/ស'}
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            `;
+        }
+
+        function getDynamicRowCount() {
+            let totalStudents = masterStudents.length;
+            if (totalStudents === 0) return 5;
+
+            let studentsToDistribute = Math.max(0, totalStudents - 3);
+            let targetRowCount = Math.ceil(studentsToDistribute / 6);
+            
+            let maxAssigned = 0;
+            if (scheduleData.groups) {
+                for (const day in scheduleData.groups) {
+                    if (scheduleData.groups[day].length > maxAssigned) {
+                        maxAssigned = scheduleData.groups[day].length;
+                    }
+                }
+            }
+            
+            targetRowCount = Math.max(targetRowCount, maxAssigned);
+            return Math.max(targetRowCount, 1);
+        }
+
+        function generateDayTableRows(dayId, rowCount) {
+            const students = scheduleData.groups[dayId] || [];
+            let rows = '';
+            
+            for (let i = 0; i < rowCount; i++) {
+                if (i < students.length) {
+                    const s = students[i];
+                    rows += `
+                        <tr>
+                            <td>${toKhmerNum(i + 1)}</td>
+                            <td class="row-text-blue" style="text-align: left; padding-left: 8px;">${s.name}</td>
+                            <td class="row-text-blue">${s.gender || ''}</td>
+                            <td class="row-text-blue">${s.role}</td>
+                        </tr>
+                    `;
+                } else {
+                    rows += `
+                        <tr>
+                            <td>${toKhmerNum(i + 1)}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    `;
+                }
+            }
+            return rows;
+        }
+
+        function generatePrintHTML() {
+            const today = new Date();
+            let lunarStr = "ថ្ងៃ................ខែ..........ឆ្នាំ..........ព.ស.២៥៦...";
+            if (typeof momentkh !== 'undefined') {
+                try {
+                    const khmerDateObj = momentkh.fromDate(today);
+                    lunarStr = momentkh.format(khmerDateObj).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                } catch (e) { console.error(e); }
+            }
+            const province = classConfig.province_for_date || '....................';
+            const solarStr = `ធ្វើនៅ${province}, ថ្ងៃទី${toKhmerNum(today.getDate().toString().padStart(2, '0'))} ខែ${["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"][today.getMonth()]} ឆ្នាំ${toKhmerNum(today.getFullYear())}`;
+
+            let statsHtml = '<div class="flex justify-between w-full px-2 mb-0 mt-1">';
+            daysConfig.forEach((day, i) => {
+                const count = scheduleData.groups[day.id].length;
+                statsHtml += `<span class="footer-stats">ក្រុមទី${toKhmerNum(i+1)} សរុប ${toKhmerNum(count)} នាក់</span>`;
+            });
+            statsHtml += '</div>';
+
+            const dynamicRowCount = getDynamicRowCount();
+
+            return `
+                <div class="a4-page">
+                    <!-- Header Area: Fixed size, will not stretch -->
+                    <div style="flex: 0 0 auto;">
+                        <!-- Top Header -->
+                        <div style="position: relative; margin-bottom: 0px;">
+                            <div class="kh-moul"style="position: absolute; left: 0; top: 40pt; font-family:'Moul' cursive; font-size: 9pt; font-weight: bold; color: #166534; line-height: 1.5;">
+                                ${getSchoolInfoStr()}
+                            </div>
+                            <div style="text-align: center; width: 100%;">
+                                <h1 class="kh-moul text-sm text-emerald-700 mb-0">ព្រះរាជាណាចក្រកម្ពុជា</h1>
+                                <h2 class="kh-moul text-[10pt] text-emerald-700">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
+                                <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[8px] w-auto mx-auto mt-0.5" crossorigin="anonymous">
+                            </div>
+                        </div>
+
+                        <!-- Main Title -->
+                        <div class="text-center w-full mb-1 mt-1">
+                            <h2 class="kh-moul" style="font-size: 13pt; color: #dc2626; text-decoration: underline; text-underline-offset: 4px;">តារាងវេនសម្អាតប្រចាំសប្ដាហ៍</h2>
+                            <h3 style="font-family: 'Battambang', cursive; font-size: 9pt; font-weight: bold; color: #2563eb; margin-top: 1px;">
+                                ឆ្នាំសិក្សា ${toKhmerNum(classConfig.academic_year || '២០២៥-២០២៦')}
+                            </h3>
+                        </div>
+
+                        <!-- Hierarchy Chart -->
+                        ${generateHierarchyHTML()}
+                    </div>
+
+                    <!-- Tables Area: Flex-grow to fill remaining vertical space -->
+                    <div style="flex: 1 1 auto; display: flex; flex-direction: column; padding: 2px 0; min-height: 0; overflow: hidden;">
+                        <!-- Grid 2 Rows x 3 Cols Tables (Will stretch 100% of this container) -->
+                        <table style="width: 100%; height: 100%; border-collapse: collapse;">
+                            <tr style="height: 50%;">
+                                <!-- Row 1 -->
+                                <td style="width: 33.33%; padding: 2px;">
+                                    <table class="print-table">
+                                        <colgroup>
+                                            <col style="width: 10%;">
+                                            <col style="width: 53%;">
+                                            <col style="width: 12%;">
+                                            <col style="width: 25%;">
+                                        </colgroup>
+                                        <thead>
+                                            <tr><th colspan="4" style="background: #f8fafc; padding: 2px;">ថ្ងៃចន្ទ</th></tr>
+                                            <tr>
+                                                <th class="inner-th">ល.រ</th>
+                                                <th class="inner-th">ឈ្មោះ</th>
+                                                <th class="inner-th">ភេទ</th>
+                                                <th class="inner-th">តួនាទី</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>${generateDayTableRows('monday', dynamicRowCount)}</tbody>
+                                    </table>
+                                </td>
+                                <td style="width: 33.33%; padding: 2px;">
+                                    <table class="print-table">
+                                        <colgroup>
+                                            <col style="width: 10%;">
+                                            <col style="width: 53%;">
+                                            <col style="width: 12%;">
+                                            <col style="width: 25%;">
+                                        </colgroup>
+                                        <thead>
+                                            <tr><th colspan="4" style="background: #f8fafc; padding: 2px;">ថ្ងៃអង្គារ</th></tr>
+                                            <tr>
+                                                <th class="inner-th">ល.រ</th>
+                                                <th class="inner-th">ឈ្មោះ</th>
+                                                <th class="inner-th">ភេទ</th>
+                                                <th class="inner-th">តួនាទី</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>${generateDayTableRows('tuesday', dynamicRowCount)}</tbody>
+                                    </table>
+                                </td>
+                                <td style="width: 33.33%; padding: 2px;">
+                                    <table class="print-table">
+                                        <colgroup>
+                                            <col style="width: 10%;">
+                                            <col style="width: 53%;">
+                                            <col style="width: 12%;">
+                                            <col style="width: 25%;">
+                                        </colgroup>
+                                        <thead>
+                                            <tr><th colspan="4" style="background: #f8fafc; padding: 2px;">ថ្ងៃពុធ</th></tr>
+                                            <tr>
+                                                <th class="inner-th">ល.រ</th>
+                                                <th class="inner-th">ឈ្មោះ</th>
+                                                <th class="inner-th">ភេទ</th>
+                                                <th class="inner-th">តួនាទី</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>${generateDayTableRows('wednesday', dynamicRowCount)}</tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr style="height: 50%;">
+                                <!-- Row 2 -->
+                                <td style="width: 33.33%; padding: 2px;">
+                                    <table class="print-table">
+                                        <colgroup>
+                                            <col style="width: 10%;">
+                                            <col style="width: 53%;">
+                                            <col style="width: 12%;">
+                                            <col style="width: 25%;">
+                                        </colgroup>
+                                        <thead>
+                                            <tr><th colspan="4" style="background: #f8fafc; padding: 2px;">ថ្ងៃព្រហស្បតិ៍</th></tr>
+                                            <tr>
+                                                <th class="inner-th">ល.រ</th>
+                                                <th class="inner-th">ឈ្មោះ</th>
+                                                <th class="inner-th">ភេទ</th>
+                                                <th class="inner-th">តួនាទី</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>${generateDayTableRows('thursday', dynamicRowCount)}</tbody>
+                                    </table>
+                                </td>
+                                <td style="width: 33.33%; padding: 2px;">
+                                    <table class="print-table">
+                                        <colgroup>
+                                            <col style="width: 10%;">
+                                            <col style="width: 53%;">
+                                            <col style="width: 12%;">
+                                            <col style="width: 25%;">
+                                        </colgroup>
+                                        <thead>
+                                            <tr><th colspan="4" style="background: #f8fafc; padding: 2px;">ថ្ងៃសុក្រ</th></tr>
+                                            <tr>
+                                                <th class="inner-th">ល.រ</th>
+                                                <th class="inner-th">ឈ្មោះ</th>
+                                                <th class="inner-th">ភេទ</th>
+                                                <th class="inner-th">តួនាទី</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>${generateDayTableRows('friday', dynamicRowCount)}</tbody>
+                                    </table>
+                                </td>
+                                <td style="width: 33.33%; padding: 2px;">
+                                    <table class="print-table">
+                                        <colgroup>
+                                            <col style="width: 10%;">
+                                            <col style="width: 53%;">
+                                            <col style="width: 12%;">
+                                            <col style="width: 25%;">
+                                        </colgroup>
+                                        <thead>
+                                            <tr><th colspan="4" style="background: #f8fafc; padding: 2px;">ថ្ងៃសៅរ៍</th></tr>
+                                            <tr>
+                                                <th class="inner-th">ល.រ</th>
+                                                <th class="inner-th">ឈ្មោះ</th>
+                                                <th class="inner-th">ភេទ</th>
+                                                <th class="inner-th">តួនាទី</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>${generateDayTableRows('saturday', dynamicRowCount)}</tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- Footer Area (Stats & Signatures): Always stays at the bottom -->
+                    <div style="flex: 0 0 auto; margin-top: auto; break-inside: avoid; page-break-inside: avoid;">
+                        <!-- Stats -->
+                        ${statsHtml}
+
+                        <!-- Signatures -->
+                        <div class="signature-container">
+                            <!-- Left Block: Perfectly centered in the left 50% -->
+                            <div class="sig-col-left">
+                                <p style="margin: 0; padding-top: 2px; line-height: 1.2; font-family: 'Moul', cursive; font-size: 9pt; color: #4c1d95;">បានឃើញ និងឯកភាព</p>
+                                <p style="margin: 0; line-height: 1.2; font-family: 'Moul', cursive; font-size: 9pt; color: #4c1d95;">${classConfig.manager_role || 'នាយកសាលា'}</p>
+                                <div class="sig-image-box">
+                                    ${classConfig.managerSignature ? `<img src="${classConfig.managerSignature}">` : ''}
+                                </div>
+                                <p style="margin: 0; line-height: 1; font-family: 'Moul', cursive; font-size: 9pt; color: #dc2626;">${classConfig.manager_name || classConfig.managerName || ''}</p>
+                            </div>
+                            
+                            <!-- Right Block: Perfectly centered in the right 50% -->
+                            <div class="sig-col-right">
+                                <p style="margin: 0; line-height: 1.2; font-size: 9pt;">${lunarStr}</p>
+                                <p style="margin: 0; line-height: 1.2; font-size: 9pt;">${solarStr}</p>
+                                <p style="margin: 0; line-height: 1.2; font-family: 'Moul', cursive; font-size: 9pt; color: #4c1d95;">គ្រូបន្ទុកថ្នាក់</p>
+                                <div class="sig-image-box">
+                                    ${classConfig.teacherSignature ? `<img src="${classConfig.teacherSignature}">` : ''}
+                                </div>
+                                <p style="margin-left: 2cm; line-height: 1; font-family: 'Moul', cursive; font-size: 9pt; color: #dc2626;">${classConfig.homeroom_teacher || classConfig.teacherName || ''}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Scale Adjustment Logic for "Not Full" Preview ---
+        function adjustPreviewScale() {
+            const page = document.querySelector('#printContainer .a4-page');
+            if (page) {
+                const wrapperWidth = window.innerWidth;
+                const targetWidth = 1123; 
+                
+                if (wrapperWidth < targetWidth + 80) {
+                    const scale = (wrapperWidth - 80) / targetWidth;
+                    page.style.transform = `scale(${scale})`;
+                    page.style.transformOrigin = 'top center';
+                    document.getElementById('printContainer').style.height = `${794 * scale + 20}px`;
+                } else {
+                    page.style.transform = 'none';
+                    document.getElementById('printContainer').style.height = 'auto';
+                }
+            }
+        }
+
+        window.previewPDF = function() {
+            const container = document.getElementById('printContainer');
+            container.innerHTML = generatePrintHTML();
+
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('printAreaWrapper').classList.remove('hidden');
+            document.body.classList.add('preview-mode');
+            
+            adjustPreviewScale();
+            window.addEventListener('resize', adjustPreviewScale);
+        }
+
+        window.closePreview = function() {
+            document.getElementById('mainScreen').classList.remove('hidden');
+            document.getElementById('printAreaWrapper').classList.add('hidden');
+            document.body.classList.remove('preview-mode');
+            window.removeEventListener('resize', adjustPreviewScale);
+        }
+
+    </script>
+</body>
+</html>

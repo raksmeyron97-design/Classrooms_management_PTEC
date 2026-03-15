@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - លទ្ធផលជួយសិស្សរៀនយឺតភាសាខ្មែរ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Taprom&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    
+    <style>
+        :root { 
+            --primary: #0ea5e9; /* Sky blue */
+            --secondary: #2563eb;
+            --bg-color: #f0f9ff;
+        }
+        
+        body { font-family: 'Battambang', cursive; background: var(--bg-color); min-height: 100vh; margin: 0; color: #1e293b; overflow-x: hidden; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        .text-gradient { background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .text-shadow-custom { text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+
+        .bg-animate { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; 
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(14, 165, 233, 0.1), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(37, 99, 235, 0.1), transparent 25%);
+            animation: moveBg 15s infinite alternate ease-in-out; 
+            filter: blur(40px);
+        }
+        @keyframes moveBg { 
+            0% { transform: scale(1) translate(0, 0); } 
+            100% { transform: scale(1.1) translate(2%, 2%); } 
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 40px -15px rgba(14, 165, 233, 0.15);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            border-radius: 1rem;
+            border: 2px solid #e2e8f0;
+            outline: none;
+            background: white;
+            font-family: 'Battambang', cursive;
+            transition: all 0.3s;
+            color: #334155;
+        }
+        .input-field:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); 
+        }
+
+        /* Print Layout Styles */
+        .a4-page {
+            background: white;
+            width: 210mm;
+            height: 297mm; 
+            max-height: 297mm;
+            margin: 0 auto 2rem auto;
+            padding: 15mm;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            box-sizing: border-box;
+            color: black;
+            overflow: hidden; 
+            page-break-after: always;
+            page-break-inside: avoid;
+        }
+        .a4-page:last-child { margin-bottom: 0; page-break-after: auto !important; }
+
+        .cover-page { display: block !important; padding: 25mm !important; position: relative; }
+        .cover-border {
+            position: absolute; top: 15mm; bottom: 15mm; left: 15mm; right: 15mm;
+            border: 4px solid #0ea5e9; outline: 2px solid #0ea5e9; outline-offset: 4px; pointer-events: none;
+        }
+        
+        .print-table { width: 100%; border-collapse: collapse; font-size: 11pt; margin-top: 20px; table-layout: fixed; }
+        .print-table th, .print-table td { border: 1.5px solid #000; padding: 12px; vertical-align: top; }
+        .print-table th { background-color: #f8fafc !important; font-family: 'Battambang', cursive; font-weight: bold; font-size: 12pt; text-align: center !important; }
+        
+        .avoid-break { page-break-inside: avoid !important; break-inside: avoid !important; }
+        
+        /* Signature Layout */
+        .signature-container { width: 100%; margin-top: 30px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; }
+        .sig-col-left { text-align: center; }
+        .sig-col-right { text-align: center; padding-left: 30mm; }
+        .teacher-name-final { font-family: 'Moul', cursive; font-size: 11.5pt; margin-top: 5px; display: block; text-align: center; position: relative; z-index: 10; }
+        .lunar-date { font-size: 11pt; margin-bottom: 2px; white-space: nowrap; }
+        .solar-date { font-size: 11pt; font-weight: normal; margin-bottom: 8px; }
+        .role-title { font-family: 'Moul', cursive; font-size: 12pt; position: relative; z-index: 10; }
+        .sig-image-box { height: 75px; margin-top: 10px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; }
+        .sig-image-box img { max-height: 100%; max-width: 160px; object-fit: contain; mix-blend-mode: multiply; pointer-events: none; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { background: white !important; padding: 0; margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+            .no-print { display: none !important; }
+            #printAreaWrapper { display: block !important; padding: 0; margin: 0; }
+            .a4-page { 
+                width: 210mm !important; height: 296mm !important; max-height: 296mm !important;
+                box-sizing: border-box !important; box-shadow: none !important; padding: 15mm !important; margin: 0 !important;
+                page-break-after: always !important; page-break-inside: avoid !important; overflow: hidden !important; 
+            }
+            .a4-page:last-child { page-break-after: auto !important; }
+            .cover-page { padding: 25mm !important; }
+            .text-shadow-custom { text-shadow: none !important; }
+            .print-table th { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; color-adjust: exact; text-align: center !important; }
+            .bg-animate { display: none; }
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: 0 4px 15px -3px rgba(14, 165, 233, 0.4);
+            transition: all 0.3s ease;
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -4px rgba(14, 165, 233, 0.5); }
+    </style>
+</head>
+<body spellcheck="false">
+
+    <div class="bg-animate no-print"></div>
+
+    <div id="mainScreen" class="min-h-screen flex flex-col pt-8 px-4 md:px-6 no-print">
+        <div class="max-w-6xl mx-auto w-full">
+            
+            <div class="glass-card p-6 md:p-10 mb-8">
+                <!-- Header Section & Print Button Moved to Top -->
+                <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 border-b border-sky-100 pb-6 mb-6">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3.5 bg-sky-100 rounded-2xl">
+                            <i data-lucide="award" class="w-7 h-7 text-sky-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-sky-500 mb-1">PTEC ផ្នែកតាមដានលទ្ធផល</p>
+                            <h1 class="kh-moul text-xl md:text-2xl text-gradient bg-gradient-to-r from-sky-600 to-blue-700">លទ្ធផលការជួយសិស្សរៀនយឺត ភាសាខ្មែរ</h1>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex items-center bg-white p-1.5 rounded-2xl border border-sky-50 shadow-sm">
+                            <select id="filterMonth" onchange="renderTable()" class="input-field py-2 px-4 text-sm min-w-[130px] border-none shadow-none focus:ring-0"></select>
+                            <div class="w-px bg-slate-200 h-6 mx-1"></div>
+                            <select id="filterYear" onchange="updateMonthLabels(); renderTable()" class="input-field py-2 px-4 text-sm min-w-[130px] border-none shadow-none focus:ring-0">
+                                <option value="២០២៤-២០២៥">ឆ្នាំ ២០២៤-២០២៥</option>
+                                <option value="២០២៥-២០២៦" selected>ឆ្នាំ ២០២៥-២០២៦</option>
+                            </select>
+                        </div>
+                        <button onclick="previewPDF()" class="bg-sky-600 hover:bg-sky-700 text-white px-5 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-sm transition">
+                            <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ព
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Signature Configuration (Collapsible Hide Box) -->
+                <details class="bg-slate-50 border border-slate-200 p-5 rounded-2xl mb-8 shadow-sm group">
+                    <summary class="text-sm font-bold text-slate-700 flex items-center justify-between cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="pen-tool" class="w-5 h-5 text-slate-500"></i> កំណត់អ្នកចុះហត្ថលេខាសម្រាប់ការបោះពុម្ព
+                        </div>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform group-open:rotate-180"></i>
+                    </summary>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-5 pt-5 border-t border-slate-200">
+                        <!-- Manager -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះនាយកសាលា</label>
+                                <input type="text" id="managerNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="updateSignatures()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា / ត្រា (បើមាន)</label>
+                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                    <input type="file" id="managerSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 transition-colors w-full" onchange="handleSignatureUpload('manager')">
+                                    
+                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                            <button type="button" onclick="zoomSignature('manager', -0.1)" class="p-1.5 text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded-md transition-colors"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                            <div id="managerSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded"></div>
+                                            <button type="button" onclick="zoomSignature('manager', 0.1)" class="p-1.5 text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded-md transition-colors"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                        </div>
+                                        <button type="button" onclick="removeSignature('manager')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Teacher -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះគ្រូបន្ទុកថ្នាក់</label>
+                                <input type="text" id="teacherNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2.5 px-4 text-sm" onchange="updateSignatures()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា (បើមាន)</label>
+                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                    <input type="file" id="teacherSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 transition-colors w-full" onchange="handleSignatureUpload('teacher')">
+                                    
+                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                            <button type="button" onclick="zoomSignature('teacher', -0.1)" class="p-1.5 text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded-md transition-colors"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                            <div id="teacherSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded"></div>
+                                            <button type="button" onclick="zoomSignature('teacher', 0.1)" class="p-1.5 text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded-md transition-colors"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                        </div>
+                                        <button type="button" onclick="removeSignature('teacher')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Form Section -->
+                <div class="bg-sky-50/50 border border-sky-100 p-6 md:p-8 rounded-[2rem] mb-10">
+                    <h3 class="font-bold text-sky-900 mb-6 flex items-center gap-2 text-lg" id="formTitle">
+                        <i data-lucide="file-edit" class="w-5 h-5"></i> កត់ត្រាលទ្ធផលថ្មី
+                    </h3>
+                    
+                    <form id="recordForm" class="grid grid-cols-1 md:grid-cols-12 gap-5">
+                        <input type="hidden" id="editId" value="">
+                        
+                        <div class="md:col-span-3">
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5">កាលបរិច្ឆេទ</label>
+                            <input type="text" id="recordDate" required placeholder="ឧ. ១២ តុលា ២០២៥" class="input-field">
+                        </div>
+
+                        <div class="md:col-span-5 relative">
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5">ឈ្មោះសិស្ស <span class="text-xs text-sky-500">(ទាញពីបញ្ជីរៀនយឺត)</span></label>
+                            <input type="text" id="studentName" required placeholder="វាយឈ្មោះសិស្សទីនេះ..." class="input-field" autocomplete="off">
+                            <div id="studentDropdown" class="hidden absolute top-full left-0 z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto"></div>
+                        </div>
+
+                        <div class="md:col-span-4">
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5">នៅម៉ោងចេញលេងទី</label>
+                            <select id="breakTime" class="input-field">
+                                <option value="១">ទី១ (ម៉ោងចេញលេងទី១)</option>
+                                <option value="២">ទី២ (ម៉ោងចេញលេងទី២)</option>
+                                <option value="៣">ទី៣ (ម៉ោងចេញលេងទី៣)</option>
+                                <option value="៤">ទី៤ (ម៉ោងចេញលេងទី៤)</option>
+                                <option value="ក្រៅម៉ោង">ក្រៅម៉ោងសិក្សា</option>
+                            </select>
+                        </div>
+
+                        <div class="md:col-span-12">
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5">ខ្លឹមសារបង្រៀន ឬ លទ្ធផល</label>
+                            <textarea id="lessonContent" rows="3" required placeholder="ឧ. បានបង្រៀនអានព្យញ្ជនៈផ្សំស្រៈ។ សិស្សអាចអានបានរត់មាត់ជាងមុនបន្តិច..." class="input-field resize-y"></textarea>
+                        </div>
+                        
+                        <div class="md:col-span-12 flex gap-3 justify-end mt-2">
+                            <button type="button" id="btnCancel" onclick="resetForm()" class="hidden bg-slate-200 text-slate-700 font-bold py-3 px-6 rounded-xl hover:bg-slate-300">
+                                បោះបង់
+                            </button>
+                            <button type="submit" id="btnSave" class="btn-primary font-bold py-3 px-8 rounded-xl flex items-center gap-2">
+                                <i data-lucide="save" class="w-4 h-4"></i> រក្សាទុក
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Table Section -->
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="font-bold text-slate-800 flex items-center gap-2 text-lg">
+                        <i data-lucide="list" class="w-5 h-5 text-sky-600"></i> លទ្ធផលក្នុងខែ <span id="labelMonth" class="text-sky-600"></span>
+                    </h3>
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                            <tr>
+                                <th class="p-4 w-12 text-center">ល.រ</th>
+                                <th class="p-4 w-32">កាលបរិច្ឆេទ</th>
+                                <th class="p-4 w-40">ឈ្មោះសិស្ស</th>
+                                <th class="p-4">ខ្លឹមសារ / លទ្ធផល</th>
+                                <th class="p-4 w-28 text-center">គ្រប់គ្រង</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal (Replaces browser confirm) -->
+    <div id="deleteConfirmModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center no-print">
+        <div class="bg-white rounded-2xl p-6 md:p-8 max-w-sm w-full mx-4 shadow-2xl transform transition-all">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="alert-triangle" class="w-6 h-6 text-rose-600"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800">បញ្ជាក់ការលុប</h3>
+            </div>
+            <p class="text-slate-600 mb-8">តើអ្នកពិតជាចង់លុបលទ្ធផលនេះមែនទេ? ទិន្នន័យដែលបានលុបមិនអាចទាញយកមកវិញបានទេ។</p>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeDeleteModal()" class="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded-xl transition">បោះបង់</button>
+                <button id="confirmDeleteBtn" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition shadow-sm flex items-center gap-2">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> លុប
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Preview Area -->
+    <div id="printAreaWrapper" class="hidden bg-gray-500 min-h-screen py-8">
+        <div class="fixed top-4 right-4 flex flex-col gap-3 z-50 no-print">
+            <button onclick="window.print()" class="bg-emerald-500 text-white p-4 rounded-full shadow-lg hover:scale-105" title="បោះពុម្ភ">
+                <i data-lucide="printer" class="w-6 h-6"></i>
+            </button>
+            <button onclick="closePreview()" class="bg-slate-700 text-white p-4 rounded-full shadow-lg hover:scale-105" title="បិទ">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+        <div id="printContainer"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Updated Firebase config including measurementId
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app); // Initialized Analytics
+        const db = getFirestore(app);
+
+        // Data Storage
+        const STORAGE_KEY_RESULTS = 'ptec_slow_learners_khmer_results_data';
+        const STORAGE_KEY_SOURCE = 'ptec_slow_learners_khmer_data'; // We get student list from here
+        
+        let allResults = [];
+        let sourceTargetStudents = []; // The list of students who actually need help
+        let classConfig = {};
+        let deleteTargetId = null; // Used for custom delete modal
+        
+        let globalLunarStr = '';
+        let globalSolarStr = '';
+
+        const khDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+        const khMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+
+        function toKhmerNum(num) { 
+            return num.toString().split('').map(d => khDigits[d] || d).join(''); 
+        }
+        
+        function generateDates() {
+            const today = new Date();
+            globalLunarStr = "ថ្ងៃ................ខែ..........ឆ្នាំ..........ព.ស.២៥៦...";
+            if (typeof momentkh !== 'undefined') {
+                try {
+                    const khmerDateObj = momentkh.fromDate(today);
+                    globalLunarStr = momentkh.format(khmerDateObj).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                } catch (e) { console.error("Error formatting khmer date", e); }
+            }
+            const locationTxt = classConfig.location || '....................';
+            globalSolarStr = `${locationTxt}, ថ្ងៃទី${toKhmerNum(today.getDate().toString().padStart(2, '0'))} ខែ${khMonths[today.getMonth()]} ឆ្នាំ${toKhmerNum(today.getFullYear())}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            loadClassConfig();
+            updateMonthLabels();
+            generateDates();
+            
+            // Auto select current month
+            const currentMonthName = khMonths[new Date().getMonth()];
+            const monthSelect = document.getElementById('filterMonth');
+            if(Array.from(monthSelect.options).some(opt => opt.value === currentMonthName)) {
+                monthSelect.value = currentMonthName;
+            }
+
+            loadLocalData();
+            setupStudentDropdown();
+            await fetchFirebaseData();
+        });
+
+        function updateMonthLabels() {
+            const yearSelect = document.getElementById('filterYear').value; 
+            const years = yearSelect.split('-');
+            let year1 = years[0] ? years[0].trim() : "២០២៥";
+            let year2 = years[1] ? years[1].trim() : "២០២៦";
+
+            const monthSelect = document.getElementById('filterMonth');
+            const currentValue = monthSelect.value; 
+            monthSelect.innerHTML = ''; 
+
+            const academicMonthsOrder = ["តុលា", "វិច្ឆិកា", "ធ្នូ", "មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា"];
+
+            academicMonthsOrder.forEach((month, index) => {
+                const optionYear = index < 3 ? year1 : year2;
+                monthSelect.add(new Option(`ខែ${month} ឆ្នាំ${optionYear}`, month));
+            });
+
+            if (currentValue && academicMonthsOrder.includes(currentValue)) monthSelect.value = currentValue;
+        }
+
+        function loadClassConfig() {
+            try {
+                classConfig = JSON.parse(localStorage.getItem('app_settings')) || {
+                    unit1: "មន្ទីរអប់រំ យុវជន និងកីឡា", 
+                    unit2: "ការិយាល័យអប់រំ យុវជន និងកីឡា",
+                    schoolName: "សាលាបឋមសិក្សា................",
+                    managerRole: "នាយកសាលា", 
+                    teacherName: "",
+                    managerName: ""
+                };
+                if (typeof classConfig.managerSigScale !== 'number') classConfig.managerSigScale = 1.0;
+                if (typeof classConfig.teacherSigScale !== 'number') classConfig.teacherSigScale = 1.0;
+            } catch(e) {}
+
+            const managerInput = document.getElementById('managerNameInput');
+            const teacherInput = document.getElementById('teacherNameInput');
+            if(managerInput) managerInput.value = classConfig.managerName || '';
+            if(teacherInput) teacherInput.value = classConfig.teacherName || '';
+
+            renderSignaturePreview('manager');
+            renderSignaturePreview('teacher');
+        }
+
+        // --- Signature Handlers ---
+        window.updateSignatures = async function() {
+            classConfig.managerName = document.getElementById('managerNameInput').value;
+            classConfig.teacherName = document.getElementById('teacherNameInput').value;
+            localStorage.setItem('app_settings', JSON.stringify(classConfig));
+
+            try {
+                await setDoc(doc(db, "school_data", "general_settings"), {
+                    managerName: classConfig.managerName,
+                    teacherName: classConfig.teacherName
+                }, { merge: true });
+            } catch (error) {
+                console.error("Error updating settings online:", error);
+            }
+        }
+
+        window.handleSignatureUpload = function(type) {
+            const input = document.getElementById(type + 'SignatureInput');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    if (type === 'manager') {
+                        classConfig.managerSignature = base64;
+                        classConfig.managerSigScale = 1.0;
+                    } else {
+                        classConfig.teacherSignature = base64;
+                        classConfig.teacherSigScale = 1.0; 
+                    }
+                    localStorage.setItem('app_settings', JSON.stringify(classConfig));
+                    renderSignaturePreview(type);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        window.removeSignature = function(type) {
+            if (type === 'manager') {
+                classConfig.managerSignature = null;
+            } else {
+                classConfig.teacherSignature = null;
+            }
+            localStorage.setItem('app_settings', JSON.stringify(classConfig));
+            document.getElementById(type + 'SignatureInput').value = ''; 
+            renderSignaturePreview(type);
+        }
+
+        window.zoomSignature = function(type, delta) {
+            const scaleKey = type + 'SigScale';
+            if (typeof classConfig[scaleKey] !== 'number') {
+                classConfig[scaleKey] = 1.0;
+            }
+            classConfig[scaleKey] += delta;
+            classConfig[scaleKey] = Math.max(0.2, Math.min(3.0, classConfig[scaleKey]));
+            localStorage.setItem('app_settings', JSON.stringify(classConfig));
+            renderSignaturePreview(type);
+        }
+
+        window.renderSignaturePreview = function(type) {
+            const previewDiv = document.getElementById(type + 'SigPreview');
+            if(!previewDiv) return;
+            const sigData = type === 'manager' ? classConfig.managerSignature : classConfig.teacherSignature;
+            const scaleKey = type + 'SigScale';
+            const scale = classConfig[scaleKey] !== undefined ? classConfig[scaleKey] : 1.0;
+            
+            if (sigData) {
+                previewDiv.innerHTML = `<img src="${sigData}" style="transform: scale(${scale}); transform-origin: center center;" class="h-full w-full object-contain transition-transform duration-200">`;
+            } else {
+                previewDiv.innerHTML = `<span class="text-[10px] text-slate-400">គ្មានរូបភាព</span>`;
+            }
+        }
+
+        function loadLocalData() {
+            // Load Results Data
+            allResults = JSON.parse(localStorage.getItem(STORAGE_KEY_RESULTS)) || [];
+            
+            // Load Source Target Students (From the first book)
+            sourceTargetStudents = JSON.parse(localStorage.getItem(STORAGE_KEY_SOURCE)) || [];
+            
+            renderTable();
+        }
+
+        async function fetchFirebaseData() {
+            try {
+                // Fetch general settings
+                const settingsSnap = await getDoc(doc(db, "school_data", "general_settings"));
+                if (settingsSnap.exists()) {
+                    classConfig = { ...classConfig, ...settingsSnap.data() };
+                    localStorage.setItem('app_settings', JSON.stringify(classConfig));
+                    
+                    if(document.getElementById('managerNameInput')) document.getElementById('managerNameInput').value = classConfig.managerName || '';
+                    if(document.getElementById('teacherNameInput')) document.getElementById('teacherNameInput').value = classConfig.teacherName || '';
+                    renderSignaturePreview('manager');
+                    renderSignaturePreview('teacher');
+                }
+
+                // Fetch source students (Who needs help)
+                const sourceSnap = await getDoc(doc(db, "school_data", "slow_learners_khmer"));
+                if (sourceSnap.exists() && sourceSnap.data().records) {
+                    sourceTargetStudents = sourceSnap.data().records;
+                    localStorage.setItem(STORAGE_KEY_SOURCE, JSON.stringify(sourceTargetStudents));
+                }
+
+                // Fetch Results
+                const resultsSnap = await getDoc(doc(db, "school_data", "slow_learners_khmer_results"));
+                if (resultsSnap.exists() && resultsSnap.data().records) {
+                    allResults = resultsSnap.data().records;
+                    localStorage.setItem(STORAGE_KEY_RESULTS, JSON.stringify(allResults));
+                    renderTable();
+                }
+            } catch (error) {
+                console.error("Firebase Error:", error);
+            }
+        }
+
+        // --- Dropdown Logic (Filtered by selected month/year) ---
+        function setupStudentDropdown() {
+            const input = document.getElementById('studentName');
+            const dropdown = document.getElementById('studentDropdown');
+
+            input.addEventListener('focus', () => renderStudentDropdown(input.value));
+            input.addEventListener('input', () => renderStudentDropdown(input.value));
+
+            document.addEventListener('click', (e) => {
+                if(!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.add('hidden');
+            });
+        }
+
+        function renderStudentDropdown(filterText) {
+            const dropdown = document.getElementById('studentDropdown');
+            const month = document.getElementById('filterMonth').value;
+            const year = document.getElementById('filterYear').value;
+
+            // Filter students who are in the target list for the CURRENT month/year
+            let availableStudents = sourceTargetStudents.filter(s => s.month === month && s.year === year);
+            
+            // Filter by typing
+            if (filterText) {
+                availableStudents = availableStudents.filter(s => s.name.toLowerCase().includes(filterText.toLowerCase()));
+            }
+
+            if (availableStudents.length === 0) {
+                dropdown.innerHTML = `<div class="p-3 text-sm text-slate-500 text-center">គ្មានឈ្មោះសិស្សរៀនយឺតក្នុងខែនេះទេ (សូមពិនិត្យសៀវភៅទី៩)</div>`;
+            } else {
+                dropdown.innerHTML = availableStudents.map(s => `
+                    <div onclick="selectStudent('${s.name}')" class="p-3 hover:bg-sky-50 cursor-pointer border-b border-slate-100 flex justify-between">
+                        <span class="font-bold text-slate-800">${s.name}</span>
+                        <span class="text-xs text-sky-600 bg-sky-100 px-2 py-1 rounded">ខ្វះខាត៖ ${s.lesson}</span>
+                    </div>
+                `).join('');
+            }
+            dropdown.classList.remove('hidden');
+        }
+
+        window.selectStudent = function(name) {
+            document.getElementById('studentName').value = name;
+            document.getElementById('studentDropdown').classList.add('hidden');
+            document.getElementById('lessonContent').focus();
+        };
+
+        // --- Form Actions ---
+        document.getElementById('recordForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const idInput = document.getElementById('editId').value;
+            const month = document.getElementById('filterMonth').value;
+            const year = document.getElementById('filterYear').value;
+            
+            const newData = {
+                id: idInput ? parseInt(idInput) : Date.now(),
+                month: month,
+                year: year,
+                date: document.getElementById('recordDate').value.trim(),
+                name: document.getElementById('studentName').value.trim(),
+                breakTime: document.getElementById('breakTime').value,
+                content: document.getElementById('lessonContent').value.trim()
+            };
+
+            if (idInput) {
+                const index = allResults.findIndex(item => item.id == idInput);
+                if (index !== -1) allResults[index] = newData;
+            } else {
+                allResults.push(newData);
+            }
+
+            localStorage.setItem(STORAGE_KEY_RESULTS, JSON.stringify(allResults));
+            renderTable();
+            resetForm();
+
+            // Save Online
+            try {
+                await setDoc(doc(db, "school_data", "slow_learners_khmer_results"), {
+                    records: allResults,
+                    lastUpdated: new Date().toISOString()
+                }, { merge: true });
+            } catch (err) {
+                console.error("Error saving data:", err);
+            }
+        });
+
+        window.editItem = function(id) {
+            const item = allResults.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('editId').value = item.id;
+            document.getElementById('recordDate').value = item.date;
+            document.getElementById('studentName').value = item.name;
+            document.getElementById('breakTime').value = item.breakTime;
+            document.getElementById('lessonContent').value = item.content;
+            
+            document.getElementById('formTitle').innerHTML = '<i data-lucide="edit-3" class="w-5 h-5 text-amber-500"></i> កែប្រែទិន្នន័យ';
+            document.getElementById('btnSave').innerHTML = 'យល់ព្រម';
+            document.getElementById('btnCancel').classList.remove('hidden');
+            lucide.createIcons();
+            document.getElementById('studentName').focus();
+        }
+
+        // Custom Custom Modals logic replacing standard browser alert/confirm
+        window.deleteItem = function(id) {
+            deleteTargetId = id;
+            document.getElementById('deleteConfirmModal').classList.remove('hidden');
+            lucide.createIcons(); // ensure modal icons render correctly
+        }
+
+        window.closeDeleteModal = function() {
+            deleteTargetId = null;
+            document.getElementById('deleteConfirmModal').classList.add('hidden');
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+            if (deleteTargetId !== null) {
+                allResults = allResults.filter(i => i.id !== deleteTargetId);
+                localStorage.setItem(STORAGE_KEY_RESULTS, JSON.stringify(allResults));
+                renderTable();
+                
+                try {
+                    await setDoc(doc(db, "school_data", "slow_learners_khmer_results"), { records: allResults, lastUpdated: new Date().toISOString() }, { merge: true });
+                } catch (err) {
+                    console.error("Error deleting from online database:", err);
+                }
+                
+                closeDeleteModal();
+            }
+        });
+
+        window.resetForm = function() {
+            document.getElementById('recordForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('formTitle').innerHTML = '<i data-lucide="file-edit" class="w-5 h-5"></i> កត់ត្រាលទ្ធផលថ្មី';
+            document.getElementById('btnSave').innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> រក្សាទុក';
+            document.getElementById('btnCancel').classList.add('hidden');
+            lucide.createIcons();
+        }
+
+        window.renderTable = function() {
+            const monthSelect = document.getElementById('filterMonth');
+            const month = monthSelect.value;
+            const year = document.getElementById('filterYear').value;
+            
+            document.getElementById('labelMonth').innerText = month;
+
+            const filteredData = allResults.filter(item => item.month === month && item.year === year);
+            const tbody = document.getElementById('dataTableBody');
+            
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">មិនទាន់មានលទ្ធផលក្នុងខែនេះទេ</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filteredData.map((item, index) => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-4 text-center font-bold text-slate-500">${toKhmerNum(index + 1)}</td>
+                    <td class="p-4">${item.date}</td>
+                    <td class="p-4 font-bold text-sky-700">${item.name}</td>
+                    <td class="p-4">
+                        <div class="text-sm text-slate-800 whitespace-pre-wrap">${item.content}</div>
+                        <div class="text-[11px] text-sky-600 mt-1">ម៉ោងចេញលេងទី៖ ${item.breakTime}</div>
+                    </td>
+                    <td class="p-4 text-center">
+                        <div class="flex justify-center gap-2">
+                            <button onclick="editItem(${item.id})" class="p-1.5 text-amber-500 hover:bg-amber-50 rounded"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                            <button onclick="deleteItem(${item.id})" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // --- Print/PDF Generation ---
+        
+        function getCoverPage(year) {
+            let cleanClass = classConfig.className ? classConfig.className.replace(/ថ្នាក់ទី/g, '').replace(/ថ្នាក់/g, '').trim() : '';
+            return `
+                <div class="a4-page cover-page relative data-page">
+                    <div class="cover-border"></div>
+                    <div class="text-center w-full pt-2">
+                        <h1 class="kh-moul text-xl mb-2">ព្រះរាជាណាចក្រកម្ពុជា</h1>
+                        <h2 class="kh-moul text-lg">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
+                        <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" alt="divider" class="h-[16px] w-auto mx-auto mt-3 mb-6" crossorigin="anonymous">
+                    </div>
+                    <div class="w-full text-left pl-4 mt-4 relative z-10">
+                        <p class="kh-moul text-base mb-3 leading-relaxed">${classConfig.unit1 || ''}</p>
+                        <p class="kh-moul text-base mb-3">${classConfig.unit2 || ''}</p>
+                        <p class="kh-moul text-base mb-3">${classConfig.schoolName || ''}</p>
+                    </div>
+                    <div class="w-full text-center mt-[100px] space-y-10 relative z-10">
+                        <h1 class="kh-moul text-6xl text-sky-700 text-shadow-custom" style="font-weight: normal;">សៀវភៅ</h1>
+                        <h2 class="kh-moul text-4xl text-blue-700 text-shadow-custom leading-normal text-center w-full px-8">លទ្ធផលជួយសិស្សរៀនយឺតភាសាខ្មែរ</h2>
+                        <h3 class="kh-moul text-4xl text-emerald-600 text-shadow-custom">${cleanClass ? 'ថ្នាក់ទី ' + cleanClass : 'ថ្នាក់ទី...'}</h3>
+                    </div>
+                    <div class="absolute bottom-[40mm] left-0 right-0 w-full text-center space-y-4 z-10">
+                        <p class="kh-moul text-3xl">${classConfig.teacherName ? '' + classConfig.teacherName : '...'}</p>
+                        <p class="kh-moul text-3xl">ឆ្នាំសិក្សា <span>${year || classConfig.academicYear || '២០២៥-២០២៦'}</span></p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        window.previewPDF = function() {
+            generateDates();
+            const month = document.getElementById('filterMonth').value;
+            const year = document.getElementById('filterYear').value;
+            const filteredData = allResults.filter(item => item.month === month && item.year === year);
+            
+            const container = document.getElementById('printContainer');
+            container.innerHTML = ''; 
+            
+            // Add Cover Page
+            container.insertAdjacentHTML('beforeend', getCoverPage(year));
+
+            // Handle Pagination
+            const ROWS_FIRST_PAGE_MAX = 6; 
+            const ROWS_FIRST_PAGE_SIG = 4;   
+            const ROWS_OTHER_PAGE_MAX = 8;
+            const ROWS_OTHER_PAGE_SIG = 5;
+            
+            let pagesChunks = [];
+            let tempRecords = [...filteredData];
+
+            if (tempRecords.length === 0) {
+                pagesChunks.push([]);
+            } else {
+                let pageNum = 0;
+                while (tempRecords.length > 0) {
+                    let maxLimit = (pageNum === 0) ? ROWS_FIRST_PAGE_MAX : ROWS_OTHER_PAGE_MAX;
+                    let sigLimit = (pageNum === 0) ? ROWS_FIRST_PAGE_SIG : ROWS_OTHER_PAGE_SIG;
+
+                    if (tempRecords.length <= sigLimit) {
+                        pagesChunks.push(tempRecords.splice(0, tempRecords.length));
+                    } else if (tempRecords.length <= maxLimit) {
+                        let itemsForThisPage = tempRecords.length - 2;
+                        if (itemsForThisPage <= 0) itemsForThisPage = 1; 
+                        pagesChunks.push(tempRecords.splice(0, itemsForThisPage));
+                    } else {
+                        let remainder = tempRecords.length - maxLimit;
+                        if (remainder > 0 && remainder < 2) {
+                            let itemsForThisPage = tempRecords.length - 2;
+                            pagesChunks.push(tempRecords.splice(0, itemsForThisPage));
+                        } else {
+                            pagesChunks.push(tempRecords.splice(0, maxLimit));
+                        }
+                    }
+                    pageNum++;
+                }
+            }
+
+            pagesChunks.forEach((chunk, index) => {
+                const isLast = (index === pagesChunks.length - 1);
+                const isFirst = (index === 0);
+                container.insertAdjacentHTML('beforeend', generatePrintPage(chunk, month, year, isLast, isFirst));
+            });
+
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('printAreaWrapper').classList.remove('hidden');
+        }
+
+        function generatePrintPage(data, month, year, isLastPage, isFirstPage) {
+            let headerHtml = '';
+            
+            if (isFirstPage) {
+                headerHtml = `
+                    <div class="text-center w-full mb-6">
+                        <h3 class="kh-moul text-[13pt] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                        <h3 class="kh-moul text-[13pt] mb-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                        <div class="flex justify-center mt-2">
+                            <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12pt] w-auto" crossorigin="anonymous">
+                        </div>
+                    </div>
+                    
+                    <div class="w-full text-[11pt] leading-relaxed mb-4 kh-moul">
+                        <p>${classConfig.unit1 || ''}</p>
+                        <p>${classConfig.unit2 || ''}</p>
+                        <p>${classConfig.schoolName || ''}</p>
+                    </div>
+
+                    <h2 class="kh-moul font-bold text-center text-[14pt] mb-4">
+                        លទ្ធផលការជួយសិស្សរៀនយឺតភាសាខ្មែរ<br>ប្រចាំខែ${month}
+                    </h2>
+                `;
+            } else {
+                headerHtml = `<div class="mt-4 mb-2"></div>`; 
+            }
+
+            let tbodyHtml = '';
+            data.forEach((item, i) => {
+                tbodyHtml += `
+                    <tr>
+                        <td style="text-align: center; vertical-align: top; width: 20%; padding-top: 15px;">
+                            ${item.date}
+                        </td>
+                        <td style="padding: 15px; vertical-align: top;">
+                            <div style="margin-bottom: 8px;">
+                                <span style="font-family: 'Moul', cursive; font-size: 11pt;">ឈ្មោះសិស្ស៖</span>
+                                <span style="font-weight: bold; margin-left: 8px;">${item.name}</span>
+                            </div>
+                            <div style="white-space: pre-wrap; word-break: break-word; line-height: 1.6; margin-bottom: 8px;">${item.content}</div>
+                            <div>
+                                <span style="font-family: 'Moul', cursive; font-size: 11pt;">នៅម៉ោងចេញលេងទី៖</span>
+                                <span style="font-family: 'Moul', cursive; margin-left: 8px;">${item.breakTime}</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            if (data.length === 0) {
+                 tbodyHtml = `<tr><td colspan="2" style="text-align: center; padding: 50px;">មិនទាន់មានទិន្នន័យសម្រាប់ខែនេះទេ</td></tr>`;
+            }
+
+            let sigHtml = '';
+            if (isLastPage) {
+                let managerScale = classConfig.managerSigScale !== undefined ? classConfig.managerSigScale : 1.0;
+                let teacherScale = classConfig.teacherSigScale !== undefined ? classConfig.teacherSigScale : 1.0;
+                
+                sigHtml = `
+                    <tbody class="avoid-break">
+                        <tr>
+                            <td colspan="2" style="border: none; padding: 0; text-align: left;">
+                                <div class="signature-container">
+                                    <div class="sig-col-left">
+                                        <div class="mb-4 invisible">.</div>
+                                        <p class="text-[11pt] mb-2">បានឃើញ និងឯកភាព</p>
+                                        <p class="role-title uppercase">${classConfig.managerRole || 'នាយកសាលា'}</p>
+                                        <div class="sig-image-box" style="margin-left: 2cm;">${classConfig.managerSignature ? `<img src="${classConfig.managerSignature}" style="transform: scale(${managerScale}); transform-origin: center center;">` : ''}</div>
+                                        <p class="teacher-name-final" style="padding-left: 3cm;">${classConfig.managerName || ''}</p>
+                                    </div>
+                                    <div class="sig-col-right">
+                                        <p class="lunar-date">${globalLunarStr}</p>
+                                        <p class="solar-date">${globalSolarStr}</p>
+                                        <p class="role-title">គ្រូបន្ទុកថ្នាក់</p>
+                                        <div class="sig-image-box" >${classConfig.teacherSignature ? `<img src="${classConfig.teacherSignature}" style="transform: scale(${teacherScale}); transform-origin: center center;">` : ''}</div>
+                                        <p class="teacher-name-final" style="margin-left: 3cm;">${classConfig.teacherName || ''}</p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                `;
+            }
+
+            return `
+            <div class="a4-page data-page">
+                ${headerHtml}
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%; text-align: center !important; vertical-align: middle !important;">កាលបរិច្ឆេទ</th>
+                            <th style="width: 75%; text-align: center !important; vertical-align: middle !important;">ខ្លឹមសារ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tbodyHtml}
+                    </tbody>
+                    ${sigHtml}
+                </table>
+            </div>
+            `;
+        }
+
+        window.closePreview = function() {
+            document.getElementById('mainScreen').classList.remove('hidden');
+            document.getElementById('printAreaWrapper').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

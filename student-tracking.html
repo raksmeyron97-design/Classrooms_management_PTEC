@@ -50,7 +50,7 @@
 
         .report-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
         .report-table th, .report-table td { border: 1px solid #000; padding: 4px 6px; text-align: center; vertical-align: middle; }
-        .report-table th { background-color: #eab308 !important; font-family: 'Khmer OS Muol Light', 'Moul', cursive; font-size: 11px; font-weight: normal; }
+        .report-table th { background-color: #addcf3 !important; font-family: 'Khmer OS Muol Light', 'Moul', cursive; font-size: 11px; font-weight: normal; }
         
         .bg-summary { background-color: #ffffff !important; }
         
@@ -66,7 +66,7 @@
                 padding: 1cm 1cm !important;
                 margin: 0 !important;
             }
-            .report-table th { background-color: #eab308 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .report-table th { background-color: #c0e8ee !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
             html { font-size: 95%; }
         }
 
@@ -118,10 +118,10 @@
                     <div>
                         <label class="block font-bold text-gray-700 mb-2">ឆ្នាំសិក្សា</label>
                         <select id="yearSelect" class="input-field" onchange="window.updateMonthOptions(); window.loadStudents();">
-                            <option value="2023-2024">2023-2024</option>
-                            <option value="2024-2025">2024-2025</option>
                             <option value="2025-2026" selected>2025-2026</option>
                             <option value="2026-2027">2026-2027</option>
+                            <option value="2027-2028">2027-2028</option>
+                            <option value="2028-2029">2028-2029</option>
                         </select>
                     </div>
 
@@ -169,24 +169,24 @@
                 <!-- Left Side: ID and Name -->
                 <div class="text-left">
                     <div class="flex items-baseline gap-2 mb-1">
-                        <span class="w-[80px] inline-block">អត្តលេខ</span>
-                        <span id="out_id" class="font-bold text-[14px]">7100</span>
+                        <span class="w-[80px] kh-moul inline-block">អត្តលេខ</span>
+                        <span id="out_id" class="font-bold text-[12px]">7100</span>
                     </div>
                     <div class="flex items-baseline gap-2">
-                        <span class="w-[80px] inline-block">ឈ្មោះសិស្ស</span>
-                        <span id="out_name" class="kh-moul font-normal text-[15px]">ដុល នីសា</span>
+                        <span class="w-[80px] kh-moul inline-block">ឈ្មោះសិស្ស</span>
+                        <span id="out_name" class="kh-moul font-normal text-[12px]">ដុល នីសា</span>
                     </div>
                 </div>
                 
                 <!-- Right Side: Grade and Gender -->
                 <div class="text-right flex flex-col items-end">
                     <div class="flex items-baseline justify-between min-w-[130px] gap-2 mb-1">
-                        <span class="whitespace-nowrap">ថ្នាក់ទី</span>
+                        <span class="whitespace-nowrap"></span>
                         <span id="out_grade" class="kh-moul font-normal whitespace-nowrap">១ «ខ»</span>
                     </div>
                     <div class="flex items-baseline justify-between min-w-[130px] gap-2">
-                        <span class="whitespace-nowrap">ភេទ</span>
-                        <span id="out_gender" class="kh-moul font-normal">ស</span>
+                        <span class="whitespace-nowrap kh-moul" style="left: 77%; position: absolute;">ភេទ</span>
+                        <span id="out_gender" class="kh-moul font-normal" style="left: 84%; position: absolute;" >ស</span>
                     </div>
                 </div>
             </div>

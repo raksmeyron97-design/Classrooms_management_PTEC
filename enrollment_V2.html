@@ -27,10 +27,18 @@
         .suggestions-list { 
             position: absolute; width: 100%; background: white; border: 1px solid #d1d5db; 
             border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 50; 
+            top: 100%; left: 0; /* បន្ថែមបន្ទាត់នេះដើម្បីកុំឱ្យវាបាំងប្រអប់ */
             margin-top: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
             display: none; 
         }
-        .suggestion-item { padding: 8px 12px; cursor: pointer; font-size: 13px; transition: background 0.2s; border-bottom: 1px solid #f3f4f6; }
+        .suggestion-item { 
+            padding: 8px 12px; 
+            cursor: pointer; 
+            font-size: 13px; 
+            color: #1f2937; /* Explicitly set text color to dark gray */
+            transition: background 0.2s; 
+            border-bottom: 1px solid #f3f4f6; 
+        }
         .suggestion-item:last-child { border-bottom: none; }
         .suggestion-item:hover { background-color: #eff6ff; color: #4f46e5; font-weight: bold; }
 
@@ -44,9 +52,27 @@
             outline: none;
             transition: all 0.2s;
             font-family: 'Battambang', cursive;
+            color: #1f2937;
         }
+        
+        /* Fix placeholder clarity */
+        .mockup-input::placeholder {
+            color: #9ca3af;
+            opacity: 1; /* Override default browser opacity for placeholders */
+        }
+        
         .mockup-input:focus { border-color: #5a67d8; box-shadow: 0 0 0 2px rgba(90, 103, 216, 0.2); }
-        .mockup-input:disabled { background-color: #f3f4f6; cursor: not-allowed; opacity: 0.7; }
+        
+        /* Fix disabled input visibility (removed opacity: 0.7) */
+        .mockup-input:disabled { 
+            background-color: #f3f4f6; 
+            cursor: not-allowed; 
+            color: #4b5563; 
+        }
+        
+        .mockup-input:disabled::placeholder {
+            color: #6b7280; /* Darker placeholder for disabled state to improve contrast */
+        }
         
         .mockup-label {
             font-size: 13px;
@@ -657,11 +683,15 @@
                         const li = document.createElement('li');
                         li.className = 'suggestion-item';
                         li.textContent = item;
-                        li.onclick = () => {
+                        
+                        // ប្រើ mousedown ដើម្បីកុំអោយវាបាត់មុនពេលជ្រើសរើស (ពិសេសលើទូរស័ព្ទ)
+                        li.onmousedown = (e) => {
+                            e.preventDefault(); 
                             input.value = item;
                             listElement.style.display = 'none';
                             if (onSelect) onSelect(item);
                         };
+                        
                         listElement.appendChild(li);
                     });
                 } else {
@@ -671,8 +701,10 @@
 
             input.addEventListener('input', showList);
             input.addEventListener('focus', showList);
+            input.addEventListener('click', showList); // បន្ថែមមុខងារឲ្យលោតបញ្ជីមកពេលចុចវាម្ដងទៀត
 
-            document.addEventListener('click', (e) => {
+            // ប្រើ mousedown ជំនួសឲ្យ click ដើម្បីបិទបញ្ជីបានលឿន និងចៀសវាងបញ្ហាពេលជ្រើសរើស
+            document.addEventListener('mousedown', (e) => {
                 if (!input.contains(e.target) && !listElement.contains(e.target)) {
                     listElement.style.display = 'none';
                 }

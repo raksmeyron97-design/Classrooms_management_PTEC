@@ -222,8 +222,8 @@
                     <p class="kh-moul text-[12px]"style="margin-left: 2cm;" id="out_manager_name_val"></p>
                 </div>
                 <div class="w-[55%] flex flex-col items-center relative">
-                    <p class="mb-1 font-battambang text-[10px] text-black" id="out_long_date">ថ្ងៃ................ខែ...........ឆ្នាំ...........ព.ស ២៥៦...</p>
-                    <p class="mb-1"><span id="out_loc">................</span>, <span id="out_short_date">ថ្ងៃទី........ ខែ........... ឆ្នាំ ២០២...</span></p>
+                    <p class="mb-1 font-battambang text-[11px] text-black" id="out_long_date">ថ្ងៃ................ខែ...........ឆ្នាំ...........ព.ស ...........</p>
+                    <p class="mb-1 font-battambang text-[11px] text-black"><span id="out_loc">................</span>, <span id="out_short_date">ថ្ងៃទី........ ខែ........... ឆ្នាំ ២០២...</span></p>
                     <p class="font-bold mb-1">គ្រូបន្ទុកថ្នាក់</p>
                     <div class="h-16 flex items-center justify-center mb-1 relative z-10 w-full" style="padding-left: 2cm;">
                         <img id="out_teacher_sig_img" src="" class="max-h-full object-contain hidden" style="transform-origin: center; transform: scale(1);">
@@ -387,18 +387,18 @@
         ];
 
         const semesterSubjects = [
-            { key: 'sem_kh_reading_speaking', label: 'អំណាន-និយាយ', max: 100 },
-            { key: 'sem_kh_dictation', label: 'សរសេរតាមអាន', max: 100 },
-            { key: 'sem_kh_essay', label: 'តែងសេចក្តី', max: 100 },
-            { key: 'sem_math', label: 'គណិតវិទ្យា', max: 100 },
-            { key: 'sem_science', label: 'វិទ្យាសាស្ត្រ', max: 100 },
-            { key: 'sem_moral_civics', label: 'សីលធម៌', max: 100 },
-            { key: 'sem_geo', label: 'ភូមិវិទ្យា', max: 100 },
-            { key: 'sem_hist', label: 'ប្រវត្តិវិទ្យា', max: 100 },
-            { key: 'sem_home_arts', label: 'គេហវិទ្យា', max: 100 },
-            { key: 'sem_life_skills', label: 'បំណិនជីវិត', max: 100 },
-            { key: 'sem_foreign', label: 'ភាសាបរទេស', max: 100 },
-            { key: 'sem_sport', label: 'កីឡា', max: 100 }
+            { key: 'sem_kh_reading_speaking', label: 'អំណាន-និយាយ', max: 10 },
+            { key: 'sem_kh_dictation', label: 'សរសេរតាមអាន', max: 10 },
+            { key: 'sem_kh_essay', label: 'តែងសេចក្តី', max: 10 },
+            { key: 'sem_math', label: 'គណិតវិទ្យា', max: 10 },
+            { key: 'sem_science', label: 'វិទ្យាសាស្ត្រ', max: 10 },
+            { key: 'sem_moral_civics', label: 'សីលធម៌', max: 10 },
+            { key: 'sem_geo', label: 'ភូមិវិទ្យា', max: 10 },
+            { key: 'sem_hist', label: 'ប្រវត្តិវិទ្យា', max: 10 },
+            { key: 'sem_home_arts', label: 'គេហវិទ្យា', max: 10 },
+            { key: 'sem_life_skills', label: 'បំណិនជីវិត', max: 10 },
+            { key: 'sem_foreign', label: 'ភាសាបរទេស', max: 10 },
+            { key: 'sem_sport', label: 'កីឡា', max: 10 }
         ];
 
         const monthLabels = {
@@ -415,6 +415,10 @@
         let classConfig = {};
         let currentType = 'monthly';
         let attendanceHistory = {};
+
+        const sem1Months = ['nov', 'dec', 'jan', 'feb'];
+        const sem2Months = ['mar', 'apr', 'may', 'jun'];
+        let scoresCache = {};
 
         // Signature Configuration Object with scale properties
         window.userSignatures = {
@@ -789,21 +793,106 @@
             return { absent, permission };
         }
 
-        async function getScoresData(key) {
+        async function getCachedScoresData(year, period) {
+            const key = `${year}_${period}`;
+            if (scoresCache[key]) return scoresCache[key];
+            
+            let data = {};
             if (currentUser) {
                 try {
                     const ref = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'scores', key);
                     const snap = await getDoc(ref);
-                    if (snap.exists()) return snap.data();
-                    
-                    const oldRef = doc(db, "scores", key);
-                    const oldSnap = await getDoc(oldRef);
-                    if (oldSnap.exists()) return oldSnap.data();
+                    if (snap.exists()) data = snap.data();
+                    else {
+                        const oldRef = doc(db, "scores", key);
+                        const oldSnap = await getDoc(oldRef);
+                        if (oldSnap.exists()) data = oldSnap.data();
+                    }
                 } catch (e) {
                     console.error("Firebase fetch error", e);
                 }
             }
-            return JSON.parse(localStorage.getItem(`scores_${key}`) || '{}');
+            if (Object.keys(data).length === 0) {
+                const localData = localStorage.getItem(`scores_${key}`);
+                if (localData) data = JSON.parse(localData);
+            }
+            scoresCache[key] = data;
+            return data;
+        }
+
+        function computeMonthlyAvg(studentId, year, monthsArray) {
+            let sumOfAverages = 0;
+            monthsArray.forEach(month => {
+                const scoresData = scoresCache[`${year}_${month}`] || {};
+                const studentScores = scoresData[studentId];
+                if (studentScores) {
+                    let mSum = 0;
+                    let mCount = 0;
+                    monthlySubjects.forEach(col => {
+                        const val = studentScores[col.key];
+                        if (val !== null && val !== undefined && val !== "") {
+                            const numVal = parseFloat(val);
+                            if (!isNaN(numVal)) {
+                                mSum += numVal;
+                                mCount++;
+                            }
+                        }
+                    });
+                    if (mCount > 0) {
+                        sumOfAverages += (mSum / mCount);
+                    }
+                }
+            });
+            return monthsArray.length > 0 ? (sumOfAverages / monthsArray.length) : 0;
+        }
+
+        function computeExamAvg(studentId, year, semKey) {
+            const scoresData = scoresCache[`${year}_${semKey}`] || {};
+            const studentScores = scoresData[studentId];
+            let sum = 0;
+            let count = 0;
+            if (studentScores) {
+                semesterSubjects.forEach(col => {
+                    const val = studentScores[col.key];
+                    if (val !== null && val !== undefined && val !== "") {
+                        const numVal = parseFloat(val);
+                        if (!isNaN(numVal)) {
+                            sum += numVal;
+                            count++;
+                        }
+                    }
+                });
+            }
+            return {
+                total: sum,
+                count: count,
+                avg: count > 0 ? (sum / count) : 0
+            };
+        }
+
+        function computeSemAvg(studentId, year, semKey) {
+            const months = semKey === 'sem1' ? sem1Months : sem2Months;
+            const exam = computeExamAvg(studentId, year, semKey);
+            const monthlyAvg = computeMonthlyAvg(studentId, year, months);
+            
+            let semAvg = (exam.avg + monthlyAvg) / 2;
+            if (exam.count === 0 && monthlyAvg === 0) semAvg = 0;
+            
+            return semAvg;
+        }
+
+        function getRank(studentId, averagesArray) {
+            const sorted = [...averagesArray].sort((a, b) => b.avg - a.avg);
+            let currentRank = 1;
+            for (let i = 0; i < sorted.length; i++) {
+                if (i > 0 && sorted[i].avg < sorted[i-1].avg) {
+                    currentRank = i + 1;
+                }
+                if (sorted[i].id === studentId) {
+                    return currentRank;
+                }
+            }
+            return '-';
         }
 
         // --- 5. GENERATE REPORT ---
@@ -831,17 +920,29 @@
             lucide.createIcons();
 
             try {
+                scoresCache = {}; // Reset cache
                 let displayRows = [];
                 let totalScore = 0;
-                let countSubjects = 0;
-                let allAverages = [];
+                let studentAvg = 0;
+                let studentGrade = 'F';
+                let rank = '-';
+
+                // អថេរសម្រាប់ផ្ទុកទិន្នន័យឆមាសដើម្បីបង្ហាញក្នុងតារាងសរុបប្រចាំឆ្នាំ
+                let sem1Avg = 0, sem2Avg = 0, sem1Rank = '-', sem2Rank = '-';
+                let sem1Grade = 'F', sem2Grade = 'F';
 
                 if (currentType === 'yearly') {
-                    const sem1Data = await getScoresData(`${year}_sem1`);
-                    const sem2Data = await getScoresData(`${year}_sem2`);
+                    await Promise.all([
+                        getCachedScoresData(year, 'sem1'),
+                        getCachedScoresData(year, 'sem2'),
+                        ...sem1Months.map(m => getCachedScoresData(year, m)),
+                        ...sem2Months.map(m => getCachedScoresData(year, m))
+                    ]);
                     
-                    const s1Scores = sem1Data[studentId] || {};
-                    const s2Scores = sem2Data[studentId] || {};
+                    const s1Data = scoresCache[`${year}_sem1`] || {};
+                    const s2Data = scoresCache[`${year}_sem2`] || {};
+                    const s1Scores = s1Data[studentId] || {};
+                    const s2Scores = s2Data[studentId] || {};
 
                     semesterSubjects.forEach(col => {
                         let v1 = parseFloat(s1Scores[col.key]);
@@ -852,6 +953,8 @@
                         if (hasV1 || hasV2) {
                             let score1 = hasV1 ? v1 : 0;
                             let score2 = hasV2 ? v2 : 0;
+                            
+                            // យោងតាមសំណើ: យកឆមាស១ + ឆមាស២។ យើងចែកនឹង ២ ដើម្បីរក្សាពិន្ទុអតិបរមាត្រឹម ១០ ដដែល។
                             let avgSubjectScore = (score1 + score2) / 2;
                             
                             displayRows.push({
@@ -860,36 +963,70 @@
                                 max: col.max
                             });
                             totalScore += avgSubjectScore;
-                            countSubjects++;
                         }
                     });
 
-                    allAverages = allStudents.map(s => {
-                        const s1D = sem1Data[s.id] || {};
-                        const s2D = sem2Data[s.id] || {};
-                        let sTotal = 0, sCount = 0;
-                        
-                        semesterSubjects.forEach(c => {
-                            let v1 = parseFloat(s1D[c.key]);
-                            let v2 = parseFloat(s2D[c.key]);
-                            let has1 = !isNaN(v1);
-                            let has2 = !isNaN(v2);
-                            if (has1 || has2) {
-                                sTotal += ((has1 ? v1 : 0) + (has2 ? v2 : 0)) / 2;
-                                sCount++;
-                            }
-                        });
-                        return { id: String(s.id), avg: sCount > 0 ? (sTotal/sCount) : 0 };
+                    // ទាញយកមធ្យមភាគពិតប្រាកដដែលគិតបញ្ចូលទាំងពិន្ទុខែ ដូចក្នុង subject-scores.html
+                    sem1Avg = computeSemAvg(studentId, year, 'sem1');
+                    sem2Avg = computeSemAvg(studentId, year, 'sem2');
+                    sem1Grade = window.calculateGrade(sem1Avg, true);
+                    sem2Grade = window.calculateGrade(sem2Avg, true);
+
+                    studentAvg = (sem1Avg + sem2Avg) / 2;
+                    if (sem1Avg === 0 && sem2Avg === 0) studentAvg = 0;
+                    studentGrade = window.calculateGrade(studentAvg, true);
+
+                    let allSem1Avgs = allStudents.map(s => ({ id: String(s.id), avg: computeSemAvg(s.id, year, 'sem1') }));
+                    let allSem2Avgs = allStudents.map(s => ({ id: String(s.id), avg: computeSemAvg(s.id, year, 'sem2') }));
+                    let allYearlyAvgs = allStudents.map(s => {
+                        let a1 = computeSemAvg(s.id, year, 'sem1');
+                        let a2 = computeSemAvg(s.id, year, 'sem2');
+                        return { id: String(s.id), avg: (a1 > 0 || a2 > 0) ? (a1 + a2)/2 : 0 };
                     });
 
+                    sem1Rank = getRank(studentId, allSem1Avgs);
+                    sem2Rank = getRank(studentId, allSem2Avgs);
+                    rank = getRank(studentId, allYearlyAvgs);
+
+                } else if (currentType === 'semester') {
+                    const months = period === 'sem1' ? sem1Months : sem2Months;
+                    await Promise.all([
+                        getCachedScoresData(year, period),
+                        ...months.map(m => getCachedScoresData(year, m))
+                    ]);
+
+                    const sData = scoresCache[`${year}_${period}`] || {};
+                    const studentScores = sData[studentId] || {};
+
+                    semesterSubjects.forEach(col => {
+                        let val = studentScores[col.key];
+                        if (val !== null && val !== undefined && val !== '') {
+                            let numVal = parseFloat(val);
+                            if (!isNaN(numVal)) { 
+                                displayRows.push({
+                                    label: col.label,
+                                    score: numVal,
+                                    max: col.max
+                                });
+                                totalScore += numVal;
+                            }
+                        }
+                    });
+
+                    studentAvg = computeSemAvg(studentId, year, period);
+                    studentGrade = window.calculateGrade(studentAvg, true);
+
+                    let allSemAvgs = allStudents.map(s => ({ id: String(s.id), avg: computeSemAvg(s.id, year, period) }));
+                    rank = getRank(studentId, allSemAvgs);
+
                 } else {
-                    const key = `${year}_${period}`;
-                    const scoresData = await getScoresData(key);
+                    await getCachedScoresData(year, period);
 
-                    const studentScores = scoresData[studentId] || {};
-                    const columns = currentType === 'semester' ? semesterSubjects : monthlySubjects;
+                    const sData = scoresCache[`${year}_${period}`] || {};
+                    const studentScores = sData[studentId] || {};
+                    let countSubjects = 0;
 
-                    columns.forEach(col => {
+                    monthlySubjects.forEach(col => {
                         let val = studentScores[col.key];
                         if (val !== null && val !== undefined && val !== '') {
                             let numVal = parseFloat(val);
@@ -905,11 +1042,14 @@
                         }
                     });
 
-                    allAverages = allStudents.map(s => {
-                        const sData = scoresData[s.id] || {};
+                    studentAvg = countSubjects > 0 ? (totalScore / countSubjects) : 0;
+                    studentGrade = window.calculateGrade(studentAvg, true);
+
+                    let allMonthlyAvgs = allStudents.map(s => {
+                        const sc = (scoresCache[`${year}_${period}`] || {})[s.id] || {};
                         let sTotal = 0, sCount = 0;
-                        columns.forEach(c => {
-                            let v = sData[c.key];
+                        monthlySubjects.forEach(c => {
+                            let v = sc[c.key];
                             if (v !== null && v !== undefined && v !== '') {
                                 let n = parseFloat(v);
                                 if (!isNaN(n)) { sTotal += n; sCount++; }
@@ -917,16 +1057,8 @@
                         });
                         return { id: String(s.id), avg: sCount > 0 ? (sTotal/sCount) : 0 };
                     });
-                }
-
-                const studentAvg = countSubjects > 0 ? (totalScore / countSubjects) : 0;
-                const studentGrade = window.calculateGrade(studentAvg, true);
-
-                allAverages.sort((a, b) => b.avg - a.avg);
-                let rank = 1;
-                for(let i = 0; i < allAverages.length; i++) {
-                    if (i > 0 && allAverages[i].avg < allAverages[i-1].avg) rank = i + 1;
-                    if (allAverages[i].id === studentId) break;
+                    
+                    rank = getRank(studentId, allMonthlyAvgs);
                 }
 
                 let titlePrefix = currentType === 'monthly' ? 'ខែ' : '';
@@ -967,21 +1099,33 @@
 
                 // Update Dates Automatically
                 const today = new Date();
-                const buddhistYear = today.getFullYear() + 543; 
+                let bYear = today.getFullYear() + 543; 
+                // កែតម្រូវឆ្នាំពុទ្ធសករាជ (ចូលឆ្នាំខ្មែររវាងពាក់កណ្តាលខែមេសា)
+                if (today.getMonth() > 3 || (today.getMonth() === 3 && today.getDate() >= 14)) {
+                    bYear += 1;
+                }
                 
                 // Array of Khmer Days
                 const khmerDays = ['អាទិត្យ', 'ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហស្បតិ៍', 'សុក្រ', 'សៅរ៍'];
                 const currentDayName = khmerDays[today.getDay()];
                 
-                document.getElementById('out_long_date').textContent = `ថ្ងៃ ${currentDayName} ខែ ${khmerMonths[today.getMonth()]} ឆ្នាំ ${window.toKhmerNum(today.getFullYear())} ព.ស ២៥៦៩`;
+                document.getElementById('out_long_date').textContent = `ថ្ងៃ ${currentDayName} ខែ ${khmerMonths[today.getMonth()]} ឆ្នាំ ${window.toKhmerNum(today.getFullYear())} ព.ស ${window.toKhmerNum(bYear)}`;
                 document.getElementById('out_short_date').textContent = `ថ្ងៃទី ${window.toKhmerNum(today.getDate())} ខែ ${khmerMonths[today.getMonth()]} ឆ្នាំ ${window.toKhmerNum(today.getFullYear())}`;
 
                 const tbody = document.getElementById('out_tbody');
                 let rowsHtml = '';
+                
+                // Helper for matching image grade colors
+                const getGradeColorClass = (g) => {
+                    if (g === 'A') return 'text-red-600 font-bold';
+                    if (g === 'B') return 'text-pink-600 font-bold';
+                    if (g === 'C') return 'text-purple-600 font-bold';
+                    return 'font-bold text-black';
+                };
 
                 displayRows.forEach((item, index) => {
                     let grade = window.calculateGrade(item.score);
-                    let gradeClass = grade === 'A' ? 'text-red-600 font-bold' : 'font-bold text-black';
+                    let gradeClass = getGradeColorClass(grade);
                     
                     rowsHtml += `
                         <tr class="h-[22px]">
@@ -1006,26 +1150,56 @@
                 const att = window.getAttendanceStats(studentId, period, currentType);
                 const totalAbs = att.permission + att.absent;
 
+                // កែសម្រួលទម្រង់អវត្តមាន និងមធ្យមភាគ
                 rowsHtml += `
                     <tr class="font-bold bg-summary text-[12px]">
-                        <td class="border border-black py-1">អ.វស</td>
+                        <td colspan="2" class="border border-black py-1">អវត្តមាន</td>
                         <td class="border border-black py-1">មានច្បាប់</td>
                         <td class="border border-black py-1">អត់ច្បាប់</td>
-                        <td class="border border-black py-1">ពិន្ទុសរុប</td>
                         <td class="border border-black py-1">មធ្យមភាគ</td>
                         <td class="border border-black py-1 text-[11px]">ចំណាត់ថ្នាក់</td>
                         <td class="border border-black py-1">និទ្ទេស</td>
                     </tr>
                     <tr class="text-[12px] font-bold text-black">
-                        <td class="border border-black py-1">${totalAbs > 0 ? totalAbs : '0'}</td>
+                        <td colspan="2" class="border border-black py-1">${totalAbs > 0 ? totalAbs : '0'}</td>
                         <td class="border border-black py-1">${att.permission > 0 ? att.permission : '0'}</td>
                         <td class="border border-black py-1">${att.absent > 0 ? att.absent : '0'}</td>
-                        <td class="border border-black py-1">${window.formatNum(totalScore)}</td>
                         <td class="border border-black py-1">${window.formatNum(studentAvg)}</td>
                         <td class="border border-black py-1 text-red-600 font-bold">${rank}</td>
-                        <td class="border border-black py-1 text-red-600 font-bold">${studentGrade}</td>
+                        <td class="border border-black py-1 ${getGradeColorClass(studentGrade)}">${studentGrade}</td>
                     </tr>
                 `;
+
+                // បន្ថែមតារាងពណ៌បៃតងសម្រាប់សរុបឆមាសទាំង២ ពេលជ្រើសរើសប្រចាំឆ្នាំ
+                if (currentType === 'yearly') {
+                    rowsHtml += `
+                        <tr><td colspan="7" style="height: 10px; border: none;"></td></tr>
+                        <tr class="font-bold text-[12px]" style="background-color: #a9d08e !important; -webkit-print-color-adjust: exact;">
+                            <td colspan="4" class="border border-black py-1 text-center">សរុបលទ្ធផល</td>
+                            <td class="border border-black py-1">មធ្យមភាគ</td>
+                            <td class="border border-black py-1">ចំណាត់ថ្នាក់</td>
+                            <td class="border border-black py-1">និទ្ទេស</td>
+                        </tr>
+                        <tr class="font-bold text-[12px] text-black" style="background-color: #c6e0b4 !important; -webkit-print-color-adjust: exact;">
+                            <td colspan="4" class="border border-black py-1 px-4 text-left">លទ្ធផលឆមាសទី១</td>
+                            <td class="border border-black py-1">${window.formatNum(sem1Avg)}</td>
+                            <td class="border border-black py-1 text-red-600">${sem1Rank}</td>
+                            <td class="border border-black py-1 ${getGradeColorClass(sem1Grade)}">${sem1Grade}</td>
+                        </tr>
+                        <tr class="font-bold text-[12px] text-black" style="background-color: #c6e0b4 !important; -webkit-print-color-adjust: exact;">
+                            <td colspan="4" class="border border-black py-1 px-4 text-left">លទ្ធផលឆមាសទី២</td>
+                            <td class="border border-black py-1">${window.formatNum(sem2Avg)}</td>
+                            <td class="border border-black py-1 text-red-600">${sem2Rank}</td>
+                            <td class="border border-black py-1 ${getGradeColorClass(sem2Grade)}">${sem2Grade}</td>
+                        </tr>
+                        <tr class="font-bold text-[12px] text-black" style="background-color: #c6e0b4 !important; -webkit-print-color-adjust: exact;">
+                            <td colspan="4" class="border border-black py-1 px-4 text-left">លទ្ធផលប្រចាំឆ្នាំ</td>
+                            <td class="border border-black py-1">${window.formatNum(studentAvg)}</td>
+                            <td class="border border-black py-1 text-red-600">${rank}</td>
+                            <td class="border border-black py-1 ${getGradeColorClass(studentGrade)}">${studentGrade}</td>
+                        </tr>
+                    `;
+                }
 
                 tbody.innerHTML = rowsHtml;
 

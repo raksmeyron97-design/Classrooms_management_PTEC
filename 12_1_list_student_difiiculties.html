@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>បញ្ជីសិស្សជួបការលំបាក</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Siemreap&family=Taprom&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    
+    <style>
+        :root {
+            --khmer-moul: 'Moul', cursive;
+            --khmer-battambang: 'Battambang', sans-serif;
+            --khmer-siemreap: 'Siemreap', sans-serif;
+            --primary: #312e81;
+        }
+
+        body {
+            font-family: var(--khmer-battambang);
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 0;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        .kh-moul, .font-moul { font-family: var(--khmer-moul); font-weight: normal; }
+        .text-shadow-custom { text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        /* Disable effects during PDF export */
+        .pdf-exporting * { 
+            text-shadow: none !important; 
+            letter-spacing: normal !important;
+            box-shadow: none !important;
+            -webkit-print-color-adjust: exact;
+        }
+
+        /* Background Animation */
+        .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 10% 20%, #e0e7ff 0%, transparent 40%), radial-gradient(circle at 90% 80%, #dcfce7 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 50%); animation: moveBg 20s infinite alternate ease-in-out; }
+        @keyframes moveBg { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        /* Web UI Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .data-table th {
+            background-color: #f8fafc;
+            color: #334155;
+            font-weight: bold;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        .data-table td {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+        .data-table tbody tr { background-color: #ffffff; transition: background-color 0.2s; }
+        .data-table tbody tr:nth-child(even) { background-color: #fdfdfd; }
+        .data-table tbody tr:hover { background-color: #f1f5f9; }
+        
+        .sticky-col { position: sticky; left: 0; z-index: 10; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.05); }
+        .data-table thead th.sticky-col { background-color: #f8fafc; z-index: 20; text-align: left; }
+        .data-table tbody td.sticky-col { background-color: inherit; }
+
+        .table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid #e5e7eb; background: white; }
+        
+        .input-text {
+            width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; outline: none; transition: all 0.2s; background: #f8fafc; font-size: 13px; font-weight: 700;
+        }
+        .input-text:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 2px rgba(49, 46, 129, 0.1); }
+
+        /* Print A4 Styles */
+        .a4-page {
+            background: white;
+            width: 297mm; /* Landscape */
+            min-height: 210mm; /* Landscape */
+            margin: 0 auto 2rem auto;
+            padding: 15mm;
+            box-shadow: 0 0 20px rgba(0,0,0,0.15);
+            position: relative;
+            box-sizing: border-box;
+            color: #0000ee; /* Match image blue text color */
+        }
+        
+        /* Print Header Match Image */
+        .print-header-grid {
+            display: grid;
+            grid-template-columns: 35% 65%;
+            margin-bottom: 20px;
+        }
+        .left-org-info {
+            font-family: 'Moul', cursive;
+            font-size: 10pt;
+            color: #008000; /* Match image green text */
+            line-height: 1.6;
+            padding-top: 10px;
+        }
+        .left-org-info p {
+            margin-bottom: 2px;
+        }
+        .right-nation-info {
+            text-align: center;
+            color: #008000; /* Match image green text */
+        }
+        .moeys-logo {
+            width: 80px;
+            height: auto;
+            margin-bottom: 10px;
+            margin-left: 20px;
+        }
+
+        .report-table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-top: 10px; table-layout: fixed; }
+        .report-table th, .report-table td { border: 1px solid #0000ff; padding: 6px 4px; text-align: center; vertical-align: middle; overflow: hidden; color: #0000ff; }
+        .report-table th { font-family: 'Battambang', cursive; font-weight: bold; font-size: 10.5pt; color: #008000; }
+        .report-table td.text-left { text-align: left; padding-left: 6px; }
+        
+        /* ធានាថាហត្ថលេខានិងជួរចុងក្រោយមិនដាច់ចេញពីគ្នា */
+        .keep-together { page-break-inside: avoid !important; break-inside: avoid !important; }
+        .report-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+        
+        .signature-row td { border: none !important; padding-top: 10px !important; color: #0000ee; }
+        .signature-container { width: 100%; display: grid; grid-template-columns: 1fr 1fr; margin-top: 10px; }
+        .sig-col-left { text-align: center; }
+        .sig-col-right { text-align: center; padding-left: 20mm; }
+        .teacher-name-final { font-family: 'Moul', cursive; font-size: 11.5pt; margin-top: 5px; display: block; text-align: center; position: relative; z-index: 10; color: #0000ee; }
+        .lunar-date { font-size: 11pt; margin-bottom: 2px; white-space: nowrap; color: #0000ee;}
+        .solar-date { font-size: 11pt; font-weight: normal; margin-bottom: 8px; color: #0000ee;}
+        .role-title { font-family: 'Moul', cursive; font-size: 12pt; position: relative; z-index: 10; color: #008000;}
+        
+        .sig-image-box { height: 75px; margin-top: 10px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; }
+        .sig-image-box img { max-height: 100%; max-width: 160px; object-fit: contain; mix-blend-mode: multiply; pointer-events: none; }
+        
+        .summary-text { font-family: 'Battambang', cursive; color: #008000; font-size: 11pt; margin-top: 5px;}
+        
+        @media screen { .print-only { display: none !important; } }
+        @media print {
+            @page { size: A4 landscape; margin: 10mm; }
+            body { background: white !important; padding: 0; margin: 0; }
+            .no-print { display: none !important; }
+            #printAreaWrapper { display: block !important; padding: 0; width: 100%; margin: 0; }
+            
+            .a4-page { 
+                width: 100%;
+                height: auto !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                overflow: visible !important;
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+            }
+            .text-shadow-custom { text-shadow: none !important; }
+            .report-table th, .report-table td { border: 1px solid #0000ff !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .bg-animate { display: none; }
+            .page-break { page-break-before: always; }
+        }
+
+        .preview-mode { background: #94a3b8; padding-top: 2rem; padding-bottom: 2rem; }
+    </style>
+</head>
+<body spellcheck="false">
+
+    <div class="bg-animate no-print"></div>
+
+    <!-- Web UI Screen -->
+    <div id="mainScreen" class="min-h-screen flex flex-col pt-6 px-4 no-print relative">
+        <div class="max-w-[95%] mx-auto w-full">
+            
+            <div class="glass-card p-6 md:p-8 mb-8">
+                <!-- Premium Header Style -->
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6 border-b pb-4 relative">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-red-100 rounded-full text-red-600">
+                            <i data-lucide="user-minus" class="w-6 h-6"></i>
+                        </div>
+                        <h1 class="kh-moul text-xl md:text-2xl text-red-600">បញ្ជីសិស្សជួបការលំបាក</h1>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <a href="index.html" class="flex items-center gap-2 px-4 py-2.5 bg-white/80 text-indigo-700 hover:text-indigo-900 hover:bg-white rounded-xl transition border border-indigo-200 shadow-sm font-bold text-sm backdrop-blur-md" title="ត្រឡប់ទៅទំព័រដើម">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> <span class="hidden sm:inline">ត្រឡប់ទៅទំព័រដើម</span>
+                        </a>
+
+                        <button type="button" onclick="toggleSignatureSettings()" class="flex items-center gap-2 px-4 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl hover:bg-indigo-100 transition border border-indigo-200 shadow-sm font-bold text-sm" title="កំណត់អ្នកចុះហត្ថលេខា">
+                            <i data-lucide="pen-tool" class="w-4 h-4"></i> <span class="hidden sm:inline">ហត្ថលេខា</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ផ្នែកកំណត់ហត្ថលេខា -->
+                <div id="signatureSettingsBox" class="hidden bg-indigo-50/60 border border-indigo-100 p-5 md:p-6 rounded-2xl mb-8 shadow-sm transition-all duration-300">
+                    <div class="flex items-center justify-between mb-5">
+                        <h4 class="text-sm font-bold text-indigo-800 flex items-center gap-2">
+                            <i data-lucide="pen-tool" class="w-5 h-5"></i> កំណត់អ្នកចុះហត្ថលេខាសម្រាប់ការបោះពុម្ព
+                        </h4>
+                        <button type="button" onclick="toggleSignatureSettings()" class="text-slate-400 hover:text-slate-600 transition p-1">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- នាយកសាលា -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-indigo-50 shadow-sm">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះនាយកសាលា</label>
+                                <input type="text" id="managerNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-text py-2.5 px-4 text-sm" onchange="updateSignatures()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា / ត្រា</label>
+                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                    <input type="file" id="managerSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors w-full" onchange="handleSignatureUpload('manager')">
+                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                            <button type="button" onclick="zoomSignature('manager', -0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                            <div id="managerSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded"></div>
+                                            <button type="button" onclick="zoomSignature('manager', 0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                        </div>
+                                        <button type="button" onclick="removeSignature('manager')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- គ្រូបន្ទុកថ្នាក់ -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-indigo-50 shadow-sm">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះគ្រូបន្ទុកថ្នាក់</label>
+                                <input type="text" id="teacherNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-text py-2.5 px-4 text-sm" onchange="updateSignatures()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា</label>
+                                <div class="flex flex-col xl:flex-row items-start xl:items-center gap-3">
+                                    <input type="file" id="teacherSignatureInput" accept="image/*" class="text-xs text-slate-500 file:cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-colors w-full" onchange="handleSignatureUpload('teacher')">
+                                    <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                                        <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                                            <button type="button" onclick="zoomSignature('teacher', -0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                                            <div id="teacherSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-white border border-dashed border-slate-200 rounded"></div>
+                                            <button type="button" onclick="zoomSignature('teacher', 0.1)" class="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                                        </div>
+                                        <button type="button" onclick="removeSignature('teacher')" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+                    <h3 class="font-bold text-gray-700 flex items-center gap-2">
+                        <i data-lucide="list" class="w-5 h-5 text-indigo-900"></i> សិស្សដែលបានជ្រើសរើស (<span id="totalCount">0</span>) 
+                    </h3>
+                    <button onclick="previewPDF()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl font-bold transition shadow-md flex items-center gap-2 text-sm ml-auto">
+                        <i data-lucide="printer" class="w-4 h-4"></i> ទាញយក PDF និង Print preview
+                    </button>
+                </div>
+
+                <!-- Main Table -->
+                <div id="webTableContainer" class="table-wrapper">
+                    <!-- Generated by JS -->
+                </div>
+                
+                <!-- Add New Student Button -->
+                <div class="mt-4 flex">
+                    <button onclick="addStudentRow()" class="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 hover:shadow-sm px-4 py-2.5 rounded-xl font-bold text-[13px] transition-all flex items-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> បន្ថែមសិស្សទៅក្នុងបញ្ជី
+                    </button>
+                </div>
+
+                <!-- Save Button -->
+                <div class="mt-8 flex justify-end pt-6 border-t border-slate-200">
+                    <button id="btnSaveData" onclick="saveData(true)" class="px-10 py-3.5 bg-indigo-900 hover:bg-indigo-800 text-white rounded-xl font-bold shadow-lg transition flex items-center gap-3 transform active:scale-95">
+                        <i data-lucide="save" class="w-5 h-5"></i> <span id="btnSaveText">រក្សាទុកទិន្នន័យ</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Preview Wrapper -->
+    <div id="printAreaWrapper" class="hidden">
+        
+        <!-- Preview Controls -->
+        <div class="fixed top-4 right-4 flex flex-col gap-3 z-50 no-print">
+            <button onclick="downloadPDF()" class="bg-red-600 text-white p-3 rounded-full shadow-xl hover:bg-red-700 hover:scale-105 transition" title="ទាញយក PDF">
+                <i data-lucide="download" class="w-6 h-6"></i>
+            </button>
+            <button onclick="window.print()" class="bg-blue-600 text-white p-3 rounded-full shadow-xl hover:bg-blue-700 hover:scale-105 transition" title="បោះពុម្ភ">
+                <i data-lucide="printer" class="w-6 h-6"></i>
+            </button>
+            <button onclick="closePreview()" class="bg-slate-600 text-white p-3 rounded-full shadow-xl hover:bg-slate-700 hover:scale-105 transition" title="បិទ">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <div id="printContainer">
+            <!-- Data Page (Landscape) -->
+            <div class="a4-page">
+                
+                <div class="print-header-grid">
+                    <div class="left-org-info text-[10pt]" style="margin-top: 15pt;">
+                        <p id="h-org1">មន្ទីរអប់រំ យុវជន និងកីឡា</p>
+                        <p id="h-org2">ការិយាល័យអប់រំ យុវជន និងកីឡា</p>
+                        <p id="h-school" style="margin-bottom: 8px;">សាលាបឋមសិក្សា ....................</p>
+                        <p class="text-[10pt]">លេខ</p>
+                    </div>
+                    
+                    <div class="right-nation-info">
+                        <h1 class="kh-moul text-[13pt] mb-1" style="margin-left: 60%;">ព្រះរាជាណាចក្រកម្ពុជា</h1>
+                        <h2 class="kh-moul text-[13pt] " style="margin-left: 60%;">ជាតិ សាសនា ព្រះមហាក្សត្រ</h2>
+                        <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12pt] w-auto mx-auto mt-2" style="margin-left: 72%;" crossorigin="anonymous">
+                    </div>
+                </div>
+
+                <div class="text-center w-full mb-4">
+                    <h2 class="kh-moul text-2xl text-red-600 underline decoration-double underline-offset-8">បញ្ជីសិស្សជួបការលំបាក</h2>
+                </div>
+
+                <!-- ប្រើប្រាស់តារាងតែមួយ ដើម្បីកុំឲ្យហត្ថលេខាធ្លាក់ទៅទំព័រថ្មីតែឯង -->
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th class="w-[4%]">ល.រ</th>
+                            <th class="w-[15%]">គោត្តនាម និងនាម</th>
+                            <th class="w-[4%]">ភេទ</th>
+                            <th class="w-[9%]">ថ្ងៃខែឆ្នាំកំណើត</th>
+                            <th class="w-[14%]">ទីកន្លែងកំណើត</th>
+                            <th class="w-[16%]">ឈ្មោះឪពុកម្តាយ</th>
+                            <th class="w-[10%]">មុខរបរ</th>
+                            <th class="w-[15%]">ទីលំនៅសព្វថ្ងៃ</th>
+                            <th class="w-[13%]">ការលំបាក</th>
+                        </tr>
+                    </thead>
+                    <tbody id="printBodyMain">
+                        <!-- JS - Main Part -->
+                    </tbody>
+                    
+                    <tbody id="printBodyTail" class="keep-together">
+                        <!-- ជួរតារាងចុងក្រោយចំនួន ២ ឬច្រើនជាងនេះនឹងធ្លាក់មកទីនេះដោយស្វ័យប្រវត្តិ តាមរយៈ JS -->
+                        
+                        <tr id="summaryRow" style="border: none;">
+                            <td colspan="9" style="border: none !important; text-align: left; padding-top: 10px; padding-bottom: 5px;">
+                                <p class="summary-text" id="summaryText">បញ្ឈប់បញ្ជីត្រឹមចំនួនសិស្សសរុប ០ នាក់ ស្រី ០ នាក់</p>
+                            </td>
+                        </tr>
+
+                        <tr id="signatureRow" class="signature-row">
+                            <td colspan="9" style="border: none !important;">
+                                <div class="signature-container">
+                                    <div class="sig-col-left">
+                                        <p class="text-[11pt] mb-2 invisible">.</p>
+                                        <p class="text-[11pt] mb-2">បានឃើញ និងឯកភាព</p>
+                                        <p id="sig-manager-role" class="role-title uppercase">នាយកសាលា</p>
+                                        <div id="print-sig-manager" class="sig-image-box" style="margin-left: 1cm;"></div>
+                                        <p id="sig-manager-name" class="teacher-name-final" style="padding-left: 2cm;"></p>
+                                    </div>
+                                    <div class="sig-col-right">
+                                        <p id="sig-lunar" class="lunar-date">...</p>
+                                        <p id="sig-solar" class="solar-date"></p>
+                                        <p class="role-title">គ្រូបន្ទុកថ្នាក់</p>
+                                        <div id="print-sig-teacher" class="sig-image-box"></div>
+                                        <p id="sig-teacher" class="teacher-name-final" style="margin-left: 2cm;"></p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Integration and Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Setup
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+
+        const STORAGE_KEY = 'ptec_students_difficulties_v2';
+        let students = [];
+        let diffData = { records: [] }; // New Format
+        let classConfig = {};
+
+        const khDigits = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
+        const toKhNum = (n) => n.toString().split('').map(d => khDigits[d] || d).join('');
+        const khMonths = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
+
+        // Helpers for formatting
+        function formatLocation(v, c, d, p) {
+            let parts = [];
+            const clean = (str, regex) => str ? str.replace(regex, '').trim() : '';
+            let village = clean(v, /^(ភូមិទី|ភូមិ)\s*/);
+            let commune = clean(c, /^(ឃុំ\/សង្កាត់|សង្កាត់|ឃុំ)\s*/);
+            let district = clean(d, /^(ស្រុក\/ខណ្ឌ|ក្រុង\/ស្រុក\/ខណ្ឌ|ខណ្ឌ|ស្រុក|ក្រុង)\s*/);
+            let province = clean(p, /^(ខេត្ត\/ក្រុង|រាជធានី\/ខេត្ត|រាជធានី|ខេត្ត)\s*/);
+
+            if(village) parts.push(village);
+            if(commune) parts.push(commune);
+            if(district) parts.push(district);
+            if(province) parts.push(province);
+            return parts.length > 0 ? parts.join(' ') : '-';
+        }
+
+        function formatDateDisplay(dobStr) {
+            if(!dobStr || dobStr === '-') return '-';
+            const parts = dobStr.split('-');
+            if(parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return dobStr;
+        }
+
+        // Auth Logic Setup
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+            }
+        };
+
+        async function fetchFirebaseData() {
+            if (!currentUser) return;
+            try {
+                // ទាញយកព័ត៌មានសាលា និងការកំណត់ដោយផ្ទាល់ពី Database (school_data/general_settings)
+                const settingsSnap = await getDoc(doc(db, 'school_data', 'general_settings'));
+                if (settingsSnap.exists()) {
+                    const fbSettings = settingsSnap.data();
+                    
+                    // Merge ទិន្នន័យពី Firebase ចូលទៅក្នុង classConfig
+                    classConfig = { ...classConfig, ...fbSettings };
+                    
+                    localStorage.setItem('app_settings', JSON.stringify(classConfig));
+                    if(document.getElementById('managerNameInput')) document.getElementById('managerNameInput').value = classConfig.managerName || '';
+                    if(document.getElementById('teacherNameInput')) document.getElementById('teacherNameInput').value = classConfig.teacherName || '';
+                }
+
+                // Fetch Students List
+                const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
+                const studentsSnap = await getDocs(studentsRef);
+                const fetchedStudents = [];
+                studentsSnap.forEach((doc) => { fetchedStudents.push(doc.data()); });
+                
+                fetchedStudents.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+                students = fetchedStudents;
+                localStorage.setItem('students', JSON.stringify(students));
+
+                // Fetch Difficulties Data (Migration logic included)
+                const diffSnap = await getDoc(doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'school_data', 'students_difficulties'));
+                if (diffSnap.exists()) {
+                    let onlineData = diffSnap.data();
+                    
+                    // Migrate from old Object format to Array format
+                    if (!onlineData.records) {
+                        onlineData.records = [];
+                        Object.keys(onlineData).forEach(key => {
+                            if (key.startsWith('d_')) {
+                                const sId = key.substring(2);
+                                if (onlineData[key] && onlineData[key].trim() !== '') {
+                                    onlineData.records.push({ studentId: sId, difficulty: onlineData[key] });
+                                }
+                            }
+                        });
+                    }
+                    
+                    diffData = onlineData;
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(diffData));
+                }
+
+                renderWebTable();
+            } catch (error) {
+                console.error("Error fetching online data:", error);
+            }
+        }
+
+        function toggleSignatureSettings() {
+            const box = document.getElementById('signatureSettingsBox');
+            box.classList.toggle('hidden');
+        }
+
+        function loadClassConfig() {
+            // ទាញយកទិន្នន័យពី Main_adr.html (parent iframe) ជាអាទិភាពដើម្បីរក្សាទិន្នន័យអោយនៅថ្មីជានិច្ច
+            let parentSettings = {};
+            try {
+                if (window.parent && window.parent.appSettings) {
+                    parentSettings = window.parent.appSettings;
+                }
+            } catch(e) {}
+            
+            // ទាញយកពី Local Storage បើគ្មាន Parent
+            let localSettings = {};
+            try {
+                localSettings = JSON.parse(localStorage.getItem('app_settings')) || {};
+            } catch(e) {}
+
+            const mergedSettings = { ...localSettings, ...parentSettings };
+
+            const defaultSettings = {
+                unit1: "មន្ទីរអប់រំ យុវជន និងកីឡា", 
+                unit2: "ការិយាល័យអប់រំ យុវជន និងកីឡា",
+                className: "................", 
+                schoolName: "................",
+                teacherName: "ឈ្មោះគ្រូ", 
+                managerRole: "នាយកសាលា", 
+                managerName: "",
+                managerSignature: mergedSettings.managerSignature || null, 
+                managerSigScale: mergedSettings.managerSigScale || 1.0,
+                teacherSignature: mergedSettings.teacherSignature || null, 
+                teacherSigScale: mergedSettings.teacherSigScale || 1.0,
+                location: "................", 
+                academicYear: "២០២៤-២០២៥"
+            };
+
+            classConfig = { ...defaultSettings, ...mergedSettings };
+
+            const managerInput = document.getElementById('managerNameInput');
+            const teacherInput = document.getElementById('teacherNameInput');
+            if(managerInput) managerInput.value = classConfig.managerName || '';
+            if(teacherInput) teacherInput.value = classConfig.teacherName || '';
+
+            renderSignaturePreview('manager');
+            renderSignaturePreview('teacher');
+        }
+
+        async function updateSignatures() {
+            classConfig.managerName = document.getElementById('managerNameInput').value;
+            classConfig.teacherName = document.getElementById('teacherNameInput').value;
+            localStorage.setItem('app_settings', JSON.stringify(classConfig));
+
+            if (!currentUser) return;
+            try {
+                // រក្សាទុកឈ្មោះចូលទៅកាន់ database វិញ
+                await setDoc(doc(db, 'school_data', 'general_settings'), {
+                    managerName: classConfig.managerName,
+                    teacherName: classConfig.teacherName
+                }, { merge: true });
+            } catch (error) { console.error("Error updating settings online:", error); }
+        }
+
+        function handleSignatureUpload(type) {
+            const input = document.getElementById(type + 'SignatureInput');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    if (type === 'manager') {
+                        classConfig.managerSignature = base64; classConfig.managerSigScale = 1.0;
+                    } else {
+                        classConfig.teacherSignature = base64; classConfig.teacherSigScale = 1.0; 
+                    }
+                    localStorage.setItem('app_settings', JSON.stringify(classConfig));
+                    renderSignaturePreview(type);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeSignature(type) {
+            if (type === 'manager') classConfig.managerSignature = null;
+            else classConfig.teacherSignature = null;
+            localStorage.setItem('app_settings', JSON.stringify(classConfig));
+            document.getElementById(type + 'SignatureInput').value = ''; 
+            renderSignaturePreview(type);
+        }
+
+        function zoomSignature(type, delta) {
+            const scaleKey = type + 'SigScale';
+            if (typeof classConfig[scaleKey] !== 'number') classConfig[scaleKey] = 1.0;
+            classConfig[scaleKey] += delta;
+            classConfig[scaleKey] = Math.max(0.2, Math.min(3.0, classConfig[scaleKey]));
+            localStorage.setItem('app_settings', JSON.stringify(classConfig));
+            renderSignaturePreview(type);
+        }
+
+        function renderSignaturePreview(type) {
+            const previewDiv = document.getElementById(type + 'SigPreview');
+            const sigData = type === 'manager' ? classConfig.managerSignature : classConfig.teacherSignature;
+            const scale = classConfig[type + 'SigScale'] !== undefined ? classConfig[type + 'SigScale'] : 1.0;
+            
+            if (sigData) {
+                previewDiv.innerHTML = `<img src="${sigData}" style="transform: scale(${scale}); transform-origin: center center;" class="h-full w-full object-contain transition-transform duration-200">`;
+            } else {
+                previewDiv.innerHTML = `<span class="text-[10px] text-slate-400">គ្មានរូបភាព</span>`;
+            }
+        }
+
+        function updateDates() {
+            const today = new Date();
+            const s = classConfig; // ប្រើប្រាស់ classConfig ដែលទើប Update រួច
+            const loc = s.location || '...';
+            document.getElementById('sig-solar').innerText = `${loc}, ថ្ងៃទី${toKhNum(today.getDate())} ខែ${khMonths[today.getMonth()]} ឆ្នាំ${toKhNum(today.getFullYear())}`;
+            if (typeof momentkh !== 'undefined') {
+                try {
+                    const m = momentkh.fromDate(today);
+                    document.getElementById('sig-lunar').innerText = momentkh.format(m).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                } catch(e) {}
+            }
+        }
+
+        function renderWebTable() {
+            const container = document.getElementById('webTableContainer');
+            let records = diffData.records || [];
+            document.getElementById('totalCount').innerText = toKhNum(records.length);
+
+            let html = `<table class="data-table"><thead><tr>
+                <th class="w-10 text-center">ល.រ</th>
+                <th class="sticky-col min-w-[200px]">ជ្រើសរើសឈ្មោះសិស្ស</th>
+                <th class="w-12 text-center">ភេទ</th>
+                <th class="min-w-[90px] text-center">ថ្ងៃខែឆ្នាំកំណើត</th>
+                <th class="min-w-[120px]">ទីកន្លែងកំណើត</th>
+                <th class="min-w-[140px]">ឈ្មោះឪពុកម្តាយ</th>
+                <th class="min-w-[100px]">មុខរបរ</th>
+                <th class="min-w-[120px]">ទីលំនៅសព្វថ្ងៃ</th>
+                <th class="min-w-[150px]">ការលំបាក</th>
+                <th class="w-10 text-center no-print bg-slate-50 border-l shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">លុប</th>
+            </tr></thead><tbody>`;
+
+            if (records.length === 0) {
+                html += `<tr><td colspan="10" class="p-12 text-center text-gray-400 font-bold italic"><div class="flex flex-col items-center justify-center gap-3"><i data-lucide="folder-open" class="w-10 h-10 opacity-50"></i>មិនទាន់មានទិន្នន័យ។ សូមចុចប៊ូតុង "បន្ថែមសិស្ស"។</div></td></tr>`;
+            } else {
+                records.forEach((record, i) => {
+                    // Find matching student
+                    const student = students.find(s => s.id === record.studentId) || {};
+                    
+                    const birthPlace = student.id ? formatLocation(student.village, student.commune, student.district, student.province) : '-';
+                    const currPlace = student.id ? (formatLocation(student.currVillage, student.currCommune, student.currDistrict, student.currProvince) !== '-' ? 
+                                      formatLocation(student.currVillage, student.currCommune, student.currDistrict, student.currProvince) : (student.currentAddress || '-')) : '-'; 
+                    
+                    const parentNames = student.id ? `ឳពុក: ${student.father || '-'}<br>ម្តាយ: ${student.mother || '-'}` : '-';
+                    const parentJobs = student.id ? `ឳពុក: ${student.fatherJob || '-'}<br>ម្តាយ: ${student.motherJob || '-'}` : '-';
+
+                    // Build Dropdown Options
+                    let options = `<option value="">-- ជ្រើសរើសសិស្ស --</option>`;
+                    students.forEach(s => {
+                        options += `<option value="${s.id}" ${s.id === record.studentId ? 'selected' : ''}>${s.name}</option>`;
+                    });
+
+                    html += `<tr>
+                        <td class="text-center font-bold text-gray-500">${toKhNum(i + 1)}</td>
+                        <td class="sticky-col font-bold text-indigo-900 border-r bg-white p-1.5">
+                            <select class="input-text w-full cursor-pointer text-indigo-800 font-bold" onchange="updateRecord(${i}, 'studentId', this.value)">
+                                ${options}
+                            </select>
+                        </td>
+                        <td class="text-center text-gray-700 font-bold">${student.gender || '-'}</td>
+                        <td class="text-center text-[12px]">${student.id ? formatDateDisplay(student.dob) : '-'}</td>
+                        <td class="text-[11px] text-gray-600">${birthPlace}</td>
+                        <td class="text-[11px] text-gray-700 leading-snug">${parentNames}</td>
+                        <td class="text-[11px] text-gray-600 leading-snug">${parentJobs}</td>
+                        <td class="text-[11px] text-gray-600">${currPlace}</td>
+                        <td class="p-1.5"><input type="text" class="input-text w-full text-red-600 font-bold placeholder-red-300" value="${record.difficulty || ''}" oninput="updateRecord(${i}, 'difficulty', this.value)" placeholder="បញ្ចូលបញ្ហាប្រឈម..."></td>
+                        <td class="text-center no-print bg-inherit border-l px-2 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                            <button onclick="removeRecord(${i})" class="text-red-500 hover:text-red-700 p-1.5 bg-red-50 hover:bg-red-100 rounded transition" title="លុបសិស្សនេះចេញ">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                });
+            }
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function addStudentRow() {
+            if (!diffData.records) diffData.records = [];
+            diffData.records.push({ studentId: '', difficulty: '' });
+            renderWebTable();
+        }
+
+        function updateRecord(index, field, value) {
+            diffData.records[index][field] = value;
+            if (field === 'studentId') {
+                renderWebTable(); // ធ្វើបច្ចុប្បន្នភាព ដើម្បីទាញយកទិន្នន័យផ្សេងៗរបស់សិស្ស
+            }
+        }
+
+        function removeRecord(index) {
+            if (confirm("តើអ្នកពិតជាចង់លុបទិន្នន័យបន្ទាត់នេះមែនទេ?")) {
+                diffData.records.splice(index, 1);
+                renderWebTable();
+            }
+        }
+
+        async function saveData(toast = true) {
+            const btnText = document.getElementById('btnSaveText');
+            if(btnText) btnText.innerText = 'កំពុងរក្សាទុក...';
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(diffData));
+            
+            if (!currentUser) {
+                if (toast) showToast('មិនទាន់ភ្ជាប់គណនី (Offline)!');
+                if(btnText) btnText.innerText = 'រក្សាទុកទិន្នន័យ';
+                return;
+            }
+
+            try {
+                await setDoc(doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'school_data', 'students_difficulties'), diffData);
+                if (toast) showToast('រក្សាទុកទិន្នន័យអនឡាញបានជោគជ័យ!');
+            } catch (error) {
+                console.error("Firebase error saving:", error);
+                if (toast) showToast('រក្សាទុកបានតែក្នុងម៉ាស៊ីន (Offline)!');
+            } finally {
+                if(btnText) btnText.innerText = 'រក្សាទុកទិន្នន័យ';
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = "fixed bottom-5 right-5 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-2xl z-[2000] flex items-center gap-2 font-bold animate-bounce";
+            t.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5"></i> ${msg}`;
+            document.body.appendChild(t);
+            lucide.createIcons();
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        function previewPDF() {
+            updateSignatures();
+            loadClassConfig(); // ធានាថាបានទាញយកទិន្នន័យថ្មីបំផុតពី Main_adr.html (Local Storage / Parent)
+            const s = classConfig;
+            
+            // បង្ហាញព័ត៌មានក្បាលដោយទាញពី Main_adr.html Settings
+            document.getElementById('h-org1').innerText = s.unit1 || 'មន្ទីរអប់រំ យុវជន និងកីឡា';
+            document.getElementById('h-org2').innerText = s.unit2 || 'ការិយាល័យអប់រំ យុវជន និងកីឡា';
+            
+            let scName = s.schoolName || '....................';
+            // បន្ថែមពាក្យ "សាលាបឋមសិក្សា" ពីមុខប្រសិនបើវាមិនមានស្រាប់
+            if (scName !== '....................' && !scName.includes('សាលា') && !scName.includes('បឋមសិក្សា')) {
+                scName = 'សាលាបឋមសិក្សា ' + scName;
+            }
+            document.getElementById('h-school').innerText = scName;
+
+            document.getElementById('sig-manager-role').innerText = s.managerRole || 'នាយកសាលា';
+            document.getElementById('sig-manager-name').innerText = s.managerName || ''; 
+            document.getElementById('sig-teacher').innerText = s.teacherName || '';
+            
+            let managerScale = s.managerSigScale !== undefined ? s.managerSigScale : 1.0;
+            let teacherScale = s.teacherSigScale !== undefined ? s.teacherSigScale : 1.0;
+            document.getElementById('print-sig-manager').innerHTML = s.managerSignature ? `<img src="${s.managerSignature}" style="transform: scale(${managerScale}); transform-origin: center center;">` : '';
+            document.getElementById('print-sig-teacher').innerHTML = s.teacherSignature ? `<img src="${s.teacherSignature}" style="transform: scale(${teacherScale}); transform-origin: center center;">` : '';
+            
+            updateDates();
+
+            const mainBody = document.getElementById('printBodyMain');
+            const tailBody = document.getElementById('printBodyTail');
+            mainBody.innerHTML = '';
+            
+            // លុបជួរចាស់ៗនៅក្នុង tailBody ចោលដើម្បីកុំឲ្យជាន់គ្នា
+            const oldTailRows = tailBody.querySelectorAll('.tail-row');
+            oldTailRows.forEach(row => row.remove());
+            
+            // ត្រងយកតែ Row ដែលបានជ្រើសរើសឈ្មោះសិស្សរួចរាល់
+            const validRecords = (diffData.records || []).filter(r => r.studentId && r.studentId.trim() !== '');
+            const total = validRecords.length;
+            
+            let females = 0;
+            validRecords.forEach(r => {
+                const std = students.find(s => s.id === r.studentId);
+                if (std && std.gender === 'ស្រី') females++;
+            });
+
+            document.getElementById('summaryText').innerText = `បញ្ឈប់បញ្ជីត្រឹមចំនួនសិស្សសរុប ${toKhNum(total)} នាក់ ស្រី ${toKhNum(females)} នាក់`;
+
+            // កំណត់ថាត្រូវបង្ហាញប៉ុន្មានជួរយ៉ាងតិច (ឧទាហរណ៍ យ៉ាងតិច 10 ជួរ)
+            const totalRowsToRender = Math.max(total, 10);
+            const tailCount = 2; // រក្សាទុក ២ ជួរចុងក្រោយ ឲ្យនៅជាមួយហត្ថលេខា
+            const splitIndex = totalRowsToRender > tailCount ? totalRowsToRender - tailCount : 0;
+            
+            const summaryRow = document.getElementById('summaryRow');
+
+            // Print rows
+            for(let i=0; i<totalRowsToRender; i++) {
+                let rowHtml = '';
+                
+                if (i < total) {
+                    const record = validRecords[i];
+                    const student = students.find(s => s.id === record.studentId) || {};
+                    
+                    const birthPlace = student.id ? formatLocation(student.village, student.commune, student.district, student.province) : '-';
+                    const currPlace = student.id ? (formatLocation(student.currVillage, student.currCommune, student.currDistrict, student.currProvince) !== '-' ? 
+                                      formatLocation(student.currVillage, student.currCommune, student.currDistrict, student.currProvince) : (student.currentAddress || '-')) : '-'; 
+                    
+                    const parentNames = student.id ? `ឳពុក: ${student.father || '-'}<br>ម្តាយ: ${student.mother || '-'}` : '-';
+                    const parentJobs = student.id ? `ឳពុក: ${student.fatherJob || '-'}<br>ម្តាយ: ${student.motherJob || '-'}` : '-';
+
+                    rowHtml = `
+                        <tr class="${i >= splitIndex ? 'tail-row' : ''}">
+                            <td style="height: 30px;">${toKhNum(i + 1)}</td>
+                            <td class="text-left font-bold">${student.name || '-'}</td>
+                            <td>${student.gender || '-'}</td>
+                            <td>${student.id ? formatDateDisplay(student.dob) : '-'}</td>
+                            <td class="text-[9pt]">${birthPlace}</td>
+                            <td class="text-[9pt] leading-tight text-left">${parentNames}</td>
+                            <td class="text-[9pt] leading-tight">${parentJobs}</td>
+                            <td class="text-[9pt]">${currPlace}</td>
+                            <td class="text-[10pt] font-bold text-red-600">${record.difficulty || ''}</td>
+                        </tr>
+                    `;
+                } else {
+                    // បំពេញ Row ទទេរ
+                    rowHtml = `<tr class="${i >= splitIndex ? 'tail-row' : ''}"><td style="height: 30px;">${toKhNum(i + 1)}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
+                }
+
+                // បែងចែក Row ទៅដាក់ Main ឬដាក់ Tail
+                if (i < splitIndex) {
+                    mainBody.innerHTML += rowHtml;
+                } else {
+                    const temp = document.createElement('tbody');
+                    temp.innerHTML = rowHtml;
+                    tailBody.insertBefore(temp.firstElementChild, summaryRow);
+                }
+            }
+
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('printAreaWrapper').classList.remove('hidden');
+            document.body.classList.add('preview-mode');
+        }
+
+        function closePreview() {
+            document.getElementById('mainScreen').classList.remove('hidden');
+            document.getElementById('printAreaWrapper').classList.add('hidden');
+            document.body.classList.remove('preview-mode');
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('printContainer');
+            const s = classConfig;
+            
+            element.classList.add('pdf-exporting');
+            
+            const opt = {
+                margin: 5,
+                filename: `Students_Difficulties_${s.className || 'Class'}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, scrollY: 0, letterRendering: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } // Landscape setup
+            };
+
+            html2pdf().from(element).set(opt).save().then(() => {
+                element.classList.remove('pdf-exporting');
+            });
+        }
+
+        // Export functions to window
+        window.toggleSignatureSettings = toggleSignatureSettings;
+        window.updateSignatures = updateSignatures;
+        window.handleSignatureUpload = handleSignatureUpload;
+        window.zoomSignature = zoomSignature;
+        window.removeSignature = removeSignature;
+        window.addStudentRow = addStudentRow;
+        window.updateRecord = updateRecord;
+        window.removeRecord = removeRecord;
+        window.saveData = saveData;
+        window.previewPDF = previewPDF;
+        window.closePreview = closePreview;
+        window.downloadPDF = downloadPDF;
+
+        // Initialize on Load
+        window.onload = () => {
+             students = JSON.parse(localStorage.getItem('students') || '[]');
+             diffData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{ "records": [] }');
+             if (!diffData.records) diffData.records = [];
+             
+             loadClassConfig();
+             renderWebTable();
+             lucide.createIcons();
+             
+             initAuth().then(() => {
+                 onAuthStateChanged(auth, (user) => {
+                     if (user) {
+                         currentUser = user;
+                         fetchFirebaseData();
+                     }
+                 });
+             });
+        };
+    </script>
+</body>
+</html>

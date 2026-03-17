@@ -7,6 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- បណ្ណាល័យ SheetJS សម្រាប់ Export Excel ជាមួយ Style -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
     <style>
         :root { --primary: #0054a6; --secondary: #3b82f6; }
@@ -192,6 +195,12 @@
 
                     <div class="w-px h-8 bg-slate-200 mx-1 hidden md:block"></div>
 
+                    <!-- Export Excel Button -->
+                    <button onclick="openExportModal()" class="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white hover:bg-green-700 rounded-xl font-bold shadow-lg shadow-green-200 transition-all hover:scale-105 active:scale-95">
+                        <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                        <span>ទាញយក Excel</span>
+                    </button>
+
                     <!-- Save Button -->
                     <button onclick="saveScores()" class="flex items-center gap-2 px-5 py-2.5 bg-[#0054a6] text-white hover:bg-[#1e40af] rounded-xl font-bold shadow-lg shadow-blue-200 transition-all hover:scale-105 active:scale-95">
                         <i data-lucide="cloud-upload" class="w-4 h-4"></i>
@@ -262,6 +271,73 @@
                 <button onclick="applyMonthSelection()" class="flex items-center gap-2 px-6 py-2.5 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 shadow-lg shadow-purple-200 transition-all">
                     <i data-lucide="check-circle-2" class="w-4 h-4"></i>
                     អនុវត្ត
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Export Settings -->
+    <div id="exportSettingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden transform transition-all scale-95 opacity-0" id="exportModalContent">
+            <!-- Header -->
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-green-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-green-100 text-green-600 rounded-xl">
+                        <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-green-900 kh-moul">ប្រព័ន្ធទាញយកតារាងស្រង់ពិន្ទុ (Excel)</h3>
+                        <p class="text-xs text-green-600 font-medium">រៀបចំក្បាលតារាងឱ្យបានត្រឹមត្រូវមុននឹងទាញយក</p>
+                    </div>
+                </div>
+                <button onclick="closeExportModal()" class="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-red-500 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <!-- Body -->
+            <div class="p-6 bg-slate-50/50 h-[auto] overflow-y-auto custom-scrollbar">
+                <h2 class="text-base font-bold mb-4 text-slate-800 border-b border-slate-200 pb-2">កំណត់ព័ត៌មានទូទៅនៃសាលា</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">ការិយាល័យអប់រំ / មន្ទីរ</label>
+                        <input type="text" id="ex_office" value="ការិយាល័យអប់រំ យុវជន និងកីឡារដ្ឋបាលស្រុកកំពង់ត្របែក" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">ឈ្មោះសាលា</label>
+                        <input type="text" id="ex_school" value="សាលាបឋមសិក្សាភូមិធំថ្មី" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">ចំណងជើងតារាង</label>
+                        <input type="text" id="ex_title" value="តារាងស្រង់ពិន្ទុប្រចាំខែ" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">ថ្នាក់ទី</label>
+                        <input type="text" id="ex_class" value="១ «ខ»" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">ឆ្នាំសិក្សា</label>
+                        <input type="text" id="ex_year" value="២០២៥-២០២៦" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 text-blue-700 p-4 rounded-xl text-sm flex items-start gap-3 border border-blue-100">
+                    <i data-lucide="info" class="w-5 h-5 min-w-[20px] mt-0.5"></i>
+                    <div>
+                        <p class="font-bold mb-1">ការទាញយកដោយស្វ័យប្រវត្តិ៖</p>
+                        <p>តារាង Excel នេះនឹងត្រូវបង្កើតឡើងជាមួយទម្រង់ត្រឹមត្រូវ (សញ្ញាជាតិ អក្សរបង្វិលបញ្ឈរ ហត្ថលេខា)។ <b>ចំនួនសិស្សប្រុស សិស្សស្រី និងនិទ្ទេស A-F</b> នឹងត្រូវទាញយកមកគណនាដោយស្វ័យប្រវត្តិតាមទិន្នន័យជាក់ស្តែង។</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="p-4 border-t border-slate-100 bg-white flex justify-end gap-3">
+                <button onclick="closeExportModal()" class="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                    បោះបង់
+                </button>
+                <button id="finalExportBtn" onclick="executeExcelExport()" class="flex items-center gap-2 px-6 py-2.5 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 shadow-lg shadow-green-200 transition-all">
+                    <i data-lucide="download-cloud" class="w-5 h-5"></i>
+                    ទាញយកតារាង Excel
                 </button>
             </div>
         </div>
@@ -376,6 +452,17 @@
         function updateMonthCountBadge() {
             const badge = document.getElementById('selectedMonthCount');
             if(badge) badge.innerText = selectedSemesterMonths.length;
+        }
+
+        function updateExportTitle() {
+            const titleInput = document.getElementById('ex_title');
+            if (currentMode === 'monthly') {
+                const text = document.getElementById('monthSelect').options[document.getElementById('monthSelect').selectedIndex]?.text;
+                if(text) titleInput.value = `តារាងស្រង់ពិន្ទុប្រចាំ${text}`;
+            } else {
+                const text = document.getElementById('semesterSelect').options[document.getElementById('semesterSelect').selectedIndex]?.text;
+                if(text) titleInput.value = `តារាងស្រង់ពិន្ទុប្រចាំ${text}`;
+            }
         }
 
         function getStorageKey() {
@@ -638,6 +725,8 @@
             if (currentMonthVal) {
                 monthSelect.value = currentMonthVal;
             }
+            
+            updateExportTitle();
         }
 
         window.switchScoreType = function(mode) {
@@ -663,6 +752,7 @@
                 btnMonthly.classList.add('inactive'); btnMonthly.classList.remove('active');
             }
 
+            updateExportTitle();
             window.loadData();
         }
 
@@ -671,6 +761,7 @@
             if (sem === 'sem1') selectedSemesterMonths = ['nov', 'dec', 'jan', 'feb'];
             else selectedSemesterMonths = ['mar', 'apr', 'may', 'jun'];
             updateMonthCountBadge();
+            updateExportTitle();
             window.loadData();
         }
 
@@ -865,6 +956,256 @@
             }
         }
 
+        // --- EXPORT SETTINGS LOGIC ---
+        window.openExportModal = function() {
+            if (students.length === 0) {
+                alert("មិនមានទិន្នន័យសម្រាប់ទាញយកទេ! សូមបញ្ចូលឈ្មោះសិស្សជាមុនសិន។"); return;
+            }
+            document.getElementById('ex_year').value = document.getElementById('yearSelect').value;
+            updateExportTitle();
+            const modal = document.getElementById('exportSettingsModal');
+            const content = document.getElementById('exportModalContent');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        window.closeExportModal = function() {
+            const modal = document.getElementById('exportSettingsModal');
+            const content = document.getElementById('exportModalContent');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
+        }
+
+        window.saveExportSettings = function() {
+            const inputs = ['ex_office', 'ex_school', 'ex_class'];
+            inputs.forEach(id => { localStorage.setItem('scoreSheet_' + id, document.getElementById(id).value); });
+        }
+
+        window.loadExportSettings = function() {
+            const inputs = ['ex_office', 'ex_school', 'ex_class'];
+            inputs.forEach(id => {
+                const saved = localStorage.getItem('scoreSheet_' + id);
+                if (saved) document.getElementById(id).value = saved;
+            });
+        }
+
+        // --- EXCEL EXPORT ---
+        window.executeExcelExport = function() {
+            const btn = document.getElementById('finalExportBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> កំពុងរៀបចំ...`;
+            btn.disabled = true; lucide.createIcons();
+
+            setTimeout(() => {
+                try {
+                    const conf = config[currentMode];
+                    const office = document.getElementById("ex_office").value;
+                    const school = document.getElementById("ex_school").value;
+                    const title = document.getElementById("ex_title").value;
+                    const cls = document.getElementById("ex_class").value;
+                    const year = document.getElementById("ex_year").value;
+                    
+                    const numStudents = students.length;
+                    const femaleCount = students.filter(s => s.gender === 'F' || s.gender === 'ស្រី' || s.gender === 'f').length;
+                    const maleCount = numStudents - femaleCount;
+
+                    const startRow = 10;
+                    const totalRows = startRow + numStudents + 10; 
+                    let resultColSpan = currentMode === 'monthly' ? 4 : 6;
+                    const totalCols = 2 + conf.columns.length + resultColSpan;
+                    
+                    const wsData = Array.from({ length: totalRows }, () => Array(totalCols).fill(""));
+
+                    const alignRightStart = totalCols - 6 > 0 ? totalCols - 6 : totalCols - 1;
+                    wsData[0][alignRightStart] = "ព្រះរាជាណាចក្រកម្ពុជា";
+                    wsData[1][alignRightStart] = "ជាតិ សាសនា ព្រះមហាក្សត្រ";
+                    wsData[2][alignRightStart] = "6"; 
+                    wsData[3][0] = office; wsData[4][0] = school; wsData[5][0] = title;
+                    wsData[7][0] = "ថ្នាក់ទី " + cls; wsData[7][4] = "ឆ្នាំសិក្សា " + year;
+                    wsData[7][13] = "សិស្សសរុប"; wsData[7][16] = numStudents; wsData[7][17] = "នាក់";
+                    wsData[7][18] = "ប្រុស"; wsData[7][20] = maleCount; wsData[7][21] = "នាក់";
+                    wsData[7][22] = "ស្រី"; wsData[7][23] = femaleCount; wsData[7][24] = "នាក់";
+
+                    wsData[8][0] = "ល.រ"; wsData[8][1] = "ឈ្មោះសិស្ស";
+                    let cIdx = 2;
+                    conf.groups.forEach(g => { wsData[8][cIdx] = g.name; cIdx += g.cols; });
+                    wsData[8][cIdx] = "លទ្ធផលសរុប";
+
+                    cIdx = 2;
+                    conf.columns.forEach(c => { wsData[9][cIdx] = c.label; cIdx++; });
+
+                    if (currentMode === 'monthly') {
+                        wsData[9][cIdx] = "សរុប"; wsData[9][cIdx+1] = "មធ្យមភាគ";
+                        wsData[9][cIdx+2] = "ចំណាត់ថ្នាក់"; wsData[9][cIdx+3] = "និទ្ទេស";
+                    } else {
+                        const divCount = selectedSemesterMonths.length > 0 ? selectedSemesterMonths.length : '-';
+                        wsData[9][cIdx] = "ពិន្ទុសរុប"; wsData[9][cIdx+1] = "ម.ភាគប្រឡង";
+                        wsData[9][cIdx+2] = `ម.ភាគប្រចាំខែ (÷${divCount})`; wsData[9][cIdx+3] = "ម.ភាគប្រចាំឆមាស";
+                        wsData[9][cIdx+4] = "ចំណាត់ថ្នាក់"; wsData[9][cIdx+5] = "និទ្ទេស";
+                    }
+
+                    students.forEach((s, idx) => {
+                        let r = startRow + idx;
+                        wsData[r][0] = idx + 1; wsData[r][1] = s.name;
+                        let c = 2;
+                        conf.columns.forEach(col => {
+                            const val = s.scores[col.key];
+                            if (col.isText) {
+                                wsData[r][c] = val || "";
+                            } else {
+                                wsData[r][c] = val !== null && val !== undefined && val !== "" ? Number(val) : ""; 
+                            }
+                            c++;
+                        });
+                        
+                        if (currentMode === 'monthly') {
+                            wsData[r][c] = Number(s.total.toFixed(2)); wsData[r][c+1] = Number(s.average);
+                            wsData[r][c+2] = s.rank; wsData[r][c+3] = s.grade;
+                        } else {
+                            wsData[r][c] = Number(s.examTotal.toFixed(2)); wsData[r][c+1] = Number(s.examAverage);
+                            wsData[r][c+2] = Number(s.monthlyAverage); wsData[r][c+3] = Number(s.semesterAverage);
+                            wsData[r][c+4] = s.rank; wsData[r][c+5] = s.grade;
+                        }
+                    });
+
+                    const getStats = (gradeTarget) => {
+                        const gradeStudents = students.filter(s => s.grade === gradeTarget);
+                        const count = gradeStudents.length;
+                        const femCount = gradeStudents.filter(s => s.gender === 'F' || s.gender === 'ស្រី' || s.gender === 'f').length;
+                        return { total: count, female: femCount };
+                    };
+                    const stats = {
+                        A: getStats('A'), B: getStats('B'), C: getStats('C'),
+                        D: getStats('D'), E: getStats('E'), F: getStats('F')
+                    };
+                    const getPct = (val) => numStudents > 0 ? ((val / numStudents) * 100).toFixed(2) + "%" : "0.00%";
+
+                    let endRow = startRow + numStudents; 
+                    wsData[endRow][0] = "សរុប";
+                    for (let c = 2; c < totalCols - 2; c++) { 
+                        // Do not sum text columns like Behavior
+                        const colDef = conf.columns[c - 2];
+                        if (colDef && colDef.isText) {
+                            wsData[endRow][c] = "";
+                            continue;
+                        }
+                        
+                        let sum = 0; let hasData = false;
+                        students.forEach((s, idx) => {
+                            let val = wsData[startRow + idx][c];
+                            if (val !== "" && val !== null && !isNaN(val)) { sum += Number(val); hasData = true; }
+                        });
+                        if (hasData) wsData[endRow][c] = Number(sum.toFixed(2));
+                    }
+
+                    let summaryRow = endRow + 1;
+                    let rightOffset = alignRightStart - 4 > 5 ? alignRightStart - 4 : 5;
+
+                    wsData[summaryRow][1] = "និទ្ទេស A មាន"; wsData[summaryRow][2] = stats.A.total; wsData[summaryRow][3] = "នាក់ស្រី"; wsData[summaryRow][4] = stats.A.female || 0; wsData[summaryRow][5] = "នាក់"; wsData[summaryRow][6] = getPct(stats.A.total);
+                    wsData[summaryRow][rightOffset] = "និទ្ទេស D មាន"; wsData[summaryRow][rightOffset + 1] = stats.D.total; wsData[summaryRow][rightOffset + 2] = "នាក់ស្រី"; wsData[summaryRow][rightOffset + 3] = stats.D.female || 0; wsData[summaryRow][rightOffset + 4] = "នាក់"; wsData[summaryRow][rightOffset + 5] = getPct(stats.D.total);
+
+                    summaryRow++;
+                    wsData[summaryRow][1] = "និទ្ទេស B មាន"; wsData[summaryRow][2] = stats.B.total; wsData[summaryRow][3] = "នាក់ស្រី"; wsData[summaryRow][4] = stats.B.female || 0; wsData[summaryRow][5] = "នាក់"; wsData[summaryRow][6] = getPct(stats.B.total);
+                    wsData[summaryRow][rightOffset] = "និទ្ទេស E មាន"; wsData[summaryRow][rightOffset + 1] = stats.E.total; wsData[summaryRow][rightOffset + 2] = "នាក់ស្រី"; wsData[summaryRow][rightOffset + 3] = stats.E.female || 0; wsData[summaryRow][rightOffset + 4] = "នាក់"; wsData[summaryRow][rightOffset + 5] = getPct(stats.E.total);
+
+                    summaryRow++;
+                    wsData[summaryRow][1] = "និទ្ទេស C មាន"; wsData[summaryRow][2] = stats.C.total; wsData[summaryRow][3] = "នាក់ស្រី"; wsData[summaryRow][4] = stats.C.female || 0; wsData[summaryRow][5] = "នាក់"; wsData[summaryRow][6] = getPct(stats.C.total);
+                    wsData[summaryRow][rightOffset] = "និទ្ទេស F មាន"; wsData[summaryRow][rightOffset + 1] = stats.F.total; wsData[summaryRow][rightOffset + 2] = "នាក់ស្រី"; wsData[summaryRow][rightOffset + 3] = stats.F.female || 0; wsData[summaryRow][rightOffset + 4] = "នាក់"; wsData[summaryRow][rightOffset + 5] = getPct(stats.F.total);
+
+                    let sigRow = summaryRow + 2;
+                    wsData[sigRow - 1][alignRightStart - 3] = "ថ្ងៃ.......................................ខែ...........................ឆ្នាំ.......................ព.ស................";
+                    sigRow++; wsData[sigRow - 1][0] = "បានឃើញ និងឯកភាព"; wsData[sigRow - 1][alignRightStart - 3] = "ធ្វើនៅ........................ថ្ងៃទី.........ខែ.............ឆ្នាំ២០២...";
+                    sigRow++; wsData[sigRow - 1][0] = "នាយកសាលា"; wsData[sigRow - 1][alignRightStart - 3] = "គ្រូបន្ទុកថ្នាក់";
+
+                    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+                    ws['!merges'] = [
+                        { s: { r: 0, c: alignRightStart }, e: { r: 0, c: totalCols - 1 } },
+                        { s: { r: 1, c: alignRightStart }, e: { r: 1, c: totalCols - 1 } },
+                        { s: { r: 2, c: alignRightStart }, e: { r: 2, c: totalCols - 1 } },
+                        { s: { r: 3, c: 0 }, e: { r: 3, c: 8 } }, { s: { r: 4, c: 0 }, e: { r: 4, c: 8 } },
+                        { s: { r: 5, c: 0 }, e: { r: 5, c: totalCols - 1 } },
+                        { s: { r: 7, c: 0 }, e: { r: 7, c: 3 } }, { s: { r: 7, c: 4 }, e: { r: 7, c: 12 } },
+                        { s: { r: 7, c: 13 }, e: { r: 7, c: 15 } }, { s: { r: 7, c: 18 }, e: { r: 7, c: 19 } },
+                        { s: { r: 8, c: 0 }, e: { r: 9, c: 0 } }, { s: { r: 8, c: 1 }, e: { r: 9, c: 1 } },
+                    ];
+
+                    let cIdxLocal = 2;
+                    conf.groups.forEach(g => { ws['!merges'].push({ s: { r: 8, c: cIdxLocal }, e: { r: 8, c: cIdxLocal + g.cols - 1 } }); cIdxLocal += g.cols; });
+                    ws['!merges'].push({ s: { r: 8, c: cIdxLocal }, e: { r: 8, c: cIdxLocal + resultColSpan - 1 } });
+                    ws['!merges'].push({ s: { r: endRow, c: 0 }, e: { r: endRow, c: 1 } }); 
+                    
+                    ws['!merges'].push({ s: { r: sigRow - 2, c: alignRightStart - 3 }, e: { r: sigRow - 2, c: totalCols - 1 } });
+                    ws['!merges'].push({ s: { r: sigRow - 1, c: alignRightStart - 3 }, e: { r: sigRow - 1, c: totalCols - 1 } });
+                    ws['!merges'].push({ s: { r: sigRow, c: alignRightStart - 3 }, e: { r: sigRow, c: totalCols - 1 } });
+                    ws['!merges'].push({ s: { r: sigRow - 1, c: 0 }, e: { r: sigRow - 1, c: 3 } });
+                    ws['!merges'].push({ s: { r: sigRow, c: 0 }, e: { r: sigRow, c: 3 } });
+
+                    ws['!rows'] = [];
+                    ws['!rows'][2] = { hpt: 45 }; ws['!rows'][8] = { hpt: 30 }; 
+                    ws['!rows'][9] = { hpt: 120 }; ws['!rows'][endRow] = { hpt: 22 };
+
+                    for (let R = 0; R <= wsData.length; ++R) {
+                        for (let C = 0; C < totalCols; ++C) {
+                            let cellRef = XLSX.utils.encode_cell({ c: C, r: R });
+                            if (!ws[cellRef]) ws[cellRef] = { t: "s", v: "" };
+                            let cellStyle = { font: { name: "Khmer OS Battambang", sz: 10 }, alignment: { vertical: "center", horizontal: "center", wrapText: true } };
+
+                            if (R === 0 || R === 1) { if (C >= alignRightStart) cellStyle.font = { name: "Khmer OS Battambang", sz: 11, bold: true }; }
+                            if (R === 2 && C >= alignRightStart) cellStyle.font = { name: "Tacteing", sz: 40 }; 
+                            if (R === 3 || R === 4) { if (C === 0) { cellStyle.font = { name: "Khmer OS Battambang", sz: 11, bold: true }; cellStyle.alignment.horizontal = "left"; } }
+                            if (R === 5) cellStyle.font = { name: "Khmer OS Battambang", sz: 14, bold: true };
+                            if (R === 7) { cellStyle.alignment.horizontal = "left"; if (C === 0 || C === 4) cellStyle.font = { name: "Khmer OS Battambang", sz: 11, bold: true }; }
+                            if (R === 8 || R === 9) {
+                                cellStyle.font = { name: "Khmer OS Battambang", sz: 9, bold: true };
+                                cellStyle.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+                                if (R === 9 && C >= 2 && C < totalCols) cellStyle.alignment.textRotation = 90;
+                            }
+                            if (R >= startRow && R < endRow) {
+                                cellStyle.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+                                if (C === 1) cellStyle.alignment.horizontal = "left";
+                            }
+                            else if (R === endRow) {
+                                cellStyle.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+                                cellStyle.font.bold = true; if (C === 0) cellStyle.alignment.horizontal = "center";
+                            }
+                            else if (R >= summaryRow - 2 && R <= summaryRow) {
+                                if ((C >= 1 && C <= 6) || (C >= rightOffset && C <= rightOffset + 5)) cellStyle.border = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+                                if (C === 1) { cellStyle.alignment.horizontal = "right"; cellStyle.font.bold = true;
+                                    if (R === summaryRow - 2) cellStyle.font.color = { rgb: "FF0000" }; else if (R === summaryRow - 1) cellStyle.font.color = { rgb: "FF00FF" }; else if (R === summaryRow) cellStyle.font.color = { rgb: "800080" }; }
+                                if (C === rightOffset) { cellStyle.alignment.horizontal = "right"; cellStyle.font.bold = true;
+                                    if (R === summaryRow - 2) cellStyle.font.color = { rgb: "008000" }; else if (R === summaryRow - 1) cellStyle.font.color = { rgb: "0000FF" }; else if (R === summaryRow) cellStyle.font.color = { rgb: "000000" }; }
+                            }
+                            else if (R >= sigRow - 2 && R <= sigRow) {
+                                if (C === 0 || C >= alignRightStart - 3) { cellStyle.font = { name: "Khmer OS Battambang", sz: 11, bold: true }; cellStyle.alignment.horizontal = "center"; }
+                                if (R === sigRow - 2) cellStyle.font = { name: "Khmer OS Battambang", sz: 10, italic: true }; 
+                                if (R === sigRow - 1 && C >= alignRightStart - 3) cellStyle.font = { name: "Khmer OS Battambang", sz: 10, italic: true }; 
+                            }
+                            ws[cellRef].s = cellStyle;
+                        }
+                    }
+
+                    ws['!cols'] = [ { wch: 4 }, { wch: 18 } ];
+                    for(let i = 2; i < totalCols; i++) ws['!cols'].push({ wch: 5.5 });
+
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Score Report");
+                    const safeTitle = title.replace(/[/\\?%*:|"<>]/g, '-');
+                    XLSX.writeFile(wb, `${safeTitle}.xlsx`);
+
+                    window.closeExportModal();
+                } catch (error) {
+                    console.error(error); alert("សុំទោស! មានបញ្ហាក្នុងការទាញយក Excel។");
+                }
+                btn.innerHTML = `<i data-lucide="download-cloud" class="w-5 h-5"></i> ទាញយកតារាង Excel`;
+                btn.disabled = false; lucide.createIcons();
+            }, 300);
+        }
+
         // --- MONTH SELECTOR MODAL ---
         window.openMonthSelectorModal = function() {
             const modal = document.getElementById('monthSelectorModal');
@@ -923,6 +1264,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             window.updateMonthOptions();
+            window.loadExportSettings(); 
+            
+            document.querySelectorAll('#exportModalContent input').forEach(input => {
+                input.addEventListener('input', window.saveExportSettings);
+            });
 
             onAuthStateChanged(auth, async (user) => {
                 if (user) {

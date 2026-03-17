@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>កម្មវិធីគ្រប់គ្រងការពិសោធន៍វិទ្យាសាស្ត្រ</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Battambang', cursive;
+            background-color: #e0f7fa;
+            color: #006064;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #00838f;
+        }
+        .timer-container {
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px auto;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #time-display {
+            font-size: 5em;
+            font-weight: bold;
+            color: #d32f2f;
+            margin: 10px 0;
+        }
+        .btn {
+            background-color: #00acc1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            font-family: 'Battambang', cursive;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        .btn:hover { background-color: #00838f; }
+        .btn-stop { background-color: #f44336; }
+        .btn-stop:hover { background-color: #d32f2f; }
+        
+        .groups-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        .group-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            width: 200px;
+            margin: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-top: 5px solid #00acc1;
+        }
+        .group-name {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .score-display {
+            font-size: 3em;
+            color: #388e3c;
+            margin: 10px 0;
+        }
+        .score-btn {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 1.2em;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 2px;
+        }
+        .score-btn.minus { background-color: #ff9800; }
+    </style>
+</head>
+<body>
+
+    <h1>នាឡិកា និងពិន្ទុ៖ ការពិសោធន៍កង្វក់ទឹក</h1>
+    
+    <div class="timer-container">
+        <h2>ពេលវេលាពិភាក្សា និងពិសោធន៍</h2>
+        <div id="time-display">05:00</div>
+        <button class="btn" onclick="startTimer()">ចាប់ផ្តើម</button>
+        <button class="btn btn-stop" onclick="stopTimer()">បញ្ឈប់</button>
+        <button class="btn" onclick="resetTimer()">កំណត់ឡើងវិញ</button>
+    </div>
+
+    <div class="groups-container">
+        <div class="group-card">
+            <div class="group-name">ក្រុមទី១៖ លក្ខ</div>
+            <div class="score-display" id="score-1">0</div>
+            <button class="score-btn" onclick="updateScore(1, 1)">+១</button>
+            <button class="score-btn minus" onclick="updateScore(1, -1)">-១</button>
+        </div>
+        <div class="group-card">
+            <div class="group-name">ក្រុមទី២៖ ប្រេងឆា</div>
+            <div class="score-display" id="score-2">0</div>
+            <button class="score-btn" onclick="updateScore(2, 1)">+១</button>
+            <button class="score-btn minus" onclick="updateScore(2, -1)">-១</button>
+        </div>
+        <div class="group-card">
+            <div class="group-name">ក្រុមទី៣៖ ធូលីដី</div>
+            <div class="score-display" id="score-3">0</div>
+            <button class="score-btn" onclick="updateScore(3, 1)">+១</button>
+            <button class="score-btn minus" onclick="updateScore(3, -1)">-១</button>
+        </div>
+        <div class="group-card">
+            <div class="group-name">ក្រុមទី៤៖ សំរាម</div>
+            <div class="score-display" id="score-4">0</div>
+            <button class="score-btn" onclick="updateScore(4, 1)">+១</button>
+            <button class="score-btn minus" onclick="updateScore(4, -1)">-១</button>
+        </div>
+    </div>
+
+    <script>
+        // Timer Logic
+        let timeInSeconds = 5 * 60; // 5 minutes default
+        let timerInterval;
+        let isRunning = false;
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeInSeconds / 60);
+            const seconds = timeInSeconds % 60;
+            const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('time-display').innerText = display;
+        }
+
+        function startTimer() {
+            if (!isRunning && timeInSeconds > 0) {
+                isRunning = true;
+                timerInterval = setInterval(() => {
+                    timeInSeconds--;
+                    updateTimerDisplay();
+                    if (timeInSeconds <= 0) {
+                        stopTimer();
+                        alert("หมดเวลา! អស់ម៉ោងហើយក្មេងៗ! សូមបញ្ឈប់ការពិសោធន៍ និងត្រៀមរាយការណ៍លទ្ធផល។");
+                    }
+                }, 1000);
+            }
+        }
+
+        function stopTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+        }
+
+        function resetTimer() {
+            stopTimer();
+            timeInSeconds = 5 * 60; // Reset to 5 minutes
+            updateTimerDisplay();
+        }
+
+        // Score Logic
+        let scores = { 1: 0, 2: 0, 3: 0, 4: 0 };
+
+        function updateScore(groupNum, change) {
+            scores[groupNum] += change;
+            // Prevent negative scores if you want
+            if (scores[groupNum] < 0) scores[groupNum] = 0;
+            document.getElementById(`score-${groupNum}`).innerText = scores[groupNum];
+        }
+
+        // Initialize display
+        updateTimerDisplay();
+    </script>
+</body>
+</html>

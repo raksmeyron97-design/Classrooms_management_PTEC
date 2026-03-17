@@ -26,7 +26,7 @@
 
         /* Print A4 Styles */
         @media print {
-            @page { size: A4 portrait; margin: 0.8cm; }
+            @page { size: A4 portrait; margin: 0.5cm; }
             body { background: white; -webkit-print-color-adjust: exact; padding: 0; }
             .no-print { display: none !important; }
             .print-container { 
@@ -37,8 +37,8 @@
                 margin: 0 !important;
             }
             table { width: 100%; border-collapse: collapse; font-size: 11px !important; }
-            th, td { border: 1px solid black !important; padding: 4px !important; }
-            th { background-color: #f3f4f6 !important; font-weight: bold; }
+            th, td { border: 1px solid #1e40af !important; padding: 2px 4px !important; }
+            th { background-color: #eff6ff !important; font-weight: bold; }
         }
 
         .print-container {
@@ -47,7 +47,7 @@
             width: 21cm;
             min-height: 29.7cm;
             margin: 2rem auto;
-            padding: 1.2cm 1cm;
+            padding: 0.8cm;
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
             position: relative;
         }
@@ -125,9 +125,10 @@
                     <label class="block font-bold text-gray-700 mb-2 flex items-center gap-2">
                         <i data-lucide="list" class="w-4 h-4"></i> ជ្រើសរើសប្រភេទ
                     </label>
-                    <div class="flex bg-gray-100 p-1 rounded-lg">
+                    <div class="flex bg-gray-100 p-1 rounded-lg gap-1">
                         <button onclick="window.setType('monthly')" id="btnMonthly" class="flex-1 py-2 rounded-md bg-white shadow text-blue-900 font-bold transition">ប្រចាំខែ</button>
                         <button onclick="window.setType('semester')" id="btnSemester" class="flex-1 py-2 rounded-md text-gray-500 font-bold hover:bg-white/50 transition">ឆមាស</button>
+                        <button onclick="window.setType('yearly')" id="btnYearly" class="flex-1 py-2 rounded-md text-gray-500 font-bold hover:bg-white/50 transition">ប្រចាំឆ្នាំ</button>
                     </div>
                 </div>
 
@@ -225,7 +226,7 @@
     </div>
 
     <!-- 2. Print Preview Container -->
-    <div id="printContainer" class="print-container">
+    <div id="printContainer" class="print-container text-blue-800">
         <!-- Actions (No Print) -->
         <div class="no-print absolute top-0 -right-16 flex flex-col gap-2">
             <button onclick="window.print()" class="bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700" title="បោះពុម្ភ">
@@ -237,13 +238,13 @@
         </div>
 
         <!-- Header -->
-        <div class="relative text-center mb-4 font-['Moul'] text-black leading-relaxed">
-            <h3 class="text-[13px]">ព្រះរាជាណាចក្រកម្ពុជា</h3>
-            <h3 class="text-[13px]">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
-            <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[14px] w-auto mx-auto mt-2 mb-4" crossorigin="anonymous">
+        <div class="relative text-center mb-2 font-['Moul'] text-blue-800 leading-relaxed">
+            <h3 class="text-[12px]">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+            <h3 class="text-[11px]">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+            <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12px] w-auto mx-auto mt-1 mb-2" crossorigin="anonymous">
             
             <!-- ព័ត៌មានរដ្ឋបាលខាងឆ្វេង -->
-            <div class="absolute left-2 top-[45px] text-left w-[35%] text-[11px] font-['Battambang'] text-black font-normal leading-[1.6] whitespace-nowrap z-10">
+            <div class="absolute left-0 top-[30px] text-left w-[35%] text-[10px] font-['Battambang'] text-blue-800 font-normal leading-[1.6] whitespace-nowrap z-10">
                 <p id="print_org_1" class="font-bold">...</p>
                 <p id="print_org_2" class="font-bold">...</p>
                 <p> <span id="print_school_name" class="font-bold">...</span></p>
@@ -251,14 +252,14 @@
                 <p>ឆ្នាំសិក្សា៖ <span id="yearDisplay" class="font-bold">...</span></p>
             </div>
             
-            <div class="mt-8 pb-4 w-full text-center">
-                <h1 class="text-lg font-['Moul'] mb-2" id="reportTitle">តារាងចំណាត់ថ្នាក់សិស្ស</h1>
-                <p id="periodDisplay" class="kh-moul text-[13px]">ប្រចាំខែ...</p>
+            <div class="mt-0 pb-1 w-full text-center">
+                <h1 class="text-[16px] font-['Moul'] mb-1" id="reportTitle">តារាងចំណាត់ថ្នាក់សិស្ស</h1>
+                <p id="periodDisplay" class="kh-moul text-[12px]">ប្រចាំខែ...</p>
             </div>
         </div>
 
-        <!-- Dynamic Table - Added table-fixed to respect column widths -->
-        <table class="w-full table-fixed text-[11px] border-collapse border border-black mb-4">
+        <!-- Dynamic Table -->
+        <table class="w-full table-fixed text-[11px] border-collapse border border-blue-800 mb-2 text-blue-800">
             <thead id="reportTableHeader">
                 <!-- JS will populate -->
             </thead>
@@ -268,81 +269,115 @@
         </table>
 
         <!-- Footer Stats -->
-        <div class="flex text-[11px] font-['Battambang'] leading-[1.6]">
-            <!-- Left Stat Block -->
-            <div class="w-[45%] flex flex-col pr-4">
-                <div class="flex justify-between">
-                    <span class="w-[120px]">បញ្ជីសិស្សមានចំនួន</span> 
-                    <span class="flex-1">
-                        <span id="st-tot" class="w-6 inline-block text-center font-bold">0</span> នាក់ ស្រី 
-                        <span id="st-tot-f" class="w-6 inline-block text-center font-bold">0</span> នាក់
-                    </span>
+        <div class="text-[11px] font-['Battambang'] leading-[1.6] text-blue-800 mt-2">
+            <!-- Top Stats Row -->
+            <div class="flex justify-between font-bold">
+                <div class="w-1/2 flex">
+                    <span class="w-[140px]">បញ្ជីបេក្ខជនសរុប ៖</span>
+                    <span><span id="st-tot" class="inline-block w-6 text-center">0</span> នាក់ ស្រី <span id="st-tot-f" class="inline-block w-6 text-center">0</span> នាក់</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="w-[120px]">និទ្ទេស <span class="font-bold text-red-600">A</span> មាន</span> 
-                    <span class="flex-1">
-                        <span id="st-a" class="w-6 inline-block text-center font-bold">0</span> នាក់ ស្រី 
-                        <span id="st-a-f" class="w-6 inline-block text-center font-bold">0</span> នាក់
-                    </span>
+                <div class="w-1/2 flex">
+                    <span class="w-[160px]">សិស្សជាប់មធ្យមភាគ ៖</span>
+                    <span class="flex-1"><span id="st-pass-tot" class="inline-block w-6 text-center">0</span> នាក់ ស្រី <span id="st-pass-f" class="inline-block w-6 text-center">0</span> នាក់</span>
+                    <span id="st-pass-pct" class="w-[60px] text-right text-blue-800">0,00%</span>
                 </div>
-                <div class="flex justify-between">
-                    <span class="w-[120px]">និទ្ទេស <span class="font-bold text-pink-600">B</span> មាន</span> 
-                    <span class="flex-1">
-                        <span id="st-b" class="w-6 inline-block text-center font-bold">0</span> នាក់ ស្រី 
-                        <span id="st-b-f" class="w-6 inline-block text-center font-bold">0</span> នាក់
-                    </span>
+            </div>
+            
+            <!-- Second Row (Failures) -->
+            <div class="flex justify-between font-bold mb-2">
+                <div class="w-1/2 flex">
+                    <!-- Empty left -->
                 </div>
-                <div class="flex justify-between">
-                    <span class="w-[120px]">និទ្ទេស <span class="font-bold text-purple-600">C</span> មាន</span> 
-                    <span class="flex-1">
-                        <span id="st-c" class="w-6 inline-block text-center font-bold">0</span> នាក់ ស្រី 
-                        <span id="st-c-f" class="w-6 inline-block text-center font-bold">0</span> នាក់
-                    </span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="w-[120px]">និទ្ទេស <span class="font-bold text-green-600">D</span> មាន</span> 
-                    <span class="flex-1">
-                        <span id="st-d" class="w-6 inline-block text-center font-bold">0</span> នាក់ ស្រី 
-                        <span id="st-d-f" class="w-6 inline-block text-center font-bold">0</span> នាក់
-                    </span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="w-[120px]">ភាគរយជាប់សរុប</span> 
-                    <span id="st-pass" class="flex-1 font-bold">#DIV/0!</span>
-                </div>
-
-                <!-- Manager Signature Space -->
-                <div class="mt-8 flex flex-col items-center w-[250px]">
-                    <p class="mb-2">បានឃើញ និងឯកភាព</p>
-                    <p class="font-['Moul'] mb-16" id="print_manager_role">នាយកសាលា</p>
+                <div class="w-1/2 flex text-blue-800">
+                    <span class="w-[160px]">សិស្សក្រោមមធ្យមភាគ ៖</span>
+                    <span class="flex-1"><span id="st-fail-tot" class="inline-block w-6 text-center">0</span> នាក់ ស្រី <span id="st-fail-f" class="inline-block w-6 text-center">0</span> នាក់</span>
+                    <span id="st-fail-pct" class="w-[60px] text-right">0,00%</span>
                 </div>
             </div>
 
-            <!-- Right Stat Block -->
-            <div class="w-[55%] relative">
-                <div class="flex flex-col w-[75%]">
-                    <div class="flex justify-between">
-                        <span class="w-[80px]">និទ្ទេស <span class="font-bold text-blue-600">E</span> មាន</span> 
-                        <span class="flex-1">
-                            <span id="st-e" class="w-6 inline-block text-center font-bold">0</span> នាក់ ស្រី 
-                            <span id="st-e-f" class="w-6 inline-block text-center font-bold">0</span> នាក់
-                        </span>
+            <!-- Columns for Grades -->
+            <div class="flex justify-between font-bold">
+                <!-- Left Column: Descriptions -->
+                <div class="w-[48%] space-y-[1px]">
+                    <div class="flex text-purple-600">
+                        <span class="w-[140px]">និទ្ទេសមធ្យមសរុប ៖</span>
+                        <span class="flex-1"><span id="st-desc-e" class="inline-block w-6 text-center">0</span> នាក់ ស្រី <span id="st-desc-e-f" class="inline-block w-6 text-center">0</span> នាក់</span>
+                        <span id="st-desc-e-pct" class="w-[60px] text-right font-normal">0,00%</span>
                     </div>
-                    <div class="flex justify-between">
-                        <span class="w-[80px]">និទ្ទេស <span class="font-bold">F</span> មាន</span> 
-                        <span class="flex-1">
-                            <span id="st-f" class="w-6 inline-block text-center font-bold">0</span> នាក់ ស្រី 
-                            <span id="st-f-f" class="w-6 inline-block text-center font-bold">0</span> នាក់
-                        </span>
+                    <div class="flex text-orange-500">
+                        <span class="w-[140px]">និទ្ទេសល្អបង្គួរកសរុប ៖</span>
+                        <span class="flex-1"><span id="st-desc-d" class="inline-block w-6 text-center">0</span> នាក់ ស្រី <span id="st-desc-d-f" class="inline-block w-6 text-center">0</span> នាក់</span>
+                        <span id="st-desc-d-pct" class="w-[60px] text-right font-normal">0,00%</span>
+                    </div>
+                    <div class="flex text-green-600">
+                        <span class="w-[140px]">និទ្ទេសល្អ សរុប ៖</span>
+                        <span class="flex-1"><span id="st-desc-c" class="inline-block w-6 text-center">0</span> នាក់ ស្រី <span id="st-desc-c-f" class="inline-block w-6 text-center">0</span> នាក់</span>
+                        <span id="st-desc-c-pct" class="w-[60px] text-right font-normal">0,00%</span>
+                    </div>
+                    <div class="flex text-blue-600">
+                        <span class="w-[140px]">និទ្ទេសល្អណាស់សរុប ៖</span>
+                        <span class="flex-1"><span id="st-desc-b" class="inline-block w-6 text-center">0</span> នាក់ ស្រី <span id="st-desc-b-f" class="inline-block w-6 text-center">0</span> នាក់</span>
+                        <span id="st-desc-b-pct" class="w-[60px] text-right font-normal">0,00%</span>
+                    </div>
+                    <div class="flex text-red-600">
+                        <span class="w-[140px]">និទ្ទេសប្រសើរសរុប ៖</span>
+                        <span class="flex-1"><span id="st-desc-a" class="inline-block w-6 text-center">0</span> នាក់ ស្រី <span id="st-desc-a-f" class="inline-block w-6 text-center">0</span> នាក់</span>
+                        <span id="st-desc-a-pct" class="w-[60px] text-right font-normal">0,00%</span>
+                    </div>
+                    <div class="flex text-gray-600">
+                        <span class="w-[140px]">សិស្សបោះបង់សរុប ៖</span>
+                        <span class="flex-1"><span id="st-dropout" class="inline-block w-6 text-center">0</span> នាក់ ស្រី <span id="st-dropout-f" class="inline-block w-6 text-center">0</span> នាក់</span>
+                        <span id="st-dropout-pct" class="w-[60px] text-right font-normal">0,00%</span>
                     </div>
                 </div>
 
-                <!-- Teacher Signature Space -->
-                <div class="absolute -right-4 top-[4rem] flex flex-col items-center w-[300px] text-[11px]">
-                    <p class="mb-1">ថ្ងៃ.................ខែ.................ឆ្នាំ.................ព.ស.២៥៦...</p>
-                    <p class="mb-2"><span id="print_location">ធ្វើនៅ....................</span>, ថ្ងៃទី........ ខែ........... ឆ្នាំ ២០២...</p>
-                    <p class="font-bold mb-16">គ្រូបន្ទុកថ្នាក់</p>
-                    <p class="font-['Moul'] font-bold text-sm" id="teacherNameSign">..........</p>
+                <!-- Right Column: Letters -->
+                <div class="w-[48%] space-y-[1px]">
+                    <div class="flex text-red-600">
+                        <span class="w-[140px]">សិស្សមាននិទ្ទេស A ៖</span>
+                        <span class="flex-1"><span id="st-let-a" class="inline-block w-6 text-center">0</span> នាក់ ស្រី <span id="st-let-a-f" class="inline-block w-6 text-center">0</span> នាក់</span>
+                        <span id="st-let-a-pct" class="w-[60px] text-right font-normal">0,00%</span>
+                    </div>
+                    <div class="flex text-blue-600">
+                        <span class="w-[140px]">សិស្សមាននិទ្ទេស B ៖</span>
+                        <span class="flex-1"><span id="st-let-b" class="inline-block w-6 text-center">0</span> នាក់ ស្រី <span id="st-let-b-f" class="inline-block w-6 text-center">0</span> នាក់</span>
+                        <span id="st-let-b-pct" class="w-[60px] text-right font-normal">0,00%</span>
+                    </div>
+                    <div class="flex text-green-600">
+                        <span class="w-[140px]">សិស្សមាននិទ្ទេស C ៖</span>
+                        <span class="flex-1"><span id="st-let-c" class="inline-block w-6 text-center">0</span> នាក់ ស្រី <span id="st-let-c-f" class="inline-block w-6 text-center">0</span> នាក់</span>
+                        <span id="st-let-c-pct" class="w-[60px] text-right font-normal">0,00%</span>
+                    </div>
+                    <div class="flex text-orange-500">
+                        <span class="w-[140px]">សិស្សមាននិទ្ទេស D ៖</span>
+                        <span class="flex-1"><span id="st-let-d" class="inline-block w-6 text-center">0</span> នាក់ ស្រី <span id="st-let-d-f" class="inline-block w-6 text-center">0</span> នាក់</span>
+                        <span id="st-let-d-pct" class="w-[60px] text-right font-normal">0,00%</span>
+                    </div>
+                    <div class="flex text-purple-600">
+                        <span class="w-[140px]">សិស្សមាននិទ្ទេស E ៖</span>
+                        <span class="flex-1"><span id="st-let-e" class="inline-block w-6 text-center">0</span> នាក់ ស្រី <span id="st-let-e-f" class="inline-block w-6 text-center">0</span> នាក់</span>
+                        <span id="st-let-e-pct" class="w-[60px] text-right font-normal">0,00%</span>
+                    </div>
+                    <div class="flex text-red-600">
+                        <span class="w-[140px]">សិស្សមាននិទ្ទេស F ៖</span>
+                        <span class="flex-1"><span id="st-let-f" class="inline-block w-6 text-center">0</span> នាក់ ស្រី <span id="st-let-f-f" class="inline-block w-6 text-center">0</span> នាក់</span>
+                        <span id="st-let-f-pct" class="w-[60px] text-right font-normal">0,00%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Signatures -->
+            <div class="mt-2 flex justify-between font-bold text-[11px]">
+                <div class="w-1/2 flex flex-col items-center pt-2">
+                    <p class="mb-1 text-blue-800">បានឃើញ និង ឯកភាព</p>
+                    <p class="font-['Moul'] mb-10 text-blue-800" id="print_manager_role">នាយកសាលា</p>
+                </div>
+                
+                <div class="w-1/2 flex flex-col items-center pt-2">
+                    <p class="mb-1 text-blue-800">ថ្ងៃ.........................................................ព.ស. ២៥៦...</p>
+                    <p class="mb-1 text-blue-800"><span id="print_location">ធ្វើនៅ....................</span>, ថ្ងៃទី........ ខែ........... ឆ្នាំ ២០២...</p>
+                    <p class="font-bold mb-10 text-blue-800">គ្រូបន្ទុកថ្នាក់</p>
+                    <p class="font-['Moul'] font-bold text-[13px] text-blue-800" id="teacherNameSign">..........</p>
                 </div>
             </div>
         </div>
@@ -373,7 +408,7 @@
         let currentUser = null;
         let teacherProfile = {};
         let studentsList = [];
-        let allMonthsScoresCache = {}; // Cache for monthly scores when in semester mode
+        let allMonthsScoresCache = {}; 
         
         lucide.createIcons();
 
@@ -525,25 +560,23 @@
             currentType = type;
             const btnMonthly = document.getElementById('btnMonthly');
             const btnSemester = document.getElementById('btnSemester');
+            const btnYearly = document.getElementById('btnYearly');
             const monthGroup = document.getElementById('monthInputGroup');
             const semGroup = document.getElementById('semesterInputGroup');
 
+            btnMonthly.className = type === 'monthly' ? "flex-1 py-2 rounded-md bg-white shadow text-blue-900 font-bold transition" : "flex-1 py-2 rounded-md text-gray-500 font-bold hover:bg-white/50 transition";
+            btnSemester.className = type === 'semester' ? "flex-1 py-2 rounded-md bg-white shadow text-blue-900 font-bold transition" : "flex-1 py-2 rounded-md text-gray-500 font-bold hover:bg-white/50 transition";
+            btnYearly.className = type === 'yearly' ? "flex-1 py-2 rounded-md bg-white shadow text-blue-900 font-bold transition" : "flex-1 py-2 rounded-md text-gray-500 font-bold hover:bg-white/50 transition";
+
             if (type === 'monthly') {
-                btnMonthly.classList.add('bg-white', 'shadow', 'text-blue-900');
-                btnMonthly.classList.remove('text-gray-500', 'hover:bg-white/50');
-                btnSemester.classList.remove('bg-white', 'shadow', 'text-blue-900');
-                btnSemester.classList.add('text-gray-500', 'hover:bg-white/50');
-                
                 monthGroup.classList.remove('hidden');
                 semGroup.classList.add('hidden');
-            } else {
-                btnSemester.classList.add('bg-white', 'shadow', 'text-blue-900');
-                btnSemester.classList.remove('text-gray-500', 'hover:bg-white/50');
-                btnMonthly.classList.remove('bg-white', 'shadow', 'text-blue-900');
-                btnMonthly.classList.add('text-gray-500', 'hover:bg-white/50');
-
+            } else if (type === 'semester') {
                 monthGroup.classList.add('hidden');
                 semGroup.classList.remove('hidden');
+            } else {
+                monthGroup.classList.add('hidden');
+                semGroup.classList.add('hidden');
             }
         };
 
@@ -581,11 +614,16 @@
         }
 
         function getPeriodLabel() {
-            const select = currentType === 'monthly' 
-                ? document.getElementById('monthSelect') 
-                : document.getElementById('semesterSelect');
-            const text = select.options[select.selectedIndex].text;
-            return currentType === 'monthly' ? `ប្រចាំ${text}` : text;
+            if (currentType === 'monthly') {
+                const val = document.getElementById('monthSelect').value;
+                const monthObj = allMonthsMap.find(m => m.id === val);
+                return `ប្រចាំខែ${monthObj ? monthObj.label : ''}`;
+            } else if (currentType === 'semester') {
+                const select = document.getElementById('semesterSelect');
+                return select.options[select.selectedIndex].text;
+            } else {
+                return `ប្រចាំឆ្នាំ`;
+            }
         }
 
         function calculateGrade(avg) {
@@ -654,7 +692,7 @@
 
             try {
                 const year = document.getElementById('yearSelect').value;
-                const currentColumns = config[currentType].columns;
+                const currentColumns = config[currentType === 'yearly' ? 'semester' : currentType].columns;
                 
                 let scoresData = {};
                 allMonthsScoresCache = {};
@@ -662,7 +700,7 @@
                 if (currentType === 'monthly') {
                     const month = document.getElementById('monthSelect').value;
                     scoresData = await fetchScores(year, month);
-                } else {
+                } else if (currentType === 'semester') {
                     const semester = document.getElementById('semesterSelect').value;
                     scoresData = await fetchScores(year, semester);
                     
@@ -670,49 +708,102 @@
                     for (const month of selectedSemesterMonths) {
                         allMonthsScoresCache[month] = await fetchScores(year, month);
                     }
+                } else if (currentType === 'yearly') {
+                    const sem1Months = ['nov', 'dec', 'jan', 'feb'];
+                    const sem2Months = ['mar', 'apr', 'may', 'jun'];
+                    
+                    allMonthsScoresCache['sem1_exam'] = await fetchScores(year, 'sem1');
+                    allMonthsScoresCache['sem2_exam'] = await fetchScores(year, 'sem2');
+                    
+                    for (const month of [...sem1Months, ...sem2Months]) {
+                        allMonthsScoresCache[month] = await fetchScores(year, month);
+                    }
                 }
 
                 let reportData = studentsList.map(s => {
-                    const sScores = scoresData[s.id] || {};
-                    let sum = 0;
-                    let scoredSubjectsCount = 0;
-                    
-                    currentColumns.forEach(col => {
-                        const rawVal = sScores[col.key];
-                        if (rawVal !== null && rawVal !== undefined && rawVal !== "") {
-                            const val = parseFloat(rawVal);
-                            if (!isNaN(val)) {
-                                sum += val;
-                                scoredSubjectsCount++;
-                            }
-                        }
-                    });
+                    if (currentType === 'yearly') {
+                        const calcSemAvg = (sId, examScores, months) => {
+                            let examSum = 0; let examCount = 0;
+                            config.semester.columns.forEach(col => {
+                                const val = parseFloat(examScores[col.key]);
+                                if(!isNaN(val)) { examSum += val; examCount++; }
+                            });
+                            const examAvg = examCount > 0 ? (examSum / examCount) : 0;
+                            
+                            let sumOfAverages = 0;
+                            months.forEach(month => {
+                                const mScores = allMonthsScoresCache[month]?.[sId] || {};
+                                let mSum = 0, mCount = 0;
+                                config.monthly.columns.forEach(col => {
+                                    const val = parseFloat(mScores[col.key]);
+                                    if(!isNaN(val)) { mSum += val; mCount++; }
+                                });
+                                if(mCount > 0) sumOfAverages += (mSum / mCount);
+                            });
+                            const monthlyAvg = months.length > 0 ? sumOfAverages / months.length : 0;
+                            
+                            let semAvg = (examAvg + monthlyAvg) / 2;
+                            if (examCount === 0 && monthlyAvg === 0) semAvg = 0;
+                            return semAvg;
+                        };
 
-                    if (currentType === 'monthly') {
-                        const avg = scoredSubjectsCount > 0 ? (sum / scoredSubjectsCount).toFixed(2) : "0.00";
+                        const s1Scores = allMonthsScoresCache['sem1_exam']?.[s.id] || {};
+                        const s2Scores = allMonthsScoresCache['sem2_exam']?.[s.id] || {};
+                        
+                        const sem1Avg = calcSemAvg(s.id, s1Scores, ['nov', 'dec', 'jan', 'feb']);
+                        const sem2Avg = calcSemAvg(s.id, s2Scores, ['mar', 'apr', 'may', 'jun']);
+                        
+                        const yearlyAvg = (sem1Avg + sem2Avg) / 2;
+
                         return {
                             ...s,
-                            total: sum,
-                            average: parseFloat(avg),
-                            finalAverageForRank: parseFloat(avg)
+                            sem1Average: parseFloat(sem1Avg.toFixed(2)),
+                            sem2Average: parseFloat(sem2Avg.toFixed(2)),
+                            yearlyAverage: parseFloat(yearlyAvg.toFixed(2)),
+                            finalAverageForRank: parseFloat(yearlyAvg.toFixed(2))
                         };
                     } else {
-                        const examAvg = scoredSubjectsCount > 0 ? (sum / scoredSubjectsCount).toFixed(2) : "0.00";
-                        const monthlyAvg = getMonthlyAverageForStudent(s.id);
+                        const sScores = scoresData[s.id] || {};
+                        let sum = 0;
+                        let scoredSubjectsCount = 0;
                         
-                        let semAvg = (parseFloat(examAvg) + monthlyAvg) / 2;
-                        if (scoredSubjectsCount === 0 && monthlyAvg === 0) {
-                            semAvg = 0;
-                        }
+                        currentColumns.forEach(col => {
+                            const rawVal = sScores[col.key];
+                            if (rawVal !== null && rawVal !== undefined && rawVal !== "") {
+                                const val = parseFloat(rawVal);
+                                if (!isNaN(val)) {
+                                    sum += val;
+                                    scoredSubjectsCount++;
+                                }
+                            }
+                        });
 
-                        return {
-                            ...s,
-                            examTotal: sum,
-                            examAverage: parseFloat(examAvg),
-                            monthlyAverage: monthlyAvg,
-                            semesterAverage: semAvg,
-                            finalAverageForRank: semAvg
-                        };
+                        if (currentType === 'monthly') {
+                            const avg = scoredSubjectsCount > 0 ? (sum / scoredSubjectsCount).toFixed(2) : "0.00";
+                            return {
+                                ...s,
+                                total: sum,
+                                average: parseFloat(avg),
+                                finalAverageForRank: parseFloat(avg)
+                            };
+                        } else {
+                            const examAvg = scoredSubjectsCount > 0 ? (sum / scoredSubjectsCount).toFixed(2) : "0.00";
+                            const monthlyAvg = getMonthlyAverageForStudent(s.id);
+                            
+                            let semAvg = (parseFloat(examAvg) + monthlyAvg) / 2;
+                            if (scoredSubjectsCount === 0 && monthlyAvg === 0) {
+                                semAvg = 0;
+                            }
+
+                            return {
+                                ...s,
+                                examTotal: sum,
+                                examAverage: parseFloat(examAvg),
+                                monthlyAverage: monthlyAvg,
+                                semesterAverage: semAvg,
+                                finalAverageForRank: semAvg
+                            };
+                        }
                     }
                 });
 
@@ -748,45 +839,67 @@
             const thead = document.getElementById('reportTableHeader');
             if (currentType === 'monthly') {
                 thead.innerHTML = `
-                    <tr class="text-center font-bold h-[28px]">
-                        <th class="border border-black w-[4%]">ល.រ</th>
-                        <th class="border border-black w-[17%]">គោត្តនាម.នាម</th>
-                        <th class="border border-black w-[4%]">ភេទ</th>
-                        <th class="border border-black w-[6%]">ពិន្ទុ</th>
-                        <th class="border border-black w-[7%]">មធ្យមភាគ</th>
-                        <th class="border border-black w-[6%]">ចំ.ថ្នាក់</th>
-                        <th class="border border-black w-[6%]">និទ្ទេស</th>
+                    <tr class="text-center font-bold h-[24px]">
+                        <th class="border border-blue-800 w-[4%] text-green-700">ល.រ</th>
+                        <th class="border border-blue-800 w-[17%] text-green-700">គោត្តនាម និង នាម</th>
+                        <th class="border border-blue-800 w-[4%] text-green-700">ភេទ</th>
+                        <th class="border border-blue-800 w-[6%] text-green-700">ពិន្ទុ</th>
+                        <th class="border border-blue-800 w-[7%] text-green-700">មធ្យមភាគ</th>
+                        <th class="border border-blue-800 w-[6%] text-red-600">ចំ.ថ្នាក់</th>
+                        <th class="border border-blue-800 w-[6%] text-green-700">និទ្ទេស</th>
                         
-                        <th class="border border-black w-[4%]">ល.រ</th>
-                        <th class="border border-black w-[17%]">គោត្តនាម.នាម</th>
-                        <th class="border border-black w-[4%]">ភេទ</th>
-                        <th class="border border-black w-[6%]">ពិន្ទុ</th>
-                        <th class="border border-black w-[7%]">មធ្យមភាគ</th>
-                        <th class="border border-black w-[6%]">ចំ.ថ្នាក់</th>
-                        <th class="border border-black w-[6%]">និទ្ទេស</th>
+                        <th class="border border-blue-800 w-[4%] text-green-700">ល.រ</th>
+                        <th class="border border-blue-800 w-[17%] text-green-700">គោត្តនាម និង នាម</th>
+                        <th class="border border-blue-800 w-[4%] text-green-700">ភេទ</th>
+                        <th class="border border-blue-800 w-[6%] text-green-700">ពិន្ទុ</th>
+                        <th class="border border-blue-800 w-[7%] text-green-700">មធ្យមភាគ</th>
+                        <th class="border border-blue-800 w-[6%] text-red-600">ចំ.ថ្នាក់</th>
+                        <th class="border border-blue-800 w-[6%] text-green-700">និទ្ទេស</th>
                     </tr>
                 `;
-            } else {
+            } else if (currentType === 'semester') {
                 const divCount = selectedSemesterMonths.length > 0 ? selectedSemesterMonths.length : '-';
                 thead.innerHTML = `
-                    <tr class="text-center font-bold h-[28px]">
-                        <th class="border border-black w-[3%]">ល.រ</th>
-                        <th class="border border-black w-[16%]">គោត្តនាម.នាម</th>
-                        <th class="border border-black w-[4%]">ភេទ</th>
-                        <th class="border border-black w-[5.5%]">ម.ប្រ.ឆ</th>
-                        <th class="border border-black w-[5.5%]" title="ចែកនឹង ${divCount}">ម.ខែ</th>
-                        <th class="border border-black w-[5.5%]">ម.ឆមាស</th>
-                        <th class="border border-black w-[5%]">ចំ.ថ្នាក់</th>
-                        <th class="border border-black w-[5.5%]">និទ្ទេស</th>
+                    <tr class="text-center font-bold h-[24px]">
+                        <th class="border border-blue-800 w-[3%] text-green-700">ល.រ</th>
+                        <th class="border border-blue-800 w-[16%] text-green-700">គោត្តនាម និង នាម</th>
+                        <th class="border border-blue-800 w-[4%] text-green-700">ភេទ</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700">ម.ប្រ.ឆ</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700" title="ចែកនឹង ${divCount}">ម.ខែ</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700">ម.ឆមាស</th>
+                        <th class="border border-blue-800 w-[5%] text-red-600">ចំ.ថ្នាក់</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700">និទ្ទេស</th>
                         
-                        <th class="border border-black w-[3%]">ល.រ</th>
-                        <th class="border border-black w-[16%]">គោត្តនាម.នាម</th>
-                        <th class="border border-black w-[4%]">ភេទ</th>
-                        <th class="border border-black w-[5.5%]">ម.ប្រ.ឆ</th>
-                        <th class="border border-black w-[5.5%]" title="ចែកនឹង ${divCount}">ម.ខែ</th>
-                        <th class="border border-black w-[5.5%]">ម.ឆមាស</th>
-                        <th class="border border-black w-[5%]">ចំ.ថ្នាក់</th>
-                        <th class="border border-black w-[5.5%]">និទ្ទេស</th>
+                        <th class="border border-blue-800 w-[3%] text-green-700">ល.រ</th>
+                        <th class="border border-blue-800 w-[16%] text-green-700">គោត្តនាម និង នាម</th>
+                        <th class="border border-blue-800 w-[4%] text-green-700">ភេទ</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700">ម.ប្រ.ឆ</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700" title="ចែកនឹង ${divCount}">ម.ខែ</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700">ម.ឆមាស</th>
+                        <th class="border border-blue-800 w-[5%] text-red-600">ចំ.ថ្នាក់</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700">និទ្ទេស</th>
+                    </tr>
+                `;
+            } else if (currentType === 'yearly') {
+                thead.innerHTML = `
+                    <tr class="text-center font-bold h-[24px]">
+                        <th class="border border-blue-800 w-[3%] text-green-700">ល.រ</th>
+                        <th class="border border-blue-800 w-[16%] text-green-700">គោត្តនាម និង នាម</th>
+                        <th class="border border-blue-800 w-[4%] text-green-700">ភេទ</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700">ម.ឆ១</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700">ម.ឆ២</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700">ម.ឆ្នាំ</th>
+                        <th class="border border-blue-800 w-[5%] text-red-600">ចំ.ថ្នាក់</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700">និទ្ទេស</th>
+                        
+                        <th class="border border-blue-800 w-[3%] text-green-700">ល.រ</th>
+                        <th class="border border-blue-800 w-[16%] text-green-700">គោត្តនាម និង នាម</th>
+                        <th class="border border-blue-800 w-[4%] text-green-700">ភេទ</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700">ម.ឆ១</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700">ម.ឆ២</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700">ម.ឆ្នាំ</th>
+                        <th class="border border-blue-800 w-[5%] text-red-600">ចំ.ថ្នាក់</th>
+                        <th class="border border-blue-800 w-[5.5%] text-green-700">និទ្ទេស</th>
                     </tr>
                 `;
             }
@@ -804,12 +917,14 @@
             document.getElementById('periodDisplay').textContent = getPeriodLabel();
             document.getElementById('yearDisplay').textContent = classConfig.academicYear;
 
-            // Stats calculation
+            // Stats calculation for the updated layout
             let stats = {
                 total: data.length, totalF: 0,
                 A: 0, AF: 0, B: 0, BF: 0,
                 C: 0, CF: 0, D: 0, DF: 0,
-                E: 0, EF: 0, F: 0, FF: 0
+                E: 0, EF: 0, F: 0, FF: 0,
+                pass: 0, passF: 0, fail: 0, failF: 0,
+                dropout: 0, dropoutF: 0
             };
 
             data.forEach(s => {
@@ -820,18 +935,61 @@
                     stats[s.grade]++;
                     if (isFem) stats[s.grade + 'F']++;
                 }
+
+                if (s.grade === 'F') {
+                    stats.fail++;
+                    if (isFem) stats.failF++;
+                } else {
+                    stats.pass++;
+                    if (isFem) stats.passF++;
+                }
+
+                // Check for dropout (Average is 0)
+                if (s.finalAverageForRank === 0) {
+                    stats.dropout++;
+                    if (isFem) stats.dropoutF++;
+                }
             });
 
+            // Helper for formatted percentage
+            const getPct = (count) => stats.total > 0 ? (count / stats.total * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
+
+            // Top Summary Row
             document.getElementById('st-tot').innerText = stats.total;
             document.getElementById('st-tot-f').innerText = stats.totalF;
-            ['A', 'B', 'C', 'D', 'E', 'F'].forEach(g => {
-                document.getElementById('st-' + g.toLowerCase()).innerText = stats[g] || 0;
-                document.getElementById('st-' + g.toLowerCase() + '-f').innerText = stats[g + 'F'] || 0;
-            });
 
-            const passed = stats.A + stats.B + stats.C + stats.D + stats.E;
-            const passPct = stats.total > 0 ? ((passed / stats.total) * 100).toFixed(2) + '%' : '0%';
-            document.getElementById('st-pass').innerText = stats.total > 0 ? passPct : '#DIV/0!';
+            document.getElementById('st-pass-tot').innerText = stats.pass;
+            document.getElementById('st-pass-f').innerText = stats.passF;
+            document.getElementById('st-pass-pct').innerText = getPct(stats.pass);
+
+            // Fail Row
+            document.getElementById('st-fail-tot').innerText = stats.fail;
+            document.getElementById('st-fail-f').innerText = stats.failF;
+            document.getElementById('st-fail-pct').innerText = getPct(stats.fail);
+
+            // Dropout Row
+            document.getElementById('st-dropout').innerText = stats.dropout;
+            document.getElementById('st-dropout-f').innerText = stats.dropoutF;
+            document.getElementById('st-dropout-pct').innerText = getPct(stats.dropout);
+
+            // Populate Grades Lists
+            ['A', 'B', 'C', 'D', 'E', 'F'].forEach(g => {
+                const c = stats[g] || 0;
+                const cf = stats[g + 'F'] || 0;
+                const pct = getPct(c);
+                
+                // Right Column List (A to F)
+                document.getElementById('st-let-' + g.toLowerCase()).innerText = c;
+                document.getElementById('st-let-' + g.toLowerCase() + '-f').innerText = cf;
+                document.getElementById('st-let-' + g.toLowerCase() + '-pct').innerText = pct;
+                
+                // Left Column List (Descriptions A to E)
+                if (g !== 'F') {
+                    document.getElementById('st-desc-' + g.toLowerCase()).innerText = c;
+                    document.getElementById('st-desc-' + g.toLowerCase() + '-f').innerText = cf;
+                    document.getElementById('st-desc-' + g.toLowerCase() + '-pct').innerText = pct;
+                }
+            });
 
             // Render Table Body
             const tbody = document.getElementById('reportTableBody');
@@ -842,7 +1000,7 @@
 
             for (let i = 0; i < rowsCount; i++) {
                 const tr = document.createElement('tr');
-                tr.className = "text-center h-[26px]";
+                tr.className = "text-center h-[20px]";
                 
                 const leftIndex = i;
                 const s1 = (leftIndex < data.length) ? data[leftIndex] : null;
@@ -858,59 +1016,77 @@
             lucide.createIcons();
         }
 
-        // Updated render function to wrap names and respect layout bounds
+        // Updated render function to wrap names and use blue borders with colored grades
         function renderStudentCells(num, s, isFirstFail) {
-            let extraStyle = isFirstFail ? 'border-top: 2px solid #ef4444 !important;' : '';
+            let extraStyle = isFirstFail ? 'border-top: 2px solid red !important;' : ''; // Red line for fail line
+            
+            // Generate Grade Color Classes
+            let gradeColor = "text-blue-800";
+            if (s && s.grade) {
+                if (s.grade === 'A') gradeColor = "text-red-600"; // Red
+                else if (s.grade === 'B') gradeColor = "text-blue-600"; // Blue
+                else if (s.grade === 'C') gradeColor = "text-green-600"; // Green
+                else if (s.grade === 'D') gradeColor = "text-orange-500"; // Orange
+                else if (s.grade === 'E') gradeColor = "text-purple-600"; // Purple
+                else if (s.grade === 'F') gradeColor = "text-red-600"; // Red
+            }
 
             if (!s) {
                 if (currentType === 'monthly') {
                     return `
-                        <td class="border border-black p-1 text-gray-500" style="${extraStyle}"></td>
-                        <td class="border border-black p-1" style="${extraStyle}"></td>
-                        <td class="border border-black p-1" style="${extraStyle}"></td>
-                        <td class="border border-black p-1" style="${extraStyle}"></td>
-                        <td class="border border-black p-1" style="${extraStyle}"></td>
-                        <td class="border border-black p-1" style="${extraStyle}"></td>
-                        <td class="border border-black p-1" style="${extraStyle}"></td>
+                        <td class="border border-blue-800 p-1" style="${extraStyle}"></td>
+                        <td class="border border-blue-800 p-1" style="${extraStyle}"></td>
+                        <td class="border border-blue-800 p-1" style="${extraStyle}"></td>
+                        <td class="border border-blue-800 p-1" style="${extraStyle}"></td>
+                        <td class="border border-blue-800 p-1" style="${extraStyle}"></td>
+                        <td class="border border-blue-800 p-1" style="${extraStyle}"></td>
+                        <td class="border border-blue-800 p-1" style="${extraStyle}"></td>
                     `;
                 } else {
                     return `
-                        <td class="border border-black p-1 text-gray-500" style="${extraStyle}"></td>
-                        <td class="border border-black p-1" style="${extraStyle}"></td>
-                        <td class="border border-black p-1" style="${extraStyle}"></td>
-                        <td class="border border-black p-1" style="${extraStyle}"></td>
-                        <td class="border border-black p-1" style="${extraStyle}"></td>
-                        <td class="border border-black p-1" style="${extraStyle}"></td>
-                        <td class="border border-black p-1" style="${extraStyle}"></td>
-                        <td class="border border-black p-1" style="${extraStyle}"></td>
+                        <td class="border border-blue-800 p-1" style="${extraStyle}"></td>
+                        <td class="border border-blue-800 p-1" style="${extraStyle}"></td>
+                        <td class="border border-blue-800 p-1" style="${extraStyle}"></td>
+                        <td class="border border-blue-800 p-1" style="${extraStyle}"></td>
+                        <td class="border border-blue-800 p-1" style="${extraStyle}"></td>
+                        <td class="border border-blue-800 p-1" style="${extraStyle}"></td>
+                        <td class="border border-blue-800 p-1" style="${extraStyle}"></td>
+                        <td class="border border-blue-800 p-1" style="${extraStyle}"></td>
                     `;
                 }
             }
             
-            let gradeColor = "";
-            if (s.grade === 'F') gradeColor = "text-red-600";
-            else if (['A','B'].includes(s.grade)) gradeColor = "text-green-700";
-
             if (currentType === 'monthly') {
                 return `
-                    <td class="border border-black p-1" style="${extraStyle}">${num}</td>
-                    <td class="border border-black p-1 text-left px-1.5 font-bold break-words leading-[1.4]" style="${extraStyle}">${s.name}</td>
-                    <td class="border border-black p-1" style="${extraStyle}">${isFemale(s.gender) ? 'ស' : 'ប'}</td>
-                    <td class="border border-black p-1 font-bold text-[10.5px]" style="${extraStyle}">${formatKhmerNumber(s.total)}</td>
-                    <td class="border border-black p-1 font-bold text-[10.5px]" style="${extraStyle}">${formatKhmerNumber(s.average)}</td>
-                    <td class="border border-black p-1 font-bold text-red-600" style="${extraStyle}">${s.rank}</td>
-                    <td class="border border-black p-1 font-bold ${gradeColor}" style="${extraStyle}">${s.grade}</td>
+                    <td class="border border-blue-800 p-1" style="${extraStyle}">${num}</td>
+                    <td class="border border-blue-800 p-1 text-left px-1.5 font-bold break-words leading-[1.4]" style="${extraStyle}">${s.name}</td>
+                    <td class="border border-blue-800 p-1" style="${extraStyle}">${isFemale(s.gender) ? 'ស' : 'ប'}</td>
+                    <td class="border border-blue-800 p-1 font-bold text-[10.5px]" style="${extraStyle}">${formatKhmerNumber(s.total)}</td>
+                    <td class="border border-blue-800 p-1 font-bold text-[10.5px]" style="${extraStyle}">${formatKhmerNumber(s.average)}</td>
+                    <td class="border border-blue-800 p-1 font-bold text-red-600" style="${extraStyle}">${s.rank}</td>
+                    <td class="border border-blue-800 p-1 font-bold ${gradeColor}" style="${extraStyle}">${s.grade}</td>
                 `;
-            } else {
+            } else if (currentType === 'semester') {
                 return `
-                    <td class="border border-black p-1" style="${extraStyle}">${num}</td>
-                    <td class="border border-black p-1 text-left px-1 font-bold break-words leading-[1.4]" style="${extraStyle}">${s.name}</td>
-                    <td class="border border-black p-1" style="${extraStyle}">${isFemale(s.gender) ? 'ស' : 'ប'}</td>
-                    <td class="border border-black p-1 font-bold text-[10.5px]" style="${extraStyle}">${formatKhmerNumber(s.examAverage)}</td>
-                    <td class="border border-black p-1 font-bold text-[10.5px]" style="${extraStyle}">${formatKhmerNumber(s.monthlyAverage)}</td>
-                    <td class="border border-black p-1 font-bold text-[10.5px]" style="${extraStyle}">${formatKhmerNumber(s.semesterAverage)}</td>
-                    <td class="border border-black p-1 font-bold text-red-600" style="${extraStyle}">${s.rank}</td>
-                    <td class="border border-black p-1 font-bold ${gradeColor}" style="${extraStyle}">${s.grade}</td>
+                    <td class="border border-blue-800 p-1" style="${extraStyle}">${num}</td>
+                    <td class="border border-blue-800 p-1 text-left px-1 font-bold break-words leading-[1.4]" style="${extraStyle}">${s.name}</td>
+                    <td class="border border-blue-800 p-1" style="${extraStyle}">${isFemale(s.gender) ? 'ស' : 'ប'}</td>
+                    <td class="border border-blue-800 p-1 font-bold text-[10.5px]" style="${extraStyle}">${formatKhmerNumber(s.examAverage)}</td>
+                    <td class="border border-blue-800 p-1 font-bold text-[10.5px]" style="${extraStyle}">${formatKhmerNumber(s.monthlyAverage)}</td>
+                    <td class="border border-blue-800 p-1 font-bold text-[10.5px]" style="${extraStyle}">${formatKhmerNumber(s.semesterAverage)}</td>
+                    <td class="border border-blue-800 p-1 font-bold text-red-600" style="${extraStyle}">${s.rank}</td>
+                    <td class="border border-blue-800 p-1 font-bold ${gradeColor}" style="${extraStyle}">${s.grade}</td>
+                `;
+            } else if (currentType === 'yearly') {
+                return `
+                    <td class="border border-blue-800 p-1" style="${extraStyle}">${num}</td>
+                    <td class="border border-blue-800 p-1 text-left px-1 font-bold break-words leading-[1.4]" style="${extraStyle}">${s.name}</td>
+                    <td class="border border-blue-800 p-1" style="${extraStyle}">${isFemale(s.gender) ? 'ស' : 'ប'}</td>
+                    <td class="border border-blue-800 p-1 font-bold text-[10.5px]" style="${extraStyle}">${formatKhmerNumber(s.sem1Average)}</td>
+                    <td class="border border-blue-800 p-1 font-bold text-[10.5px]" style="${extraStyle}">${formatKhmerNumber(s.sem2Average)}</td>
+                    <td class="border border-blue-800 p-1 font-bold text-[10.5px]" style="${extraStyle}">${formatKhmerNumber(s.yearlyAverage)}</td>
+                    <td class="border border-blue-800 p-1 font-bold text-red-600" style="${extraStyle}">${s.rank}</td>
+                    <td class="border border-blue-800 p-1 font-bold ${gradeColor}" style="${extraStyle}">${s.grade}</td>
                 `;
             }
         }

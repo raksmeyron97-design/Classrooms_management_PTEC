@@ -119,6 +119,25 @@
         .input-score:focus { border-color: #4f46e5; background: white; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1); }
         .input-score::placeholder { color: #cbd5e1; font-weight: normal; }
 
+        /* Select Score input for behavior */
+        .select-score {
+            width: 100%; 
+            max-width: 95px;
+            text-align: center; 
+            text-align-last: center;
+            padding: 0.4rem; 
+            border-radius: 0.375rem; 
+            border: 1px solid #e2e8f0; 
+            outline: none; 
+            transition: all 0.2s; 
+            font-weight: bold;
+            color: #15803d; /* Green color to distinguish */
+            background: #f8fafc;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .select-score:focus { border-color: #15803d; background: white; box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.1); }
+
         .type-btn {
             padding: 0.6rem 1rem;
             border-radius: 0.5rem;
@@ -352,6 +371,9 @@
                 <option value="kh_write">សមត្ថភាពសរសេរ</option>
                 <option value="kh_read">សមត្ថភាពអាន</option>
                 <option value="kh_speak">សមត្ថភាពនិយាយ</option>
+                <option value="kh_calligraphy">អក្សរផ្ចង់</option>
+                <option value="kh_recitation">មេសូត្រ</option>
+                <option value="kh_essay">តែងសេចក្តី</option>
             </optgroup>
             <optgroup label="គណិតវិទ្យា">
                 <option value="math_general">គណិតវិទ្យា (គ្រប់ផ្នែក)</option>
@@ -362,11 +384,12 @@
                 <option value="math_stat">ស្ថិតិ</option>
             </optgroup>
             <optgroup label="វិទ្យាសាស្ត្រ">
-                <option value="science_all">វិទ្យាសាស្ត្រ (រូប,គីមី,ជីវៈ,ផែនដី)</option>
+                <option value="science_all">វិទ្យាសាស្ត្រ (រូប,គីមី,ជីវៈ,ផែនដី,អនុវត្តន៍)</option>
                 <option value="sci_phy">រូបវិទ្យា</option>
                 <option value="sci_chem">គីមីវិទ្យា</option>
                 <option value="sci_bio">ជីវវិទ្យា</option>
                 <option value="sci_earth">ផែនដីវិទ្យា-បរិស្ថាន</option>
+                <option value="sci_applied">វិទ្យាសាស្ត្រអនុវត្តន៍</option>
             </optgroup>
             <optgroup label="សិក្សាសង្គម">
                 <option value="social_all">សិក្សាសង្គម (សីល,ភូមិ,ប្រវត្តិ,គេហៈ)</option>
@@ -375,8 +398,12 @@
                 <option value="soc_hist">ប្រវត្តិវិទ្យា</option>
                 <option value="soc_home">គេហវិទ្យា-អប់រំសិល្បៈ</option>
             </optgroup>
+            <optgroup label="អប់រំសុខភាព">
+                <option value="health_all">អប់រំសុខភាព (គ្រប់ផ្នែក)</option>
+                <option value="pe_sport">អប់រំកាយ និងកីឡា</option>
+                <option value="health_hygiene">សុខភាព និងអនាម័យ</option>
+            </optgroup>
             <optgroup label="មុខវិជ្ជាផ្សេងៗ">
-                <option value="pe_sport">អប់រំកាយ-កីឡា</option>
                 <option value="life_skill">អប់រំបំណិនជីវិត</option>
                 <option value="foreign">ភាសាបរទេស</option>
             </optgroup>
@@ -390,26 +417,39 @@
 
         const semesterOptionsHTML = `
             <option value="" disabled selected>ជ្រើសរើសមុខវិជ្ជា...</option>
-            <option value="sem_moral_civics">សីលធម៌-ពលរដ្ឋវិជ្ជា</option>
-            <option value="sem_geo">ភូមិវិទ្យា</option>
-            <option value="sem_hist">ប្រវត្តិវិទ្យា</option>
-            <option value="sem_home_arts">គេហវិទ្យា-អប់រំសិល្បៈ</option>
-            <option value="sem_life_skills">អប់រំបំណិនជីវិត</option>
-            <option value="sem_foreign">ភាសាបរទេស</option>
-            <option value="sem_kh_reading_speaking">អំណាន ស្តាប់ និង និយាយ</option>
-            <option value="sem_kh_dictation">សរសេរតាមអាន</option>
-            <option value="sem_kh_essay">តែងសេចក្តី</option>
-            <option value="sem_math">គណិតវិទ្យា</option>
-            <option value="sem_science">វិទ្យាសាស្ត្រ</option>
-            <option value="sem_sport">អប់រំកាយ-សុខភាព</option>
+            <optgroup label="មុខវិជ្ជាសិក្សា">
+                <option value="sem_moral_civics">សីលធម៌-ពលរដ្ឋវិជ្ជា</option>
+                <option value="sem_geo">ភូមិវិទ្យា</option>
+                <option value="sem_hist">ប្រវត្តិវិទ្យា</option>
+                <option value="sem_home_arts">គេហវិទ្យា-អប់រំសិល្បៈ</option>
+                <option value="sem_life_skills">អប់រំបំណិនជីវិត</option>
+                <option value="sem_foreign">ភាសាបរទេស</option>
+                <option value="sem_kh_reading_speaking">អំណាន ស្តាប់ និង និយាយ</option>
+                <option value="sem_kh_dictation">សរសេរតាមអាន</option>
+                <option value="sem_kh_essay">តែងសេចក្តី</option>
+                <option value="sem_math">គណិតវិទ្យា</option>
+                <option value="sem_science">វិទ្យាសាស្ត្រ</option>
+                <option value="sem_sport">អប់រំកាយ-សុខភាព</option>
+            </optgroup>
+            <optgroup label="ការវាយតម្លៃអាកប្បកិរិយា">
+                <option value="sem_behavior_all">វាយតម្លៃរួមទាំង៣ (បំណិន, សីលធម៌, សាមគ្គីភាព)</option>
+                <option value="sem_eval_skill">បំណិន-ចំណេះធ្វើ</option>
+                <option value="sem_eval_moral">តម្លៃ-សីលធម៌</option>
+                <option value="sem_eval_participate">សាមគ្គីភាព-ការចូលរួម</option>
+            </optgroup>
         `;
+
+        const behaviorOptions = ['ល្អ', 'ល្អបង្គួរ', 'មធ្យម', 'ខ្សោយ'];
 
         const subjectConfigs = {
             'khmer_all': [
                 { id: 'kh_listen', label: 'ស្តាប់', width: '80px' },
                 { id: 'kh_speak', label: 'និយាយ', width: '80px' },
                 { id: 'kh_read', label: 'អាន', width: '80px' },
-                { id: 'kh_write', label: 'សរសេរ', width: '80px' }
+                { id: 'kh_write', label: 'សរសេរ', width: '80px' },
+                { id: 'kh_calligraphy', label: 'អក្សរផ្ចង់', width: '80px' },
+                { id: 'kh_recitation', label: 'មេសូត្រ', width: '80px' },
+                { id: 'kh_essay', label: 'តែងសេចក្តី', width: '80px' }
             ],
             'math_general': [
                 { id: 'math_num', label: 'ចំនួន', width: '70px' },
@@ -422,7 +462,8 @@
                 { id: 'sci_phy', label: 'រូប', width: '80px' },
                 { id: 'sci_chem', label: 'គីមី', width: '80px' },
                 { id: 'sci_bio', label: 'ជីវៈ', width: '80px' },
-                { id: 'sci_earth', label: 'ផែនដី', width: '80px' }
+                { id: 'sci_earth', label: 'ផែនដី', width: '80px' },
+                { id: 'sci_applied', label: 'អនុវត្តន៍', width: '80px' }
             ],
             'social_all': [
                 { id: 'soc_ethic', label: 'សីលធម៌', width: '80px' },
@@ -430,24 +471,39 @@
                 { id: 'soc_hist', label: 'ប្រវត្តិ', width: '80px' },
                 { id: 'soc_home', label: 'គេហៈ', width: '80px' }
             ],
+            'health_all': [
+                { id: 'pe_sport', label: 'អប់រំកាយ', width: '100px' },
+                { id: 'health_hygiene', label: 'សុខភាព', width: '100px' }
+            ],
+
             'kh_listen': [{ id: 'kh_listen', label: 'ស្តាប់', width: '120px' }],
             'kh_speak': [{ id: 'kh_speak', label: 'និយាយ', width: '120px' }],
             'kh_read': [{ id: 'kh_read', label: 'អាន', width: '120px' }],
             'kh_write': [{ id: 'kh_write', label: 'សរសេរ', width: '120px' }],
+            'kh_calligraphy': [{ id: 'kh_calligraphy', label: 'អក្សរផ្ចង់', width: '120px' }],
+            'kh_recitation': [{ id: 'kh_recitation', label: 'មេសូត្រ', width: '120px' }],
+            'kh_essay': [{ id: 'kh_essay', label: 'តែងសេចក្តី', width: '120px' }],
+
             'math_num': [{ id: 'math_num', label: 'ចំនួន', width: '120px' }],
             'math_meas': [{ id: 'math_meas', label: 'រង្វាស់', width: '120px' }],
             'math_geo': [{ id: 'math_geo', label: 'ធរណី', width: '120px' }],
             'math_alg': [{ id: 'math_alg', label: 'ពីជគណិត', width: '120px' }],
             'math_stat': [{ id: 'math_stat', label: 'ស្ថិតិ', width: '120px' }],
+
             'sci_phy': [{ id: 'sci_phy', label: 'រូបវិទ្យា', width: '120px' }],
             'sci_chem': [{ id: 'sci_chem', label: 'គីមីវិទ្យា', width: '120px' }],
             'sci_bio': [{ id: 'sci_bio', label: 'ជីវវិទ្យា', width: '120px' }],
             'sci_earth': [{ id: 'sci_earth', label: 'ផែនដីវិទ្យា', width: '120px' }],
+            'sci_applied': [{ id: 'sci_applied', label: 'វិទ្យាសាស្ត្រអនុវត្តន៍', width: '120px' }],
+
             'soc_ethic': [{ id: 'soc_ethic', label: 'សីលធម៌', width: '120px' }],
             'soc_geo': [{ id: 'soc_geo', label: 'ភូមិវិទ្យា', width: '120px' }],
             'soc_hist': [{ id: 'soc_hist', label: 'ប្រវត្តិវិទ្យា', width: '120px' }],
             'soc_home': [{ id: 'soc_home', label: 'គេហវិទ្យា', width: '120px' }],
+
             'pe_sport': [{ id: 'pe_sport', label: 'អប់រំកាយ', width: '120px' }],
+            'health_hygiene': [{ id: 'health_hygiene', label: 'សុខភាព និងអនាម័យ', width: '120px' }],
+
             'life_skill': [{ id: 'life_skill', label: 'បំណិនជីវិត', width: '120px' }],
             'foreign': [{ id: 'foreign', label: 'ភាសាបរទេស', width: '120px' }],
             'ex_oral': [{ id: 'ex_oral', label: 'សំណួរផ្ទាល់មាត់', width: '120px' }],
@@ -466,7 +522,17 @@
             'sem_kh_essay': [{ id: 'sem_kh_essay', label: 'តែងសេចក្តី', width: '150px' }],
             'sem_math': [{ id: 'sem_math', label: 'គណិតវិទ្យា', width: '150px' }],
             'sem_science': [{ id: 'sem_science', label: 'វិទ្យាសាស្ត្រ', width: '150px' }],
-            'sem_sport': [{ id: 'sem_sport', label: 'អប់រំកាយ-សុខភាព', width: '150px' }]
+            'sem_sport': [{ id: 'sem_sport', label: 'អប់រំកាយ-សុខភាព', width: '150px' }],
+
+            // Behavioral Evaluations for Semester
+            'sem_behavior_all': [
+                { id: 'sem_eval_skill', label: 'បំណិន-ចំណេះធ្វើ', width: '110px', type: 'select', options: behaviorOptions },
+                { id: 'sem_eval_moral', label: 'តម្លៃ-សីលធម៌', width: '110px', type: 'select', options: behaviorOptions },
+                { id: 'sem_eval_participate', label: 'សាមគ្គីភាព-ការចូលរួម', width: '110px', type: 'select', options: behaviorOptions }
+            ],
+            'sem_eval_skill': [{ id: 'sem_eval_skill', label: 'បំណិន-ចំណេះធ្វើ', width: '150px', type: 'select', options: behaviorOptions }],
+            'sem_eval_moral': [{ id: 'sem_eval_moral', label: 'តម្លៃ-សីលធម៌', width: '150px', type: 'select', options: behaviorOptions }],
+            'sem_eval_participate': [{ id: 'sem_eval_participate', label: 'សាមគ្គីភាព-ការចូលរួម', width: '150px', type: 'select', options: behaviorOptions }]
         };
 
         const allMonthsMap = [
@@ -725,16 +791,34 @@
 
                 columns.forEach(col => {
                     const val = studentScores[col.id] !== undefined ? studentScores[col.id] : '';
-                    inputsHTML += `
-                        <td class="text-center px-1">
-                            <input type="number" 
-                                class="input-score" 
-                                placeholder="-" 
-                                min="0" max="100"
-                                value="${val}"
-                                onchange="cacheScore('${s.id}', '${col.id}', this.value)">
-                        </td>
-                    `;
+                    
+                    if (col.type === 'select') {
+                        let optionsHtml = `<option value="">-</option>`;
+                        col.options.forEach(opt => {
+                            const selected = val === opt ? 'selected' : '';
+                            optionsHtml += `<option value="${opt}" ${selected}>${opt}</option>`;
+                        });
+                        
+                        inputsHTML += `
+                            <td class="text-center px-1">
+                                <select class="select-score" 
+                                    onchange="cacheScoreText('${s.id}', '${col.id}', this.value)">
+                                    ${optionsHtml}
+                                </select>
+                            </td>
+                        `;
+                    } else {
+                        inputsHTML += `
+                            <td class="text-center px-1">
+                                <input type="number" 
+                                    class="input-score" 
+                                    placeholder="-" 
+                                    min="0" max="100"
+                                    value="${val}"
+                                    onchange="cacheScore('${s.id}', '${col.id}', this.value)">
+                            </td>
+                        `;
+                    }
                 });
 
                 const photoSrc = s.photo || 'https://api.dicebear.com/7.x/notionists/svg?seed=' + s.id;
@@ -768,6 +852,12 @@
         window.cacheScore = function(studentId, subjectId, value) {
             if (!scoresData[studentId]) scoresData[studentId] = {};
             scoresData[studentId][subjectId] = value === '' ? 0 : parseFloat(value);
+        }
+
+        // មុខងារសម្រាប់រក្សាទុកពិន្ទុប្រភេទជាអក្សរ (Text)
+        window.cacheScoreText = function(studentId, subjectId, value) {
+            if (!scoresData[studentId]) scoresData[studentId] = {};
+            scoresData[studentId][subjectId] = value;
         }
 
         window.showPhoto = function(src) {

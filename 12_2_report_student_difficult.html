@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - របាយការណ៍ជួយសិស្សប្រចាំខែ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    
+    <style>
+        :root { --primary: #0054a6; --secondary: #3b82f6; }
+        
+        body { font-family: 'Battambang', cursive; background: #f0f4f8; min-height: 100vh; margin: 0; color: #1e293b; }
+        .kh-moul { font-family: 'Moul', cursive; }
+
+        /* Background Animation */
+        .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 10% 20%, #e0e7ff 0%, transparent 40%), radial-gradient(circle at 90% 80%, #dcfce7 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 50%); animation: moveBg 20s infinite alternate ease-in-out; }
+        @keyframes moveBg { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        /* Form Control */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            outline: none;
+            background: #f8fafc;
+            font-family: 'Battambang', cursive;
+            transition: all 0.2s;
+            font-weight: 700;
+        }
+        .input-field:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(0, 84, 166, 0.1); }
+        
+        .sig-image-box { margin-top: 5px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; transition: height 0.2s ease;}
+        .sig-image-box img { max-height: 100%; max-width: 250px; object-fit: contain; mix-blend-mode: multiply; pointer-events: none; }
+        .teacher-name-final { font-family: 'Moul', cursive; font-size: 11pt; margin-top: 5px; display: block; text-align: center; position: relative; z-index: 10; color: #16a34a !important; }
+
+        /* --- សម្រាប់ទិដ្ឋភាពក្រដាសបោះពុម្ព (Print UI) --- */
+        .page-a4 {
+            width: 297mm; /* A4 Landscape */
+            padding: 10mm 15mm; 
+            margin: 0 auto 20px auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            position: relative;
+        }
+        
+        .report-table { width: 100%; border-collapse: collapse; font-size: 10.5pt; margin-top: 5px; }
+        
+        /* ពណ៌តាមរូបភាព Screenshot */
+        .report-table th, .report-table td { 
+            border: 1.5px solid #0000ff; /* Blue Border */
+            padding: 4px; 
+            text-align: center; 
+            vertical-align: middle; 
+            height: 28px; /* Force minimum height for consistency */
+        }
+        
+        .report-table th { 
+            color: #16a34a; /* Green Header Text */
+            font-family: 'Battambang', cursive; 
+            font-weight: bold; 
+        }
+        
+        .report-table td {
+            color: #0000ff; /* Blue Data Text */
+            font-weight: bold;
+        }
+        
+        .report-table td.text-left { text-align: left; padding-left: 8px; }
+        
+        .header-green { color: #16a34a; font-weight: bold; }
+        .title-red { color: #ff0000; text-decoration: underline; text-underline-offset: 4px; }
+        .text-blue { color: #0000ff; }
+
+        /* លាក់ Border សម្រាប់ Row ហត្ថលេខា */
+        .no-border-row td { border: none !important; }
+
+        @media screen { 
+            .print-only { display: none; } 
+        }
+
+        /* Browser Print Styles */
+        @media print {
+            @page { size: A4 landscape; margin: 0 !important; }
+            body, html { background: white !important; margin: 0 !important; padding: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .screen-only { display: none !important; }
+            .print-only { display: block !important; }
+            .bg-animate { display: none; }
+            .page-a4 { 
+                box-shadow: none !important; 
+                margin: 0 !important; 
+                width: 297mm !important; 
+                padding: 10mm 15mm !important;
+                page-break-after: always; 
+                border: none !important; 
+            }
+            .report-table th, .report-table td { border-color: #0000ff !important; }
+            .report-table th { color: #16a34a !important; }
+            .report-table td { color: #0000ff !important; }
+            .title-red { color: #ff0000 !important; }
+            .header-green { color: #16a34a !important; }
+        }
+    </style>
+</head>
+<body spellcheck="false">
+
+    <div class="bg-animate screen-only"></div>
+
+    <!-- វគ្គទី ១៖ ទិដ្ឋភាពលើអេក្រង់ (Web UI) -->
+    <div class="screen-only flex flex-col min-h-screen">
+        
+        <!-- Navigation Bar -->
+        <nav class="bg-green-700 text-white p-4 shadow-lg sticky top-0 z-50">
+            <div class="container mx-auto flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <h1 class="kh-moul text-xl hidden sm:block ml-2">របាយការណ៍ជួយសិស្សប្រចាំខែ</h1>
+                </div>
+                <div class="text-sm font-bold flex items-center gap-2 sm:gap-4">
+                    <button onclick="window.toggleSettings()" class="hover:text-green-200 transition-colors flex items-center gap-1 bg-white/20 px-3 py-1.5 rounded-md">
+                        <i data-lucide="settings" class="w-4 h-4"></i> ការកំណត់
+                    </button>
+                    <button onclick="window.print()" class="hover:text-green-200 transition-colors flex items-center gap-1 bg-white/10 px-3 py-1.5 rounded-md hidden sm:flex">
+                        <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ព
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Screen Content -->
+        <div id="mainScreen" class="flex-1 pt-6 px-4 relative">
+            <div class="max-w-7xl mx-auto w-full pb-20">
+                
+                <!-- ផ្នែកកំណត់ក្បាលរបាយការណ៍និងហត្ថលេខា -->
+                <div id="settingsBox" class="hidden bg-green-50 border border-green-100 p-5 md:p-6 rounded-2xl mb-8 shadow-sm transition-all duration-300">
+                    <div class="flex items-center justify-between mb-5">
+                        <h4 class="text-sm font-bold text-green-800 flex items-center gap-2">
+                            <i data-lucide="settings" class="w-5 h-5"></i> ការកំណត់ទម្រង់បោះពុម្ព
+                        </h4>
+                        <button type="button" onclick="window.toggleSettings()" class="text-slate-400 hover:text-slate-600 transition p-1">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-green-50 shadow-sm">
+                            <h5 class="text-xs font-bold text-green-600 mb-3 border-b pb-2">១. ព័ត៌មានទូទៅ</h5>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-2">ខែរបាយការណ៍</label>
+                                    <select id="reportMonth" class="input-field py-2 px-3 text-sm" onchange="window.updateSettings()">
+                                        <option value="មករា">មករា</option>
+                                        <option value="កុម្ភៈ">កុម្ភៈ</option>
+                                        <option value="មីនា">មីនា</option>
+                                        <option value="មេសា">មេសា</option>
+                                        <option value="ឧសភា">ឧសភា</option>
+                                        <option value="មិថុនា">មិថុនា</option>
+                                        <option value="កក្កដា">កក្កដា</option>
+                                        <option value="សីហា">សីហា</option>
+                                        <option value="កញ្ញា">កញ្ញា</option>
+                                        <option value="តុលា">តុលា</option>
+                                        <option value="វិច្ឆិកា">វិច្ឆិកា</option>
+                                        <option value="ធ្នូ">ធ្នូ</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-2">ទីតាំង (ធ្វើនៅ)</label>
+                                    <input type="text" id="locationInput" placeholder="ឧ. ភ្នំពេញ..." class="input-field py-2 px-3 text-sm" onchange="window.updateSettings()">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">អង្គភាពគ្រប់គ្រង ១ (ឧ. ការិយាល័យ)</label>
+                                <input type="text" id="unit1Input" placeholder="មន្ទីរអប់រំ..." class="input-field py-2 px-3 text-sm" onchange="window.updateSettings()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">អង្គភាពគ្រប់គ្រង ២ (ឧ. កម្រង)</label>
+                                <input type="text" id="unit2Input" placeholder="ការិយាល័យ អ.យ.ក..." class="input-field py-2 px-3 text-sm" onchange="window.updateSettings()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2">ឈ្មោះសាលា</label>
+                                <input type="text" id="schoolInput" placeholder="សាលាបឋមសិក្សា..." class="input-field py-2 px-3 text-sm" onchange="window.updateSettings()">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-2">លេខលិខិត</label>
+                                    <input type="text" id="docNumberInput" placeholder="លេខ..." class="input-field py-2 px-3 text-sm" onchange="window.updateSettings()">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-2">ថ្ងៃចុះហត្ថលេខា</label>
+                                    <input type="date" id="signDateInput" class="input-field py-2 px-3 text-sm" onchange="window.updateSettings()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- នាយកសាលា -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-green-50 shadow-sm">
+                            <h5 class="text-xs font-bold text-green-600 mb-3 border-b pb-2">២. អ្នកគ្រប់គ្រងសាលា</h5>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">តួនាទីអ្នកគ្រប់គ្រង</label>
+                                <input type="text" id="managerRoleInput" placeholder="ឧ. នាយកសាលា..." class="input-field py-2 px-3 text-sm" onchange="window.updateSettings()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះអ្នកគ្រប់គ្រង</label>
+                                <input type="text" id="managerNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2 px-3 text-sm" onchange="window.updateSettings()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា / ត្រា</label>
+                                <input type="file" id="managerSignatureInput" accept="image/*" class="text-xs text-slate-500 w-full mb-2" onchange="window.handleSignatureUpload('manager')">
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="window.removeSignature('manager')" class="text-rose-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    <div id="managerSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-slate-50 border rounded"></div>
+                                    <div class="flex-1 px-2 flex items-center gap-2 hidden" id="managerZoomContainer">
+                                        <i data-lucide="zoom-out" class="w-3 h-3 text-slate-400"></i>
+                                        <input type="range" id="managerSigZoom" min="30" max="150" value="60" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600" oninput="window.updateSigZoom('manager')">
+                                        <i data-lucide="zoom-in" class="w-3 h-3 text-slate-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- គ្រូបន្ទុកថ្នាក់ -->
+                        <div class="space-y-4 bg-white p-5 rounded-xl border border-green-50 shadow-sm">
+                            <h5 class="text-xs font-bold text-green-600 mb-3 border-b pb-2">៣. គ្រូបន្ទុកថ្នាក់</h5>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">ឈ្មោះគ្រូបន្ទុកថ្នាក់</label>
+                                <input type="text" id="teacherNameInput" placeholder="វាយបញ្ចូលឈ្មោះ..." class="input-field py-2 px-3 text-sm" onchange="window.updateSettings()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-2 ml-1">រូបភាពហត្ថលេខា</label>
+                                <input type="file" id="teacherSignatureInput" accept="image/*" class="text-xs text-slate-500 w-full mb-2" onchange="window.handleSignatureUpload('teacher')">
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="window.removeSignature('teacher')" class="text-rose-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    <div id="teacherSigPreview" class="h-10 w-16 flex items-center justify-center overflow-hidden bg-slate-50 border rounded"></div>
+                                    <div class="flex-1 px-2 flex items-center gap-2 hidden" id="teacherZoomContainer">
+                                        <i data-lucide="zoom-out" class="w-3 h-3 text-slate-400"></i>
+                                        <input type="range" id="teacherSigZoom" min="30" max="150" value="60" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600" oninput="window.updateSigZoom('teacher')">
+                                        <i data-lucide="zoom-in" class="w-3 h-3 text-slate-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 md:p-8 mb-8">
+                    
+                    <!-- Input Form -->
+                    <div class="bg-green-50/95 backdrop-blur-xl border border-green-200 p-5 rounded-2xl mb-8 shadow-sm transition-all">
+                        
+                        <div class="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-3 border-b border-green-100 pb-3">
+                            <h3 class="font-bold text-gray-700 flex items-center gap-2" id="formTitle">
+                                <i data-lucide="gift" class="w-5 h-5 text-green-600"></i> កត់ត្រាសម្ភារៈជួយសិស្ស
+                            </h3>
+                        </div>
+
+                        <form id="recordForm">
+                            <input type="hidden" id="editId" value="">
+                            
+                            <!-- ព័ត៌មានសិស្ស -->
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
+                                <div class="md:col-span-8">
+                                    <label class="block text-sm font-bold text-gray-600 mb-1">ឈ្មោះសិស្ស <span class="text-red-500">*</span></label>
+                                    <input type="text" id="studentName" list="studentNamesList" required placeholder="ជ្រើសរើស ឬ វាយបញ្ចូលឈ្មោះសិស្ស..." class="input-field">
+                                    <datalist id="studentNamesList"></datalist>
+                                </div>
+                                <div class="md:col-span-4">
+                                    <label class="block text-sm font-bold text-gray-600 mb-1">ភេទ</label>
+                                    <select id="gender" class="input-field">
+                                        <option value="ប្រុស">ប្រុស (ប)</option>
+                                        <option value="ស្រី">ស្រី (ស)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- សម្ភារៈ -->
+                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">សៀវភៅសរសេរ (ក្បាល)</label>
+                                    <input type="number" id="itemBook" min="0" class="input-field py-2 px-3 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">ប៊ិច (ដើម)</label>
+                                    <input type="number" id="itemPen" min="0" class="input-field py-2 px-3 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">ខ្មៅដៃ (ដើម)</label>
+                                    <input type="number" id="itemPencil" min="0" class="input-field py-2 px-3 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">បន្ទាត់ (ដើម)</label>
+                                    <input type="number" id="itemRuler" min="0" class="input-field py-2 px-3 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">កាបូប</label>
+                                    <input type="number" id="itemBag" min="0" class="input-field py-2 px-3 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">សម្លៀកបំពាក់</label>
+                                    <input type="text" id="itemClothes" placeholder="ឧ. ១កំប្លេ..." class="input-field py-2 px-3 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">ថវិកា</label>
+                                    <input type="text" id="itemBudget" placeholder="ឧ. 10000..." class="input-field py-2 px-3 text-sm">
+                                </div>
+                                <div class="col-span-2 lg:col-span-3">
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">ផ្សេងៗ</label>
+                                    <input type="text" id="itemOthers" placeholder="..." class="input-field py-2 px-3 text-sm">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end gap-2 mt-2">
+                                <button type="button" id="btnCancel" onclick="window.resetForm()" class="hidden bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-xl transition shadow">
+                                    បោះបង់
+                                </button>
+                                <button type="submit" id="btnSave" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-xl transition shadow flex items-center gap-2">
+                                    <i data-lucide="check" class="w-4 h-4"></i> បញ្ចូលទិន្នន័យ
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-gray-700 flex items-center gap-2">
+                            <i data-lucide="list" class="w-5 h-5 text-blue-600"></i> តារាងទិន្នន័យ (<span id="totalStudentsCount">0</span> នាក់)
+                        </h3>
+                        <div class="flex gap-2">
+                            <button onclick="window.deleteAllRecords()" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-xl font-bold transition shadow-sm flex items-center gap-2 text-sm border border-red-200">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i> លុបទាំងអស់
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Data Table -->
+                    <div class="overflow-x-auto rounded-xl border border-gray-200">
+                        <table class="w-full text-[13px] text-center whitespace-nowrap">
+                            <thead class="bg-green-50 text-green-700 font-bold border-b border-green-200">
+                                <tr>
+                                    <th class="p-2 w-10 border-r border-green-200">ល.រ</th>
+                                    <th class="p-2 text-left min-w-[150px] border-r border-green-200">ឈ្មោះសិស្ស</th>
+                                    <th class="p-2 border-r border-green-200">ភេទ</th>
+                                    <th class="p-2 border-r border-green-200">សៀវភៅសរសេរ</th>
+                                    <th class="p-2 border-r border-green-200">ប៊ិច</th>
+                                    <th class="p-2 border-r border-green-200">ខ្មៅដៃ</th>
+                                    <th class="p-2 border-r border-green-200">បន្ទាត់</th>
+                                    <th class="p-2 border-r border-green-200">កាបូប</th>
+                                    <th class="p-2 border-r border-green-200">សម្លៀកបំពាក់</th>
+                                    <th class="p-2 border-r border-green-200">ថវិកា</th>
+                                    <th class="p-2 border-r border-green-200">ផ្សេងៗ</th>
+                                    <th class="p-2 w-20">គ្រប់គ្រង</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTableBody" class="bg-white divide-y divide-gray-100">
+                                <!-- Items will be generated here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- វគ្គទី ២៖ ទិដ្ឋភាពបោះពុម្ព (Print UI) -->
+    <div class="print-only">
+        <div id="print-pages-container" class="w-full flex flex-col items-center">
+            <!-- Data pages injected here by JS automatically -->
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+        let globalStudentsList = []; 
+        let records = [];
+        let classConfig = {
+            month: "មករា",
+            unit1: "",
+            unit2: "",
+            schoolName: "",
+            location: "",
+            docNumber: "",
+            signDate: new Date().toISOString().split('T')[0],
+            managerRole: "នាយកសាលា",
+            managerName: "",
+            teacherName: "",
+            managerSigZoom: 60,
+            teacherSigZoom: 60
+        };
+
+        const khDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+        const khMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+        
+        function toKhmerNum(num) { 
+            if (num === undefined || num === null || num === '' || num === 0) return '';
+            return num.toString().split('').map(d => khDigits[d] || d).join(''); 
+        }
+
+        function formatKhmerCurrency(value) {
+            if (!value) return '';
+            const khmerToArabic = {'០':'0','១':'1','២':'2','៣':'3','៤':'4','៥':'5','៦':'6','៧':'7','៨':'8','៩':'9'};
+            let cleanVal = value.toString().replace(/[០-៩]/g, m => khmerToArabic[m]);
+            cleanVal = cleanVal.replace(/[, ៛]/g, '').trim();
+            if (!isNaN(cleanVal) && cleanVal !== '') {
+                const num = parseInt(cleanVal, 10);
+                const formattedNum = num.toLocaleString('en-US'); 
+                return toKhmerNum(formattedNum) + '៛';
+            }
+            return value;
+        }
+
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if(window.lucide) window.lucide.createIcons();
+            loadLocalSettings();
+            
+            initAuth().then(() => {
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUser = user;
+                        fetchGlobalSettings(); 
+                        fetchStudentsFromFirebase();
+                        setupRecordsListener();
+                    }
+                });
+            });
+
+            document.getElementById('studentName').addEventListener('input', function() {
+                const selectedName = this.value.trim();
+                const student = globalStudentsList.find(s => s.name.trim() === selectedName);
+                if (student && student.gender) {
+                    document.getElementById('gender').value = student.gender;
+                }
+            });
+        });
+
+        async function fetchGlobalSettings() {
+            try {
+                const settingsRef = doc(db, "school_data", "general_settings");
+                const docSnap = await getDoc(settingsRef);
+                if (docSnap.exists()) {
+                    applyGlobalSettings(docSnap.data());
+                } else {
+                    const appSettingsStr = localStorage.getItem('app_settings');
+                    if (appSettingsStr) {
+                        applyGlobalSettings(JSON.parse(appSettingsStr));
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching global settings:", error);
+                const appSettingsStr = localStorage.getItem('app_settings');
+                if (appSettingsStr) applyGlobalSettings(JSON.parse(appSettingsStr));
+            }
+        }
+
+        function applyGlobalSettings(settings) {
+            let updated = false;
+            if (settings.unit1 !== undefined) {
+                classConfig.unit1 = settings.unit1;
+                if(document.getElementById('unit1Input')) document.getElementById('unit1Input').value = classConfig.unit1;
+                updated = true;
+            }
+            if (settings.unit2 !== undefined) {
+                classConfig.unit2 = settings.unit2;
+                if(document.getElementById('unit2Input')) document.getElementById('unit2Input').value = classConfig.unit2;
+                updated = true;
+            }
+            if (settings.schoolName !== undefined) {
+                classConfig.schoolName = settings.schoolName;
+                if(document.getElementById('schoolInput')) document.getElementById('schoolInput').value = classConfig.schoolName;
+                updated = true;
+            }
+            if (settings.location !== undefined) {
+                classConfig.location = settings.location;
+                if(document.getElementById('locationInput')) document.getElementById('locationInput').value = classConfig.location;
+                updated = true;
+            }
+            if (settings.teacherName !== undefined) {
+                classConfig.teacherName = settings.teacherName;
+                if(document.getElementById('teacherNameInput')) document.getElementById('teacherNameInput').value = classConfig.teacherName;
+                updated = true;
+            }
+            if (settings.managerRole !== undefined) {
+                classConfig.managerRole = settings.managerRole;
+                if(document.getElementById('managerRoleInput')) document.getElementById('managerRoleInput').value = classConfig.managerRole;
+                updated = true;
+            }
+            if (updated) {
+                localStorage.setItem('ptec_support_settings', JSON.stringify(classConfig));
+                renderPrintPages();
+            }
+        }
+
+        async function fetchStudentsFromFirebase() {
+            if (!currentUser) return;
+            try {
+                const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
+                const snapshot = await getDocs(studentsRef);
+                globalStudentsList = [];
+                snapshot.forEach(doc => {
+                    globalStudentsList.push(doc.data());
+                });
+                updateStudentDatalist();
+            } catch (error) {
+                console.error("Error fetching students:", error);
+            }
+        }
+
+        function setupRecordsListener() {
+            if (!currentUser) return;
+            const recordsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'student_support_records');
+            
+            onSnapshot(recordsRef, (snapshot) => {
+                records = [];
+                snapshot.forEach(doc => {
+                    records.push({ id: doc.id, ...doc.data() });
+                });
+                records.sort((a, b) => a.timestamp - b.timestamp);
+                renderTable();
+            }, (error) => {
+                console.error("Error fetching records:", error);
+            });
+        }
+
+        async function saveRecordToFirebase(data) {
+            if (!currentUser) return;
+            try {
+                const docId = data.id || Date.now().toString();
+                const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'student_support_records', docId);
+                await setDoc(docRef, { ...data, timestamp: data.timestamp || Date.now() });
+            } catch (error) {
+                console.error("Error saving record:", error);
+            }
+        }
+
+        async function deleteRecordFromFirebase(id) {
+            if (!currentUser) return;
+            try {
+                const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+                const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'student_support_records', id);
+                await deleteDoc(docRef);
+            } catch (error) {
+                console.error("Error deleting record:", error);
+            }
+        }
+
+        function loadLocalSettings() {
+            try {
+                const saved = localStorage.getItem('ptec_support_settings');
+                if (saved) {
+                    classConfig = { ...classConfig, ...JSON.parse(saved) };
+                }
+                const mainAppSaved = localStorage.getItem('app_settings');
+                if (mainAppSaved) {
+                    const mainSettings = JSON.parse(mainAppSaved);
+                    if (mainSettings.unit1 && !classConfig.unit1) classConfig.unit1 = mainSettings.unit1;
+                    if (mainSettings.unit2 && !classConfig.unit2) classConfig.unit2 = mainSettings.unit2;
+                    if (mainSettings.schoolName && !classConfig.schoolName) classConfig.schoolName = mainSettings.schoolName;
+                    if (mainSettings.location && !classConfig.location) classConfig.location = mainSettings.location;
+                    if (mainSettings.teacherName && !classConfig.teacherName) classConfig.teacherName = mainSettings.teacherName;
+                    if (mainSettings.managerRole && !classConfig.managerRole) classConfig.managerRole = mainSettings.managerRole;
+                }
+            } catch(e) {}
+            
+            document.getElementById('reportMonth').value = classConfig.month || "មករា";
+            document.getElementById('unit1Input').value = classConfig.unit1 || "";
+            document.getElementById('unit2Input').value = classConfig.unit2 || "";
+            document.getElementById('schoolInput').value = classConfig.schoolName || "";
+            document.getElementById('locationInput').value = classConfig.location || "";
+            document.getElementById('docNumberInput').value = classConfig.docNumber || "";
+            document.getElementById('signDateInput').value = classConfig.signDate || new Date().toISOString().split('T')[0];
+            document.getElementById('managerRoleInput').value = classConfig.managerRole || "នាយកសាលា";
+            document.getElementById('managerNameInput').value = classConfig.managerName || "";
+            document.getElementById('teacherNameInput').value = classConfig.teacherName || "";
+            document.getElementById('managerSigZoom').value = classConfig.managerSigZoom || 60;
+            document.getElementById('teacherSigZoom').value = classConfig.teacherSigZoom || 60;
+            
+            renderSignaturePreview('manager');
+            renderSignaturePreview('teacher');
+        }
+
+        window.toggleSettings = function() {
+            document.getElementById('settingsBox').classList.toggle('hidden');
+        }
+
+        window.updateSettings = function() {
+            classConfig.month = document.getElementById('reportMonth').value;
+            classConfig.unit1 = document.getElementById('unit1Input').value;
+            classConfig.unit2 = document.getElementById('unit2Input').value;
+            classConfig.schoolName = document.getElementById('schoolInput').value;
+            classConfig.location = document.getElementById('locationInput').value;
+            classConfig.docNumber = document.getElementById('docNumberInput').value;
+            classConfig.signDate = document.getElementById('signDateInput').value;
+            classConfig.managerRole = document.getElementById('managerRoleInput').value;
+            classConfig.managerName = document.getElementById('managerNameInput').value;
+            classConfig.teacherName = document.getElementById('teacherNameInput').value;
+            
+            localStorage.setItem('ptec_support_settings', JSON.stringify(classConfig));
+            renderPrintPages();
+        }
+
+        window.updateSigZoom = function(type) {
+            const zoomValue = document.getElementById(type + 'SigZoom').value;
+            if (type === 'manager') classConfig.managerSigZoom = zoomValue;
+            else classConfig.teacherSigZoom = zoomValue;
+            localStorage.setItem('ptec_support_settings', JSON.stringify(classConfig));
+            renderPrintPages();
+        }
+
+        window.handleSignatureUpload = function(type) {
+            const input = document.getElementById(type + 'SignatureInput');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (type === 'manager') classConfig.managerSignature = e.target.result;
+                    else classConfig.teacherSignature = e.target.result;
+                    localStorage.setItem('ptec_support_settings', JSON.stringify(classConfig));
+                    renderSignaturePreview(type);
+                    renderPrintPages();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        window.removeSignature = function(type) {
+            if (type === 'manager') classConfig.managerSignature = null;
+            else classConfig.teacherSignature = null;
+            localStorage.setItem('ptec_support_settings', JSON.stringify(classConfig));
+            document.getElementById(type + 'SignatureInput').value = ''; 
+            renderSignaturePreview(type);
+            renderPrintPages();
+        }
+
+        function renderSignaturePreview(type) {
+            const previewDiv = document.getElementById(type + 'SigPreview');
+            const zoomContainer = document.getElementById(type + 'ZoomContainer');
+            const sigData = type === 'manager' ? classConfig.managerSignature : classConfig.teacherSignature;
+            if (sigData) {
+                previewDiv.innerHTML = `<img src="${sigData}" class="h-full w-full object-contain">`;
+                zoomContainer.classList.remove('hidden');
+            } else {
+                previewDiv.innerHTML = `<span class="text-[10px] text-slate-400">គ្មាន</span>`;
+                zoomContainer.classList.add('hidden');
+            }
+        }
+
+        function updateStudentDatalist() {
+            const datalist = document.getElementById('studentNamesList');
+            datalist.innerHTML = '';
+            globalStudentsList.forEach(s => {
+                if (s.name) datalist.appendChild(new Option(s.name, s.name));
+            });
+        }
+
+        document.getElementById('recordForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const idInput = document.getElementById('editId').value;
+            const data = {
+                id: idInput || Date.now().toString(),
+                name: document.getElementById('studentName').value.trim(),
+                gender: document.getElementById('gender').value,
+                book: parseInt(document.getElementById('itemBook').value) || 0,
+                pen: parseInt(document.getElementById('itemPen').value) || 0,
+                pencil: parseInt(document.getElementById('itemPencil').value) || 0,
+                ruler: parseInt(document.getElementById('itemRuler').value) || 0,
+                bag: parseInt(document.getElementById('itemBag').value) || 0,
+                clothes: document.getElementById('itemClothes').value.trim(),
+                budget: document.getElementById('itemBudget').value.trim(),
+                others: document.getElementById('itemOthers').value.trim()
+            };
+
+            if (!data.name) return;
+            
+            await saveRecordToFirebase(data);
+            window.resetForm();
+        });
+
+        window.editItem = function(id) {
+            const item = records.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('editId').value = item.id;
+            document.getElementById('studentName').value = item.name;
+            document.getElementById('gender').value = item.gender || 'ប្រុស';
+            document.getElementById('itemBook').value = item.book || '';
+            document.getElementById('itemPen').value = item.pen || '';
+            document.getElementById('itemPencil').value = item.pencil || '';
+            document.getElementById('itemRuler').value = item.ruler || '';
+            document.getElementById('itemBag').value = item.bag || '';
+            document.getElementById('itemClothes').value = item.clothes || '';
+            document.getElementById('itemBudget').value = item.budget || '';
+            document.getElementById('itemOthers').value = item.others || '';
+
+            document.getElementById('formTitle').innerHTML = '<i data-lucide="edit-3" class="w-5 h-5 text-yellow-600"></i> កែប្រែព័ត៌មាន';
+            const btnSave = document.getElementById('btnSave');
+            btnSave.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> យល់ព្រម';
+            btnSave.className = "bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-xl transition shadow flex items-center gap-2";
+            document.getElementById('btnCancel').classList.remove('hidden');
+            
+            if(window.lucide) window.lucide.createIcons();
+            document.getElementById('studentName').focus();
+        }
+
+        window.deleteItem = async function(id) {
+            if (confirm("តើអ្នកពិតជាចង់លុបទិន្នន័យនេះមែនទេ?")) {
+                await deleteRecordFromFirebase(id);
+            }
+        }
+        
+        window.deleteAllRecords = async function() {
+            if (records.length === 0) return;
+            if (confirm("តើអ្នកពិតជាចង់លុបទិន្នន័យក្នុងតារាងទាំងអស់មែនទេ? (សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ)")) {
+                for (let record of records) {
+                    await deleteRecordFromFirebase(record.id);
+                }
+            }
+        }
+
+        window.resetForm = function() {
+            document.getElementById('recordForm').reset();
+            document.getElementById('editId').value = '';
+            
+            document.getElementById('formTitle').innerHTML = '<i data-lucide="gift" class="w-5 h-5 text-green-600"></i> កត់ត្រាសម្ភារៈជួយសិស្ស';
+            const btnSave = document.getElementById('btnSave');
+            btnSave.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> បញ្ចូលទិន្នន័យ';
+            btnSave.className = "bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-xl transition shadow flex items-center gap-2";
+            document.getElementById('btnCancel').classList.add('hidden'); 
+            
+            if(window.lucide) window.lucide.createIcons();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('dataTableBody');
+            document.getElementById('totalStudentsCount').innerText = toKhmerNum(records.length);
+
+            if (records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="12" class="p-6 text-center text-gray-400 font-bold">មិនទាន់មានទិន្នន័យនៅឡើយទេ</td></tr>`;
+            } else {
+                tbody.innerHTML = records.map((item, index) => `
+                    <tr class="hover:bg-blue-50 transition border-b border-gray-100">
+                        <td class="p-2 font-bold text-gray-600 border-r border-green-200">${toKhmerNum(index + 1)}</td>
+                        <td class="p-2 font-bold text-blue-700 text-left pl-4 border-r border-green-200">${item.name}</td>
+                        <td class="p-2 border-r border-green-200 text-blue-600">${item.gender === 'ស្រី' ? 'ស' : 'ប'}</td>
+                        <td class="p-2 border-r border-green-200 text-blue-600 font-bold">${toKhmerNum(item.book)}</td>
+                        <td class="p-2 border-r border-green-200 text-blue-600 font-bold">${toKhmerNum(item.pen)}</td>
+                        <td class="p-2 border-r border-green-200 text-blue-600 font-bold">${toKhmerNum(item.pencil)}</td>
+                        <td class="p-2 border-r border-green-200 text-blue-600 font-bold">${toKhmerNum(item.ruler)}</td>
+                        <td class="p-2 border-r border-green-200 text-blue-600 font-bold">${toKhmerNum(item.bag)}</td>
+                        <td class="p-2 border-r border-green-200 text-blue-600">${item.clothes || ''}</td>
+                        <td class="p-2 border-r border-green-200 text-blue-600">${formatKhmerCurrency(item.budget)}</td>
+                        <td class="p-2 border-r border-green-200 text-gray-600 text-xs">${item.others || ''}</td>
+                        <td class="p-2">
+                            <div class="flex justify-center gap-2">
+                                <button onclick="window.editItem('${item.id}')" class="p-1 bg-yellow-100 text-yellow-600 rounded hover:bg-yellow-200" title="កែប្រែ"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                                <button onclick="window.deleteItem('${item.id}')" class="p-1 bg-red-100 text-red-600 rounded hover:bg-red-200" title="លុប"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            if (window.lucide) window.lucide.createIcons();
+            renderPrintPages();
+        }
+
+        function renderPrintPages() {
+            const container = document.getElementById('print-pages-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const unit1 = classConfig.unit1 || '';
+            const unit2 = classConfig.unit2 || (classConfig.unit1 ? '' : 'ការិយាល័យអប់រំ យុវជន និងកីឡា.......................');
+            const school = classConfig.schoolName || 'សាលាបឋមសិក្សា.......................';
+            const locationStr = classConfig.location || '........';
+            const reportMonth = classConfig.month || "មករា";
+            const docNumStr = classConfig.docNumber ? `លេខ ${toKhmerNum(classConfig.docNumber)}` : 'លេខ.......................';
+
+            const rawDate = classConfig.signDate ? new Date(classConfig.signDate) : new Date();
+            const signDate = isNaN(rawDate.getTime()) ? new Date() : rawDate;
+            
+            let lunarStr = "ថ្ងៃ................ខែ..........ឆ្នាំ..........ព.ស.២៥៦...";
+            if (typeof momentkh !== 'undefined') {
+                try {
+                    const khmerDateObj = momentkh.fromDate(signDate);
+                    lunarStr = momentkh.format(khmerDateObj).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                } catch (e) { }
+            }
+            
+            const dayStr = String(signDate.getDate()).padStart(2, '0');
+            const monthStr = khMonths[signDate.getMonth()] || "......";
+            const yearStr = toKhmerNum(signDate.getFullYear()) || "២០២...";
+            const signDateStr = `ធ្វើនៅ ${locationStr} ថ្ងៃទី ${toKhmerNum(dayStr)} ខែ ${monthStr} ឆ្នាំ ${yearStr}`;
+
+            let tempRecords = [...records];
+            if (tempRecords.length < 10) {
+                const emptyCount = 10 - tempRecords.length;
+                for(let i=0; i<emptyCount; i++) tempRecords.push(null);
+            }
+
+            const ROWS_PER_PAGE = 10; 
+            let pagesChunks = [];
+            while (tempRecords.length > 0) pagesChunks.push(tempRecords.splice(0, ROWS_PER_PAGE));
+
+            // Calculate Totals
+            let sums = { book: 0, pen: 0, pencil: 0, ruler: 0, bag: 0, totalStu: 0, femaleStu: 0 };
+            records.forEach(item => {
+                if(item) {
+                    sums.totalStu++;
+                    if(item.gender === 'ស្រី') sums.femaleStu++;
+                    sums.book += item.book || 0;
+                    sums.pen += item.pen || 0;
+                    sums.pencil += item.pencil || 0;
+                    sums.ruler += item.ruler || 0;
+                    sums.bag += item.bag || 0;
+                }
+            });
+
+            pagesChunks.forEach((chunk, index) => {
+                const isFirstPage = (index === 0);
+                const isLastPage = (index === pagesChunks.length - 1);
+                let startIdx = index * ROWS_PER_PAGE;
+
+                let unit1Html = unit1 ? `<p class="kh-moul">${unit1}</p>` : '';
+                let unit2Html = unit2 ? `<p class="kh-moul">${unit2}</p>` : '';
+
+                let headerHtml = '';
+                if (isFirstPage) {
+                    const fullHeaderContent = `
+                        <div class="flex justify-between items-start w-full mb-2">
+                            <div class="header-green text-[10pt] text-left leading-relaxed w-1/3" style="margin-top: 40px;">
+                                <img src="https://lh3.googleusercontent.com/d/1X-hF4m0G-NndD-28U8qR2pI7K2nS_8G7" class="h-14 w-auto mb-1" crossorigin="anonymous" onerror="this.style.display='none'">
+                                ${unit1Html}
+                                ${unit2Html}
+                                <p class="kh-moul">${school}</p>
+                                <p>${docNumStr}</p>
+                            </div>
+                            <div class="header-green text-center w-1/3 mt-4">
+                                <h3 class="kh-moul text-[12pt] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                                <h3 class="kh-moul text-[12pt] mb-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                                <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[10px] w-auto mx-auto mt-2" crossorigin="anonymous" onerror="this.style.display='none'">
+                            </div>
+                            <div class="w-1/3"></div>
+                        </div>
+                        <div class="text-center mb-3 mt-2">
+                            <h2 class="kh-moul title-red text-[14pt]">របាយការណ៍ជួយសិស្សប្រចាំខែ${reportMonth}</h2>
+                        </div>
+                    `;
+                    headerHtml = fullHeaderContent;
+                } else {
+                    // ដក space ធំចេញ ដាក់ត្រឹមគម្លាតតូចល្មមឱ្យស្អាត
+                    headerHtml = `<div style="height: 15px;" aria-hidden="true"></div>`;
+                }
+
+                let tbodyHtml = '';
+                chunk.forEach((item, i) => {
+                    const rowNum = toKhmerNum(startIdx + i + 1);
+                    if (item) {
+                        tbodyHtml += `
+                            <tr>
+                                <td style="height: 30px;">${rowNum}</td>
+                                <td class="text-left pl-2">${item.name}</td>
+                                <td>${item.gender === 'ស្រី' ? 'ស' : 'ប'}</td>
+                                <td>${toKhmerNum(item.book)}</td>
+                                <td>${toKhmerNum(item.pen)}</td>
+                                <td>${toKhmerNum(item.pencil)}</td>
+                                <td>${toKhmerNum(item.ruler)}</td>
+                                <td>${toKhmerNum(item.bag)}</td>
+                                <td>${item.clothes || ''}</td>
+                                <td class="text-[11pt]">${formatKhmerCurrency(item.budget)}</td>
+                                <td class="text-[10pt]">${item.others || ''}</td>
+                            </tr>
+                        `;
+                    } else {
+                        tbodyHtml += `<tr><td style="height: 30px;">${rowNum}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
+                    }
+                });
+
+                let footerHtml = '';
+                if (isLastPage) {
+                    footerHtml = `
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-center header-green">សរុប</td>
+                                <td class="text-blue">${sums.book > 0 ? toKhmerNum(sums.book) : ''}</td>
+                                <td class="text-blue">${sums.pen > 0 ? toKhmerNum(sums.pen) : ''}</td>
+                                <td class="text-blue">${sums.pencil > 0 ? toKhmerNum(sums.pencil) : ''}</td>
+                                <td class="text-blue">${sums.ruler > 0 ? toKhmerNum(sums.ruler) : ''}</td>
+                                <td class="text-blue">${sums.bag > 0 ? toKhmerNum(sums.bag) : ''}</td>
+                                <td></td><td></td><td></td>
+                            </tr>
+                            <tr class="no-border-row">
+                                <td colspan="11" style="padding-top: 25px; text-align: left;">
+                                    <div class="flex justify-between w-full header-green">
+                                        <div class="text-center" style="width: 35%;">
+                                            <p class="text-[11pt] text-left mb-4">បញ្ជាក់ សិស្សទទួលបាន <span class="text-blue">${toKhmerNum(sums.totalStu)}</span> នាក់ ស្រី <span class="text-blue">${toKhmerNum(sums.femaleStu)}</span> នាក់</p>
+                                            <p class="text-[11pt] mb-2">បានឃើញ និងឯកភាព</p>
+                                            <p class="kh-moul text-[11pt]">${classConfig.managerRole || 'នាយកសាលា'}</p>
+                                            <div class="sig-image-box" style="height: ${classConfig.managerSigZoom || 60}px;">${classConfig.managerSignature ? `<img src="${classConfig.managerSignature}">` : ''}</div>
+                                            <p class="teacher-name-final">${classConfig.managerName || ''}</p>
+                                        </div>
+                                        <div class="text-center" style="width: 40%;">
+                                            <p class="text-[11pt] mb-1">${lunarStr}</p>
+                                            <p class="text-[11pt] mb-3">${signDateStr}</p> 
+                                            <p class="kh-moul text-[11pt]">គ្រូបន្ទុកថ្នាក់</p>
+                                            <div class="sig-image-box" style="height: ${classConfig.teacherSigZoom || 60}px;">${classConfig.teacherSignature ? `<img src="${classConfig.teacherSignature}">` : ''}</div>
+                                            <p class="teacher-name-final" style="margin-left: 2cm;">${classConfig.teacherName || ''}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    `;
+                } else {
+                    footerHtml = `</table>`;
+                }
+
+                container.innerHTML += `
+                    <div class="page-a4">
+                        ${headerHtml}
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th class="w-[4%]">ល.រ</th>
+                                    <th class="w-[18%]">គោត្តនាម និងនាម</th>
+                                    <th class="w-[5%]">ភេទ</th>
+                                    <th class="w-[6%]">សៀវភៅ<br>សរសេរ</th>
+                                    <th class="w-[6%]">ប៊ិច</th>
+                                    <th class="w-[6%]">ខ្មៅដៃ</th>
+                                    <th class="w-[6%]">បន្ទាត់</th>
+                                    <th class="w-[6%]">កាបូប</th>
+                                    <th class="w-[12%]">សំលៀក<br>បំពាក់</th>
+                                    <th class="w-[12%]">ថវិកា</th>
+                                    <th class="w-[19%]">ផ្សេងៗ</th>
+                                </tr>
+                            </thead>
+                            <tbody>${tbodyHtml}</tbody>
+                            ${footerHtml}
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>

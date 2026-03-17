@@ -27,10 +27,18 @@
         .suggestions-list { 
             position: absolute; width: 100%; background: white; border: 1px solid #d1d5db; 
             border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 50; 
+            top: 100%; left: 0; /* បន្ថែមបន្ទាត់នេះដើម្បីកុំឱ្យវាបាំងប្រអប់ */
             margin-top: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
             display: none; 
         }
-        .suggestion-item { padding: 8px 12px; cursor: pointer; font-size: 13px; transition: background 0.2s; border-bottom: 1px solid #f3f4f6; }
+        .suggestion-item { 
+            padding: 8px 12px; 
+            cursor: pointer; 
+            font-size: 13px; 
+            color: #1f2937; /* Explicitly set text color to dark gray */
+            transition: background 0.2s; 
+            border-bottom: 1px solid #f3f4f6; 
+        }
         .suggestion-item:last-child { border-bottom: none; }
         .suggestion-item:hover { background-color: #eff6ff; color: #4f46e5; font-weight: bold; }
 
@@ -44,9 +52,27 @@
             outline: none;
             transition: all 0.2s;
             font-family: 'Battambang', cursive;
+            color: #1f2937;
         }
+        
+        /* Fix placeholder clarity */
+        .mockup-input::placeholder {
+            color: #9ca3af;
+            opacity: 1; /* Override default browser opacity for placeholders */
+        }
+        
         .mockup-input:focus { border-color: #5a67d8; box-shadow: 0 0 0 2px rgba(90, 103, 216, 0.2); }
-        .mockup-input:disabled { background-color: #f3f4f6; cursor: not-allowed; opacity: 0.7; }
+        
+        /* Fix disabled input visibility (removed opacity: 0.7) */
+        .mockup-input:disabled { 
+            background-color: #f3f4f6; 
+            cursor: not-allowed; 
+            color: #4b5563; 
+        }
+        
+        .mockup-input:disabled::placeholder {
+            color: #6b7280; /* Darker placeholder for disabled state to improve contrast */
+        }
         
         .mockup-label {
             font-size: 13px;
@@ -117,10 +143,10 @@
     </style>
 </head>
 <body>
-    <!-- Loading Overlay for CSV -->
+    <!-- Loading Overlay for CSV / Firebase setup -->
     <div id="loadingOverlay">
         <div class="w-16 h-16 border-4 border-[#322a83] border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="kh-moul text-[#322a83] text-lg animate-pulse">កំពុងទាញយកទិន្នន័យទីតាំង...</p>
+        <p class="kh-moul text-[#322a83] text-lg animate-pulse" id="loading-text">កំពុងទាញយកទិន្នន័យទីតាំង...</p>
         <p class="text-xs text-slate-500 mt-2">សូមរង់ចាំបន្តិច</p>
     </div>
 
@@ -322,7 +348,7 @@
 
                     <label class="bg-[#df4b06] hover:bg-[#bd3f04] text-white px-6 py-2.5 rounded text-[13px] font-bold shadow-sm transition-colors cursor-pointer flex items-center gap-2">
                         <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> <span>នាំចូលឯកសារ Excel (.xlsx, .csv)</span>
-                        <input type="file" id="excelInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="importFromExcel(this)">
+                        <input type="file" id="excelInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="window.importFromExcel(this)">
                     </label>
                 </div>
             </div>
@@ -349,13 +375,36 @@
             <h3 class="kh-moul text-sm text-indigo-800 mb-3">បញ្ចូល Link រូបភាព</h3>
             <input id="photoUrlInput" type="text" class="w-full mockup-input mb-4" placeholder="https://...">
             <div class="flex gap-2">
-                <button type="button" onclick="applyPhotoUrl()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded font-bold text-sm">យល់ព្រម</button>
+                <button type="button" onclick="window.applyPhotoUrl()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded font-bold text-sm">យល់ព្រម</button>
                 <button type="button" onclick="document.getElementById('urlModal').style.display='none'" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded font-bold text-sm">បោះបង់</button>
             </div>
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+
         // System variables
         let locationMaster = {};
         let currentPhotoBase64 = ''; // Stores final base64 or URL for the student
@@ -383,16 +432,32 @@
         const currVillageList = document.getElementById('curr-village-list');
 
         const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loading-text');
         const photoPreview = document.getElementById('photoPreview');
         const defaultIcon = document.getElementById('defaultIcon');
+
+        // =======================
+        // Authentication Check
+        // =======================
+        loadingText.textContent = "កំពុងផ្ទៀងផ្ទាត់គណនី...";
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                loadingText.textContent = "កំពុងទាញយកទិន្នន័យទីតាំង...";
+                loadCSVData(); // Load data once logged in
+            } else {
+                alert('សូមចូលគណនីជាមុនសិន!');
+                window.location.href = 'index.html';
+            }
+        });
 
         // =======================
         // Photo & Avatar Logic
         // =======================
 
-        function openAvatarModal() {
+        window.openAvatarModal = function() {
             document.getElementById('avatarModal').style.display = 'flex';
-        }
+        };
 
         function generateAvatarGrid() {
             const grid = document.getElementById('avatar-grid');
@@ -425,14 +490,14 @@
             document.getElementById('avatarModal').style.display = 'none';
         }
 
-        function applyPhotoUrl() {
+        window.applyPhotoUrl = function() {
             const url = document.getElementById('photoUrlInput').value.trim();
             if(url) {
                 selectPhoto(url);
                 document.getElementById('photoUrlInput').value = '';
                 document.getElementById('urlModal').style.display = 'none';
             }
-        }
+        };
 
         // Handle File Input (Local Photo)
         document.getElementById('photoInput').addEventListener('change', function(e) {
@@ -452,14 +517,15 @@
         });
 
         // =======================
-        // Excel Import Logic
+        // Excel Import Logic (Firebase Version)
         // =======================
-        function importFromExcel(input) {
+        window.importFromExcel = async function(input) {
+            if (!currentUser) return;
             const file = input.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, {type: 'array'});
@@ -468,16 +534,21 @@
                     const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
                     if (jsonData.length > 0) {
-                        const currentStudents = JSON.parse(localStorage.getItem('students') || '[]');
-                        const newStudents = jsonData.map(row => formatStudentData(row)).filter(s => s.name); 
+                        const newStudents = jsonData.map(row => formatStudentData(row)).filter(s => s.name && s.id); 
 
                         if(newStudents.length === 0) {
                             alert("រកមិនឃើញទិន្នន័យសិស្សទេ! សូមពិនិត្យមើលក្បាលតារាង (Header) នៅក្នុង Excel របស់អ្នក។");
                             return;
                         }
 
-                        const updatedList = currentStudents.concat(newStudents);
-                        localStorage.setItem('students', JSON.stringify(updatedList));
+                        // Save to Firestore using Batch
+                        const batch = writeBatch(db);
+                        newStudents.forEach(student => {
+                            const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students', student.id.toString());
+                            batch.set(docRef, student);
+                        });
+                        
+                        await batch.commit();
 
                         alert(`បាននាំចូលទិន្នន័យសិស្សចំនួន ${newStudents.length} នាក់ ដោយជោគជ័យ!`);
                         window.location.href = 'student-list.html';
@@ -485,13 +556,13 @@
                         alert('មិនមានទិន្នន័យនៅក្នុងឯកសារ Excel ទេ។');
                     }
                 } catch(err) {
-                    console.error(err);
-                    alert("មានបញ្ហាក្នុងការអានឯកសារ Excel");
+                    console.error("Excel Import Error:", err);
+                    alert("មានបញ្ហាក្នុងការអាន ឬបញ្ចូលឯកសារ Excel ទៅកាន់ Database");
                 }
                 input.value = '';
             };
             reader.readAsArrayBuffer(file);
-        }
+        };
 
         function formatStudentData(data) {
             const getVal = (possibleKeys) => {
@@ -515,18 +586,16 @@
                 const date = new Date(Math.round((dob - 25569) * 86400 * 1000));
                 dob = date.toISOString().split('T')[0];
             } else if (typeof dob === 'string') {
-                // Parse strings like 04-04-2005 or 04/04/2005 to YYYY-MM-DD
                 const parts = dob.split(/[-/]/);
                 if (parts.length === 3) {
-                    if (parts[2].length === 4) { // DD-MM-YYYY
+                    if (parts[2].length === 4) { 
                         dob = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                    } else if (parts[0].length === 4) { // YYYY-MM-DD
+                    } else if (parts[0].length === 4) { 
                         dob = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
                     }
                 }
             }
 
-            // SheetJS appends "_1", "_2", etc. when multiple identical headers exist in the same sheet
             let fJob = getVal(['Father Job', 'Father Occupation', 'មុខរបរឪពុក', 'មុខរបរ']);
             let mJob = getVal(['Mother Job', 'Mother Occupation', 'មុខរបរម្តាយ', 'មុខរបរ_1']);
 
@@ -536,29 +605,24 @@
                 name: getVal(['Name', 'Student Name', 'ឈ្មោះ', 'ឈ្មោះសិស្ស', 'គោត្តនាម និងនាម']), 
                 gender: gender,
                 dob: dob,
-                // Birth Place
                 province: getVal(['Province', 'City', 'ខេត្ត', 'រាជធានី', 'ខេត្ត/ក្រុង']),
                 district: getVal(['District', 'Khan', 'ស្រុក', 'ខណ្ឌ', 'ស្រុក/ខណ្ឌ']),
                 commune: getVal(['Commune', 'Sangkat', 'ឃុំ', 'សង្កាត់', 'ឃុំ/សង្កាត់']),
                 village: getVal(['Village', 'Phum', 'ភូមិ']),
-                
-                // Current Place (Mapped to the duplicate headers automatically generated by SheetJS: _1)
                 currProvince: getVal(['Current Province', 'ខេត្តបច្ចុប្បន្ន', 'ខេត្ត/ក្រុង_1']),
                 currDistrict: getVal(['Current District', 'ស្រុកបច្ចុប្បន្ន', 'ស្រុក/ខណ្ឌ_1']),
                 currCommune: getVal(['Current Commune', 'ឃុំបច្ចុប្បន្ន', 'ឃុំ/សង្កាត់_1']),
                 currVillage: getVal(['Current Village', 'ភូមិបច្ចុប្បន្ន', 'ភូមិ_1']),
-                
-                // Extra fields
                 ethnicity: getVal(['Ethnicity', 'ជនជាតិដើមភាគតិច']),
                 specialFeatures: getVal(['Special Features', 'លក្ខណៈពិសេស']),
                 otherRemarks: getVal(['Others', 'Remarks', 'សេចក្តីផ្សេងៗ']),
-
                 father: getVal(['Father Name', 'Father', 'ឈ្មោះឪពុក']),
                 fatherJob: fJob,
                 mother: getVal(['Mother Name', 'Mother', 'ឈ្មោះម្តាយ']),
                 motherJob: mJob,
                 phone: getVal(['Phone', 'Tel', 'លេខទូរស័ព្ទ']),
-                photo: `https://api.dicebear.com/7.x/notionists/svg?seed=${getVal(['ID', 'Student ID', 'អត្តលេខ'])}` 
+                photo: `https://api.dicebear.com/7.x/notionists/svg?seed=${getVal(['ID', 'Student ID', 'អត្តលេខ'])}`,
+                createdAt: new Date().toISOString()
             };
         }
 
@@ -596,12 +660,12 @@
                 }
 
                 initAutocomplete();
-                checkForEditMode();
+                await checkForEditMode(); // Check if we are editing an existing student
                 loadingOverlay.style.display = 'none';
             } catch (error) {
                 console.error('Error:', error);
+                await checkForEditMode();
                 loadingOverlay.style.display = 'none';
-                checkForEditMode();
             }
         }
 
@@ -619,11 +683,15 @@
                         const li = document.createElement('li');
                         li.className = 'suggestion-item';
                         li.textContent = item;
-                        li.onclick = () => {
+                        
+                        // ប្រើ mousedown ដើម្បីកុំអោយវាបាត់មុនពេលជ្រើសរើស (ពិសេសលើទូរស័ព្ទ)
+                        li.onmousedown = (e) => {
+                            e.preventDefault(); 
                             input.value = item;
                             listElement.style.display = 'none';
                             if (onSelect) onSelect(item);
                         };
+                        
                         listElement.appendChild(li);
                     });
                 } else {
@@ -633,15 +701,16 @@
 
             input.addEventListener('input', showList);
             input.addEventListener('focus', showList);
+            input.addEventListener('click', showList); // បន្ថែមមុខងារឲ្យលោតបញ្ជីមកពេលចុចវាម្ដងទៀត
 
-            document.addEventListener('click', (e) => {
+            // ប្រើ mousedown ជំនួសឲ្យ click ដើម្បីបិទបញ្ជីបានលឿន និងចៀសវាងបញ្ហាពេលជ្រើសរើស
+            document.addEventListener('mousedown', (e) => {
                 if (!input.contains(e.target) && !listElement.contains(e.target)) {
                     listElement.style.display = 'none';
                 }
             });
         }
 
-        // Helper to setup the 4-level cascading location dropdowns
         function setupLocationCascade(pInp, pList, dInp, dList, cInp, cList, vInp, vList) {
             setupAutocomplete(pInp, pList, () => Object.keys(locationMaster).sort(), (selected) => {
                 resetInput(dInp, 'ជ្រើសរើសស្រុក/ខណ្ឌ');
@@ -680,7 +749,6 @@
         }
 
         function initAutocomplete() {
-            // Setup for Birth Place
             setupLocationCascade(
                 provinceInput, provinceList,
                 districtInput, districtList,
@@ -688,7 +756,6 @@
                 villageInput, villageList
             );
 
-            // Setup for Current Place
             setupLocationCascade(
                 currProvinceInput, currProvinceList,
                 currDistrictInput, currDistrictList,
@@ -704,70 +771,102 @@
         }
 
         // =======================
-        // Edit Mode Logic
+        // Edit Mode Logic (Firebase Version)
         // =======================
-        function checkForEditMode() {
-            const editIndex = localStorage.getItem('editStudentIndex');
-            if (editIndex !== null) {
-                const students = JSON.parse(localStorage.getItem('students') || '[]');
-                const student = students[editIndex];
-                if (student) {
-                    document.getElementById('pageTitle').textContent = 'កែសម្រួលព័ត៌មានសិស្ស';
-                    const btn = document.getElementById('submitBtn');
-                    btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> ធ្វើបច្ចុប្បន្នភាពទិន្នន័យ';
-                    btn.className = "bg-[#2653e7] hover:bg-[#1d40b8] text-white px-8 py-2.5 rounded text-[13px] font-bold shadow-sm transition-colors flex items-center gap-2";
+        async function checkForEditMode() {
+            // Check if student list page passed an ID
+            const editStudentId = localStorage.getItem('editStudentId'); 
+            const legacyEditIndex = localStorage.getItem('editStudentIndex'); // Fallback if list page hasn't been updated yet
+            
+            if (editStudentId && currentUser) {
+                loadingText.textContent = "កំពុងទាញយកទិន្នន័យសិស្ស...";
+                try {
+                    const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students', editStudentId);
+                    const docSnap = await getDoc(docRef);
                     
-                    document.getElementById('studentId').value = student.id || '';
-                    document.getElementById('grade').value = student.grade || '';
-                    document.getElementById('studentName').value = student.name || '';
-                    document.getElementById('gender').value = student.gender || '';
-                    document.getElementById('dob').value = student.dob || '';
-                    
-                    // Birth Place
-                    document.getElementById('province-input').value = student.province || '';
-                    document.getElementById('district-input').value = student.district || '';
-                    document.getElementById('commune-input').value = student.commune || '';
-                    document.getElementById('village-input').value = student.village || '';
-                    
-                    if(student.province) document.getElementById('district-input').disabled = false;
-                    if(student.district) document.getElementById('commune-input').disabled = false;
-                    if(student.commune) document.getElementById('village-input').disabled = false;
-
-                    // Current Place
-                    document.getElementById('curr-province-input').value = student.currProvince || '';
-                    document.getElementById('curr-district-input').value = student.currDistrict || '';
-                    document.getElementById('curr-commune-input').value = student.currCommune || '';
-                    document.getElementById('curr-village-input').value = student.currVillage || '';
-                    
-                    if(student.currProvince) document.getElementById('curr-district-input').disabled = false;
-                    if(student.currDistrict) document.getElementById('curr-commune-input').disabled = false;
-                    if(student.currCommune) document.getElementById('curr-village-input').disabled = false;
-
-                    // Other Fields
-                    document.getElementById('ethnicity').value = student.ethnicity || '';
-                    document.getElementById('specialFeatures').value = student.specialFeatures || '';
-                    document.getElementById('otherRemarks').value = student.otherRemarks || '';
-                    
-                    document.getElementById('fatherName').value = student.father || '';
-                    document.getElementById('fatherJob').value = student.fatherJob || '';
-                    document.getElementById('motherName').value = student.mother || '';
-                    document.getElementById('motherJob').value = student.motherJob || '';
-                    document.getElementById('phone').value = student.phone || '';
-
-                    if (student.photo) {
-                        selectPhoto(student.photo);
+                    if (docSnap.exists()) {
+                        populateFormWithData(docSnap.data());
+                        setupEditUI();
                     }
-                    lucide.createIcons();
+                } catch (error) {
+                    console.error("Error fetching student:", error);
+                }
+            } else if (legacyEditIndex !== null) {
+                // Warning if the user comes from an old localstorage based list page
+                console.warn("កំពុងប្រើប្រាស់ LocalStorage Index។ សូមធ្វើបច្ចុប្បន្នភាពទំព័រ student-list.html ទៅកាន់ Firebase");
+                const localStudents = JSON.parse(localStorage.getItem('students') || '[]');
+                if(localStudents[legacyEditIndex]) {
+                    populateFormWithData(localStudents[legacyEditIndex]);
+                    setupEditUI();
                 }
             }
         }
 
+        function setupEditUI() {
+            document.getElementById('pageTitle').textContent = 'កែសម្រួលព័ត៌មានសិស្ស';
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> ធ្វើបច្ចុប្បន្នភាពទិន្នន័យ';
+            btn.className = "bg-[#2653e7] hover:bg-[#1d40b8] text-white px-8 py-2.5 rounded text-[13px] font-bold shadow-sm transition-colors flex items-center gap-2";
+            lucide.createIcons();
+        }
+
+        function populateFormWithData(student) {
+            document.getElementById('studentId').value = student.id || '';
+            document.getElementById('studentId').readOnly = true; // Protect ID from change during edit
+            document.getElementById('studentId').classList.add('bg-gray-100');
+            
+            document.getElementById('grade').value = student.grade || '';
+            document.getElementById('studentName').value = student.name || '';
+            document.getElementById('gender').value = student.gender || '';
+            document.getElementById('dob').value = student.dob || '';
+            
+            // Birth Place
+            document.getElementById('province-input').value = student.province || '';
+            document.getElementById('district-input').value = student.district || '';
+            document.getElementById('commune-input').value = student.commune || '';
+            document.getElementById('village-input').value = student.village || '';
+            
+            if(student.province) document.getElementById('district-input').disabled = false;
+            if(student.district) document.getElementById('commune-input').disabled = false;
+            if(student.commune) document.getElementById('village-input').disabled = false;
+
+            // Current Place
+            document.getElementById('curr-province-input').value = student.currProvince || '';
+            document.getElementById('curr-district-input').value = student.currDistrict || '';
+            document.getElementById('curr-commune-input').value = student.currCommune || '';
+            document.getElementById('curr-village-input').value = student.currVillage || '';
+            
+            if(student.currProvince) document.getElementById('curr-district-input').disabled = false;
+            if(student.currDistrict) document.getElementById('curr-commune-input').disabled = false;
+            if(student.currCommune) document.getElementById('curr-village-input').disabled = false;
+
+            // Other Fields
+            document.getElementById('ethnicity').value = student.ethnicity || '';
+            document.getElementById('specialFeatures').value = student.specialFeatures || '';
+            document.getElementById('otherRemarks').value = student.otherRemarks || '';
+            
+            document.getElementById('fatherName').value = student.father || '';
+            document.getElementById('fatherJob').value = student.fatherJob || '';
+            document.getElementById('motherName').value = student.mother || '';
+            document.getElementById('motherJob').value = student.motherJob || '';
+            document.getElementById('phone').value = student.phone || '';
+
+            if (student.photo) {
+                selectPhoto(student.photo);
+            }
+        }
+
         // =======================
-        // Form Submission Logic
+        // Form Submission Logic (Firebase Version)
         // =======================
-        document.getElementById('enrollmentForm').addEventListener('submit', function(e) {
+        document.getElementById('enrollmentForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            if (!currentUser) {
+                alert('បញ្ហាគណនី! សូមចូលគណនីជាថ្មីម្តងទៀត។');
+                return;
+            }
+
             const studentId = document.getElementById('studentId').value;
             const studentName = document.getElementById('studentName').value;
             const gender = document.getElementById('gender').value;
@@ -779,69 +878,51 @@
                 return;
             }
 
-            // Fallback avatar if no photo selected
             if (!currentPhotoBase64) {
                 currentPhotoBase64 = `https://api.dicebear.com/7.x/notionists/svg?seed=${studentId}`;
             }
 
-            const student = {
+            const studentData = {
                 id: studentId,
                 grade: grade,
                 name: studentName,
                 gender: gender,
                 dob: dob,
-                
-                // Birth Place
                 province: document.getElementById('province-input').value,
                 district: document.getElementById('district-input').value,
                 commune: document.getElementById('commune-input').value,
                 village: document.getElementById('village-input').value,
-                
-                // Current Place
                 currProvince: document.getElementById('curr-province-input').value,
                 currDistrict: document.getElementById('curr-district-input').value,
                 currCommune: document.getElementById('curr-commune-input').value,
                 currVillage: document.getElementById('curr-village-input').value,
-                
-                // Additional Info
                 ethnicity: document.getElementById('ethnicity').value,
                 specialFeatures: document.getElementById('specialFeatures').value,
                 otherRemarks: document.getElementById('otherRemarks').value,
-
                 father: document.getElementById('fatherName').value,
                 fatherJob: document.getElementById('fatherJob').value,
                 mother: document.getElementById('motherName').value,
                 motherJob: document.getElementById('motherJob').value,
                 phone: document.getElementById('phone').value,
-                photo: currentPhotoBase64 
+                photo: currentPhotoBase64,
+                updatedAt: new Date().toISOString()
             };
-
-            const students = JSON.parse(localStorage.getItem('students') || '[]');
-            const editIndex = localStorage.getItem('editStudentIndex');
-
-            if (editIndex !== null) {
-                students[editIndex] = student;
-                localStorage.removeItem('editStudentIndex');
-            } else {
-                students.push(student);
-            }
-            
-            try {
-                localStorage.setItem('students', JSON.stringify(students));
-            } catch(e) {
-                alert("មិនអាចរក្សាទុកបានទេ! ទំហំផ្ទុកពេញហើយ។");
-                return;
-            }
 
             const btn = document.getElementById('submitBtn');
             const originalContent = btn.innerHTML;
             btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> កំពុងរក្សាទុក...';
+            btn.disabled = true;
             lucide.createIcons();
             
-            setTimeout(() => {
-                btn.innerHTML = originalContent;
-                lucide.createIcons();
-                
+            try {
+                // Save to Firestore specific document path using Student ID
+                const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students', studentId.toString());
+                await setDoc(docRef, studentData);
+
+                // Clear temporary edit pointers
+                localStorage.removeItem('editStudentId');
+                localStorage.removeItem('editStudentIndex');
+
                 const toast = document.createElement('div');
                 toast.className = "fixed top-10 left-1/2 -translate-x-1/2 bg-[#2ba041] text-white px-8 py-3 rounded-lg shadow-lg z-[3000] font-bold text-sm flex items-center gap-2";
                 toast.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i> រក្សាទុកទិន្នន័យជោគជ័យ!';
@@ -852,13 +933,19 @@
                     toast.remove();
                     window.location.href = 'student-list.html';
                 }, 1500);
-            }, 600);
+
+            } catch (error) {
+                console.error("Error saving document: ", error);
+                alert("មិនអាចរក្សាទុកបានទេ! មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Database។");
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
         });
 
         // Initialize App
         lucide.createIcons();
         generateAvatarGrid();
-        window.addEventListener('DOMContentLoaded', loadCSVData);
     </script>
 </body>
 </html>

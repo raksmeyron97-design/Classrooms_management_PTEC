@@ -7,8 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Kantumruy+Pro:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- SheetJS for Excel Export -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <!-- SheetJS with Style Support (CRITICAL FOR COLORS & FORMATTING) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <!-- Moment KH for Lunar Date -->
     <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
 
@@ -174,15 +174,15 @@
             <div class="absolute top-0 w-full text-center">
                 <h2 class="kh-moul text-lg text-blue-900">ព្រះរាជាណាចក្រកម្ពុជា</h2>
                 <h3 class="kh-moul text-md text-blue-900 mt-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
-                <div class="w-16 h-px bg-black mx-auto mt-2"></div>
+                <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" alt="Royal emblem of Cambodia featuring the national seal with two lions and a centered spire, representing the Kingdom of Cambodia" class="h-[10px] w-auto mx-auto mt-2" crossorigin="anonymous" onerror="this.style.display='none'">
             </div>
 
             <!-- Management Info (From Profile) -->
-            <div class="text-[12px] font-bold text-blue-900 pt-2 leading-relaxed">
+            <div class="text-[12px] kh-moul text-blue-900 pt-2 leading-relaxed">
                 <div id="print_mu1">រដ្ឋបាលខេត្ត...</div>
                 <div id="print_mu2">មន្ទីរអប់រំ យុវជន និងកីឡា...</div>
                 <div id="print_school">សាលា...</div>
-                <div>ថ្នាក់ទី៖ <span id="print_class">...</span></div>
+                <div> <span id="print_class">...</span></div>
             </div>
 
             <!-- Title -->
@@ -212,15 +212,14 @@
         <!-- Footer Statistics & Signatures -->
         <div class="mt-6 flex justify-between text-[11px] font-bold text-blue-900">
             <!-- Left Stats -->
-            <div class="w-[45%]">
+            <div class="w-[30%]">
                 <div class="grid grid-cols-2 gap-x-2 gap-y-1 mb-6">
                     <div>បញ្ញាប់បញ្ជីត្រឹមចំនួន ៖</div><div class="text-right"><span id="ft_total">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_total_f">0</span> នាក់</span></div>
                     <div>សិស្សជាប់មធ្យមភាគ ៖</div><div class="text-right"><span id="ft_pass">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_pass_f">0</span> នាក់</span> <span class="text-red-600 ml-2" id="ft_pass_p">0%</span></div>
                     <div class="text-red-600">សិស្សក្រោមមធ្យមភាគ ៖</div><div class="text-right text-red-600"><span id="ft_fail">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_fail_f">0</span> នាក់</span> <span class="ml-2" id="ft_fail_p">0%</span></div>
                     
-                    <div class="col-span-2 h-px bg-slate-300 my-1"></div>
 
-                    <div>សិស្សបោះបង់សរុប ៖</div><div class="text-right"><span class="text-red-600">0</span> នាក់ <span class="ml-2">ស្រី <span class="text-red-600">0</span> នាក់</span> <span class="ml-2 text-red-600">0%</span></div>
+                    <div>សិស្សបោះបង់សរុប ៖</div><div class="text-right"><span id="ft_dropout" class="text-red-600">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_dropout_f" class="text-red-600">0</span> នាក់</span> <span id="ft_dropout_p" class="ml-2 text-red-600">0%</span></div>
                 </div>
 
                 <!-- Signature Left -->
@@ -232,7 +231,7 @@
             </div>
 
             <!-- Right Stats -->
-            <div class="w-[50%]">
+            <div class="w-[30%]">
                 <div class="grid grid-cols-2 gap-x-2 gap-y-1 mb-6">
                     <div>សិស្សមាននិទ្ទេស A ៖</div><div class="text-right"><span id="ft_a">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_a_f">0</span> នាក់</span> <span class="text-blue-600 ml-2" id="ft_a_p">0%</span></div>
                     <div>សិស្សមាននិទ្ទេស B ៖</div><div class="text-right"><span id="ft_b">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_b_f">0</span> នាក់</span> <span class="text-blue-600 ml-2" id="ft_b_p">0%</span></div>
@@ -249,8 +248,8 @@
                     <p class="mb-1 text-blue-800 font-moul" id="sig-solar">ធ្វើនៅ..............ថ្ងៃទី.......ខែ...........ឆ្នាំ២០២...</p>
                     
                     <p class="kh-moul text-green-700 mt-2">គ្រូប្រចាំថ្នាក់</p>
-                    <div class="h-20"></div>
-                    <p class="kh-moul text-red-600" id="sign_teacher">ឈ្មោះគ្រូ</p>
+                    <div class="h-10"></div>
+                    <p class="kh-moul text-red-600" style="margin-left: 2cm;" id="sign_teacher">ឈ្មោះគ្រូ</p>
                 </div>
             </div>
         </div>
@@ -292,7 +291,9 @@
         ];
 
         const semesterColumnsConfig = [
-            { key: 'sem_kh_reading_speaking', label: 'អំណាន-និយាយ' }, { key: 'sem_kh_dictation', label: 'សរសេរតាមអាន' },
+            { key: 'sem_kh_reading', label: 'អំណាន' },
+            { key: 'sem_kh_listening_speaking', label: 'ស្តាប់-និយាយ' }, 
+            { key: 'sem_kh_dictation', label: 'សរសេរតាមអាន' },
             { key: 'sem_kh_essay', label: 'តែងសេចក្តី' },
             { key: 'sem_math', label: 'គណិតវិទ្យា' }, { key: 'sem_science', label: 'វិទ្យាសាស្ត្រ' },
             { key: 'sem_moral_civics', label: 'សីលធម៌-ពលរដ្ឋវិជ្ជា' }, { key: 'sem_geo', label: 'ភូមិវិទ្យា' },
@@ -302,6 +303,7 @@
         ];
 
         const behaviorColumnsConfig = [
+            { key: 'sem_eval_knowledge', label: 'ចំណេះដឹង' },
             { key: 'sem_eval_skill', label: 'បំណិន-ចំណេះធ្វើ' },
             { key: 'sem_eval_moral', label: 'តម្លៃ-សីលធម៌' },
             { key: 'sem_eval_participate', label: 'សាមគ្គីភាព' }
@@ -545,8 +547,12 @@
                 studentsData.sort((a, b) => b.average - a.average);
                 let currentRank = 1;
                 for (let i = 0; i < studentsData.length; i++) {
-                    if (i > 0 && studentsData[i].average < studentsData[i-1].average) currentRank = i + 1;
-                    studentsData[i].rank = currentRank;
+                    if (studentsData[i].average === 0) {
+                        studentsData[i].rank = ''; // មិនដាក់ចំណាត់ថ្នាក់អោយសិស្សបោះបង់
+                    } else {
+                        if (i > 0 && studentsData[i].average < studentsData[i-1].average) currentRank = i + 1;
+                        studentsData[i].rank = currentRank;
+                    }
                 }
 
                 // 7. Render Table & Stats
@@ -695,16 +701,20 @@
             if (total === 0) return;
 
             let stats = {
-                pass: { t: 0, f: 0 }, fail: { t: 0, f: 0 },
+                pass: { t: 0, f: 0 }, fail: { t: 0, f: 0 }, dropout: { t: 0, f: 0 },
                 A: { t: 0, f: 0 }, B: { t: 0, f: 0 }, C: { t: 0, f: 0 },
                 D: { t: 0, f: 0 }, E: { t: 0, f: 0 }, F: { t: 0, f: 0 }
             };
 
             studentsData.forEach(s => {
-                if (s.total === 0 && s.average === 0) return; // Skip empty rows
-
                 let isF = (s.gender === 'ស្រី' || s.gender === 'F');
                 
+                if (s.average === 0) {
+                    stats.dropout.t++;
+                    if(isF) stats.dropout.f++;
+                    return; 
+                }
+
                 if (s.average >= 5.0) {
                     stats.pass.t++;
                     if(isF) stats.pass.f++;
@@ -719,14 +729,13 @@
                 }
             });
 
-            // Update DOM Pass/Fail
             const updateEl = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
             const perc = (num) => total > 0 ? ((num / total) * 100).toFixed(2) + '%' : '0%';
 
             updateEl('ft_pass', stats.pass.t); updateEl('ft_pass_f', stats.pass.f); updateEl('ft_pass_p', perc(stats.pass.t));
             updateEl('ft_fail', stats.fail.t); updateEl('ft_fail_f', stats.fail.f); updateEl('ft_fail_p', perc(stats.fail.t));
+            updateEl('ft_dropout', stats.dropout.t); updateEl('ft_dropout_f', stats.dropout.f); updateEl('ft_dropout_p', perc(stats.dropout.t));
 
-            // Grades
             ['A', 'B', 'C', 'D', 'E', 'F'].forEach(g => {
                 updateEl(`ft_${g.toLowerCase()}`, stats[g].t);
                 updateEl(`ft_${g.toLowerCase()}_f`, stats[g].f);
@@ -734,7 +743,7 @@
             });
         }
 
-        // --- Export to Excel ---
+        // --- Export to Excel (FULL STYLED VERSION WITH NATIVE FORMULAS) ---
         window.exportExcel = function() {
             if (studentsData.length === 0) {
                 alert("មិនមានទិន្នន័យដើម្បីទាញយកទេ!");
@@ -746,71 +755,379 @@
             const periodText = document.getElementById('title_month').innerText;
             const className = document.getElementById('print_class').innerText;
 
-            const excelData = [];
+            const ws_data = [];
+            const merges = [];
+
+            // Define EXACT Tailwind HEX Colors in ARGB format
+            const COLOR_BG_BLUE = 'FFEFF6FF';
+            const COLOR_BG_GREEN = 'FFF0FDF4';
+            const COLOR_BG_PURPLE = 'FFFAF5FF';
+            const COLOR_BG_RED = 'FFFEF2F2';
+
+            const COLOR_TXT_DEFAULT = 'FF0F172A';
+            const COLOR_TXT_BLUE_DARK = 'FF1E3A8A';
+            const COLOR_TXT_BLUE = 'FF1E40AF';
+            const COLOR_TXT_BLUE_LIGHT = 'FF2563EB';
+            const COLOR_TXT_GREEN = 'FF15803D';
+            const COLOR_TXT_PURPLE = 'FF7E22CE';
+            const COLOR_TXT_RED = 'FFDC2626';
+            const COLOR_TXT_ORANGE = 'FFF97316';
             
+            const COLOR_BORDER = 'FF1E293B';
+
+            // Base Styles
+            const BORDER = {
+                top: { style: 'thin', color: { rgb: COLOR_BORDER } },
+                bottom: { style: 'thin', color: { rgb: COLOR_BORDER } },
+                left: { style: 'thin', color: { rgb: COLOR_BORDER } },
+                right: { style: 'thin', color: { rgb: COLOR_BORDER } }
+            };
+
+            const FONT_NORMAL = { name: 'Khmer OS Battambang', sz: 10, color: { rgb: COLOR_TXT_DEFAULT } };
+            const FONT_BOLD = { name: 'Khmer OS Battambang', sz: 10, bold: true, color: { rgb: COLOR_TXT_DEFAULT } };
+            const FONT_MOUL = { name: 'Khmer OS Moul Light', sz: 11, color: { rgb: COLOR_TXT_BLUE_DARK } };
+            const FONT_MOUL_RED = { name: 'Khmer OS Moul Light', sz: 14, color: { rgb: COLOR_TXT_RED } };
+
+            const ALIGN_CENTER = { vertical: 'center', horizontal: 'center' };
+            const ALIGN_LEFT = { vertical: 'center', horizontal: 'left' };
+            const ALIGN_RIGHT = { vertical: 'center', horizontal: 'right' };
+            
+            // Helpers
+            const emptyCell = (style) => ({ v: '', t: 's', s: style || {} });
+            const numCell = (val, style) => {
+                if (val === null || val === undefined || val === '') return { v: '', t: 's', s: style };
+                const n = parseFloat(val);
+                return isNaN(n) ? { v: val, t: 's', s: style } : { v: n, t: 'n', s: style };
+            };
+            const textOf = (id) => document.getElementById(id) ? document.getElementById(id).innerText : '0';
+
+            // Calculate Required Columns
+            let totalCols = isSemester ? (3 + activeColumns.length + 6 + activeBehaviorColumns.length) : (3 + activeColumns.length + 5);
+            let mid = Math.floor(totalCols / 2);
+
+            // ================= HEADER SECTION =================
+            
+            let r0 = Array(totalCols).fill(null).map(() => emptyCell());
+            r0[0] = { v: 'ព្រះរាជាណាចក្រកម្ពុជា', t: 's', s: { font: FONT_MOUL, alignment: ALIGN_CENTER } };
+            ws_data.push(r0); merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: totalCols - 1 } });
+
+            let r1 = Array(totalCols).fill(null).map(() => emptyCell());
+            r1[0] = { v: 'ជាតិ សាសនា ព្រះមហាក្សត្រ', t: 's', s: { font: FONT_MOUL, alignment: ALIGN_CENTER } };
+            ws_data.push(r1); merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: totalCols - 1 } });
+
+            let r2 = Array(totalCols).fill(null).map(() => emptyCell());
+            r2[0] = { v: textOf('print_mu1'), t: 's', s: { font: FONT_MOUL, alignment: ALIGN_LEFT } };
+            ws_data.push(r2); merges.push({ s: { r: 2, c: 0 }, e: { r: 2, c: mid - 1 } });
+
+            let r3 = Array(totalCols).fill(null).map(() => emptyCell());
+            r3[0] = { v: textOf('print_mu2'), t: 's', s: { font: FONT_MOUL, alignment: ALIGN_LEFT } };
+            ws_data.push(r3); merges.push({ s: { r: 3, c: 0 }, e: { r: 3, c: mid - 1 } });
+
+            let r4 = Array(totalCols).fill(null).map(() => emptyCell());
+            r4[0] = { v: textOf('print_school'), t: 's', s: { font: FONT_MOUL, alignment: ALIGN_LEFT } };
+            ws_data.push(r4); merges.push({ s: { r: 4, c: 0 }, e: { r: 4, c: mid - 1 } });
+
+            let r5 = Array(totalCols).fill(null).map(() => emptyCell());
+            r5[0] = { v: textOf('print_class'), t: 's', s: { font: FONT_MOUL, alignment: ALIGN_LEFT } };
+            r5[mid] = { v: `សិស្សសរុប ៖ ${textOf('stat_total')} នាក់    ស្រី ៖ ${textOf('stat_female')} នាក់`, t: 's', s: { font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_BLUE_DARK } }, alignment: ALIGN_RIGHT } };
+            ws_data.push(r5); 
+            merges.push({ s: { r: 5, c: 0 }, e: { r: 5, c: mid - 1 } });
+            merges.push({ s: { r: 5, c: mid }, e: { r: 5, c: totalCols - 1 } });
+
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell()));
+
+            let r7 = Array(totalCols).fill(null).map(() => emptyCell());
+            r7[0] = { v: `តារាងសរុបពិន្ទុប្រចាំ ${periodText}`, t: 's', s: { font: FONT_MOUL_RED, alignment: ALIGN_CENTER } };
+            ws_data.push(r7); merges.push({ s: { r: 7, c: 0 }, e: { r: 7, c: totalCols - 1 } });
+
+            let r8 = Array(totalCols).fill(null).map(() => emptyCell());
+            r8[0] = { v: `ឆ្នាំសិក្សា ${year}`, t: 's', s: { font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_BLUE } }, alignment: ALIGN_CENTER } };
+            ws_data.push(r8); merges.push({ s: { r: 8, c: 0 }, e: { r: 8, c: totalCols - 1 } });
+
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell()));
+
+            // ================= MAIN DATA TABLE =================
+            let startRow = 10;
+            
+            const TH_STYLE = { font: FONT_BOLD, alignment: ALIGN_CENTER, border: BORDER, fill: { fgColor: { rgb: COLOR_BG_BLUE } } };
+            const TH_STYLE_GREEN = { font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_GREEN } }, alignment: ALIGN_CENTER, border: BORDER, fill: { fgColor: { rgb: COLOR_BG_GREEN } } };
+            const TH_STYLE_PURPLE = { font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_PURPLE } }, alignment: ALIGN_CENTER, border: BORDER, fill: { fgColor: { rgb: COLOR_BG_PURPLE } } };
+            const TH_VERT = { ...TH_STYLE, alignment: { textRotation: 90, vertical: 'center', horizontal: 'center' } };
+            const TH_VERT_GREEN = { ...TH_STYLE_GREEN, alignment: { textRotation: 90, vertical: 'center', horizontal: 'center' } };
+            const TH_VERT_PURPLE = { ...TH_STYLE_PURPLE, alignment: { textRotation: 90, vertical: 'center', horizontal: 'center' } };
+            const TH_VERT_RED = { font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_RED } }, alignment: { textRotation: 90, vertical: 'center', horizontal: 'center' }, border: BORDER, fill: { fgColor: { rgb: COLOR_BG_GREEN } } };
+
+            let tr1 = Array(totalCols).fill(null).map(() => emptyCell(TH_STYLE));
+            let tr2 = Array(totalCols).fill(null).map(() => emptyCell(TH_STYLE));
+
+            tr1[0] = { v: 'ល.រ', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 0 }, e: { r: startRow + 1, c: 0 } });
+            tr1[1] = { v: 'គោត្តនាម និងនាម', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 1 }, e: { r: startRow + 1, c: 1 } });
+            tr1[2] = { v: 'ភេទ', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 2 }, e: { r: startRow + 1, c: 2 } });
+
+            let colIdx = 3;
+
             if (isSemester) {
-                // Header Row 1
-                const header1 = ['ល.រ', 'គោត្តនាម និងនាម', 'ភេទ'];
-                activeColumns.forEach(() => header1.push(`ពិន្ទុប្រឡង${periodText}`));
-                header1.push('លទ្ធផលប្រឡង', 'លទ្ធផលប្រឡង', 'លទ្ធផលប្រចាំឆមាស', 'លទ្ធផលប្រចាំឆមាស', 'លទ្ធផលប្រចាំឆមាស', 'លទ្ធផលប្រចាំឆមាស');
-                activeBehaviorColumns.forEach(() => header1.push('អាកប្បកិរិយា'));
-                excelData.push(header1);
+                if (activeColumns.length > 0) {
+                    tr1[colIdx] = { v: `ពិន្ទុប្រឡង${periodText}`, t: 's', s: TH_STYLE };
+                    merges.push({ s: { r: startRow, c: colIdx }, e: { r: startRow, c: colIdx + activeColumns.length - 1 } });
+                    activeColumns.forEach(c => { tr2[colIdx++] = { v: c.label, t: 's', s: TH_VERT }; });
+                }
+                
+                tr1[colIdx] = { v: 'លទ្ធផលប្រឡង', t: 's', s: TH_STYLE };
+                merges.push({ s: { r: startRow, c: colIdx }, e: { r: startRow, c: colIdx + 1 } });
+                tr2[colIdx++] = { v: 'ពិន្ទុប្រឡង', t: 's', s: TH_VERT }; 
+                tr2[colIdx++] = { v: 'ម.ភាគប្រឡង', t: 's', s: TH_VERT }; 
 
-                // Header Row 2
-                const header2 = ['', '', ''];
-                activeColumns.forEach(c => header2.push(c.label));
-                header2.push('ពិន្ទុប្រឡង', 'ម.ភាគប្រឡង', 'ម.ភាគខែ', 'ម.ភាគឆមាស', 'ចំណាត់ថ្នាក់', 'និទ្ទេស');
-                activeBehaviorColumns.forEach(c => header2.push(c.label));
-                excelData.push(header2);
+                tr1[colIdx] = { v: 'លទ្ធផលប្រចាំឆមាស', t: 's', s: TH_STYLE_GREEN };
+                merges.push({ s: { r: startRow, c: colIdx }, e: { r: startRow, c: colIdx + 3 } });
+                tr2[colIdx++] = { v: 'ម.ភាគខែ', t: 's', s: TH_VERT_GREEN }; 
+                tr2[colIdx++] = { v: 'ម.ភាគឆមាស', t: 's', s: TH_VERT_GREEN }; 
+                tr2[colIdx++] = { v: 'ចំណាត់ថ្នាក់', t: 's', s: TH_VERT_RED }; 
+                tr2[colIdx++] = { v: 'និទ្ទេស', t: 's', s: TH_VERT_RED }; 
 
-                // Data Rows
-                studentsData.forEach((s, i) => {
-                    let row = [ i + 1, s.name, s.gender === 'ស្រី' || s.gender === 'F' ? 'ស' : 'ប' ];
-                    
-                    activeColumns.forEach(c => row.push(s.scores[c.key] || ''));
-                    
-                    row.push(
-                        s.examTotal > 0 ? parseFloat(s.examTotal.toFixed(2)) : '',
-                        s.examAverage > 0 ? parseFloat(s.examAverage.toFixed(2)) : '',
-                        s.monthlyAverage > 0 ? parseFloat(s.monthlyAverage.toFixed(2)) : '',
-                        s.semesterAverage > 0 ? parseFloat(s.semesterAverage.toFixed(2)) : '',
-                        s.rank || '',
-                        s.total > 0 || s.monthlyAverage > 0 ? s.grade : ''
-                    );
-                    
-                    activeBehaviorColumns.forEach(c => row.push(s.scores[c.key] || ''));
-                    excelData.push(row);
-                });
+                if (activeBehaviorColumns.length > 0) {
+                    tr1[colIdx] = { v: 'អាកប្បកិរិយា', t: 's', s: TH_STYLE_PURPLE };
+                    merges.push({ s: { r: startRow, c: colIdx }, e: { r: startRow, c: colIdx + activeBehaviorColumns.length - 1 } });
+                    activeBehaviorColumns.forEach(c => { tr2[colIdx++] = { v: c.label, t: 's', s: TH_VERT_PURPLE }; });
+                }
+                ws_data.push(tr1, tr2);
             } else {
-                // Monthly Header Row
-                const headers = ['ល.រ', 'គោត្តនាម និងនាម', 'ភេទ'];
-                activeColumns.forEach(c => headers.push(c.label));
-                headers.push('ពិន្ទុសរុប', 'មធ្យមភាគ', 'ចំណាត់ថ្នាក់', 'និទ្ទេស', 'ផ្សេងៗ');
-                excelData.push(headers);
+                activeColumns.forEach(c => {
+                    tr1[colIdx] = { v: c.label, t: 's', s: TH_VERT };
+                    merges.push({ s: { r: startRow, c: colIdx }, e: { r: startRow + 1, c: colIdx } });
+                    colIdx++;
+                });
 
-                // Data Rows
+                tr1[colIdx] = { v: 'ពិន្ទុសរុប', t: 's', s: { ...TH_VERT, font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_BLUE } } } };
+                merges.push({ s: { r: startRow, c: colIdx }, e: { r: startRow + 1, c: colIdx } }); colIdx++;
+
+                tr1[colIdx] = { v: 'មធ្យមភាគ', t: 's', s: { ...TH_VERT, font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_BLUE } } } };
+                merges.push({ s: { r: startRow, c: colIdx }, e: { r: startRow + 1, c: colIdx } }); colIdx++;
+
+                tr1[colIdx] = { v: 'ចំណាត់ថ្នាក់', t: 's', s: TH_VERT_RED };
+                merges.push({ s: { r: startRow, c: colIdx }, e: { r: startRow + 1, c: colIdx } }); colIdx++;
+
+                tr1[colIdx] = { v: 'និទ្ទេស', t: 's', s: TH_VERT_RED };
+                merges.push({ s: { r: startRow, c: colIdx }, e: { r: startRow + 1, c: colIdx } }); colIdx++;
+
+                tr1[colIdx] = { v: 'ផ្សេងៗ', t: 's', s: TH_VERT };
+                merges.push({ s: { r: startRow, c: colIdx }, e: { r: startRow + 1, c: colIdx } }); colIdx++;
+
+                ws_data.push(tr1, tr2);
+            }
+
+            const TD_STYLE = { font: FONT_NORMAL, alignment: ALIGN_CENTER, border: BORDER };
+            const TD_BOLD = { font: FONT_BOLD, alignment: ALIGN_CENTER, border: BORDER };
+            const TD_NAME = { font: FONT_BOLD, alignment: ALIGN_LEFT, border: BORDER };
+            const TD_BLUE_BG = { font: FONT_BOLD, alignment: ALIGN_CENTER, border: BORDER, fill: { fgColor: { rgb: COLOR_BG_BLUE } } };
+            const TD_GREEN_BG = { font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_GREEN } }, alignment: ALIGN_CENTER, border: BORDER, fill: { fgColor: { rgb: COLOR_BG_GREEN } } };
+            const TD_PURPLE_BG = { font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_PURPLE } }, alignment: ALIGN_CENTER, border: BORDER, fill: { fgColor: { rgb: COLOR_BG_PURPLE } } };
+            const TD_RED = { font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_RED } }, alignment: ALIGN_CENTER, border: BORDER };
+            const TD_RED_BG = { font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_RED } }, alignment: ALIGN_CENTER, border: BORDER, fill: { fgColor: { rgb: COLOR_BG_RED } } };
+            
+            const TD_BLUE_BG_NUM = { ...TD_BLUE_BG, numFmt: "0.00" };
+            const TD_GREEN_BG_NUM = { ...TD_GREEN_BG, numFmt: "0.00" };
+
+            const dataEndRow = 12 + Math.max(studentsData.length, 1);
+
+            if (studentsData.length === 0) {
+                 let emptyRow = Array(totalCols).fill(null).map(() => emptyCell(TD_STYLE));
+                 emptyRow[0] = { v: 'មិនមានទិន្នន័យសម្រាប់វគ្គនេះទេ', t: 's', s: TD_STYLE };
+                 ws_data.push(emptyRow);
+                 merges.push({ s: { r: startRow + 2, c: 0 }, e: { r: startRow + 2, c: totalCols - 1 } });
+            } else {
                 studentsData.forEach((s, i) => {
-                    let row = [ i + 1, s.name, s.gender === 'ស្រី' || s.gender === 'F' ? 'ស' : 'ប' ];
-                    activeColumns.forEach(c => row.push(s.scores[c.key] || ''));
-                    row.push(
-                        s.total > 0 ? parseFloat(s.total.toFixed(2)) : '',
-                        s.average > 0 ? parseFloat(s.average.toFixed(2)) : '',
-                        s.rank || '',
-                        s.total > 0 ? s.grade : '',
-                        ''
-                    );
-                    excelData.push(row);
+                    let row = Array(totalCols).fill(null).map(() => emptyCell(TD_STYLE));
+                    row[0] = { v: i + 1, t: 'n', s: TD_STYLE };
+                    row[1] = { v: s.name, t: 's', s: TD_NAME };
+                    row[2] = { v: s.gender === 'ស្រី' || s.gender === 'F' ? 'ស' : 'ប', t: 's', s: TD_STYLE };
+                    
+                    let cIdx = 3;
+                    activeColumns.forEach(c => { row[cIdx++] = numCell(s.scores[c.key], TD_STYLE); });
+
+                    const currentRow = ws_data.length + 1;
+                    const scoreRange = `${XLSX.utils.encode_col(3)}${currentRow}:${XLSX.utils.encode_col(3 + activeColumns.length - 1)}${currentRow}`;
+                    const sumFormula = `IF(COUNT(${scoreRange})>0, SUM(${scoreRange}), "")`;
+                    const avgFormula = `IF(COUNT(${scoreRange})>0, AVERAGE(${scoreRange}), "")`;
+
+                    if (isSemester) {
+                        const avgColLetter = XLSX.utils.encode_col(cIdx + 3);
+                        const avgRange = `$${avgColLetter}$13:$${avgColLetter}$${dataEndRow}`;
+                        const avgCell = `${avgColLetter}${currentRow}`;
+                        
+                        const rankFormula = `IF(AND(ISNUMBER(${avgCell}), ${avgCell}>0), RANK(${avgCell}, ${avgRange}), "")`;
+                        const gradeFormula = `IF(AND(ISNUMBER(${avgCell}), ${avgCell}>0), IF(${avgCell}<5,"F",IF(${avgCell}<6,"E",IF(${avgCell}<7,"D",IF(${avgCell}<8,"C",IF(${avgCell}<9,"B","A"))))), "")`;
+
+                        row[cIdx++] = activeColumns.length > 0 ? { v: s.examTotal || 0, f: sumFormula, t: 'n', s: TD_BLUE_BG_NUM } : numCell(s.examTotal, TD_BLUE_BG_NUM);
+                        row[cIdx++] = activeColumns.length > 0 ? { v: s.examAverage || 0, f: avgFormula, t: 'n', s: TD_BLUE_BG_NUM } : numCell(s.examAverage, TD_BLUE_BG_NUM);
+                        row[cIdx++] = numCell(s.monthlyAverage, TD_GREEN_BG_NUM);
+                        
+                        const examAvgCol = XLSX.utils.encode_col(cIdx - 2); 
+                        const monthlyAvgCol = XLSX.utils.encode_col(cIdx - 1); 
+                        const semAvgFormula = `IF(COUNT(${examAvgCol}${currentRow},${monthlyAvgCol}${currentRow})>0, AVERAGE(${examAvgCol}${currentRow},${monthlyAvgCol}${currentRow}), "")`;
+
+                        row[cIdx++] = { v: s.semesterAverage || 0, f: semAvgFormula, t: 'n', s: TD_GREEN_BG_NUM };
+                        row[cIdx++] = { v: s.rank || '', f: rankFormula, t: 'n', s: { ...TD_GREEN_BG, font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_RED } } } };
+                        row[cIdx++] = { v: s.grade || '', f: gradeFormula, t: 's', s: s.grade === 'F' ? TD_RED_BG : { ...TD_GREEN_BG, font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_BLUE_LIGHT } } } };
+                        
+                        activeBehaviorColumns.forEach(c => {
+                            let val = s.scores[c.key];
+                            let fColor = COLOR_TXT_BLUE_LIGHT; 
+                            if(val === 'ល្អ') fColor = COLOR_TXT_GREEN; 
+                            else if(val === 'មធ្យម') fColor = COLOR_TXT_ORANGE; 
+                            else if(val === 'ខ្សោយ') fColor = COLOR_TXT_RED; 
+                            row[cIdx++] = { v: val || '', t: 's', s: { ...TD_PURPLE_BG, font: { ...FONT_BOLD, color: { rgb: fColor } } } };
+                        });
+                    } else {
+                        const avgColLetter = XLSX.utils.encode_col(cIdx + 1);
+                        const avgRange = `$${avgColLetter}$13:$${avgColLetter}$${dataEndRow}`;
+                        const avgCell = `${avgColLetter}${currentRow}`;
+                        
+                        const rankFormula = `IF(AND(ISNUMBER(${avgCell}), ${avgCell}>0), RANK(${avgCell}, ${avgRange}), "")`;
+                        const gradeFormula = `IF(AND(ISNUMBER(${avgCell}), ${avgCell}>0), IF(${avgCell}<5,"F",IF(${avgCell}<6,"E",IF(${avgCell}<7,"D",IF(${avgCell}<8,"C",IF(${avgCell}<9,"B","A"))))), "")`;
+
+                        row[cIdx++] = activeColumns.length > 0 ? { v: s.total || 0, f: sumFormula, t: 'n', s: TD_BLUE_BG_NUM } : numCell(s.total, TD_BLUE_BG_NUM);
+                        row[cIdx++] = activeColumns.length > 0 ? { v: s.average || 0, f: avgFormula, t: 'n', s: TD_BLUE_BG_NUM } : numCell(s.average, TD_BLUE_BG_NUM);
+                        row[cIdx++] = { v: s.rank || '', f: rankFormula, t: 'n', s: TD_RED };
+                        row[cIdx++] = { v: s.grade || '', f: gradeFormula, t: 's', s: s.grade === 'F' ? TD_RED_BG : { ...TD_BOLD, font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_BLUE_LIGHT } } } };
+                        row[cIdx++] = { v: '', t: 's', s: TD_STYLE };
+                    }
+                    ws_data.push(row);
                 });
             }
 
-            // Create Workbook
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell()));
+            
+            // ================= FOOTER STATS & SIGNATURES =================
+            let fRow = ws_data.length;
+
+            let avgColLetter = isSemester ? XLSX.utils.encode_col(3 + activeColumns.length + 3) : XLSX.utils.encode_col(3 + activeColumns.length + 1);
+            let gradeColLetter = isSemester ? XLSX.utils.encode_col(3 + activeColumns.length + 5) : XLSX.utils.encode_col(3 + activeColumns.length + 3);
+            
+            const genderRange = `$C$13:$C$${dataEndRow}`;
+            const avgRange = `$${avgColLetter}$13:$${avgColLetter}$${dataEndRow}`;
+            const gradeRange = `$${gradeColLetter}$13:$${gradeColLetter}$${dataEndRow}`;
+
+            const totalT = `COUNTA(${genderRange})`;
+            const totalF = `COUNTIF(${genderRange}, "ស")`;
+            const passT = `COUNTIF(${avgRange}, ">=5")`;
+            const passF = `COUNTIFS(${genderRange}, "ស", ${avgRange}, ">=5")`;
+            const failT = `COUNTIFS(${avgRange}, "<5", ${avgRange}, ">0")`;
+            const failF = `COUNTIFS(${genderRange}, "ស", ${avgRange}, "<5", ${avgRange}, ">0")`;
+            
+            // បោះបង់ = ក្រឡាទទេរ ឬ មានលេខ ០
+            const dropT = `COUNTIF(${avgRange}, "") + COUNTIF(${avgRange}, 0)`;
+            const dropF = `COUNTIFS(${genderRange}, "ស", ${avgRange}, "") + COUNTIFS(${genderRange}, "ស", ${avgRange}, 0)`;
+            
+            const getGradeT = (g) => `COUNTIF(${gradeRange}, "${g}")`;
+            const getGradeF = (g) => `COUNTIFS(${genderRange}, "ស", ${gradeRange}, "${g}")`;
+
+            // រូបមន្តភាគរយសុទ្ធ ដែលមានទម្រង់ 0.00%
+            const pct = (numF) => `IF(${totalT}>0, (${numF})/${totalT}, 0)`;
+            const countFmt = (t, f) => `${t} & " នាក់ ស្រី " & ${f} & " នាក់"`;
+
+            const statsLeft = [
+                { label: 'បញ្ញាប់បញ្ជីត្រឹមចំនួន ៖', count: countFmt(totalT, totalF), pct: null, isRed: false },
+                { label: 'សិស្សជាប់មធ្យមភាគ ៖', count: countFmt(passT, passF), pct: pct(passT), isRed: false },
+                { label: 'សិស្សក្រោមមធ្យមភាគ ៖', count: countFmt(failT, failF), pct: pct(failT), isRed: true },
+                { label: 'សិស្សបោះបង់សរុប ៖', count: countFmt(dropT, dropF), pct: pct(dropT), isRed: true }
+            ];
+
+            const statsRight = [
+                { label: 'សិស្សមាននិទ្ទេស A ៖', count: countFmt(getGradeT('A'), getGradeF('A')), pct: pct(getGradeT('A')), isRed: false },
+                { label: 'សិស្សមាននិទ្ទេស B ៖', count: countFmt(getGradeT('B'), getGradeF('B')), pct: pct(getGradeT('B')), isRed: false },
+                { label: 'សិស្សមាននិទ្ទេស C ៖', count: countFmt(getGradeT('C'), getGradeF('C')), pct: pct(getGradeT('C')), isRed: false },
+                { label: 'សិស្សមាននិទ្ទេស D ៖', count: countFmt(getGradeT('D'), getGradeF('D')), pct: pct(getGradeT('D')), isRed: false },
+                { label: 'សិស្សមាននិទ្ទេស E ៖', count: countFmt(getGradeT('E'), getGradeF('E')), pct: pct(getGradeT('E')), isRed: false },
+                { label: 'សិស្សមាននិទ្ទេស F ៖', count: countFmt(getGradeT('F'), getGradeF('F')), pct: pct(getGradeT('F')), isRed: true }
+            ];
+
+            const statFont = { name: 'Khmer OS Battambang', sz: 9, bold: true, color: { rgb: COLOR_TXT_BLUE_DARK } };
+            const statRed = { name: 'Khmer OS Battambang', sz: 9, bold: true, color: { rgb: COLOR_TXT_RED } };
+
+            let maxStatRows = Math.max(statsLeft.length, statsRight.length);
+            for(let i=0; i<maxStatRows; i++) {
+                let row = Array(totalCols).fill(null).map(() => emptyCell());
+                
+                // Left Block (ចែកក្រឡាឲ្យដាច់ ដើម្បីដាក់ពណ៌ និងភាគរយបានស្អាត)
+                if (i < statsLeft.length) {
+                    let item = statsLeft[i];
+                    let fontStyle = item.isRed ? statRed : statFont;
+                    
+                    row[0] = { v: item.label, t: 's', s: { font: fontStyle, alignment: ALIGN_LEFT } };
+                    row[2] = { f: item.count, t: 's', s: { font: fontStyle, alignment: ALIGN_RIGHT } };
+                    if (item.pct !== null) {
+                        // ជួរឈរភាគរយ
+                        row[mid - 1] = { f: item.pct, t: 'n', s: { numFmt: "0.00%", font: fontStyle, alignment: ALIGN_RIGHT } };
+                    }
+                    merges.push({ s: { r: fRow + i, c: 0 }, e: { r: fRow + i, c: 1 } });
+                    merges.push({ s: { r: fRow + i, c: 2 }, e: { r: fRow + i, c: mid - 2 } }); // បញ្ចប់ត្រឹមក្រឡាមុនភាគរយ
+                }
+                
+                // Right Block
+                if (i < statsRight.length) {
+                    let item = statsRight[i];
+                    let fontStyle = item.isRed ? statRed : statFont;
+
+                    row[mid] = { v: item.label, t: 's', s: { font: fontStyle, alignment: ALIGN_LEFT } };
+                    row[mid + 2] = { f: item.count, t: 's', s: { font: fontStyle, alignment: ALIGN_RIGHT } };
+                    if (item.pct !== null) {
+                        row[totalCols - 1] = { f: item.pct, t: 'n', s: { numFmt: "0.00%", font: fontStyle, alignment: ALIGN_RIGHT } };
+                    }
+                    merges.push({ s: { r: fRow + i, c: mid }, e: { r: fRow + i, c: mid + 1 } });
+                    merges.push({ s: { r: fRow + i, c: mid + 2 }, e: { r: fRow + i, c: totalCols - 2 } });
+                }
+                ws_data.push(row);
+            }
+
+            fRow = ws_data.length + 1;
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell())); 
+            
+            // Signatures block
+            let sigRow1 = Array(totalCols).fill(null).map(() => emptyCell());
+            let sigRow2 = Array(totalCols).fill(null).map(() => emptyCell());
+            let sigRow3 = Array(totalCols).fill(null).map(() => emptyCell());
+
+            sigRow1[0] = { v: 'បានឃើញ និងឯកភាព', t: 's', s: { font: FONT_NORMAL, alignment: ALIGN_CENTER } };
+            sigRow2[0] = { v: textOf('sign_role'), t: 's', s: { font: { ...FONT_MOUL, color: { rgb: COLOR_TXT_GREEN } }, alignment: ALIGN_CENTER } };
+            
+            sigRow1[mid] = { v: textOf('sig-lunar'), t: 's', s: { font: FONT_MOUL, alignment: ALIGN_CENTER } };
+            sigRow2[mid] = { v: textOf('sig-solar'), t: 's', s: { font: FONT_MOUL, alignment: ALIGN_CENTER } };
+            sigRow3[mid] = { v: 'គ្រូប្រចាំថ្នាក់', t: 's', s: { font: { ...FONT_MOUL, color: { rgb: COLOR_TXT_GREEN } }, alignment: ALIGN_CENTER } };
+
+            merges.push({ s: { r: fRow, c: 0 }, e: { r: fRow, c: mid - 1 } });
+            merges.push({ s: { r: fRow + 1, c: 0 }, e: { r: fRow + 1, c: mid - 1 } });
+            
+            merges.push({ s: { r: fRow, c: mid }, e: { r: fRow, c: totalCols - 1 } });
+            merges.push({ s: { r: fRow + 1, c: mid }, e: { r: fRow + 1, c: totalCols - 1 } });
+            merges.push({ s: { r: fRow + 2, c: mid }, e: { r: fRow + 2, c: totalCols - 1 } });
+
+            ws_data.push(sigRow1, sigRow2, sigRow3);
+            
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell()));
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell()));
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell()));
+            
+            let sigNameRow = Array(totalCols).fill(null).map(() => emptyCell());
+            sigNameRow[mid] = { v: textOf('sign_teacher'), t: 's', s: { font: { ...FONT_MOUL, color: { rgb: COLOR_TXT_RED } }, alignment: ALIGN_CENTER } };
+            merges.push({ s: { r: ws_data.length, c: mid }, e: { r: ws_data.length, c: totalCols - 1 } });
+            ws_data.push(sigNameRow);
+
             const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(excelData);
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            
+            ws['!merges'] = merges;
+            
+            let cols = [{ wch: 4 }, { wch: 25 }, { wch: 5 }]; 
+            for(let i=3; i<totalCols; i++) cols.push({ wch: 6 }); 
+            ws['!cols'] = cols;
 
-            // Add Sheet
+            let rows = [];
+            rows[10] = { hpt: 30 };  
+            rows[11] = { hpt: 120 }; 
+            ws['!rows'] = rows;
+
             XLSX.utils.book_append_sheet(wb, ws, "Scores");
-
-            // Save File
             XLSX.writeFile(wb, `បញ្ជីពិន្ទុ_${className}_${periodText}_${year}.xlsx`);
         }
 

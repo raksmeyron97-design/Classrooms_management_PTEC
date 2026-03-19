@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
     
     <style>
         :root { --primary: #0054a6; --secondary: #3b82f6; }
@@ -48,9 +49,12 @@
             position: relative;
         }
 
-        .report-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        .report-table th, .report-table td { border: 1px solid #000; padding: 4px 6px; text-align: center; vertical-align: middle; }
-        .report-table th { background-color: #addcf3 !important; font-family: 'Khmer OS Muol Light', 'Moul', cursive; font-size: 11px; font-weight: normal; }
+        /* ------------------------- */
+        /* កែសម្រួល Table សម្រាប់ Print */
+        /* ------------------------- */
+        .report-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 5px; line-height: 1.2; }
+        .report-table th, .report-table td { border: 1px solid #000; padding: 1px 3px; text-align: center; vertical-align: middle; }
+        .report-table th { background-color: #addcf3 !important; font-family: 'Khmer OS Muol Light', 'Moul', cursive; font-size: 10px; font-weight: normal; }
         
         .bg-summary { background-color: #ffffff !important; }
         
@@ -58,66 +62,89 @@
             @page { size: A5 portrait; margin: 0; }
             body { background: white !important; padding: 0; margin: 0; }
             .no-print { display: none !important; }
+            
+            #printAreaWrapper { display: block !important; width: 100%; }
+            #printContainerWrapper { display: block !important; width: 100%; gap: 0 !important; }
+
             .print-container { 
                 display: block !important; 
                 width: 100%;
                 height: 100%;
                 box-shadow: none !important;
-                padding: 1cm 1cm !important;
+                /* បន្ថយ Padding សងខាងពេល Print */
+                padding: 0.8cm 0.8cm !important;
                 margin: 0 !important;
+                page-break-after: always;
+            }
+            .print-container:last-child {
+                page-break-after: auto;
             }
             .report-table th { background-color: #c0e8ee !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
-            html { font-size: 95%; }
+            /* បង្រួម Font បន្តិចពេល Print */
+            html { font-size: 90%; }
         }
 
         .preview-mode { background: #94a3b8; padding-top: 2rem; padding-bottom: 2rem; }
+
+        /* Custom Scrollbar for Student List */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body>
 
     <!-- Selection Screen -->
-    <div id="selectionScreen" class="min-h-screen flex flex-col pt-8 px-4 no-print relative">
-        <div class="max-w-4xl mx-auto w-full">
+    <div id="selectionScreen" class="min-h-screen flex flex-col pt-8 px-4 no-print relative pb-10">
+        <div class="max-w-5xl mx-auto w-full">
             
             <div class="flex justify-between items-center mb-6">
                 <a href="index.html" class="inline-flex items-center gap-2 text-[#0054a6] hover:text-blue-800 font-bold transition">
                     <i data-lucide="arrow-left" class="w-5 h-5"></i> ត្រឡប់ទៅទំព័រដើម
                 </a>
                 
-                <!-- Settings Button utilizing 2_BMI.html style properties -->
-                <button onclick="window.openSignatureModal()" class="px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 text-sm bg-[#3b82f6] text-white border border-[#3b82f6] shadow-[0_4px_6px_-1px_rgba(59,130,246,0.5)] hover:bg-blue-600 transition-all">
-                    <i data-lucide="pen-tool" class="w-4 h-4"></i> កំណត់ហត្ថលេខា
-                </button>
+                <div class="flex gap-2 flex-wrap justify-end">
+                    <!-- Print All Button -->
+                    <button onclick="window.printAllStudents()" class="px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 text-sm bg-green-600 text-white border border-green-600 shadow-[0_4px_6px_-1px_rgba(34,197,94,0.5)] hover:bg-green-700 transition-all">
+                        <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ពសិស្សទាំងអស់
+                    </button>
+                    <!-- Settings Button -->
+                    <button onclick="window.openSignatureModal()" class="px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 text-sm bg-[#3b82f6] text-white border border-[#3b82f6] shadow-[0_4px_6px_-1px_rgba(59,130,246,0.5)] hover:bg-blue-600 transition-all">
+                        <i data-lucide="pen-tool" class="w-4 h-4"></i> កំណត់ហត្ថលេខា
+                    </button>
+                </div>
             </div>
 
-            <div class="glass-card p-6 md:p-10 text-center">
+            <div class="glass-card p-6 md:p-8 text-center">
                 <div class="flex justify-center mb-4">
-                    <div class="p-4 bg-yellow-100 rounded-full text-yellow-600">
+                    <div class="p-4 bg-yellow-50 rounded-full text-yellow-600 border border-yellow-100">
                         <i data-lucide="file-text" class="w-8 h-8"></i>
                     </div>
                 </div>
                 <h1 class="kh-moul text-xl md:text-2xl text-[#0054a6] mb-8">បង្ហាញលទ្ធផលសិក្សាតាមសិស្ស (A5)</h1>
 
-                <!-- Type Selection -->
-                <div class="mb-6 flex justify-center">
-                    <div class="inline-flex bg-gray-100 p-1 rounded-xl flex-wrap justify-center gap-1">
-                        <button onclick="window.setType('monthly')" id="btnMonthly" class="px-6 py-2.5 rounded-lg bg-white shadow text-[#0054a6] font-bold transition flex items-center gap-2">
+                <!-- Type Selection Pill -->
+                <div class="mb-8 flex justify-center">
+                    <div class="inline-flex bg-gray-50 border border-gray-200 p-1.5 rounded-2xl flex-wrap justify-center gap-1 shadow-sm">
+                        <button onclick="window.setType('monthly')" id="btnMonthly" class="px-6 py-2 rounded-xl bg-white shadow-sm text-[#0054a6] font-bold transition flex items-center gap-2">
                             <i data-lucide="calendar" class="w-4 h-4"></i> ប្រចាំខែ
                         </button>
-                        <button onclick="window.setType('semester')" id="btnSemester" class="px-6 py-2.5 rounded-lg text-gray-500 font-bold hover:bg-white/50 transition flex items-center gap-2">
+                        <button onclick="window.setType('semester')" id="btnSemester" class="px-6 py-2 rounded-xl text-gray-500 font-bold hover:bg-gray-100 transition flex items-center gap-2">
                             <i data-lucide="bookmark" class="w-4 h-4"></i> ប្រចាំឆមាស
                         </button>
-                        <button onclick="window.setType('yearly')" id="btnYearly" class="px-6 py-2.5 rounded-lg text-gray-500 font-bold hover:bg-white/50 transition flex items-center gap-2">
+                        <button onclick="window.setType('yearly')" id="btnYearly" class="px-6 py-2 rounded-xl text-gray-500 font-bold hover:bg-gray-100 transition flex items-center gap-2">
                             <i data-lucide="award" class="w-4 h-4 text-fuchsia-600"></i> ប្រចាំឆ្នាំ
                         </button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mb-8">
+                <!-- Filters -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left mb-8 max-w-2xl mx-auto">
                     <!-- Year Select -->
                     <div>
-                        <label class="block font-bold text-gray-700 mb-2">ឆ្នាំសិក្សា</label>
-                        <select id="yearSelect" class="input-field" onchange="window.updateMonthOptions(); window.loadStudents();">
+                        <label class="block font-bold text-gray-700 mb-2 text-sm ml-1">ឆ្នាំសិក្សា</label>
+                        <select id="yearSelect" class="input-field shadow-sm" onchange="window.updateMonthOptions(); window.loadStudents();">
                             <option value="2025-2026" selected>2025-2026</option>
                             <option value="2026-2027">2026-2027</option>
                             <option value="2027-2028">2027-2028</option>
@@ -127,24 +154,48 @@
 
                     <!-- Period Select -->
                     <div id="periodInputGroup">
-                        <label class="block font-bold text-gray-700 mb-2" id="periodLabel">ជ្រើសរើសខែ</label>
-                        <select id="periodSelect" class="input-field">
-                        </select>
-                    </div>
-
-                    <!-- Student Select -->
-                    <div>
-                        <label class="block font-bold text-gray-700 mb-2">ជ្រើសរើសសិស្ស</label>
-                        <select id="studentSelect" class="input-field">
-                            <option value="">កំពុងផ្ទុកទិន្នន័យ...</option>
+                        <label class="block font-bold text-gray-700 mb-2 text-sm ml-1" id="periodLabel">ជ្រើសរើសខែ</label>
+                        <select id="periodSelect" class="input-field shadow-sm">
                         </select>
                     </div>
                 </div>
 
-                <button onclick="window.generateA5Report()" class="w-full md:w-auto px-8 py-3 bg-[#0054a6] hover:bg-[#1e40af] text-white rounded-xl font-bold transition shadow-lg flex items-center justify-center gap-2 mx-auto">
-                    <i data-lucide="printer" class="w-5 h-5"></i> បង្ហាញលទ្ធផល (A5)
-                </button>
+                <hr class="border-gray-200 mb-6">
+
+                <!-- Student List Section -->
+                <div class="text-left">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                        <h2 class="font-bold text-lg text-gray-800 flex items-center gap-2">
+                            <i data-lucide="users" class="w-5 h-5 text-blue-500"></i> ជ្រើសរើសសិស្សខាងក្រោម៖
+                        </h2>
+                        
+                        <!-- Search Bar -->
+                        <div class="relative w-full md:w-72">
+                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4"></i>
+                            <input type="text" id="searchInput" onkeyup="window.filterStudents()" placeholder="ស្វែងរកឈ្មោះ ឬអត្តលេខ..." class="input-field pl-10 text-sm py-2 shadow-sm">
+                        </div>
+                    </div>
+
+                    <!-- Student Grid -->
+                    <div id="studentGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-[450px] overflow-y-auto custom-scrollbar pr-2 pb-4">
+                        <!-- Student Cards will be generated here -->
+                        <div class="col-span-full text-center py-10 text-gray-500">
+                            <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500"></i>
+                            កំពុងផ្ទុកទិន្នន័យសិស្ស...
+                        </div>
+                    </div>
+                </div>
+
             </div>
+        </div>
+    </div>
+
+    <!-- Global Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[200] hidden items-center justify-center flex-col">
+        <div class="bg-white p-8 rounded-2xl shadow-xl flex flex-col items-center border border-gray-100">
+            <i data-lucide="loader-2" class="w-12 h-12 text-[#0054a6] animate-spin mb-4"></i>
+            <p class="font-bold text-lg text-[#0054a6] kh-moul">កំពុងរៀបចំប័ណ្ណសរសើរ...</p>
+            <p class="text-sm text-gray-500 mt-2">សូមរង់ចាំបន្តិច</p>
         </div>
     </div>
 
@@ -160,84 +211,8 @@
             </button>
         </div>
 
-        <div id="printContainer" class="print-container">
-            
-            <h1 id="out_title" class="kh-moul text-center text-[16px] mb-6 mt-4">លទ្ធផលសិក្សាខែមីនា</h1>
-
-            <!-- Info Header -->
-            <div class="flex justify-between text-[12px] font-bold mb-3 px-4">
-                <!-- Left Side: ID and Name -->
-                <div class="text-left">
-                    <div class="flex items-baseline gap-2 mb-1">
-                        <span class="w-[80px] kh-moul inline-block">អត្តលេខ</span>
-                        <span id="out_id" class="font-bold text-[12px]">7100</span>
-                    </div>
-                    <div class="flex items-baseline gap-2">
-                        <span class="w-[80px] kh-moul inline-block">ឈ្មោះសិស្ស</span>
-                        <span id="out_name" class="kh-moul font-normal text-[12px]">ដុល នីសា</span>
-                    </div>
-                </div>
-                
-                <!-- Right Side: Grade and Gender -->
-                <div class="text-right flex flex-col items-end">
-                    <div class="flex items-baseline justify-between min-w-[130px] gap-2 mb-1">
-                        <span class="whitespace-nowrap"></span>
-                        <span id="out_grade" class="kh-moul font-normal whitespace-nowrap">១ «ខ»</span>
-                    </div>
-                    <div class="flex items-baseline justify-between min-w-[130px] gap-2">
-                        <span class="whitespace-nowrap kh-moul" style="left: 77%; position: absolute;">ភេទ</span>
-                        <span id="out_gender" class="kh-moul font-normal" style="left: 84%; position: absolute;" >ស</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Table 7 ជួរឈរ -->
-            <table class="report-table">
-                <thead>
-                    <tr>
-                        <th rowspan="2" class="w-[8%] border border-black">ល.រ</th>
-                        <th rowspan="2" colspan="2" class="w-[35%] border border-black">មុខវិជ្ជា</th>
-                        <th colspan="3" class="w-[42%] border border-black">ពិន្ទុ</th>
-                        <th rowspan="2" class="w-[15%] border border-black">ផ្សេងៗ</th>
-                    </tr>
-                    <tr>
-                        <th class="w-[14%] border border-black">ពិន្ទុអតិបរមា</th>
-                        <th class="w-[14%] border border-black">ពិន្ទុ</th>
-                        <th class="w-[14%] border border-black">និទ្ទេស</th>
-                    </tr>
-                </thead>
-                <tbody id="out_tbody">
-                    <!-- Dynamic Rows Here -->
-                </tbody>
-            </table>
-
-            <!-- Signatures -->
-            <div class="flex justify-between mt-4 text-[11px] px-2 text-center">
-                <div class="w-[45%] flex flex-col items-center relative">
-                    <p class="mb-1">បានឃើញ និងឯកភាព</p>
-                    <p class="kh-moul mb-1" id="out_manager_role">នាយកសាលា</p>
-                    <div class="h-16 flex items-center justify-center mb-1 relative z-10 w-full">
-                        <img id="out_manager_sig_img"​  src="" class="max-h-full object-contain hidden" style="transform-origin: center; transform: scale(1);">
-                    </div>
-                    <p class="kh-moul text-[12px]"style="margin-left: 2cm;" id="out_manager_name_val"></p>
-                </div>
-                <div class="w-[55%] flex flex-col items-center relative">
-                    <p class="mb-1 font-battambang text-[11px] text-black" id="out_long_date">ថ្ងៃ................ខែ...........ឆ្នាំ...........ព.ស ...........</p>
-                    <p class="mb-1 font-battambang text-[11px] text-black"><span id="out_loc">................</span>, <span id="out_short_date">ថ្ងៃទី........ ខែ........... ឆ្នាំ ២០២...</span></p>
-                    <p class="font-bold mb-1">គ្រូបន្ទុកថ្នាក់</p>
-                    <div class="h-16 flex items-center justify-center mb-1 relative z-10 w-full" style="padding-left: 2cm;">
-                        <img id="out_teacher_sig_img" src="" class="max-h-full object-contain hidden" style="transform-origin: center; transform: scale(1);">
-                    </div>
-                    <p class="kh-moul text-[12px]" style="margin-left: 2cm;" id="out_teacher">ឈ្មោះគ្រូ</p>
-                </div>
-            </div>
-
-            <!-- Parent Comment -->
-            <div class="mt-4 text-[12px] px-2">
-                <p>មតិអាណាព្យាបាល <span class="inline-block border-b border-dotted border-black w-[75%]"></span></p>
-                <p class="mt-5 border-b border-dotted border-black w-full"></p>
-            </div>
-
+        <div id="printContainerWrapper" class="w-full flex flex-col items-center pb-10 gap-8">
+            <!-- Dynamic .print-container blocks will be injected here -->
         </div>
     </div>
 
@@ -360,45 +335,54 @@
 
         // --- 2. LOCAL CONFIGURATION ---
         const monthlySubjects = [
-            { key: 'kh_listen', label: 'ស្តាប់', max: 10 },
-            { key: 'kh_speak', label: 'និយាយ', max: 10 },
-            { key: 'kh_read', label: 'អាន', max: 10 },
-            { key: 'kh_write', label: 'សរសេរ', max: 10 },
-            { key: 'math_num', label: 'ចំនួន', max: 10 },
-            { key: 'math_meas', label: 'រង្វាស់រង្វាល់', max: 10 },
-            { key: 'math_geo', label: 'ធរណីមាត្រ', max: 10 },
-            { key: 'math_alg', label: 'ពីជគណិត', max: 10 },
-            { key: 'math_stat', label: 'ស្ថិតិ', max: 10 },
-            { key: 'sci_phy', label: 'រូបវិទ្យា', max: 10 },
-            { key: 'sci_chem', label: 'គីមីវិទ្យា', max: 10 },
-            { key: 'sci_bio', label: 'ជីវវិទ្យា', max: 10 },
-            { key: 'sci_earth', label: 'ផែនដីវិទ្យា', max: 10 },
-            { key: 'soc_ethic', label: 'សីលធម៌', max: 10 },
-            { key: 'soc_geo', label: 'ភូមិវិទ្យា', max: 10 },
-            { key: 'soc_hist', label: 'ប្រវត្តិវិទ្យា', max: 10 },
-            { key: 'soc_home', label: 'គេហវិទ្យា', max: 10 },
-            { key: 'pe_sport', label: 'កីឡា', max: 10 },
-            { key: 'life_skill', label: 'បំណិនជីវិត', max: 10 },
-            { key: 'foreign', label: 'ភាសាបរទេស', max: 10 },
-            { key: 'ex_oral', label: 'ផ្ទាល់មាត់', max: 10 },
-            { key: 'ex_att', label: 'អវត្តមាន', max: 10 },
-            { key: 'ex_book', label: 'សៀវភៅ', max: 10 },
-            { key: 'ex_hw', label: 'កិច្ចការផ្ទះ', max: 10 }
+            { key: 'kh_listen', label: 'ស្តាប់', max: 10, color: 'text-purple-600' },
+            { key: 'kh_speak', label: 'និយាយ', max: 10, color: 'text-purple-600' },
+            { key: 'kh_read', label: 'អាន', max: 10, color: 'text-purple-600' },
+            { key: 'kh_write', label: 'សរសេរ', max: 10, color: 'text-purple-600' },
+            { key: 'kh_calligraphy', label: 'អក្សរផ្ចង់', max: 10, color: 'text-purple-600' },
+            { key: 'kh_recitation', label: 'មេសូត្រ', max: 10, color: 'text-purple-600' },
+            { key: 'kh_essay', label: 'តែងសេចក្តី', max: 10, color: 'text-purple-600' },
+            { key: 'math_num', label: 'ចំនួន', max: 10, color: 'text-orange-600' },
+            { key: 'math_meas', label: 'រង្វាស់រង្វាល់', max: 10, color: 'text-orange-600' },
+            { key: 'math_geo', label: 'ធរណីមាត្រ', max: 10, color: 'text-orange-600' },
+            { key: 'math_alg', label: 'ពីជគណិត', max: 10, color: 'text-orange-600' },
+            { key: 'math_stat', label: 'ស្ថិតិ', max: 10, color: 'text-orange-600' },
+            { key: 'sci_phy', label: 'រូបវិទ្យា', max: 10, color: 'text-green-600' },
+            { key: 'sci_chem', label: 'គីមីវិទ្យា', max: 10, color: 'text-green-600' },
+            { key: 'sci_bio', label: 'ជីវវិទ្យា', max: 10, color: 'text-green-600' },
+            { key: 'sci_earth', label: 'ផែនដីវិទ្យា', max: 10, color: 'text-green-600' },
+            { key: 'sci_applied', label: 'អនុវត្តន៍', max: 10, color: 'text-green-600' },
+            { key: 'soc_ethic', label: 'សីលធម៌', max: 10, color: 'text-sky-600' },
+            { key: 'soc_geo', label: 'ភូមិវិទ្យា', max: 10, color: 'text-sky-600' },
+            { key: 'soc_hist', label: 'ប្រវត្តិវិទ្យា', max: 10, color: 'text-sky-600' },
+            { key: 'soc_home', label: 'គេហវិទ្យា', max: 10, color: 'text-amber-600' },
+            { key: 'pe_sport', label: 'អប់រំកាយ', max: 10, color: 'text-amber-600' },
+            { key: 'health_hygiene', label: 'សុខភាព', max: 10, color: 'text-amber-600' },
+            { key: 'life_skill', label: 'បំណិនជីវិត', max: 10, color: 'text-blue-900' },
+            { key: 'foreign', label: 'ភាសាបរទេស', max: 10, color: 'text-purple-600' },
+            { key: 'ex_oral', label: 'ផ្ទាល់មាត់', max: 10, color: 'text-gray-800' },
+            { key: 'ex_att', label: 'អវត្តមាន', max: 10, color: 'text-gray-800' },
+            { key: 'ex_book', label: 'សៀវភៅ', max: 10, color: 'text-gray-800' },
+            { key: 'ex_hw', label: 'កិច្ចការផ្ទះ', max: 10, color: 'text-gray-800' }
         ];
 
         const semesterSubjects = [
-            { key: 'sem_kh_reading_speaking', label: 'អំណាន-និយាយ', max: 10 },
-            { key: 'sem_kh_dictation', label: 'សរសេរតាមអាន', max: 10 },
-            { key: 'sem_kh_essay', label: 'តែងសេចក្តី', max: 10 },
-            { key: 'sem_math', label: 'គណិតវិទ្យា', max: 10 },
-            { key: 'sem_science', label: 'វិទ្យាសាស្ត្រ', max: 10 },
-            { key: 'sem_moral_civics', label: 'សីលធម៌', max: 10 },
-            { key: 'sem_geo', label: 'ភូមិវិទ្យា', max: 10 },
-            { key: 'sem_hist', label: 'ប្រវត្តិវិទ្យា', max: 10 },
-            { key: 'sem_home_arts', label: 'គេហវិទ្យា', max: 10 },
-            { key: 'sem_life_skills', label: 'បំណិនជីវិត', max: 10 },
-            { key: 'sem_foreign', label: 'ភាសាបរទេស', max: 10 },
-            { key: 'sem_sport', label: 'កីឡា', max: 10 }
+            { key: 'sem_kh_reading_speaking', label: 'អំណាន-និយាយ', max: 10, color: 'text-purple-600' },
+            { key: 'sem_kh_dictation', label: 'សរសេរតាមអាន', max: 10, color: 'text-purple-600' },
+            { key: 'sem_kh_essay', label: 'តែងសេចក្តី', max: 10, color: 'text-purple-600' },
+            { key: 'sem_math', label: 'គណិតវិទ្យា', max: 10, color: 'text-orange-600' },
+            { key: 'sem_science', label: 'វិទ្យាសាស្ត្រ', max: 10, color: 'text-green-600' },
+            { key: 'sem_moral_civics', label: 'សីលធម៌', max: 10, color: 'text-sky-600' },
+            { key: 'sem_geo', label: 'ភូមិវិទ្យា', max: 10, color: 'text-sky-600' },
+            { key: 'sem_hist', label: 'ប្រវត្តិវិទ្យា', max: 10, color: 'text-sky-600' },
+            { key: 'sem_home_arts', label: 'គេហវិទ្យា', max: 10, color: 'text-amber-600' },
+            { key: 'sem_life_skills', label: 'បំណិនជីវិត', max: 10, color: 'text-blue-900' },
+            { key: 'sem_foreign', label: 'ភាសាបរទេស', max: 10, color: 'text-purple-600' },
+            { key: 'sem_sport', label: 'កីឡា', max: 10, color: 'text-amber-600' },
+            { key: 'sem_eval_knowledge', label: 'ចំណេះដឹង', isText: true, color: 'text-gray-800' },
+            { key: 'sem_eval_skill', label: 'បំណិន-ចំណេះធ្វើ', isText: true, color: 'text-gray-800' },
+            { key: 'sem_eval_moral', label: 'តម្លៃ-សីលធម៌', isText: true, color: 'text-gray-800' },
+            { key: 'sem_eval_participate', label: 'សាមគ្គីភាព-ការចូលរួម', isText: true, color: 'text-gray-800' }
         ];
 
         const monthLabels = {
@@ -574,16 +558,16 @@
             // Reset all buttons
             Object.values(buttons).forEach(btn => {
                 if(btn) {
-                    btn.classList.remove('bg-white', 'shadow', 'text-[#0054a6]');
-                    btn.classList.add('text-gray-500', 'hover:bg-white/50');
+                    btn.classList.remove('bg-white', 'shadow-sm', 'text-[#0054a6]');
+                    btn.classList.add('text-gray-500', 'hover:bg-gray-100');
                 }
             });
 
             // Set active button
             const activeBtn = buttons[type];
             if(activeBtn) {
-                activeBtn.classList.add('bg-white', 'shadow', 'text-[#0054a6]');
-                activeBtn.classList.remove('text-gray-500', 'hover:bg-white/50');
+                activeBtn.classList.add('bg-white', 'shadow-sm', 'text-[#0054a6]');
+                activeBtn.classList.remove('text-gray-500', 'hover:bg-gray-100');
             }
 
             if (type === 'semester') {
@@ -686,10 +670,12 @@
             }
         }
 
+        // --- Fetch and Render Students ---
         window.loadStudents = async function() {
-            const select = document.getElementById('studentSelect');
-            select.innerHTML = '<option value="">កំពុងផ្ទុកទិន្នន័យ...</option>';
-            
+            const grid = document.getElementById('studentGrid');
+            grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500"></i>កំពុងផ្ទុកទិន្នន័យសិស្ស...</div>';
+            lucide.createIcons();
+
             const fallbackLoad = () => {
                 const storedStudents = localStorage.getItem('students_db') || localStorage.getItem('students');
                 if (storedStudents) {
@@ -720,14 +706,58 @@
             }
 
             allStudents.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'km'));
-            
-            if (allStudents.length > 0) {
-                select.innerHTML = allStudents.map(s => `<option value="${s.id}">${s.id} - ${s.name}</option>`).join('');
-            } else {
-                select.innerHTML = '<option value="">មិនមានសិស្សទេ</option>';
-            }
+            window.renderStudentGrid(allStudents);
         }
 
+        window.renderStudentGrid = function(students) {
+            const grid = document.getElementById('studentGrid');
+            
+            if (students.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
+                        <i data-lucide="users-round" class="w-12 h-12 text-gray-400 mx-auto mb-3"></i>
+                        <p class="text-gray-500 font-bold">មិនមានទិន្នន័យសិស្សទេ</p>
+                        <p class="text-sm text-gray-400">សូមបន្ថែមសិស្សជាមុនសិន</p>
+                    </div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            let html = '';
+            students.forEach(s => {
+                const isMale = (s.gender === 'ប្រុស' || s.gender === 'M' || s.gender === 'm');
+                const avatarBg = isMale ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600';
+                const avatarIcon = isMale ? 'user' : 'user';
+
+                html += `
+                    <div onclick="window.generateA5Report('${s.id}')" class="bg-white border border-gray-200 rounded-2xl p-4 hover:shadow-lg hover:border-blue-400 hover:-translate-y-1 cursor-pointer transition-all duration-300 group flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${avatarBg} group-hover:scale-110 transition-transform">
+                            <i data-lucide="${avatarIcon}" class="w-6 h-6"></i>
+                        </div>
+                        <div class="overflow-hidden w-full text-left">
+                            <h3 class="font-bold text-gray-800 text-[15px] truncate group-hover:text-[#0054a6] transition-colors">${s.name}</h3>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[11px] font-bold">ID: ${s.id}</span>
+                                <span class="text-[12px] text-gray-500">ភេទ: ${isMale ? 'ប្រុស' : 'ស្រី'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            grid.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        window.filterStudents = function() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allStudents.filter(s =>
+                (s.name && s.name.toLowerCase().includes(query)) || 
+                (s.id && String(s.id).includes(query))
+            );
+            window.renderStudentGrid(filtered);
+        }
+
+        // --- Helpers ---
         window.toKhmerNum = function(num) {
             return num.toString().split('').map(d => khmerNums[parseInt(d)] || d).join('');
         }
@@ -763,7 +793,9 @@
                 'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12'
             };
             
-            const sem1Months = ['10', '11', '12', '01', '02', '03'];
+            // កំណត់ឆមាសតាមការស្នើសុំ៖ ឆមាស១ (១១ ដល់ ០៥) និង ឆមាស២ (០៦ ដល់ ០៩)
+            const sem1AttMonths = ['11', '12', '01', '02', '03', '04', '05'];
+            const sem2AttMonths = ['06', '07', '08', '09'];
 
             Object.keys(attendanceHistory).forEach(dateStr => {
                 const parts = dateStr.split('-');
@@ -775,8 +807,7 @@
                 if (type === 'yearly') {
                     isMatch = true; 
                 } else if (type === 'semester') {
-                    const isSem1 = sem1Months.includes(m);
-                    isMatch = period === 'sem1' ? isSem1 : !isSem1;
+                    isMatch = period === 'sem1' ? sem1AttMonths.includes(m) : sem2AttMonths.includes(m);
                 } else {
                     isMatch = m === monthStrs[period];
                 }
@@ -792,6 +823,33 @@
 
             return { absent, permission };
         }
+
+        window.getSubjectRank = function(studentId, year, period, subjectKey) {
+            const sData = scoresCache[`${year}_${period}`] || {};
+            const scoresList = [];
+            for (let sid in sData) {
+                let val = sData[sid][subjectKey];
+                if (val !== null && val !== undefined && val !== '') {
+                    let num = parseFloat(val);
+                    if (!isNaN(num)) {
+                        scoresList.push({ id: sid, score: num });
+                    }
+                }
+            }
+            if (scoresList.length === 0) return '-';
+
+            scoresList.sort((a, b) => b.score - a.score);
+            let currentRank = 1;
+            for (let i = 0; i < scoresList.length; i++) {
+                if (i > 0 && scoresList[i].score < scoresList[i-1].score) {
+                    currentRank = i + 1;
+                }
+                if (String(scoresList[i].id) === String(studentId)) {
+                    return currentRank;
+                }
+            }
+            return '-';
+        };
 
         async function getCachedScoresData(year, period) {
             const key = `${year}_${period}`;
@@ -829,6 +887,7 @@
                     let mSum = 0;
                     let mCount = 0;
                     monthlySubjects.forEach(col => {
+                        if (col.isText) return;
                         const val = studentScores[col.key];
                         if (val !== null && val !== undefined && val !== "") {
                             const numVal = parseFloat(val);
@@ -853,6 +912,7 @@
             let count = 0;
             if (studentScores) {
                 semesterSubjects.forEach(col => {
+                    if (col.isText) return;
                     const val = studentScores[col.key];
                     if (val !== null && val !== undefined && val !== "") {
                         const numVal = parseFloat(val);
@@ -888,320 +948,570 @@
                 if (i > 0 && sorted[i].avg < sorted[i-1].avg) {
                     currentRank = i + 1;
                 }
-                if (sorted[i].id === studentId) {
+                if (String(sorted[i].id) === String(studentId)) {
                     return currentRank;
                 }
             }
             return '-';
         }
 
-        // --- 5. GENERATE REPORT ---
-        window.generateA5Report = async function() {
-            const studentId = String(document.getElementById('studentSelect').value);
-            if (!studentId) {
-                alert("សូមជ្រើសរើសសិស្សជាមុនសិន!");
+        window.printAllStudents = function() {
+            if (!allStudents || allStudents.length === 0) {
+                alert("មិនមានទិន្នន័យសិស្សទេ!");
                 return;
             }
+            const ids = allStudents.map(s => s.id);
+            window.generateReports(ids);
+        };
+
+        window.generateA5Report = function(studentId) {
+            window.generateReports([studentId]);
+        };
+
+        window.generateReports = async function(studentIds) {
+            if (!studentIds || studentIds.length === 0) return;
 
             const year = document.getElementById('yearSelect').value;
             const period = document.getElementById('periodSelect').value;
-            
-            const student = allStudents.find(s => String(s.id) === studentId);
-            if (!student) {
-                alert("រកមិនឃើញព័ត៌មានសិស្សនេះនៅក្នុងប្រព័ន្ធទេ!");
-                return;
-            }
 
-            // Show Loading Indicator
-            const btn = document.querySelector('button[onclick="window.generateA5Report()"]');
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> កំពុងទាញយកទិន្នន័យ...';
-            btn.disabled = true;
-            lucide.createIcons();
+            // Show Loading Overlay
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
 
             try {
                 scoresCache = {}; // Reset cache
-                let displayRows = [];
-                let totalScore = 0;
-                let studentAvg = 0;
-                let studentGrade = 'F';
-                let rank = '-';
 
-                // អថេរសម្រាប់ផ្ទុកទិន្នន័យឆមាសដើម្បីបង្ហាញក្នុងតារាងសរុបប្រចាំឆ្នាំ
-                let sem1Avg = 0, sem2Avg = 0, sem1Rank = '-', sem2Rank = '-';
-                let sem1Grade = 'F', sem2Grade = 'F';
-
+                // Pre-fetch all necessary data
                 if (currentType === 'yearly') {
+                    const allMonthsToFetch = ['nov', 'dec', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug'];
                     await Promise.all([
                         getCachedScoresData(year, 'sem1'),
                         getCachedScoresData(year, 'sem2'),
-                        ...sem1Months.map(m => getCachedScoresData(year, m)),
-                        ...sem2Months.map(m => getCachedScoresData(year, m))
+                        ...allMonthsToFetch.map(m => getCachedScoresData(year, m))
                     ]);
-                    
-                    const s1Data = scoresCache[`${year}_sem1`] || {};
-                    const s2Data = scoresCache[`${year}_sem2`] || {};
-                    const s1Scores = s1Data[studentId] || {};
-                    const s2Scores = s2Data[studentId] || {};
-
-                    semesterSubjects.forEach(col => {
-                        let v1 = parseFloat(s1Scores[col.key]);
-                        let v2 = parseFloat(s2Scores[col.key]);
-                        let hasV1 = !isNaN(v1); 
-                        let hasV2 = !isNaN(v2);
-                        
-                        if (hasV1 || hasV2) {
-                            let score1 = hasV1 ? v1 : 0;
-                            let score2 = hasV2 ? v2 : 0;
-                            
-                            // យោងតាមសំណើ: យកឆមាស១ + ឆមាស២។ យើងចែកនឹង ២ ដើម្បីរក្សាពិន្ទុអតិបរមាត្រឹម ១០ ដដែល។
-                            let avgSubjectScore = (score1 + score2) / 2;
-                            
-                            displayRows.push({
-                                label: col.label,
-                                score: avgSubjectScore,
-                                max: col.max
-                            });
-                            totalScore += avgSubjectScore;
-                        }
-                    });
-
-                    // ទាញយកមធ្យមភាគពិតប្រាកដដែលគិតបញ្ចូលទាំងពិន្ទុខែ ដូចក្នុង subject-scores.html
-                    sem1Avg = computeSemAvg(studentId, year, 'sem1');
-                    sem2Avg = computeSemAvg(studentId, year, 'sem2');
-                    sem1Grade = window.calculateGrade(sem1Avg, true);
-                    sem2Grade = window.calculateGrade(sem2Avg, true);
-
-                    studentAvg = (sem1Avg + sem2Avg) / 2;
-                    if (sem1Avg === 0 && sem2Avg === 0) studentAvg = 0;
-                    studentGrade = window.calculateGrade(studentAvg, true);
-
-                    let allSem1Avgs = allStudents.map(s => ({ id: String(s.id), avg: computeSemAvg(s.id, year, 'sem1') }));
-                    let allSem2Avgs = allStudents.map(s => ({ id: String(s.id), avg: computeSemAvg(s.id, year, 'sem2') }));
-                    let allYearlyAvgs = allStudents.map(s => {
-                        let a1 = computeSemAvg(s.id, year, 'sem1');
-                        let a2 = computeSemAvg(s.id, year, 'sem2');
-                        return { id: String(s.id), avg: (a1 > 0 || a2 > 0) ? (a1 + a2)/2 : 0 };
-                    });
-
-                    sem1Rank = getRank(studentId, allSem1Avgs);
-                    sem2Rank = getRank(studentId, allSem2Avgs);
-                    rank = getRank(studentId, allYearlyAvgs);
-
                 } else if (currentType === 'semester') {
                     const months = period === 'sem1' ? sem1Months : sem2Months;
                     await Promise.all([
                         getCachedScoresData(year, period),
                         ...months.map(m => getCachedScoresData(year, m))
                     ]);
-
-                    const sData = scoresCache[`${year}_${period}`] || {};
-                    const studentScores = sData[studentId] || {};
-
-                    semesterSubjects.forEach(col => {
-                        let val = studentScores[col.key];
-                        if (val !== null && val !== undefined && val !== '') {
-                            let numVal = parseFloat(val);
-                            if (!isNaN(numVal)) { 
-                                displayRows.push({
-                                    label: col.label,
-                                    score: numVal,
-                                    max: col.max
-                                });
-                                totalScore += numVal;
-                            }
-                        }
-                    });
-
-                    studentAvg = computeSemAvg(studentId, year, period);
-                    studentGrade = window.calculateGrade(studentAvg, true);
-
-                    let allSemAvgs = allStudents.map(s => ({ id: String(s.id), avg: computeSemAvg(s.id, year, period) }));
-                    rank = getRank(studentId, allSemAvgs);
-
                 } else {
                     await getCachedScoresData(year, period);
+                }
 
-                    const sData = scoresCache[`${year}_${period}`] || {};
-                    const studentScores = sData[studentId] || {};
-                    let countSubjects = 0;
+                const savedSigs = JSON.parse(localStorage.getItem('print_signatures') || '{}');
+                const today = new Date();
+                let lunarDateStr = "";
+                if (typeof momentkh !== 'undefined') {
+                    try {
+                        const m = momentkh.fromDate(today);
+                        lunarDateStr = momentkh.format(m).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                    } catch(e) {}
+                }
+                let solarDateStr = `ថ្ងៃទី${window.toKhmerNum(today.getDate())} ខែ${khmerMonths[today.getMonth()]} ឆ្នាំ${window.toKhmerNum(today.getFullYear())}`;
 
-                    monthlySubjects.forEach(col => {
-                        let val = studentScores[col.key];
-                        if (val !== null && val !== undefined && val !== '') {
-                            let numVal = parseFloat(val);
-                            if (!isNaN(numVal)) { 
-                                displayRows.push({
-                                    label: col.label,
-                                    score: numVal,
-                                    max: col.max
-                                });
-                                totalScore += numVal;
-                                countSubjects++;
-                            }
-                        }
-                    });
+                let finalAllReportsHtml = '';
 
-                    studentAvg = countSubjects > 0 ? (totalScore / countSubjects) : 0;
-                    studentGrade = window.calculateGrade(studentAvg, true);
+                for (let sid of studentIds) {
+                    const student = allStudents.find(s => String(s.id) === String(sid));
+                    if (!student) continue;
 
-                    let allMonthlyAvgs = allStudents.map(s => {
-                        const sc = (scoresCache[`${year}_${period}`] || {})[s.id] || {};
-                        let sTotal = 0, sCount = 0;
-                        monthlySubjects.forEach(c => {
-                            let v = sc[c.key];
-                            if (v !== null && v !== undefined && v !== '') {
-                                let n = parseFloat(v);
-                                if (!isNaN(n)) { sTotal += n; sCount++; }
+                    let displayRows = [];
+                    let totalScore = 0;
+                    let studentAvg = 0;
+                    let studentGrade = 'F';
+                    let rank = '-';
+
+                    let sem1Avg = 0, sem2Avg = 0, sem1Rank = '-', sem2Rank = '-';
+                    let sem1Grade = 'F', sem2Grade = 'F';
+
+                    // --- DATA CALCULATION ---
+                    if (currentType === 'yearly') {
+                        sem1Avg = computeSemAvg(student.id, year, 'sem1');
+                        sem2Avg = computeSemAvg(student.id, year, 'sem2');
+                        
+                        studentAvg = (sem1Avg + sem2Avg) / 2;
+                        if (sem1Avg === 0 && sem2Avg === 0) studentAvg = 0;
+                        studentGrade = window.calculateGrade(studentAvg, true);
+                        
+                    } else if (currentType === 'semester') {
+                        const sData = scoresCache[`${year}_${period}`] || {};
+                        const studentScores = sData[student.id] || {};
+
+                        semesterSubjects.forEach(col => {
+                            let val = studentScores[col.key];
+                            if (val !== null && val !== undefined && val !== '') {
+                                if (col.isText) {
+                                    displayRows.push({ label: col.label, isText: true, textValue: val, key: col.key, color: col.color });
+                                } else {
+                                    let numVal = parseFloat(val);
+                                    if (!isNaN(numVal)) { 
+                                        displayRows.push({ label: col.label, score: numVal, max: col.max, key: col.key, color: col.color });
+                                        totalScore += numVal;
+                                    }
+                                }
                             }
                         });
-                        return { id: String(s.id), avg: sCount > 0 ? (sTotal/sCount) : 0 };
-                    });
-                    
-                    rank = getRank(studentId, allMonthlyAvgs);
-                }
 
-                let titlePrefix = currentType === 'monthly' ? 'ខែ' : '';
-                document.getElementById('out_title').textContent = `លទ្ធផលសិក្សា${titlePrefix}${monthLabels[period]}`;
-                
-                document.getElementById('out_id').textContent = student.id;
-                document.getElementById('out_name').textContent = student.name;
-                
-                document.getElementById('out_grade').textContent = classConfig.className;
-                document.getElementById('out_gender').textContent = (student.gender === 'ប្រុស' || student.gender === 'M' || student.gender === 'm') ? 'ប' : 'ស';
-                document.getElementById('out_loc').textContent = classConfig.location;
+                        studentAvg = computeSemAvg(student.id, year, period);
+                        studentGrade = window.calculateGrade(studentAvg, true);
 
-                // Load Signatures for printing
-                const savedSigs = JSON.parse(localStorage.getItem('print_signatures') || '{}');
-                
-                // Manager Setup
-                document.getElementById('out_manager_role').textContent = classConfig.managerRole;
-                document.getElementById('out_manager_name_val').textContent = savedSigs.managerName || '';
-                const mgrImg = document.getElementById('out_manager_sig_img');
-                if (savedSigs.managerImage) {
-                    mgrImg.src = savedSigs.managerImage;
-                    mgrImg.style.transform = `scale(${savedSigs.managerScale || 1})`;
-                    mgrImg.classList.remove('hidden');
-                } else {
-                    mgrImg.classList.add('hidden');
-                }
+                        let allSemAvgs = allStudents.map(s => ({ id: String(s.id), avg: computeSemAvg(s.id, year, period) }));
+                        rank = getRank(student.id, allSemAvgs);
 
-                // Teacher Setup
-                document.getElementById('out_teacher').textContent = savedSigs.teacherName || classConfig.teacher;
-                const tchImg = document.getElementById('out_teacher_sig_img');
-                if (savedSigs.teacherImage) {
-                    tchImg.src = savedSigs.teacherImage;
-                    tchImg.style.transform = `scale(${savedSigs.teacherScale || 1})`;
-                    tchImg.classList.remove('hidden');
-                } else {
-                    tchImg.classList.add('hidden');
-                }
+                    } else {
+                        const sData = scoresCache[`${year}_${period}`] || {};
+                        const studentScores = sData[student.id] || {};
+                        let countSubjects = 0;
 
-                // Update Dates Automatically
-                const today = new Date();
-                let bYear = today.getFullYear() + 543; 
-                // កែតម្រូវឆ្នាំពុទ្ធសករាជ (ចូលឆ្នាំខ្មែររវាងពាក់កណ្តាលខែមេសា)
-                if (today.getMonth() > 3 || (today.getMonth() === 3 && today.getDate() >= 14)) {
-                    bYear += 1;
-                }
-                
-                // Array of Khmer Days
-                const khmerDays = ['អាទិត្យ', 'ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហស្បតិ៍', 'សុក្រ', 'សៅរ៍'];
-                const currentDayName = khmerDays[today.getDay()];
-                
-                document.getElementById('out_long_date').textContent = `ថ្ងៃ ${currentDayName} ខែ ${khmerMonths[today.getMonth()]} ឆ្នាំ ${window.toKhmerNum(today.getFullYear())} ព.ស ${window.toKhmerNum(bYear)}`;
-                document.getElementById('out_short_date').textContent = `ថ្ងៃទី ${window.toKhmerNum(today.getDate())} ខែ ${khmerMonths[today.getMonth()]} ឆ្នាំ ${window.toKhmerNum(today.getFullYear())}`;
+                        monthlySubjects.forEach(col => {
+                            let val = studentScores[col.key];
+                            if (val !== null && val !== undefined && val !== '') {
+                                let numVal = parseFloat(val);
+                                if (!isNaN(numVal)) { 
+                                    displayRows.push({ label: col.label, score: numVal, max: col.max, key: col.key, color: col.color });
+                                    totalScore += numVal;
+                                    countSubjects++;
+                                }
+                            }
+                        });
 
-                const tbody = document.getElementById('out_tbody');
-                let rowsHtml = '';
-                
-                // Helper for matching image grade colors
-                const getGradeColorClass = (g) => {
-                    if (g === 'A') return 'text-red-600 font-bold';
-                    if (g === 'B') return 'text-pink-600 font-bold';
-                    if (g === 'C') return 'text-purple-600 font-bold';
-                    return 'font-bold text-black';
-                };
+                        studentAvg = countSubjects > 0 ? (totalScore / countSubjects) : 0;
+                        studentGrade = window.calculateGrade(studentAvg, true);
 
-                displayRows.forEach((item, index) => {
-                    let grade = window.calculateGrade(item.score);
-                    let gradeClass = getGradeColorClass(grade);
-                    
-                    rowsHtml += `
-                        <tr class="h-[22px]">
-                            <td class="kh-moul border border-black">${window.toKhmerNum(index + 1)}</td>
-                            <td colspan="2" class="text-center font-bold px-2 border border-black">${item.label}</td>
-                            <td class="border border-black">${item.max}</td>
-                            <td class="border border-black">${window.formatNum(item.score)}</td>
-                            <td class="${gradeClass} border border-black">${grade}</td>
-                            <td class="border border-black"></td>
+                        let allMonthlyAvgs = allStudents.map(s => {
+                            const sc = (scoresCache[`${year}_${period}`] || {})[s.id] || {};
+                            let sTotal = 0, sCount = 0;
+                            monthlySubjects.forEach(c => {
+                                let v = sc[c.key];
+                                if (v !== null && v !== undefined && v !== '') {
+                                    let n = parseFloat(v);
+                                    if (!isNaN(n)) { sTotal += n; sCount++; }
+                                }
+                            });
+                            return { id: String(s.id), avg: sCount > 0 ? (sTotal/sCount) : 0 };
+                        });
+                        
+                        rank = getRank(student.id, allMonthlyAvgs);
+                    }
+
+                    // --- HTML CONSTRUCTION ---
+                    let titleHtml = '';
+                    if (currentType === 'yearly') {
+                        titleHtml = '<span class="text-red-600" style="-webkit-print-color-adjust: exact;">លទ្ធផលនៃការសិក្សាប្រចាំឆ្នាំ</span>';
+                    } else {
+                        let titlePrefix = currentType === 'monthly' ? 'ខែ' : '';
+                        titleHtml = `លទ្ធផលសិក្សា${titlePrefix}${monthLabels[period]}`;
+                    }
+
+                    let commentText = "";
+                    if (currentType === 'monthly' || currentType === 'semester') {
+                        if (studentAvg <= 0) commentText = "គ្មាន.ចំ";
+                        else if (studentAvg < 5) commentText = "សិស្សរៀនក្រោមមធ្យម ត្រូវខិតខំប្រឹងប្រែងរៀនសូត្របន្ថែមទៀតផង";
+                        else if (studentAvg < 6) commentText = "សិស្សរៀនបាននិទ្ទេស E មធ្យម ខិតខំប្រឹងប្រែងរៀនសូត្របន្ថែមទៀត";
+                        else if (studentAvg < 7) commentText = "សិស្សរៀនបាននិទ្ទេស D ល្អបង្គួរ ត្រូវខិតខំប្រឹងរៀនសូត្របន្ថែមទៀត";
+                        else if (studentAvg < 8) commentText = "សិស្សរៀនបាននិទ្ទេស C ល្អ មានវិន័យ និងសីលធម៌ល្អ";
+                        else if (studentAvg < 9) commentText = "សិស្សរៀនបាននិទ្ទេស B ល្អណាស់ មានវិន័យ និងសីលធម៌ល្អ";
+                        else commentText = "សិស្សរៀនបាននិទ្ទេស A ល្អប្រសើរ មានវិន័យ និងសីលធម៌ល្អ";
+                    } else if (currentType === 'yearly') {
+                        if (studentAvg < 5) commentText = "សិស្សត្រូវរៀនត្រួតថ្នាក់ សូមមាតាបិតាជួយណែនាំកូនឱ្យរៀនផង";
+                        else commentText = "ត្រូវបានឡើងថ្នាក់ សិស្សមានវិន័យនិងសីលធម៌ល្អ ត្រូវប្រឹងប្រែងរៀនសូត្របន្ថែមទៀត";
+                    }
+
+                    let theadHtml = '';
+                    if (currentType === 'yearly') {
+                        theadHtml = `
+                            <tr class="text-[#00a651] font-bold">
+                                <th class="border border-black bg-white py-2 w-[22%]">លទ្ធផល</th>
+                                <th class="border border-black bg-white w-[13%]">មធ្យមភាគ</th>
+                                <th class="border border-black bg-white w-[13%]">ចំ.ថ្នាក់</th>
+                                <th class="border border-black bg-white w-[52%]" colspan="4">ផ្សេងៗ</th>
+                            </tr>
+                        `;
+                    } else if (currentType === 'semester') {
+                        theadHtml = `
+                            <tr>
+                                <th rowspan="2" class="w-[8%] border border-black bg-[#addcf3]">ល.រ</th>
+                                <th rowspan="2" class="w-[30%] border border-black bg-[#addcf3]">មុខវិជ្ជា</th>
+                                <th colspan="3" class="w-[47%] border border-black bg-[#addcf3]">ពិន្ទុ</th>
+                                <th rowspan="2" class="w-[15%] border border-black bg-[#addcf3]">ផ្សេងៗ</th>
+                            </tr>
+                            <tr>
+                                <th class="w-[15%] border border-black bg-[#addcf3]">ពិន្ទុ</th>
+                                <th class="w-[17%] border border-black bg-[#addcf3] text-red-600">ចំ.ថ្នាក់</th>
+                                <th class="w-[15%] border border-black bg-[#addcf3]">និទ្ទេស</th>
+                            </tr>
+                        `;
+                    } else {
+                        theadHtml = `
+                            <tr>
+                                <th rowspan="2" class="w-[8%] border border-black bg-[#addcf3]">ល.រ</th>
+                                <th rowspan="2" colspan="2" class="w-[35%] border border-black bg-[#addcf3]">មុខវិជ្ជា</th>
+                                <th colspan="3" class="w-[42%] border border-black bg-[#addcf3]">ពិន្ទុ</th>
+                                <th rowspan="2" class="w-[15%] border border-black bg-[#addcf3]">ផ្សេងៗ</th>
+                            </tr>
+                            <tr>
+                                <th class="w-[14%] border border-black bg-[#addcf3]">ពិន្ទុអតិបរមា</th>
+                                <th class="w-[14%] border border-black bg-[#addcf3]">ពិន្ទុ</th>
+                                <th class="w-[14%] border border-black bg-[#addcf3]">និទ្ទេស</th>
+                            </tr>
+                        `;
+                    }
+
+                    let tbodyHtml = '';
+                    const getGradeColorClass = (g) => {
+                        if (g === 'A') return 'text-red-600 font-bold';
+                        if (g === 'B') return 'text-pink-600 font-bold';
+                        if (g === 'C') return 'text-purple-600 font-bold';
+                        return 'font-bold text-black';
+                    };
+
+                    const getSemesterGradeCell = (g) => {
+                        let bgClass = 'bg-transparent';
+                        if (g === 'A') bgClass = 'bg-[#c6e0b4]'; 
+                        else if (g === 'B') bgClass = 'bg-[#ffe699]'; 
+                        else if (g === 'C') bgClass = 'bg-[#f8cbad]'; 
+                        else if (g === 'D') bgClass = 'bg-[#f4b084]'; 
+                        else if (g === 'E') bgClass = 'bg-[#f4b084]'; 
+                        else if (g === 'F') bgClass = 'bg-[#e6b8b7]'; 
+                        return `<td class="${bgClass} border border-black font-extrabold text-black">${g}</td>`;
+                    };
+
+                    if (currentType === 'yearly') {
+                        const academicMonths = ['nov', 'dec', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug'];
+                        const khAcademicMonths = ['ខែ វិច្ឆិកា', 'ខែ ធ្នូ', 'ខែ មករា', 'ខែ កុម្ភៈ', 'ខែ មីនា', 'ខែ មេសា', 'ខែ ឧសភា', 'ខែ មិថុនា', 'ខែ កក្កដា', 'ខែ សីហា'];
+
+                        for (let i = 0; i < academicMonths.length; i++) {
+                            let m = academicMonths[i];
+                            let mName = khAcademicMonths[i];
+                            let sAvg = computeMonthlyAvg(student.id, year, [m]);
+                            let allAvgs = allStudents.map(s => ({ id: String(s.id), avg: computeMonthlyAvg(s.id, year, [m]) }));
+                            let sRank = getRank(student.id, allAvgs);
+
+                            let dispAvg = sAvg > 0 ? window.formatNum(sAvg) : '';
+                            let dispRank = sAvg > 0 ? sRank : '';
+
+                            tbodyHtml += `
+                                <tr class="h-[22px] font-bold">
+                                    <td class="border border-black text-center px-2" style="color: #00a651;">${mName}</td>
+                                    <td class="border border-black text-blue-700 text-center">${dispAvg}</td>
+                                    <td class="border border-black text-red-600 text-center">${dispRank}</td>
+                                    <td colspan="4" class="border border-black"></td>
+                                </tr>
+                            `;
+                        }
+                        
+                        tbodyHtml += `
+                            <tr class="font-bold" style="color: #00a651;">
+                                <td rowspan="2" class="border border-black bg-white py-1 text-center">លទ្ធផល</td>
+                                <td rowspan="2" class="border border-black bg-white text-center">ម.ភាគ</td>
+                                <td rowspan="2" class="border border-black bg-white text-center">ចំ.ថ្នាក់</td>
+                                <td rowspan="2" class="border border-black bg-white text-center">និទ្ទេស</td>
+                                <td colspan="3" class="border border-black bg-white text-center">អវត្តមាន</td>
+                            </tr>
+                            <tr class="font-bold" style="color: #00a651;">
+                                <td class="border border-black bg-white py-1 text-center w-[13%]">មានច្បាប់</td>
+                                <td class="border border-black bg-white text-center w-[13%]">ឥតច្បាប់</td>
+                                <td class="border border-black bg-white text-center w-[13%]">សរុប</td>
+                            </tr>
+                        `;
+
+                        let allSem1ExamAvgs = allStudents.map(s => ({ id: String(s.id), avg: computeExamAvg(s.id, year, 'sem1').avg }));
+                        let sem1ExamAvg = computeExamAvg(student.id, year, 'sem1').avg;
+                        let sem1ExamRank = getRank(student.id, allSem1ExamAvgs);
+                        let sem1ExamGrade = window.calculateGrade(sem1ExamAvg, true);
+
+                        let allSem1FinalAvgs = allStudents.map(s => ({ id: String(s.id), avg: computeSemAvg(s.id, year, 'sem1') }));
+                        let sem1FinalRank = getRank(student.id, allSem1FinalAvgs);
+                        let sem1FinalGrade = window.calculateGrade(sem1Avg, true);
+
+                        let allSem2ExamAvgs = allStudents.map(s => ({ id: String(s.id), avg: computeExamAvg(s.id, year, 'sem2').avg }));
+                        let sem2ExamAvg = computeExamAvg(student.id, year, 'sem2').avg;
+                        let sem2ExamRank = getRank(student.id, allSem2ExamAvgs);
+                        let sem2ExamGrade = window.calculateGrade(sem2ExamAvg, true);
+
+                        let allSem2FinalAvgs = allStudents.map(s => ({ id: String(s.id), avg: computeSemAvg(s.id, year, 'sem2') }));
+                        let sem2FinalRank = getRank(student.id, allSem2FinalAvgs);
+                        let sem2FinalGrade = window.calculateGrade(sem2Avg, true);
+
+                        let allYearlyAvgs = allStudents.map(s => {
+                            let a1 = computeSemAvg(s.id, year, 'sem1');
+                            let a2 = computeSemAvg(s.id, year, 'sem2');
+                            return { id: String(s.id), avg: (a1 > 0 || a2 > 0) ? (a1 + a2)/2 : 0 };
+                        });
+                        let yearlyRank = getRank(student.id, allYearlyAvgs);
+                        
+                        let attSem1 = window.getAttendanceStats(student.id, 'sem1', 'semester');
+                        let attSem2 = window.getAttendanceStats(student.id, 'sem2', 'semester');
+                        let attYear = window.getAttendanceStats(student.id, 'yearly', 'yearly');
+
+                        let s1Total = attSem1.permission + attSem1.absent;
+                        let s2Total = attSem2.permission + attSem2.absent;
+                        let yTotal = attYear.permission + attYear.absent;
+
+                        const promotionText = studentAvg >= 5.0 ? 'ឡើងថ្នាក់' : 'ត្រួតថ្នាក់';
+
+                        tbodyHtml += `
+                            <tr class="h-[24px] font-bold">
+                                <td class="border border-black text-center" style="color: #00a651;">ប្រឡងឆមាសទី១</td>
+                                <td class="border border-black text-blue-700 text-center">${sem1ExamAvg > 0 ? window.formatNum(sem1ExamAvg) : ''}</td>
+                                <td class="border border-black text-red-600 text-center">${sem1ExamAvg > 0 ? sem1ExamRank : ''}</td>
+                                <td class="border border-black text-blue-700 text-center">${sem1ExamAvg > 0 ? sem1ExamGrade : ''}</td>
+                                <td colspan="3" class="border border-black text-blue-800 text-center" style="background-color: #ffe4e1 !important; -webkit-print-color-adjust: exact;">ឆមាសទី១</td>
+                            </tr>
+                            <tr class="h-[24px] font-bold">
+                                <td class="border border-black text-center" style="color: #00a651;">ប្រចាំឆមាសទី១</td>
+                                <td class="border border-black text-blue-700 text-center">${sem1Avg > 0 ? window.formatNum(sem1Avg) : ''}</td>
+                                <td class="border border-black text-red-600 text-center">${sem1Avg > 0 ? sem1FinalRank : ''}</td>
+                                <td class="border border-black text-blue-700 text-center">${sem1Avg > 0 ? sem1FinalGrade : ''}</td>
+                                <td class="border border-black text-blue-700 text-center">${attSem1.permission > 0 ? attSem1.permission : '0'}</td>
+                                <td class="border border-black text-blue-700 text-center">${attSem1.absent > 0 ? attSem1.absent : '0'}</td>
+                                <td class="border border-black text-blue-700 text-center">${s1Total > 0 ? s1Total : '0'}</td>
                         </tr>
+                            <tr class="h-[24px] font-bold">
+                                <td class="border border-black text-center" style="color: #00a651;">ប្រឡងឆមាសទី២</td>
+                                <td class="border border-black text-blue-700 text-center">${sem2ExamAvg > 0 ? window.formatNum(sem2ExamAvg) : ''}</td>
+                                <td class="border border-black text-red-600 text-center">${sem2ExamAvg > 0 ? sem2ExamRank : ''}</td>
+                                <td class="border border-black text-blue-700 text-center">${sem2ExamAvg > 0 ? sem2ExamGrade : ''}</td>
+                                <td colspan="3" class="border border-black text-blue-800 text-center" style="background-color: #ffe4e1 !important; -webkit-print-color-adjust: exact;">ឆមាសទី២</td>
+                            </tr>
+                            <tr class="h-[24px] font-bold">
+                                <td class="border border-black text-center" style="color: #00a651;">ប្រចាំឆមាសទី២</td>
+                                <td class="border border-black text-blue-700 text-center">${sem2Avg > 0 ? window.formatNum(sem2Avg) : ''}</td>
+                                <td class="border border-black text-red-600 text-center">${sem2Avg > 0 ? sem2FinalRank : ''}</td>
+                                <td class="border border-black text-blue-700 text-center">${sem2Avg > 0 ? sem2FinalGrade : ''}</td>
+                                <td class="border border-black text-blue-700 text-center">${attSem2.permission > 0 ? attSem2.permission : '0'}</td>
+                                <td class="border border-black text-blue-700 text-center">${attSem2.absent > 0 ? attSem2.absent : '0'}</td>
+                                <td class="border border-black text-blue-700 text-center">${s2Total > 0 ? s2Total : '0'}</td>
+                            </tr>
+                            <tr class="h-[24px] font-bold">
+                                <td class="border border-black text-center" style="color: #00a651;">ប្រចាំឆ្នាំ</td>
+                                <td class="border border-black text-blue-700 text-center">${studentAvg > 0 ? window.formatNum(studentAvg) : ''}</td>
+                                <td class="border border-black text-red-600 text-center">${studentAvg > 0 ? yearlyRank : ''}</td>
+                                <td class="border border-black text-blue-700 text-center">${studentAvg > 0 ? promotionText : ''}</td>
+                                <td class="border border-black text-blue-700 text-center">${attYear.permission > 0 ? attYear.permission : '0'}</td>
+                                <td class="border border-black text-blue-700 text-center">${attYear.absent > 0 ? attYear.absent : '0'}</td>
+                                <td class="border border-black text-blue-700 text-center">${yTotal > 0 ? yTotal : '0'}</td>
+                            </tr>
+                        `;
+                    } else if (currentType === 'semester') {
+                        let scoredRows = displayRows.filter(r => !r.isText);
+                        let textRows = displayRows.filter(r => r.isText);
+
+                        const monthsForSem = period === 'sem1' ? sem1Months : sem2Months;
+                        const examStats = computeExamAvg(student.id, year, period);
+                        const mAvg = computeMonthlyAvg(student.id, year, monthsForSem);
+
+                        if (scoredRows.length > 0) {
+                            scoredRows.forEach((item, index) => {
+                                let sRank = window.getSubjectRank(student.id, year, period, item.key);
+                                let grade = window.calculateGrade(item.score, true); 
+                                
+                                tbodyHtml += `<tr>`;
+                                if (index === 0) {
+                                    tbodyHtml += `<td rowspan="${scoredRows.length}" class="border border-black font-bold kh-moul" style="writing-mode: vertical-rl; transform: rotate(180deg);">ពិន្ទុប្រចាំឆមាស</td>`;
+                                }
+                                tbodyHtml += `
+                                    <td class="text-left font-bold px-3 border border-black ${item.color || 'text-blue-800'}">${item.label}</td>
+                                    <td class="border border-black">${window.formatNum(item.score)}</td>
+                                    <td class="border border-black text-red-600 font-bold">${sRank}</td>
+                                    ${getSemesterGradeCell(grade)}
+                                    <td class="border border-black"></td>
+                                </tr>`;
+                            });
+                        }
+
+                        if (displayRows.length === 0) {
+                            tbodyHtml += `
+                                <tr>
+                                    <td colspan="6" class="text-center italic text-gray-500 border border-black">មិនមានទិន្នន័យពិន្ទុទេ</td>
+                                </tr>
+                            `;
+                        } else {
+                            tbodyHtml += `
+                                <tr class="font-bold text-green-700">
+                                    <td rowspan="4" class="border border-black kh-moul" style="writing-mode: vertical-rl; transform: rotate(180deg); color: #000;">លទ្ធផលប្រចាំឆមាស</td>
+                                    <td class="text-left px-3 border border-black">ពិន្ទុសរុប</td>
+                                    <td colspan="4" class="border border-black text-center text-black">${window.formatNum(totalScore)}</td>
+                                </tr>
+                                <tr class="font-bold text-green-700">
+                                    <td class="text-left px-3 border border-black">មធ្យមភាគប្រឡងឆមាស</td>
+                                    <td colspan="4" class="border border-black text-center text-black">${window.formatNum(examStats.avg)}</td>
+                                </tr>
+                                <tr class="font-bold text-green-700">
+                                    <td class="text-left px-3 border border-black">មធ្យមភាគប្រចាំខែ</td>
+                                    <td colspan="4" class="border border-black text-center text-black">${window.formatNum(mAvg)}</td>
+                                </tr>
+                                <tr class="font-bold text-green-700">
+                                    <td class="text-left px-3 border border-black">មធ្យមភាគប្រចាំឆមាស</td>
+                                    <td colspan="4" class="border border-black text-center text-black">${window.formatNum(studentAvg)}</td>
+                                </tr>
+                            `;
+                        }
+
+                        if (textRows.length > 0) {
+                            textRows.forEach((item, index) => {
+                                tbodyHtml += `<tr class="font-bold">`;
+                                if (index === 0) {
+                                    tbodyHtml += `<td rowspan="${textRows.length}" class="border border-black kh-moul" style="writing-mode: vertical-rl; transform: rotate(180deg); color: #00a651;">វាយតម្លៃ</td>`;
+                                }
+                                tbodyHtml += `
+                                    <td class="text-left px-3 border border-black text-black">${item.label}</td>
+                                    <td colspan="4" class="border border-black text-center text-blue-600">${item.textValue}</td>
+                                </tr>`;
+                            });
+                        }
+
+                        const att = window.getAttendanceStats(student.id, period, currentType);
+                        const totalAbs = att.permission + att.absent;
+
+                        tbodyHtml += `
+                            <tr class="font-bold text-[11px] bg-[#addcf3]">
+                                <td class="border border-black">អវត្តមាន</td>
+                                <td class="border border-black">មានច្បាប់</td>
+                                <td class="border border-black">អត់ច្បាប់</td>
+                                <td class="border border-black">មធ្យមភាគ</td>
+                                <td class="border border-black">ចំ.ថ្នាក់</td>
+                                <td class="border border-black">និទ្ទេស</td>
+                            </tr>
+                            <tr class="font-bold text-[11px] bg-white text-black">
+                                <td class="border border-black">${totalAbs > 0 ? totalAbs : '0'}</td>
+                                <td class="border border-black">${att.permission > 0 ? att.permission : '0'}</td>
+                                <td class="border border-black">${att.absent > 0 ? att.absent : '0'}</td>
+                                <td class="border border-black">${window.formatNum(studentAvg)}</td>
+                                <td class="border border-black text-red-600">${rank}</td>
+                                <td class="border border-black ${getGradeColorClass(studentGrade)}">${studentGrade}</td>
+                            </tr>
+                        `;
+
+                    } else {
+                        displayRows.forEach((item, index) => {
+                            if (item.isText) {
+                                tbodyHtml += `
+                                    <tr>
+                                        <td class="kh-moul border border-black text-green-600">${window.toKhmerNum(index + 1)}</td>
+                                        <td colspan="2" class="text-left font-bold px-2 border border-black ${item.color || 'text-blue-800'}">${item.label}</td>
+                                        <td colspan="3" class="text-center font-bold text-blue-600 border border-black">${item.textValue}</td>
+                                        <td class="border border-black"></td>
+                                    </tr>
+                                `;
+                            } else {
+                                let grade = window.calculateGrade(item.score);
+                                let gradeClass = getGradeColorClass(grade);
+                                
+                                tbodyHtml += `
+                                    <tr>
+                                        <td class="kh-moul border border-black text-green-600">${window.toKhmerNum(index + 1)}</td>
+                                        <td colspan="2" class="text-left font-bold px-2 border border-black ${item.color || 'text-blue-800'}">${item.label}</td>
+                                        <td class="border border-black">${item.max}</td>
+                                        <td class="border border-black">${window.formatNum(item.score)}</td>
+                                        <td class="${gradeClass} border border-black">${grade}</td>
+                                        <td class="border border-black"></td>
+                                    </tr>
+                                `;
+                            }
+                        });
+
+                        if (displayRows.length === 0) {
+                            tbodyHtml += `
+                                <tr>
+                                    <td colspan="7" class="text-center italic text-gray-500 border border-black">មិនមានទិន្នន័យពិន្ទុទេ</td>
+                                </tr>
+                            `;
+                        }
+
+                        const att = window.getAttendanceStats(student.id, period, currentType);
+                        const totalAbs = att.permission + att.absent;
+
+                        tbodyHtml += `
+                            <tr class="font-bold bg-summary text-[11px]">
+                                <td colspan="2" class="border border-black">អវត្តមាន</td>
+                                <td class="border border-black">មានច្បាប់</td>
+                                <td class="border border-black">អត់ច្បាប់</td>
+                                <td class="border border-black">មធ្យមភាគ</td>
+                                <td class="border border-black text-[10px]">ចំ.ថ្នាក់</td>
+                                <td class="border border-black">និទ្ទេស</td>
+                            </tr>
+                            <tr class="text-[11px] font-bold text-black">
+                                <td colspan="2" class="border border-black">${totalAbs > 0 ? totalAbs : '0'}</td>
+                                <td class="border border-black">${att.permission > 0 ? att.permission : '0'}</td>
+                                <td class="border border-black">${att.absent > 0 ? att.absent : '0'}</td>
+                                <td class="border border-black">${window.formatNum(studentAvg)}</td>
+                                <td class="border border-black text-red-600 font-bold">${rank}</td>
+                                <td class="border border-black ${getGradeColorClass(studentGrade)}">${studentGrade}</td>
+                            </tr>
+                        `;
+                    }
+
+                    // --- GENERATE SINGLE CONTAINER FOR THIS STUDENT ---
+                    finalAllReportsHtml += `
+                    <div class="print-container">
+                        <h1 class="kh-moul text-center text-[15px] mb-2 mt-1">${titleHtml}</h1>
+
+                        <div class="flex justify-between text-[11px] font-bold mb-1 px-4">
+                            <div class="text-left">
+                                <div class="flex items-baseline gap-2 mb-1">
+                                    <span class="w-[70px] kh-moul inline-block">អត្តលេខ</span>
+                                    <span class="font-bold text-[11px]">${student.id}</span>
+                                </div>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="w-[70px] kh-moul inline-block">ឈ្មោះសិស្ស</span>
+                                    <span class="kh-moul font-normal text-[11px]">${student.name}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="text-right flex flex-col items-end">
+                                <div class="flex items-baseline justify-between min-w-[100px] gap-2 mb-1">
+                                    <span class="whitespace-nowrap"></span>
+                                    <span class="kh-moul font-normal whitespace-nowrap">${classConfig.className}</span>
+                                </div>
+                                <div class="flex items-baseline justify-between min-w-[100px] gap-2">
+                                    <span class="whitespace-nowrap kh-moul" style="left: 77%; position: absolute;">ភេទ</span>
+                                    <span class="kh-moul font-normal" style="left: 84%; position: absolute;" >${(student.gender === 'ប្រុស' || student.gender === 'M' || student.gender === 'm') ? 'ប' : 'ស'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <table class="report-table">
+                            <thead>${theadHtml}</thead>
+                            <tbody>${tbodyHtml}</tbody>
+                        </table>
+
+                        <div class="flex justify-between mt-1 text-[10px] px-2 text-center">
+                            <div class="w-[45%] flex flex-col items-center relative">
+                                <p class="mb-0 text-[#00a651] font-bold">បានឃើញ និងឯកភាព</p>
+                                <p class="kh-moul mb-0 text-[#00a651]">${classConfig.managerRole}</p>
+                                <div class="h-10 flex items-center justify-center mb-0 relative z-10 w-full mt-1">
+                                    ${savedSigs.managerImage ? `<img src="${savedSigs.managerImage}" class="max-h-full object-contain" style="transform-origin: center; transform: scale(${savedSigs.managerScale || 1});">` : ''}
+                                </div>
+                                <p class="kh-moul text-[11px] text-[#00a651]" style="margin-left: 2cm;">${savedSigs.managerName || ''}</p>
+                            </div>
+                            <div class="w-[55%] flex flex-col items-center relative">
+                                <div class="mb-0 text-center w-full">
+                                    <p class="font-bold text-[#00a651] kh-moul mb-0" style="font-size: 9px;">មូលវិចាររបស់គ្រូប្រចាំថ្នាក់</p>
+                                    <p class="text-red-600 mb-0 font-bold" style="font-size: 9px;">${commentText}</p>
+                                    <p class="text-red-600 mb-0" style="font-size: 9px;">សូមជូនពរមាតាបិតា ព្រមទាំងកូនៗមានសុខភាពល្អ និងសំណាងល្អ</p>
+                                </div>
+                                <p class="mb-0 font-battambang text-[10px] text-blue-700 mt-1">${lunarDateStr}</p>
+                                <p class="mb-0 font-battambang text-[10px] text-blue-700"><span>${classConfig.location}</span>, <span>${solarDateStr}</span></p>
+                                <p class="font-bold text-[#00a651] mb-0 kh-moul">គ្រូប្រចាំថ្នាក់</p>
+                                <div class="h-10 flex items-center justify-center mb-0 relative z-10 w-full mt-1" style="padding-left: 2cm;">
+                                    ${savedSigs.teacherImage ? `<img src="${savedSigs.teacherImage}" class="max-h-full object-contain" style="transform-origin: center; transform: scale(${savedSigs.teacherScale || 1});">` : ''}
+                                </div>
+                                <p class="kh-moul text-[11px] text-red-600" style="margin-left: 2cm;">${savedSigs.teacherName || classConfig.teacher}</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-2 text-[11px] px-2">
+                            <p>មតិអាណាព្យាបាល <span class="inline-block border-b border-dotted border-black w-[83%]"></span></p>
+                            <p class="mt-3 border-b border-dotted border-black w-full"></p>
+                        </div>
+                    </div>
                     `;
-                });
+                } // End of loop over students
 
-                if (displayRows.length === 0) {
-                    rowsHtml += `
-                        <tr class="h-[22px]">
-                            <td colspan="7" class="text-center italic text-gray-500 border border-black">មិនមានទិន្នន័យពិន្ទុទេ</td>
-                        </tr>
-                    `;
-                }
-
-                const att = window.getAttendanceStats(studentId, period, currentType);
-                const totalAbs = att.permission + att.absent;
-
-                // កែសម្រួលទម្រង់អវត្តមាន និងមធ្យមភាគ
-                rowsHtml += `
-                    <tr class="font-bold bg-summary text-[12px]">
-                        <td colspan="2" class="border border-black py-1">អវត្តមាន</td>
-                        <td class="border border-black py-1">មានច្បាប់</td>
-                        <td class="border border-black py-1">អត់ច្បាប់</td>
-                        <td class="border border-black py-1">មធ្យមភាគ</td>
-                        <td class="border border-black py-1 text-[11px]">ចំណាត់ថ្នាក់</td>
-                        <td class="border border-black py-1">និទ្ទេស</td>
-                    </tr>
-                    <tr class="text-[12px] font-bold text-black">
-                        <td colspan="2" class="border border-black py-1">${totalAbs > 0 ? totalAbs : '0'}</td>
-                        <td class="border border-black py-1">${att.permission > 0 ? att.permission : '0'}</td>
-                        <td class="border border-black py-1">${att.absent > 0 ? att.absent : '0'}</td>
-                        <td class="border border-black py-1">${window.formatNum(studentAvg)}</td>
-                        <td class="border border-black py-1 text-red-600 font-bold">${rank}</td>
-                        <td class="border border-black py-1 ${getGradeColorClass(studentGrade)}">${studentGrade}</td>
-                    </tr>
-                `;
-
-                // បន្ថែមតារាងពណ៌បៃតងសម្រាប់សរុបឆមាសទាំង២ ពេលជ្រើសរើសប្រចាំឆ្នាំ
-                if (currentType === 'yearly') {
-                    rowsHtml += `
-                        <tr><td colspan="7" style="height: 10px; border: none;"></td></tr>
-                        <tr class="font-bold text-[12px]" style="background-color: #a9d08e !important; -webkit-print-color-adjust: exact;">
-                            <td colspan="4" class="border border-black py-1 text-center">សរុបលទ្ធផល</td>
-                            <td class="border border-black py-1">មធ្យមភាគ</td>
-                            <td class="border border-black py-1">ចំណាត់ថ្នាក់</td>
-                            <td class="border border-black py-1">និទ្ទេស</td>
-                        </tr>
-                        <tr class="font-bold text-[12px] text-black" style="background-color: #c6e0b4 !important; -webkit-print-color-adjust: exact;">
-                            <td colspan="4" class="border border-black py-1 px-4 text-left">លទ្ធផលឆមាសទី១</td>
-                            <td class="border border-black py-1">${window.formatNum(sem1Avg)}</td>
-                            <td class="border border-black py-1 text-red-600">${sem1Rank}</td>
-                            <td class="border border-black py-1 ${getGradeColorClass(sem1Grade)}">${sem1Grade}</td>
-                        </tr>
-                        <tr class="font-bold text-[12px] text-black" style="background-color: #c6e0b4 !important; -webkit-print-color-adjust: exact;">
-                            <td colspan="4" class="border border-black py-1 px-4 text-left">លទ្ធផលឆមាសទី២</td>
-                            <td class="border border-black py-1">${window.formatNum(sem2Avg)}</td>
-                            <td class="border border-black py-1 text-red-600">${sem2Rank}</td>
-                            <td class="border border-black py-1 ${getGradeColorClass(sem2Grade)}">${sem2Grade}</td>
-                        </tr>
-                        <tr class="font-bold text-[12px] text-black" style="background-color: #c6e0b4 !important; -webkit-print-color-adjust: exact;">
-                            <td colspan="4" class="border border-black py-1 px-4 text-left">លទ្ធផលប្រចាំឆ្នាំ</td>
-                            <td class="border border-black py-1">${window.formatNum(studentAvg)}</td>
-                            <td class="border border-black py-1 text-red-600">${rank}</td>
-                            <td class="border border-black py-1 ${getGradeColorClass(studentGrade)}">${studentGrade}</td>
-                        </tr>
-                    `;
-                }
-
-                tbody.innerHTML = rowsHtml;
+                document.getElementById('printContainerWrapper').innerHTML = finalAllReportsHtml;
 
                 document.getElementById('selectionScreen').classList.add('hidden');
                 const printWrapper = document.getElementById('printAreaWrapper');
@@ -1212,11 +1522,11 @@
                 console.error("Error generating report", error);
                 alert("មានបញ្ហាក្នុងការទាញយកទិន្នន័យ! សូមព្យាយាមម្តងទៀត។");
             } finally {
-                btn.innerHTML = originalHtml;
-                btn.disabled = false;
-                lucide.createIcons();
+                // Hide Loading Overlay
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
             }
-        }
+        };
 
         window.closePreview = function() {
             document.getElementById('selectionScreen').classList.remove('hidden');

@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - របាយការណ៍មធ្យមភាគប្រចាំខែ ឆមាស និងឆ្នាំ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Kantumruy+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SheetJS for Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <!-- Moment KH -->
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+
+    <style>
+        body { font-family: 'Battambang', cursive; background: #f1f5f9; color: #0f172a; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        .kh-kantumruy { font-family: 'Kantumruy Pro', sans-serif; }
+
+        /* Print Styles */
+        @media print {
+            @page { size: A4 landscape; margin: 8mm; }
+            body { background: white; margin: 0; padding: 0; font-size: 8pt; }
+            .no-print { display: none !important; }
+            .print-container { 
+                width: 100% !important; 
+                box-shadow: none !important; 
+                border: none !important; 
+                padding: 0 !important; 
+                margin: 0 !important; 
+            }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-shadow: none !important; }
+            .table-container { overflow: visible !important; }
+            .report-table th, .report-table td { padding: 2px !important; font-size: 8px !important; }
+            .vertical-text { height: 110px !important; }
+        }
+
+        /* Report Table Styling */
+        .report-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        .report-table th, .report-table td {
+            border: 1px solid #1e293b;
+            padding: 3px;
+            text-align: center;
+        }
+        
+        .vertical-text {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            white-space: nowrap;
+            height: 130px;
+            text-align: left;
+            padding: 4px;
+            font-weight: normal;
+        }
+
+        #loadingOverlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.9);
+            z-index: 100; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading -->
+    <div id="loadingOverlay">
+        <i data-lucide="loader-2" class="w-12 h-12 animate-spin text-blue-600 mb-3"></i>
+        <p class="font-bold text-slate-700 font-kantumruy text-lg" id="loadingText">កំពុងរៀបចំរបាយការណ៍សរុបប្រចាំឆ្នាំ...</p>
+        <p class="text-sm text-slate-500 mt-2">ដំណើរការនេះទាមទារការទាញយកពិន្ទុគ្រប់ខែ សូមរង់ចាំបន្តិច។</p>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="no-print bg-white shadow-md border-b border-slate-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <a href="dashborad_score_years.html" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 transition">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </a>
+                <h1 class="text-lg font-bold text-blue-800 kh-moul mt-1">របាយការណ៍មធ្យមភាគប្រចាំឆ្នាំ</h1>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+                <select id="yearSelect" class="bg-white border border-slate-300 text-sm font-bold rounded-md px-3 py-1.5 outline-none focus:border-blue-500" onchange="loadReportData()">
+                    <option value="2024-2025">ឆ្នាំសិក្សា ២០២៤-២០២៥</option>
+                    <option value="2025-2026" selected>ឆ្នាំសិក្សា ២០២៥-២០២៦</option>
+                    <option value="2026-2027">ឆ្នាំសិក្សា ២០២៦-២០២៧</option>
+                </select>
+
+                <button onclick="exportExcel()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> ទាញយក Excel
+                </button>
+                <button onclick="window.print()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition">
+                    <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ព
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- A4 Print Container -->
+    <div class="max-w-[297mm] mx-auto bg-white min-h-[210mm] mt-6 shadow-xl print:shadow-none border border-slate-200 print:border-none p-[10mm] print:p-0 print-container mb-10 print:m-0">
+        
+        <!-- Header -->
+        <div class="header-section relative mb-6">
+            <div class="absolute top-0 w-full text-center">
+                <h2 class="kh-moul text-lg text-blue-900">ព្រះរាជាណាចក្រកម្ពុជា</h2>
+                <h3 class="kh-moul text-md text-blue-900 mt-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" alt="Emblem" class="h-[10px] w-auto mx-auto mt-2" crossorigin="anonymous" onerror="this.style.display='none'">
+            </div>
+
+            <div class="text-[12px] kh-moul text-blue-900 pt-2 leading-relaxed">
+                <div id="print_mu1">រដ្ឋបាលខេត្ត...</div>
+                <div id="print_mu2">មន្ទីរអប់រំ យុវជន និងកីឡា...</div>
+                <div id="print_school">សាលា...</div>
+                <div><span id="print_class" class="text-red-600">...</span></div>
+            </div>
+
+            <div class="text-center mt-6">
+                <h1 class="kh-moul text-xl text-red-600 tracking-wider">តារាងសរុបមធ្យមភាគប្រចាំខែ ឆមាស និងប្រចាំឆ្នាំ</h1>
+                <p class="font-bold text-blue-800 mt-1 text-sm">ឆ្នាំសិក្សា <span id="title_year">២០២៥-២០២៦</span></p>
+            </div>
+
+            <div class="absolute right-0 top-[60px] text-[11px] font-bold text-blue-900 text-right leading-tight">
+                <div>សិស្សសរុប ៖ <span id="stat_total" class="px-2">0</span> នាក់ <span class="ml-2">ស្រី ៖ <span id="stat_female">0</span> នាក់</span></div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container w-full overflow-x-auto custom-scrollbar">
+            <table class="report-table" id="dataTable">
+                <thead id="tableHead">
+                    <tr>
+                        <th rowspan="2" class="w-6 border-slate-700">ល.រ</th>
+                        <th rowspan="2" class="w-36 border-slate-700 text-left px-2">គោត្តនាម និងនាម</th>
+                        <th rowspan="2" class="w-8 border-slate-700">ភេទ</th>
+                        
+                        <th colspan="9" class="bg-[#dcfce7] border-slate-700 text-green-900 py-1.5 font-bold">ឆមាសទី១</th>
+                        <th colspan="9" class="bg-[#fce7f3] border-slate-700 text-pink-900 py-1.5 font-bold">ឆមាសទី២</th>
+                        <th colspan="5" class="bg-[#e0f2fe] border-slate-700 text-blue-900 py-1.5 font-bold">ប្រចាំឆ្នាំ</th>
+                    </tr>
+                    <tr>
+                        <!-- Sem 1 -->
+                        <th class="bg-green-50/50 border-slate-700"><div class="vertical-text">ខែវិច្ឆិកា</div></th>
+                        <th class="bg-green-50/50 border-slate-700"><div class="vertical-text">ខែធ្នូ</div></th>
+                        <th class="bg-green-50/50 border-slate-700"><div class="vertical-text">ខែមករា</div></th>
+                        <th class="bg-green-50/50 border-slate-700"><div class="vertical-text">ខែកុម្ភៈ</div></th>
+                        <th class="bg-green-100 border-slate-700"><div class="vertical-text font-bold">មធ្យមភាគប្រចាំខែ</div></th>
+                        <th class="bg-green-50/50 border-slate-700"><div class="vertical-text">ប្រឡងឆមាសទី១</div></th>
+                        <th class="bg-green-200 border-slate-700"><div class="vertical-text font-bold text-green-800">ម.ភាគឆមាសទី១</div></th>
+                        <th class="bg-green-50/50 border-slate-700"><div class="vertical-text font-bold text-red-600">ចំណាត់ថ្នាក់</div></th>
+                        <th class="bg-green-50/50 border-slate-700"><div class="vertical-text font-bold text-blue-700">និទ្ទេស</div></th>
+                        
+                        <!-- Sem 2 -->
+                        <th class="bg-pink-50/50 border-slate-700"><div class="vertical-text">ខែមីនា</div></th>
+                        <th class="bg-pink-50/50 border-slate-700"><div class="vertical-text">ខែមេសា</div></th>
+                        <th class="bg-pink-50/50 border-slate-700"><div class="vertical-text">ខែឧសភា</div></th>
+                        <th class="bg-pink-50/50 border-slate-700"><div class="vertical-text">ខែមិថុនា</div></th>
+                        <th class="bg-pink-100 border-slate-700"><div class="vertical-text font-bold">មធ្យមភាគប្រចាំខែ</div></th>
+                        <th class="bg-pink-50/50 border-slate-700"><div class="vertical-text">ប្រឡងឆមាសទី២</div></th>
+                        <th class="bg-pink-200 border-slate-700"><div class="vertical-text font-bold text-green-800">ម.ភាគឆមាសទី២</div></th>
+                        <th class="bg-pink-50/50 border-slate-700"><div class="vertical-text font-bold text-red-600">ចំណាត់ថ្នាក់</div></th>
+                        <th class="bg-pink-50/50 border-slate-700"><div class="vertical-text font-bold text-blue-700">និទ្ទេស</div></th>
+                        
+                        <!-- Annual -->
+                        <th class="bg-blue-50/50 border-slate-700"><div class="vertical-text text-slate-700">ម.ភាគឆមាសទី១</div></th>
+                        <th class="bg-blue-50/50 border-slate-700"><div class="vertical-text text-slate-700">ម.ភាគឆមាសទី២</div></th>
+                        <th class="bg-blue-200 border-slate-700"><div class="vertical-text font-bold text-green-800">ម.ភាគប្រចាំឆ្នាំ</div></th>
+                        <th class="bg-blue-50/50 border-slate-700"><div class="vertical-text font-bold text-red-600">ចំណាត់ថ្នាក់</div></th>
+                        <th class="bg-blue-50/50 border-slate-700"><div class="vertical-text font-bold text-blue-700">និទ្ទេស</div></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data generated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Statistics -->
+        <div class="mt-6 flex justify-between text-[11px] font-bold text-blue-900">
+            <div class="w-[30%]">
+                <div class="grid grid-cols-2 gap-x-2 gap-y-1 mb-6">
+                    <div>បញ្ញាប់បញ្ជីត្រឹមចំនួន ៖</div><div class="text-right"><span id="ft_total">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_total_f">0</span> នាក់</span></div>
+                    <div>សិស្សជាប់មធ្យមភាគ ៖</div><div class="text-right"><span id="ft_pass">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_pass_f">0</span> នាក់</span> <span class="text-red-600 ml-2" id="ft_pass_p">0%</span></div>
+                    <div class="text-red-600">សិស្សក្រោមមធ្យមភាគ ៖</div><div class="text-right text-red-600"><span id="ft_fail">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_fail_f">0</span> នាក់</span> <span class="ml-2" id="ft_fail_p">0%</span></div>
+                    <div>សិស្សបោះបង់សរុប ៖</div><div class="text-right"><span id="ft_dropout" class="text-red-600">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_dropout_f" class="text-red-600">0</span> នាក់</span> <span id="ft_dropout_p" class="ml-2 text-red-600">0%</span></div>
+                </div>
+                <div class="text-center mt-4">
+                    <p class="mb-1">បានឃើញ និងឯកភាព</p>
+                    <p class="kh-moul text-green-700" id="sign_role">នាយកសាលា</p>
+                    <div class="h-20"></div>
+                </div>
+            </div>
+
+            <div class="w-[30%]">
+                <div class="grid grid-cols-2 gap-x-2 gap-y-1 mb-6">
+                    <div>សិស្សមាននិទ្ទេស A ៖</div><div class="text-right"><span id="ft_a">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_a_f">0</span> នាក់</span> <span class="text-blue-600 ml-2" id="ft_a_p">0%</span></div>
+                    <div>សិស្សមាននិទ្ទេស B ៖</div><div class="text-right"><span id="ft_b">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_b_f">0</span> នាក់</span> <span class="text-blue-600 ml-2" id="ft_b_p">0%</span></div>
+                    <div>សិស្សមាននិទ្ទេស C ៖</div><div class="text-right"><span id="ft_c">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_c_f">0</span> នាក់</span> <span class="text-blue-600 ml-2" id="ft_c_p">0%</span></div>
+                    <div>សិស្សមាននិទ្ទេស D ៖</div><div class="text-right"><span id="ft_d">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_d_f">0</span> នាក់</span> <span class="text-blue-600 ml-2" id="ft_d_p">0%</span></div>
+                    <div>សិស្សមាននិទ្ទេស E ៖</div><div class="text-right"><span id="ft_e">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_e_f">0</span> នាក់</span> <span class="text-blue-600 ml-2" id="ft_e_p">0%</span></div>
+                    <div class="text-red-600">សិស្សមាននិទ្ទេស F ៖</div><div class="text-right text-red-600"><span id="ft_f">0</span> នាក់ <span class="ml-2">ស្រី <span id="ft_f_f">0</span> នាក់</span> <span class="ml-2" id="ft_f_p">0%</span></div>
+                </div>
+                <div class="text-center mt-4">
+                    <p class="mb-1 text-blue-800 font-moul" id="sig-lunar">ថ្ងៃ...........ខែ.........ឆ្នាំ...........ព.ស ២៥៦...</p>
+                    <p class="mb-1 text-blue-800 font-moul" id="sig-solar">ធ្វើនៅ..............ថ្ងៃទី.......ខែ...........ឆ្នាំ២០២...</p>
+                    <p class="kh-moul text-green-700 mt-2">គ្រូប្រចាំថ្នាក់</p>
+                    <div class="h-10"></div>
+                    <p class="kh-moul text-red-600" style="margin-left: 2cm;" id="sign_teacher">ឈ្មោះគ្រូ</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+
+        const monthlyKeys = [
+            'kh_listen', 'kh_speak', 'kh_read', 'kh_write', 'kh_calligraphy', 'kh_recitation', 'kh_essay',
+            'math_num', 'math_meas', 'math_geo', 'math_alg', 'math_stat',
+            'sci_phy', 'sci_chem', 'sci_bio', 'sci_earth', 'sci_applied',
+            'soc_ethic', 'soc_geo', 'soc_hist', 'soc_home',
+            'pe_sport', 'health_hygiene', 'life_skill', 'foreign',
+            'ex_oral', 'ex_att', 'ex_book', 'ex_hw'
+        ];
+
+        const semesterKeys = [
+            'sem_kh_reading', 'sem_kh_listening_speaking', 'sem_kh_dictation', 'sem_kh_essay',
+            'sem_math', 'sem_science', 'sem_moral_civics', 'sem_geo', 'sem_hist', 'sem_home_arts',
+            'sem_life_skills', 'sem_foreign', 'sem_sport'
+        ];
+
+        let studentsData = [];
+
+        const khDigits = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
+        const toKhNum = (n) => n.toString().split('').map(d => khDigits[d] || d).join('');
+        const khMonths = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
+
+        function updateDates(province = '.........') {
+            const today = new Date();
+            document.getElementById('sig-solar').innerText = `ធ្វើនៅ ${province}, ថ្ងៃទី ${toKhNum(today.getDate())} ខែ ${khMonths[today.getMonth()]} ឆ្នាំ ${toKhNum(today.getFullYear())}`;
+            if (typeof momentkh !== 'undefined') {
+                try {
+                    const m = momentkh.fromDate(today);
+                    document.getElementById('sig-lunar').innerText = momentkh.format(m).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                } catch(e) {}
+            }
+        }
+
+        function formatNumber(num) {
+            if (num === null || num === undefined || num === '') return '';
+            return parseFloat(num).toFixed(2).replace('.', ',');
+        }
+
+        function getGrade(avg) {
+            if (avg === null || avg === undefined || avg === '') return '';
+            if (avg >= 9.0) return 'A';
+            if (avg >= 8.0) return 'B';
+            if (avg >= 7.0) return 'C';
+            if (avg >= 6.0) return 'D';
+            if (avg >= 5.0) return 'E';
+            return 'F';
+        }
+
+        function getDocAverage(docData, studentId, isSemester) {
+            if (!docData || !docData[studentId]) return null;
+            let studentData = docData[studentId];
+            
+            // ប្រសិនបើមានទិន្នន័យមធ្យមភាគដែលបានរក្សាទុករួច (New format ពី subject-scores)
+            if (studentData.results) {
+                if (isSemester) {
+                    return studentData.results.examAverage !== undefined && studentData.results.examAverage !== null ? parseFloat(studentData.results.examAverage) : null;
+                } else {
+                    return studentData.results.average !== undefined && studentData.results.average !== null ? parseFloat(studentData.results.average) : null;
+                }
+            }
+
+            // Fallback គណនាសាជាថ្មីសម្រាប់ទិន្នន័យចាស់
+            let scores = studentData.hasOwnProperty('scores') ? studentData.scores : studentData;
+            let sum = 0; let count = 0;
+            let keys = isSemester ? semesterKeys : monthlyKeys;
+            keys.forEach(key => {
+                let val = parseFloat(scores[key]);
+                if (!isNaN(val)) { sum += val; count++; }
+            });
+            return count > 0 ? (sum / count) : null;
+        }
+
+        function calculateRanks(students, avgKey, rankKey) {
+            // copy and sort array for ranking only
+            let rankable = [...students].filter(s => s[avgKey] !== null);
+            rankable.sort((a, b) => b[avgKey] - a[avgKey]);
+            let currentRank = 1;
+            for (let i = 0; i < rankable.length; i++) {
+                if (i > 0 && rankable[i][avgKey] < rankable[i-1][avgKey]) currentRank = i + 1;
+                // assign rank back to original student objects by finding them
+                let originalStudent = students.find(s => s.id === rankable[i].id);
+                if(originalStudent) originalStudent[rankKey] = currentRank;
+            }
+            students.forEach(s => { if (s[avgKey] === null) s[rankKey] = ''; });
+        }
+
+        window.loadReportData = async function() {
+            if (!currentUser) return;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            const yearStr = document.getElementById('yearSelect').options[document.getElementById('yearSelect').selectedIndex].text;
+            const yearVal = document.getElementById('yearSelect').value;
+            document.getElementById('title_year').innerText = yearStr.replace('ឆ្នាំសិក្សា ', '');
+
+            try {
+                // Profile
+                const profileRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'profile', 'data');
+                const profileSnap = await getDoc(profileRef);
+                let provinceName = '.........';
+                if (profileSnap.exists()) {
+                    const p = profileSnap.data();
+                    document.getElementById('print_mu1').innerText = p.management_unit_1 || '.............................';
+                    document.getElementById('print_mu2').innerText = p.management_unit_2 || '.............................';
+                    document.getElementById('print_school').innerText = p.school_name_admin || '.............................';
+                    document.getElementById('print_class').innerText = p.class_name || '.............';
+                    document.getElementById('sign_role').innerText = p.manager_role || 'នាយកសាលា';
+                    document.getElementById('sign_teacher').innerText = p.homeroom_teacher || 'ឈ្មោះគ្រូ';
+                    if (p.province_for_date) provinceName = p.province_for_date;
+                }
+                updateDates(provinceName);
+
+                // Students
+                studentsData = [];
+                const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
+                const studentsSnap = await getDocs(studentsRef);
+                studentsSnap.forEach(doc => { studentsData.push({ id: doc.id, ...doc.data() }); });
+                
+                if (studentsData.length === 0) {
+                    const storedStudents = localStorage.getItem('students_db') || localStorage.getItem('students');
+                    if (storedStudents) studentsData = JSON.parse(storedStudents);
+                }
+
+                // Fetch All 10 Docs
+                const periods = ['nov', 'dec', 'jan', 'feb', 'sem1', 'mar', 'apr', 'may', 'jun', 'sem2'];
+                let allDocs = {};
+                
+                await Promise.all(periods.map(async (period) => {
+                    const docId = `${yearVal}_${period}`;
+                    let data = {};
+                    try {
+                        const mRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'scores', docId);
+                        const mSnap = await getDoc(mRef);
+                        if (mSnap.exists()) data = mSnap.data();
+                        else {
+                            const oldSnap = await getDoc(doc(db, "scores", docId)).catch(() => null);
+                            if (oldSnap && oldSnap.exists()) data = oldSnap.data();
+                        }
+                    } catch(e) {}
+                    if (Object.keys(data).length === 0) {
+                        const local = localStorage.getItem(`scores_${docId}`);
+                        if (local) data = JSON.parse(local);
+                    }
+                    allDocs[period] = data;
+                }));
+
+                // Calculate Averages & Populate Students
+                studentsData.forEach(s => {
+                    // Sem 1 Months
+                    s.nov = getDocAverage(allDocs['nov'], s.id, false);
+                    s.dec = getDocAverage(allDocs['dec'], s.id, false);
+                    s.jan = getDocAverage(allDocs['jan'], s.id, false);
+                    s.feb = getDocAverage(allDocs['feb'], s.id, false);
+                    
+                    let sem1Data = allDocs['sem1'] && allDocs['sem1'][s.id];
+                    let m1_hasData = (s.nov!==null || s.dec!==null || s.jan!==null || s.feb!==null);
+
+                    if (sem1Data && sem1Data.results && sem1Data.results.monthlyAverage !== undefined) {
+                        s.avg4m_1 = parseFloat(sem1Data.results.monthlyAverage);
+                        s.exam1 = sem1Data.results.examAverage !== undefined ? parseFloat(sem1Data.results.examAverage) : null;
+                        s.sem1_avg = sem1Data.results.semesterAverage !== undefined ? parseFloat(sem1Data.results.semesterAverage) : null;
+
+                        // ជម្រះទិន្នន័យដែលចេញ 0.00 ដោយស្វ័យប្រវត្តិពីប្រព័ន្ធ ពេលសិស្សពិតជាមិនមានពិន្ទុអ្វីសោះ
+                        let hasScores = sem1Data.scores && Object.values(sem1Data.scores).some(v => v !== null && v !== "");
+                        if (!hasScores && !m1_hasData) {
+                            if (s.avg4m_1 === 0) s.avg4m_1 = null;
+                            if (s.exam1 === 0) s.exam1 = null;
+                            if (s.sem1_avg === 0) s.sem1_avg = null;
+                        }
+                    } else {
+                        s.sumM1 = (s.nov||0) + (s.dec||0) + (s.jan||0) + (s.feb||0);
+                        s.avg4m_1 = m1_hasData ? (s.sumM1 / 4) : null;
+                        s.exam1 = getDocAverage(allDocs['sem1'], s.id, true);
+
+                        s.sem1_avg = null;
+                        if (s.avg4m_1 !== null && s.exam1 !== null) s.sem1_avg = (s.avg4m_1 + s.exam1) / 2;
+                        else if (s.avg4m_1 !== null) s.sem1_avg = s.avg4m_1;
+                        else if (s.exam1 !== null) s.sem1_avg = s.exam1;
+                    }
+                    s.sem1_grade = getGrade(s.sem1_avg);
+
+                    // Sem 2 Months
+                    s.mar = getDocAverage(allDocs['mar'], s.id, false);
+                    s.apr = getDocAverage(allDocs['apr'], s.id, false);
+                    s.may = getDocAverage(allDocs['may'], s.id, false);
+                    s.jun = getDocAverage(allDocs['jun'], s.id, false);
+
+                    let sem2Data = allDocs['sem2'] && allDocs['sem2'][s.id];
+                    let m2_hasData = (s.mar!==null || s.apr!==null || s.may!==null || s.jun!==null);
+
+                    if (sem2Data && sem2Data.results && sem2Data.results.monthlyAverage !== undefined) {
+                        s.avg4m_2 = parseFloat(sem2Data.results.monthlyAverage);
+                        s.exam2 = sem2Data.results.examAverage !== undefined ? parseFloat(sem2Data.results.examAverage) : null;
+                        s.sem2_avg = sem2Data.results.semesterAverage !== undefined ? parseFloat(sem2Data.results.semesterAverage) : null;
+
+                        let hasScores = sem2Data.scores && Object.values(sem2Data.scores).some(v => v !== null && v !== "");
+                        if (!hasScores && !m2_hasData) {
+                            if (s.avg4m_2 === 0) s.avg4m_2 = null;
+                            if (s.exam2 === 0) s.exam2 = null;
+                            if (s.sem2_avg === 0) s.sem2_avg = null;
+                        }
+                    } else {
+                        s.sumM2 = (s.mar||0) + (s.apr||0) + (s.may||0) + (s.jun||0);
+                        s.avg4m_2 = m2_hasData ? (s.sumM2 / 4) : null;
+                        s.exam2 = getDocAverage(allDocs['sem2'], s.id, true);
+
+                        s.sem2_avg = null;
+                        if (s.avg4m_2 !== null && s.exam2 !== null) s.sem2_avg = (s.avg4m_2 + s.exam2) / 2;
+                        else if (s.avg4m_2 !== null) s.sem2_avg = s.avg4m_2;
+                        else if (s.exam2 !== null) s.sem2_avg = s.exam2;
+                    }
+                    s.sem2_grade = getGrade(s.sem2_avg);
+
+                    // Annual
+                    s.annual_avg = null;
+                    if (s.sem1_avg !== null && s.sem2_avg !== null) s.annual_avg = (s.sem1_avg + s.sem2_avg) / 2;
+                    else if (s.sem1_avg !== null) s.annual_avg = s.sem1_avg;
+                    else if (s.sem2_avg !== null) s.annual_avg = s.sem2_avg;
+
+                    s.annual_grade = getGrade(s.annual_avg);
+                });
+
+                // Rank calculation (ចំណាត់ថ្នាក់នៅរក្សាការគណនាតាមមធ្យមភាគដដែល)
+                calculateRanks(studentsData, 'sem1_avg', 'sem1_rank');
+                calculateRanks(studentsData, 'sem2_avg', 'sem2_rank');
+                calculateRanks(studentsData, 'annual_avg', 'annual_rank');
+
+                // តម្រៀបឈ្មោះសិស្សតាមលំដាប់ដូចក្នុងបញ្ជីឈ្មោះសិស្ស student-listV2 (តម្រៀបតាមការបង្កើត createdAt)
+                studentsData.sort((a, b) => {
+                    return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+                });
+
+                renderTable();
+                renderStatistics();
+
+            } catch(e) {
+                console.error(e);
+                alert("មានបញ្ហាក្នុងការទាញយកទិន្នន័យ។");
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        }
+
+        function renderTable() {
+            let tbodyHtml = '';
+            if(studentsData.length === 0) {
+                tbodyHtml = `<tr><td colspan="26" class="py-6 text-center text-slate-500">មិនមានទិន្នន័យទេ</td></tr>`;
+            }
+
+            studentsData.forEach((s, i) => {
+                let genderDisp = (s.gender === 'ស្រី' || s.gender === 'F') ? 'ស' : 'ប';
+                let tr = `
+                <tr class="hover:bg-slate-50">
+                    <td class="border-slate-700 text-center">${i+1}</td>
+                    <td class="border-slate-700 text-left px-2 font-bold text-slate-800 whitespace-nowrap">${s.name}</td>
+                    <td class="border-slate-700 text-center text-[10px] text-slate-600">${genderDisp}</td>
+                    
+                    <!-- Sem 1 -->
+                    <td class="bg-green-50/40 border-slate-700 text-center">${formatNumber(s.nov)}</td>
+                    <td class="bg-green-50/40 border-slate-700 text-center">${formatNumber(s.dec)}</td>
+                    <td class="bg-green-50/40 border-slate-700 text-center">${formatNumber(s.jan)}</td>
+                    <td class="bg-green-50/40 border-slate-700 text-center">${formatNumber(s.feb)}</td>
+                    <td class="bg-green-100/50 border-slate-700 text-center font-bold text-slate-700">${formatNumber(s.avg4m_1)}</td>
+                    <td class="bg-green-50/40 border-slate-700 text-center text-slate-700">${formatNumber(s.exam1)}</td>
+                    <td class="bg-green-200/50 border-slate-700 text-center font-bold text-green-700">${formatNumber(s.sem1_avg)}</td>
+                    <td class="bg-green-50/40 border-slate-700 text-center font-bold text-red-600">${s.sem1_rank}</td>
+                    <td class="bg-green-50/40 border-slate-700 text-center font-bold ${s.sem1_grade==='F'?'text-red-600 bg-red-100/50':'text-blue-600'}">${s.sem1_grade}</td>
+
+                    <!-- Sem 2 -->
+                    <td class="bg-pink-50/40 border-slate-700 text-center">${formatNumber(s.mar)}</td>
+                    <td class="bg-pink-50/40 border-slate-700 text-center">${formatNumber(s.apr)}</td>
+                    <td class="bg-pink-50/40 border-slate-700 text-center">${formatNumber(s.may)}</td>
+                    <td class="bg-pink-50/40 border-slate-700 text-center">${formatNumber(s.jun)}</td>
+                    <td class="bg-pink-100/50 border-slate-700 text-center font-bold text-slate-700">${formatNumber(s.avg4m_2)}</td>
+                    <td class="bg-pink-50/40 border-slate-700 text-center text-slate-700">${formatNumber(s.exam2)}</td>
+                    <td class="bg-pink-200/50 border-slate-700 text-center font-bold text-green-700">${formatNumber(s.sem2_avg)}</td>
+                    <td class="bg-pink-50/40 border-slate-700 text-center font-bold text-red-600">${s.sem2_rank}</td>
+                    <td class="bg-pink-50/40 border-slate-700 text-center font-bold ${s.sem2_grade==='F'?'text-red-600 bg-red-100/50':'text-blue-600'}">${s.sem2_grade}</td>
+
+                    <!-- Annual -->
+                    <td class="bg-blue-50/40 border-slate-700 text-center text-slate-600 font-medium">${formatNumber(s.sem1_avg)}</td>
+                    <td class="bg-blue-50/40 border-slate-700 text-center text-slate-600 font-medium">${formatNumber(s.sem2_avg)}</td>
+                    <td class="bg-blue-200/50 border-slate-700 text-center font-bold text-green-700">${formatNumber(s.annual_avg)}</td>
+                    <td class="bg-blue-50/40 border-slate-700 text-center font-bold text-red-600">${s.annual_rank}</td>
+                    <td class="bg-blue-50/40 border-slate-700 text-center font-bold ${s.annual_grade==='F'?'text-red-600 bg-red-100/50':'text-blue-600'}">${s.annual_grade}</td>
+                </tr>`;
+                tbodyHtml += tr;
+            });
+            document.getElementById('tableBody').innerHTML = tbodyHtml;
+        }
+
+        function renderStatistics() {
+            const total = studentsData.length;
+            const female = studentsData.filter(s => s.gender === 'ស្រី' || s.gender === 'F').length;
+
+            document.getElementById('stat_total').innerText = total;
+            document.getElementById('stat_female').innerText = female;
+            document.getElementById('ft_total').innerText = total;
+            document.getElementById('ft_total_f').innerText = female;
+
+            if (total === 0) return;
+
+            let stats = {
+                pass: { t: 0, f: 0 }, fail: { t: 0, f: 0 }, dropout: { t: 0, f: 0 },
+                A: { t: 0, f: 0 }, B: { t: 0, f: 0 }, C: { t: 0, f: 0 },
+                D: { t: 0, f: 0 }, E: { t: 0, f: 0 }, F: { t: 0, f: 0 }
+            };
+
+            // Using Annual Average for Statistics
+            studentsData.forEach(s => {
+                let isF = (s.gender === 'ស្រី' || s.gender === 'F');
+                
+                if (s.annual_avg === null) {
+                    stats.dropout.t++;
+                    if(isF) stats.dropout.f++;
+                    return; 
+                }
+
+                if (s.annual_avg >= 5.0) {
+                    stats.pass.t++;
+                    if(isF) stats.pass.f++;
+                } else {
+                    stats.fail.t++;
+                    if(isF) stats.fail.f++;
+                }
+
+                if(stats[s.annual_grade]) {
+                    stats[s.annual_grade].t++;
+                    if(isF) stats[s.annual_grade].f++;
+                }
+            });
+
+            const updateEl = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
+            const perc = (num) => total > 0 ? ((num / total) * 100).toFixed(2) + '%' : '0%';
+
+            updateEl('ft_pass', stats.pass.t); updateEl('ft_pass_f', stats.pass.f); updateEl('ft_pass_p', perc(stats.pass.t));
+            updateEl('ft_fail', stats.fail.t); updateEl('ft_fail_f', stats.fail.f); updateEl('ft_fail_p', perc(stats.fail.t));
+            updateEl('ft_dropout', stats.dropout.t); updateEl('ft_dropout_f', stats.dropout.f); updateEl('ft_dropout_p', perc(stats.dropout.t));
+
+            ['A', 'B', 'C', 'D', 'E', 'F'].forEach(g => {
+                updateEl(`ft_${g.toLowerCase()}`, stats[g].t);
+                updateEl(`ft_${g.toLowerCase()}_f`, stats[g].f);
+                updateEl(`ft_${g.toLowerCase()}_p`, perc(stats[g].t));
+            });
+        }
+
+        window.exportExcel = function() {
+            if (studentsData.length === 0) { alert("មិនមានទិន្នន័យដើម្បីទាញយកទេ!"); return; }
+
+            const yearStr = document.getElementById('yearSelect').options[document.getElementById('yearSelect').selectedIndex].text;
+            const className = document.getElementById('print_class').innerText;
+
+            const ws_data = []; const merges = [];
+            const textOf = (id) => document.getElementById(id) ? document.getElementById(id).innerText : '';
+
+            // Colors
+            const COLOR_BG_SEM1 = 'FFDCFCE7';
+            const COLOR_BG_SEM2 = 'FFFCE7F3';
+            const COLOR_BG_ANNUAL = 'FFE0F2FE';
+            const COLOR_BORDER = 'FF1E293B';
+            const COLOR_TXT_DEFAULT = 'FF0F172A';
+            const COLOR_TXT_BLUE_DARK = 'FF1E3A8A';
+            const COLOR_TXT_BLUE = 'FF2563EB';
+            const COLOR_TXT_GREEN = 'FF15803D';
+            const COLOR_TXT_RED = 'FFDC2626';
+
+            // Styles
+            const BORDER = {
+                top: { style: 'thin', color: { rgb: COLOR_BORDER } }, bottom: { style: 'thin', color: { rgb: COLOR_BORDER } },
+                left: { style: 'thin', color: { rgb: COLOR_BORDER } }, right: { style: 'thin', color: { rgb: COLOR_BORDER } }
+            };
+            const FONT_NORMAL = { name: 'Khmer OS Battambang', sz: 10, color: { rgb: COLOR_TXT_DEFAULT } };
+            const FONT_BOLD = { name: 'Khmer OS Battambang', sz: 10, bold: true, color: { rgb: COLOR_TXT_DEFAULT } };
+            const FONT_MOUL = { name: 'Khmer OS Moul Light', sz: 11, color: { rgb: COLOR_TXT_BLUE_DARK } };
+            const ALIGN_CENTER = { vertical: 'center', horizontal: 'center' };
+            const ALIGN_LEFT = { vertical: 'center', horizontal: 'left' };
+            
+            const emptyCell = (style) => ({ v: '', t: 's', s: style || {} });
+            const totalCols = 26;
+            const mid = 13;
+
+            // Headers
+            let r0 = Array(totalCols).fill(null).map(() => emptyCell());
+            r0[0] = { v: 'ព្រះរាជាណាចក្រកម្ពុជា', t: 's', s: { font: FONT_MOUL, alignment: ALIGN_CENTER } };
+            ws_data.push(r0); merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: totalCols - 1 } });
+
+            let r1 = Array(totalCols).fill(null).map(() => emptyCell());
+            r1[0] = { v: 'ជាតិ សាសនា ព្រះមហាក្សត្រ', t: 's', s: { font: FONT_MOUL, alignment: ALIGN_CENTER } };
+            ws_data.push(r1); merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: totalCols - 1 } });
+
+            let r2 = Array(totalCols).fill(null).map(() => emptyCell());
+            r2[0] = { v: textOf('print_mu1'), t: 's', s: { font: FONT_MOUL, alignment: ALIGN_LEFT } };
+            ws_data.push(r2); merges.push({ s: { r: 2, c: 0 }, e: { r: 2, c: mid - 1 } });
+
+            let r3 = Array(totalCols).fill(null).map(() => emptyCell());
+            r3[0] = { v: textOf('print_mu2'), t: 's', s: { font: FONT_MOUL, alignment: ALIGN_LEFT } };
+            ws_data.push(r3); merges.push({ s: { r: 3, c: 0 }, e: { r: 3, c: mid - 1 } });
+
+            let r4 = Array(totalCols).fill(null).map(() => emptyCell());
+            r4[0] = { v: textOf('print_school'), t: 's', s: { font: FONT_MOUL, alignment: ALIGN_LEFT } };
+            ws_data.push(r4); merges.push({ s: { r: 4, c: 0 }, e: { r: 4, c: mid - 1 } });
+
+            let r5 = Array(totalCols).fill(null).map(() => emptyCell());
+            r5[0] = { v: ` ${textOf('print_class')}`, t: 's', s: { font: FONT_MOUL, alignment: ALIGN_LEFT } };
+            r5[mid] = { v: `សិស្សសរុប ៖ ${textOf('stat_total')} នាក់    ស្រី ៖ ${textOf('stat_female')} នាក់`, t: 's', s: { font: FONT_BOLD, alignment: { vertical: 'center', horizontal: 'right' } } };
+            ws_data.push(r5); 
+            merges.push({ s: { r: 5, c: 0 }, e: { r: 5, c: mid - 1 } }); merges.push({ s: { r: 5, c: mid }, e: { r: 5, c: totalCols - 1 } });
+
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell()));
+
+            let r7 = Array(totalCols).fill(null).map(() => emptyCell());
+            r7[0] = { v: `តារាងសរុបមធ្យមភាគប្រចាំខែ ឆមាស និងប្រចាំឆ្នាំ`, t: 's', s: { font: { ...FONT_MOUL, sz: 14, color: { rgb: COLOR_TXT_RED } }, alignment: ALIGN_CENTER } };
+            ws_data.push(r7); merges.push({ s: { r: 7, c: 0 }, e: { r: 7, c: totalCols - 1 } });
+
+            let r8 = Array(totalCols).fill(null).map(() => emptyCell());
+            r8[0] = { v: yearStr, t: 's', s: { font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_BLUE } }, alignment: ALIGN_CENTER } };
+            ws_data.push(r8); merges.push({ s: { r: 8, c: 0 }, e: { r: 8, c: totalCols - 1 } });
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell()));
+
+            // Table Headers
+            let startRow = 10;
+            const TH_STYLE = { font: FONT_BOLD, alignment: ALIGN_CENTER, border: BORDER };
+            const TH_VERT = { ...TH_STYLE, alignment: { textRotation: 90, vertical: 'center', horizontal: 'center' } };
+
+            const TH_SEM1 = { ...TH_STYLE, fill: { fgColor: { rgb: COLOR_BG_SEM1 } }, font: { ...FONT_BOLD, color: { rgb: 'FF14532D' } } }; // Green 900
+            const TH_SEM2 = { ...TH_STYLE, fill: { fgColor: { rgb: COLOR_BG_SEM2 } }, font: { ...FONT_BOLD, color: { rgb: 'FF831843' } } }; // Pink 900
+            const TH_ANN = { ...TH_STYLE, fill: { fgColor: { rgb: COLOR_BG_ANNUAL } }, font: { ...FONT_BOLD, color: { rgb: COLOR_TXT_BLUE_DARK } } };
+
+            let tr1 = Array(totalCols).fill(null).map(() => emptyCell(TH_STYLE));
+            let tr2 = Array(totalCols).fill(null).map(() => emptyCell(TH_STYLE));
+
+            tr1[0] = { v: 'ល.រ', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 0 }, e: { r: startRow + 1, c: 0 } });
+            tr1[1] = { v: 'គោត្តនាម និងនាម', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 1 }, e: { r: startRow + 1, c: 1 } });
+            tr1[2] = { v: 'ភេទ', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 2 }, e: { r: startRow + 1, c: 2 } });
+
+            // Groups
+            tr1[3] = { v: 'ឆមាសទី១', t: 's', s: TH_SEM1 }; merges.push({ s: { r: startRow, c: 3 }, e: { r: startRow, c: 11 } });
+            tr1[12] = { v: 'ឆមាសទី២', t: 's', s: TH_SEM2 }; merges.push({ s: { r: startRow, c: 12 }, e: { r: startRow, c: 20 } });
+            tr1[21] = { v: 'ប្រចាំឆ្នាំ', t: 's', s: TH_ANN }; merges.push({ s: { r: startRow, c: 21 }, e: { r: startRow, c: 25 } });
+
+            const fillVert = (i, txt, styleBase, customFont) => {
+                let f = { ...FONT_NORMAL, ...customFont };
+                tr2[i] = { v: txt, t: 's', s: { ...styleBase, alignment: { textRotation: 90, vertical: 'center', horizontal: 'center' }, font: f } };
+            };
+
+            const ST_S1 = { border: BORDER, fill: { fgColor: { rgb: 'FFF0FDF4' } } }; // lighter green
+            const ST_S2 = { border: BORDER, fill: { fgColor: { rgb: 'FFFDF2F8' } } }; // lighter pink
+            const ST_AN = { border: BORDER, fill: { fgColor: { rgb: 'FFF0F9FF' } } }; // lighter blue
+
+            // Sem 1 Sub
+            fillVert(3, 'ខែវិច្ឆិកា', ST_S1); fillVert(4, 'ខែធ្នូ', ST_S1); fillVert(5, 'ខែមករា', ST_S1); fillVert(6, 'ខែកុម្ភៈ', ST_S1);
+            fillVert(7, 'មធ្យមភាគប្រចាំខែ', { ...ST_S1, fill: { fgColor: { rgb: COLOR_BG_SEM1 } } }, { bold: true }); 
+            fillVert(8, 'ប្រឡងឆមាសទី១', ST_S1);
+            fillVert(9, 'ម.ភាគឆមាសទី១', { ...ST_S1, fill: { fgColor: { rgb: 'FFBBF7D0' } } }, { bold: true, color: { rgb: COLOR_TXT_GREEN } });
+            fillVert(10, 'ចំណាត់ថ្នាក់', ST_S1, { bold: true, color: { rgb: COLOR_TXT_RED } }); 
+            fillVert(11, 'និទ្ទេស', ST_S1, { bold: true, color: { rgb: COLOR_TXT_BLUE } });
+
+            // Sem 2 Sub
+            fillVert(12, 'ខែមីនា', ST_S2); fillVert(13, 'ខែមេសា', ST_S2); fillVert(14, 'ខែឧសភា', ST_S2); fillVert(15, 'ខែមិថុនា', ST_S2);
+            fillVert(16, 'មធ្យមភាគប្រចាំខែ', { ...ST_S2, fill: { fgColor: { rgb: COLOR_BG_SEM2 } } }, { bold: true }); 
+            fillVert(17, 'ប្រឡងឆមាសទី២', ST_S2);
+            fillVert(18, 'ម.ភាគឆមាសទី២', { ...ST_S2, fill: { fgColor: { rgb: 'FFFBCFE8' } } }, { bold: true, color: { rgb: COLOR_TXT_GREEN } });
+            fillVert(19, 'ចំណាត់ថ្នាក់', ST_S2, { bold: true, color: { rgb: COLOR_TXT_RED } }); 
+            fillVert(20, 'និទ្ទេស', ST_S2, { bold: true, color: { rgb: COLOR_TXT_BLUE } });
+
+            // Annual Sub
+            fillVert(21, 'ម.ភាគឆមាសទី១', ST_AN); fillVert(22, 'ម.ភាគឆមាសទី២', ST_AN);
+            fillVert(23, 'ម.ភាគប្រចាំឆ្នាំ', { ...ST_AN, fill: { fgColor: { rgb: 'FFBAE6FD' } } }, { bold: true, color: { rgb: COLOR_TXT_GREEN } });
+            fillVert(24, 'ចំណាត់ថ្នាក់', ST_AN, { bold: true, color: { rgb: COLOR_TXT_RED } }); 
+            fillVert(25, 'និទ្ទេស', ST_AN, { bold: true, color: { rgb: COLOR_TXT_BLUE } });
+
+            ws_data.push(tr1, tr2);
+
+            // Data Rows
+            const TD_STYLE = { font: FONT_NORMAL, alignment: ALIGN_CENTER, border: BORDER };
+            const numCell = (val, style) => {
+                if (val === null || val === undefined || val === '') return { v: '', t: 's', s: style };
+                const n = parseFloat(val); return isNaN(n) ? { v: val, t: 's', s: style } : { v: n, t: 'n', s: style };
+            };
+
+            const dataEndRow = 12 + Math.max(studentsData.length, 1);
+
+            studentsData.forEach((s, i) => {
+                let row = Array(totalCols).fill(null).map(() => emptyCell(TD_STYLE));
+                row[0] = { v: i + 1, t: 'n', s: TD_STYLE };
+                row[1] = { v: s.name, t: 's', s: { ...TD_STYLE, alignment: ALIGN_LEFT, font: FONT_BOLD } };
+                row[2] = { v: s.gender === 'ស្រី' || s.gender === 'F' ? 'ស' : 'ប', t: 's', s: TD_STYLE };
+                
+                const r = ws_data.length + 1; // Excel 1-based index
+                
+                // Formulate strictly dynamically
+                const f_sem1_avg = `IF(COUNT(H${r}, I${r})>0, AVERAGE(H${r}, I${r}), IF(ISNUMBER(H${r}), H${r}, IF(ISNUMBER(I${r}), I${r}, "")))`;
+                const f_sem1_rank = `IF(ISNUMBER(J${r}), RANK(J${r}, $J$13:$J$${dataEndRow}), "")`;
+                const f_sem1_grade = `IF(ISNUMBER(J${r}), IF(J${r}<5,"F",IF(J${r}<6,"E",IF(J${r}<7,"D",IF(J${r}<8,"C",IF(J${r}<9,"B","A"))))), "")`;
+
+                const f_sem2_avg = `IF(COUNT(Q${r}, R${r})>0, AVERAGE(Q${r}, R${r}), IF(ISNUMBER(Q${r}), Q${r}, IF(ISNUMBER(R${r}), R${r}, "")))`;
+                const f_sem2_rank = `IF(ISNUMBER(S${r}), RANK(S${r}, $S$13:$S$${dataEndRow}), "")`;
+                const f_sem2_grade = `IF(ISNUMBER(S${r}), IF(S${r}<5,"F",IF(S${r}<6,"E",IF(S${r}<7,"D",IF(S${r}<8,"C",IF(S${r}<9,"B","A"))))), "")`;
+
+                const f_annual_avg = `IF(COUNT(V${r}, W${r})>0, AVERAGE(V${r}, W${r}), IF(ISNUMBER(V${r}), V${r}, IF(ISNUMBER(W${r}), W${r}, "")))`;
+                const f_annual_rank = `IF(ISNUMBER(X${r}), RANK(X${r}, $X$13:$X$${dataEndRow}), "")`;
+                const f_annual_grade = `IF(ISNUMBER(X${r}), IF(X${r}<5,"F",IF(X${r}<6,"E",IF(X${r}<7,"D",IF(X${r}<8,"C",IF(X${r}<9,"B","A"))))), "")`;
+
+                const fmtNum = { numFmt: "0.00", border: BORDER, alignment: ALIGN_CENTER };
+                const cellST = (base, fontCol) => ({ ...fmtNum, fill: { fgColor: { rgb: base } }, font: { ...FONT_NORMAL, color: { rgb: fontCol || COLOR_TXT_DEFAULT } } });
+                const cellSTB = (base, fontCol) => ({ ...cellST(base, fontCol), font: { ...FONT_BOLD, color: { rgb: fontCol || COLOR_TXT_DEFAULT } } });
+
+                // Sem 1
+                row[3] = numCell(s.nov, cellST('FFF0FDF4')); row[4] = numCell(s.dec, cellST('FFF0FDF4'));
+                row[5] = numCell(s.jan, cellST('FFF0FDF4')); row[6] = numCell(s.feb, cellST('FFF0FDF4'));
+                row[7] = numCell(s.avg4m_1, cellSTB(COLOR_BG_SEM1));
+                row[8] = numCell(s.exam1, cellST('FFF0FDF4'));
+                row[9] = { v: s.sem1_avg || 0, f: f_sem1_avg, t: 'n', s: cellSTB('FFBBF7D0', COLOR_TXT_GREEN) };
+                row[10] = { v: s.sem1_rank || '', f: f_sem1_rank, t: 'n', s: cellSTB('FFF0FDF4', COLOR_TXT_RED) };
+                row[11] = { v: s.sem1_grade || '', f: f_sem1_grade, t: 's', s: cellSTB('FFF0FDF4', s.sem1_grade==='F'?COLOR_TXT_RED:COLOR_TXT_BLUE) };
+
+                // Sem 2
+                row[12] = numCell(s.mar, cellST('FFFDF2F8')); row[13] = numCell(s.apr, cellST('FFFDF2F8'));
+                row[14] = numCell(s.may, cellST('FFFDF2F8')); row[15] = numCell(s.jun, cellST('FFFDF2F8'));
+                row[16] = numCell(s.avg4m_2, cellSTB(COLOR_BG_SEM2));
+                row[17] = numCell(s.exam2, cellST('FFFDF2F8'));
+                row[18] = { v: s.sem2_avg || 0, f: f_sem2_avg, t: 'n', s: cellSTB('FFFBCFE8', COLOR_TXT_GREEN) };
+                row[19] = { v: s.sem2_rank || '', f: f_sem2_rank, t: 'n', s: cellSTB('FFFDF2F8', COLOR_TXT_RED) };
+                row[20] = { v: s.sem2_grade || '', f: f_sem2_grade, t: 's', s: cellSTB('FFFDF2F8', s.sem2_grade==='F'?COLOR_TXT_RED:COLOR_TXT_BLUE) };
+
+                // Annual
+                row[21] = { v: s.sem1_avg || 0, f: `IF(ISNUMBER(J${r}), J${r}, "")`, t: 'n', s: cellST('FFF0F9FF') };
+                row[22] = { v: s.sem2_avg || 0, f: `IF(ISNUMBER(S${r}), S${r}, "")`, t: 'n', s: cellST('FFF0F9FF') };
+                row[23] = { v: s.annual_avg || 0, f: f_annual_avg, t: 'n', s: cellSTB('FFBAE6FD', COLOR_TXT_GREEN) };
+                row[24] = { v: s.annual_rank || '', f: f_annual_rank, t: 'n', s: cellSTB('FFF0F9FF', COLOR_TXT_RED) };
+                row[25] = { v: s.annual_grade || '', f: f_annual_grade, t: 's', s: cellSTB('FFF0F9FF', s.annual_grade==='F'?COLOR_TXT_RED:COLOR_TXT_BLUE) };
+
+                ws_data.push(row);
+            });
+
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell()));
+            
+            // Footer Stats - matching formulas to the HTML output
+            let fRow = ws_data.length;
+            const genderRange = `$C$13:$C$${dataEndRow}`;
+            const annAvgRange = `$X$13:$X$${dataEndRow}`; // X = index 23
+            const annGradeRange = `$Z$13:$Z$${dataEndRow}`; // Z = index 25
+
+            const totalT = `COUNTA(${genderRange})`; const totalF = `COUNTIF(${genderRange}, "ស")`;
+            const passT = `COUNTIF(${annAvgRange}, ">=5")`; const passF = `COUNTIFS(${genderRange}, "ស", ${annAvgRange}, ">=5")`;
+            const failT = `COUNTIFS(${annAvgRange}, "<5", ${annAvgRange}, ">0")`; const failF = `COUNTIFS(${genderRange}, "ស", ${annAvgRange}, "<5", ${annAvgRange}, ">0")`;
+            const dropT = `COUNTIF(${annAvgRange}, "") + COUNTIF(${annAvgRange}, 0)`; const dropF = `COUNTIFS(${genderRange}, "ស", ${annAvgRange}, "") + COUNTIFS(${genderRange}, "ស", ${annAvgRange}, 0)`;
+            
+            const getGradeT = (g) => `COUNTIF(${annGradeRange}, "${g}")`;
+            const getGradeF = (g) => `COUNTIFS(${genderRange}, "ស", ${annGradeRange}, "${g}")`;
+            const pct = (numF) => `IF(${totalT}>0, (${numF})/${totalT}, 0)`;
+            const countFmt = (t, f) => `${t} & " នាក់ ស្រី " & ${f} & " នាក់"`;
+
+            const statsLeft = [
+                { label: 'បញ្ញាប់បញ្ជីត្រឹមចំនួន ៖', count: countFmt(totalT, totalF), pct: null, isRed: false },
+                { label: 'សិស្សជាប់មធ្យមភាគ ៖', count: countFmt(passT, passF), pct: pct(passT), isRed: false },
+                { label: 'សិស្សក្រោមមធ្យមភាគ ៖', count: countFmt(failT, failF), pct: pct(failT), isRed: true },
+                { label: 'សិស្សបោះបង់សរុប ៖', count: countFmt(dropT, dropF), pct: pct(dropT), isRed: true }
+            ];
+            const statsRight = [
+                { label: 'សិស្សមាននិទ្ទេស A ៖', count: countFmt(getGradeT('A'), getGradeF('A')), pct: pct(getGradeT('A')), isRed: false },
+                { label: 'សិស្សមាននិទ្ទេស B ៖', count: countFmt(getGradeT('B'), getGradeF('B')), pct: pct(getGradeT('B')), isRed: false },
+                { label: 'សិស្សមាននិទ្ទេស C ៖', count: countFmt(getGradeT('C'), getGradeF('C')), pct: pct(getGradeT('C')), isRed: false },
+                { label: 'សិស្សមាននិទ្ទេស D ៖', count: countFmt(getGradeT('D'), getGradeF('D')), pct: pct(getGradeT('D')), isRed: false },
+                { label: 'សិស្សមាននិទ្ទេស E ៖', count: countFmt(getGradeT('E'), getGradeF('E')), pct: pct(getGradeT('E')), isRed: false },
+                { label: 'សិស្សមាននិទ្ទេស F ៖', count: countFmt(getGradeT('F'), getGradeF('F')), pct: pct(getGradeT('F')), isRed: true }
+            ];
+
+            const statFont = { name: 'Khmer OS Battambang', sz: 9, bold: true, color: { rgb: COLOR_TXT_BLUE_DARK } };
+            const statRed = { name: 'Khmer OS Battambang', sz: 9, bold: true, color: { rgb: COLOR_TXT_RED } };
+
+            let maxStatRows = Math.max(statsLeft.length, statsRight.length);
+            for(let i=0; i<maxStatRows; i++) {
+                let row = Array(totalCols).fill(null).map(() => emptyCell());
+                if (i < statsLeft.length) {
+                    let item = statsLeft[i]; let fs = item.isRed ? statRed : statFont;
+                    row[0] = { v: item.label, t: 's', s: { font: fs, alignment: ALIGN_LEFT } };
+                    row[2] = { f: item.count, t: 's', s: { font: fs, alignment: { horizontal: 'right' } } };
+                    if (item.pct !== null) row[mid - 1] = { f: item.pct, t: 'n', s: { numFmt: "0.00%", font: fs, alignment: { horizontal: 'right' } } };
+                    merges.push({ s: { r: fRow + i, c: 0 }, e: { r: fRow + i, c: 1 } }); merges.push({ s: { r: fRow + i, c: 2 }, e: { r: fRow + i, c: mid - 2 } });
+                }
+                if (i < statsRight.length) {
+                    let item = statsRight[i]; let fs = item.isRed ? statRed : statFont;
+                    row[mid] = { v: item.label, t: 's', s: { font: fs, alignment: ALIGN_LEFT } };
+                    row[mid + 2] = { f: item.count, t: 's', s: { font: fs, alignment: { horizontal: 'right' } } };
+                    if (item.pct !== null) row[totalCols - 1] = { f: item.pct, t: 'n', s: { numFmt: "0.00%", font: fs, alignment: { horizontal: 'right' } } };
+                    merges.push({ s: { r: fRow + i, c: mid }, e: { r: fRow + i, c: mid + 1 } }); merges.push({ s: { r: fRow + i, c: mid + 2 }, e: { r: fRow + i, c: totalCols - 2 } });
+                }
+                ws_data.push(row);
+            }
+
+            fRow = ws_data.length + 1;
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell())); 
+            
+            // Signatures
+            let sigRow1 = Array(totalCols).fill(null).map(() => emptyCell());
+            let sigRow2 = Array(totalCols).fill(null).map(() => emptyCell());
+            let sigRow3 = Array(totalCols).fill(null).map(() => emptyCell());
+            sigRow1[0] = { v: 'បានឃើញ និងឯកភាព', t: 's', s: { font: FONT_NORMAL, alignment: ALIGN_CENTER } };
+            sigRow2[0] = { v: textOf('sign_role'), t: 's', s: { font: { ...FONT_MOUL, color: { rgb: COLOR_TXT_GREEN } }, alignment: ALIGN_CENTER } };
+            sigRow1[mid] = { v: textOf('sig-lunar'), t: 's', s: { font: FONT_MOUL, alignment: ALIGN_CENTER } };
+            sigRow2[mid] = { v: textOf('sig-solar'), t: 's', s: { font: FONT_MOUL, alignment: ALIGN_CENTER } };
+            sigRow3[mid] = { v: 'គ្រូប្រចាំថ្នាក់', t: 's', s: { font: { ...FONT_MOUL, color: { rgb: COLOR_TXT_GREEN } }, alignment: ALIGN_CENTER } };
+
+            merges.push({ s: { r: fRow, c: 0 }, e: { r: fRow, c: mid - 1 } }); merges.push({ s: { r: fRow + 1, c: 0 }, e: { r: fRow + 1, c: mid - 1 } });
+            merges.push({ s: { r: fRow, c: mid }, e: { r: fRow, c: totalCols - 1 } }); merges.push({ s: { r: fRow + 1, c: mid }, e: { r: fRow + 1, c: totalCols - 1 } }); merges.push({ s: { r: fRow + 2, c: mid }, e: { r: fRow + 2, c: totalCols - 1 } });
+
+            ws_data.push(sigRow1, sigRow2, sigRow3);
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell()));
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell()));
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell()));
+            
+            let sigNameRow = Array(totalCols).fill(null).map(() => emptyCell());
+            sigNameRow[mid] = { v: textOf('sign_teacher'), t: 's', s: { font: { ...FONT_MOUL, color: { rgb: COLOR_TXT_RED } }, alignment: ALIGN_CENTER } };
+            merges.push({ s: { r: ws_data.length, c: mid }, e: { r: ws_data.length, c: totalCols - 1 } });
+            ws_data.push(sigNameRow);
+
+            const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            ws['!merges'] = merges;
+            
+            let cols = [{ wch: 4 }, { wch: 22 }, { wch: 5 }]; 
+            for(let i=3; i<totalCols; i++) cols.push({ wch: 5.5 }); 
+            ws['!cols'] = cols;
+
+            let rows = []; rows[10] = { hpt: 30 }; rows[11] = { hpt: 110 }; 
+            ws['!rows'] = rows;
+
+            XLSX.utils.book_append_sheet(wb, ws, "Annual Averages");
+            XLSX.writeFile(wb, `របាយការណ៍សរុបប្រចាំឆ្នាំ_${className}_${yearStr}.xlsx`);
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            onAuthStateChanged(auth, async (user) => {
+                if (user) { currentUser = user; await loadReportData(); } 
+                else { try { await signInAnonymously(auth); } catch (e) { document.getElementById('loadingOverlay').style.display = 'none'; } }
+            });
+        });
+    </script>
+</body>
+</html>

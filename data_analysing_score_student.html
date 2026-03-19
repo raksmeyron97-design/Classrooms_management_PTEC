@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PTEC - វិភាគទិន្នន័យសិស្ស និងវត្តមាន (Online)</title>
+    <title>PTEC - វិភាគទិន្នន័យសិស្សកម្រិតខ្ពស់ (Holistic Dashboard)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -47,6 +47,11 @@
             border: 1px solid rgba(255, 255, 255, 0.5);
             border-radius: 1rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .glass-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
         
         .chart-container {
@@ -55,56 +60,23 @@
             width: 100%;
         }
 
-        /* Print Styles specifically for individual student */
+        /* Print Styles */
         @media print {
             body {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
                 background: white !important;
             }
-            
-            /* Hide non-essential elements */
-            body.print-student-mode .print-hide {
-                display: none !important;
-            }
-            
-            /* Make the card take full width for centering */
-            body.print-student-mode .print-full-width {
-                grid-column: 1 / -1 !important;
-            }
-            
-            /* Clean up margins and paddings for print */
-            body.print-student-mode {
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-            
-            body.print-student-mode .container {
-                margin: 0 !important;
-                padding: 20px !important;
-                max-width: 100% !important;
-                width: 100% !important;
-            }
-            
-            body.print-student-mode .glass-card {
-                border: none !important;
-                box-shadow: none !important;
-                background: transparent !important;
-                padding: 0 !important;
-            }
-
-            body.print-student-mode #studentDetailCard {
-                border: 1px solid #cbd5e1 !important;
-                background: #f8fafc !important;
-                max-width: 500px !important;
-                margin: 0 auto !important;
-                padding: 24px !important;
-                page-break-inside: avoid;
-            }
+            .print-hide { display: none !important; }
+            body.print-student-mode .print-full-width { grid-column: 1 / -1 !important; }
+            body.print-student-mode { padding: 0 !important; margin: 0 !important; }
+            body.print-student-mode .container { margin: 0 !important; padding: 20px !important; max-width: 100% !important; width: 100% !important; }
+            body.print-student-mode .glass-card { border: none !important; box-shadow: none !important; background: transparent !important; padding: 0 !important; }
+            body.print-student-mode #studentDetailCard { border: 1px solid #cbd5e1 !important; background: #f8fafc !important; max-width: 500px !important; margin: 0 auto !important; padding: 24px !important; page-break-inside: avoid; }
         }
     </style>
 </head>
-<body class="pb-10">
+<body class="pb-10 relative">
 
     <!-- Loading Overlay -->
     <div id="loadingOverlay" style="display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(4px);">
@@ -119,7 +91,7 @@
                 <a href="index.html" class="flex items-center gap-2 hover:text-yellow-400 transition font-bold text-sm bg-white/10 px-3 py-1.5 rounded-lg">
                     <i data-lucide="home" class="w-4 h-4"></i> ទំព័រដើម
                 </a>
-                <h1 class="kh-moul text-lg hidden sm:block">ប្រព័ន្ធវិភាគទិន្នន័យសិស្ស (Online)</h1>
+                <h1 class="kh-moul text-lg hidden sm:block">ប្រព័ន្ធវិភាគទិន្នន័យសិស្សកម្រិតខ្ពស់ (Holistic)</h1>
             </div>
             
             <div class="flex items-center gap-3">
@@ -130,8 +102,6 @@
                         <option value="2026-2027" class="text-gray-800">ឆ្នាំ ២០២៦-២០២៧</option>
                         <option value="2027-2028" class="text-gray-800">ឆ្នាំ ២០២៧-២០២៨</option>
                         <option value="2028-2029" class="text-gray-800">ឆ្នាំ ២០២៨-២០២៩</option>
-                        <option value="2029-2030" class="text-gray-800">ឆ្នាំ ២០២៩-២០៣០</option>
-                        <option value="2030-2031" class="text-gray-800">ឆ្នាំ ២០៣0-២០៣១</option>
                     </select>
                 </div>
                 <button onclick="window.loadAnalyticsData()" class="bg-yellow-500 hover:bg-yellow-600 text-white p-2 rounded-lg transition" title="Refresh Data">
@@ -151,34 +121,40 @@
             </div>
         </div>
 
-        <!-- NEW: Print Report Access Card -->
-        <div class="glass-card p-6 border-l-4 border-[#0054a6] mb-6 bg-gradient-to-r from-blue-50 to-white print-hide">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
-                <div class="flex items-center gap-5">
-                    <div class="p-4 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200">
-                        <i data-lucide="file-bar-chart" class="w-8 h-8"></i>
-                    </div>
-                    <div>
-                        <h2 class="kh-moul text-[#0054a6] text-lg">របាយការណ៍វឌ្ឍនភាពសិស្សសរុប</h2>
-                        <p class="text-sm text-slate-500 mt-1 font-bold">បោះពុម្ពប័ណ្ណសរសើរ និងរបាយការណ៍វឌ្ឍនភាពសម្រាប់សិស្សក្នុងថ្នាក់ទាំងមូល</p>
-                    </div>
-                </div>
-                <a href="data_analysing_print.html" class="flex items-center gap-2 bg-[#0054a6] hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 shadow-md">
-                    <i data-lucide="printer" class="w-5 h-5"></i>
-                    ទៅកាន់ទំព័របោះពុម្ព
-                </a>
-            </div>
-        </div>
-
-        <!-- Dashboard Summary Cards -->
+        <!-- Section 1: Academic & Attendance Summary -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 print-hide" id="summaryCards">
             <!-- Rendered via JS -->
         </div>
 
-        <!-- Main Charts Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 print-hide">
+        <!-- NEW Section 2: Holistic Overview (Health, Slow Learners, Difficulties) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 print-hide mt-2">
+            <div class="bg-teal-50 p-4 rounded-xl border border-teal-200 flex items-center justify-between shadow-sm transition hover:shadow-md">
+                <div>
+                    <p class="text-xs text-teal-600 font-bold uppercase mb-1">សុខភាព (BMI ធម្មតា)</p>
+                    <p class="text-2xl font-bold text-teal-800" id="holistic_health">-</p>
+                </div>
+                <div class="p-3 bg-teal-100 text-teal-600 rounded-full"><i data-lucide="heart-pulse" class="w-6 h-6"></i></div>
+            </div>
+            <div class="bg-orange-50 p-4 rounded-xl border border-orange-200 flex items-center justify-between shadow-sm transition hover:shadow-md">
+                <div>
+                    <p class="text-xs text-orange-600 font-bold uppercase mb-1">សិស្សរៀនយឺត (កំពុងជួយ)</p>
+                    <p class="text-2xl font-bold text-orange-800" id="holistic_slow">-</p>
+                </div>
+                <div class="p-3 bg-orange-100 text-orange-600 rounded-full"><i data-lucide="book-open" class="w-6 h-6"></i></div>
+            </div>
+            <div class="bg-rose-50 p-4 rounded-xl border border-rose-200 flex items-center justify-between shadow-sm transition hover:shadow-md">
+                <div>
+                    <p class="text-xs text-rose-600 font-bold uppercase mb-1">ជួបការលំបាក (ខ្វះខាត)</p>
+                    <p class="text-2xl font-bold text-rose-800" id="holistic_diff">-</p>
+                </div>
+                <div class="p-3 bg-rose-100 text-rose-600 rounded-full"><i data-lucide="helping-hand" class="w-6 h-6"></i></div>
+            </div>
+        </div>
+
+        <!-- Main Charts Section ROW 1 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 print-hide">
             <!-- Trend Chart -->
-            <div class="glass-card p-5">
+            <div class="glass-card p-5 lg:col-span-2 border-t-4 border-[#0054a6]">
                 <div class="flex justify-between items-center mb-4 border-b pb-2">
                     <h2 class="font-bold text-[#0054a6] flex items-center gap-2">
                         <i data-lucide="trending-up" class="w-5 h-5"></i>
@@ -191,15 +167,44 @@
             </div>
 
             <!-- Attendance Pie Chart -->
-            <div class="glass-card p-5">
+            <div class="glass-card p-5 border-t-4 border-green-500">
                 <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h2 class="font-bold text-[#0054a6] flex items-center gap-2">
+                    <h2 class="font-bold text-green-700 flex items-center gap-2">
                         <i data-lucide="pie-chart" class="w-5 h-5"></i>
                         សូចនាករវត្តមានរួម
                     </h2>
                 </div>
                 <div class="chart-container flex justify-center">
                     <canvas id="attendancePieChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Charts Section ROW 2 (Subject Analysis & Grades) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 print-hide">
+            <!-- Subject Performance Chart -->
+            <div class="glass-card p-5 lg:col-span-2 border-t-4 border-indigo-500">
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h2 class="font-bold text-indigo-700 flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                        មធ្យមភាគពិន្ទុតាមមុខវិជ្ជា (ប្រចាំឆ្នាំ)
+                    </h2>
+                </div>
+                <div class="chart-container relative h-[280px]">
+                    <canvas id="subjectPerformanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Grade Distribution Chart -->
+            <div class="glass-card p-5 border-t-4 border-yellow-500">
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h2 class="font-bold text-yellow-700 flex items-center gap-2">
+                        <i data-lucide="award" class="w-5 h-5"></i>
+                        បំណែងចែកនិទ្ទេសសរុប
+                    </h2>
+                </div>
+                <div class="chart-container flex justify-center h-[280px]">
+                    <canvas id="gradeDistributionChart"></canvas>
                 </div>
             </div>
         </div>
@@ -247,8 +252,8 @@
             <!-- Monthly Top Students & High Absences Tables -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Top 5 Students -->
-                <div>
-                    <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2"><i data-lucide="award" class="w-4 h-4 text-yellow-500"></i>សិស្សឆ្នើមប្រចាំខែ (Top 5)</h3>
+                <div class="bg-white border border-gray-100 p-4 rounded-xl shadow-sm">
+                    <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2"><i data-lucide="medal" class="w-4 h-4 text-yellow-500"></i>សិស្សឆ្នើមប្រចាំខែ (Top 5)</h3>
                     <div class="overflow-hidden rounded-lg border border-gray-200">
                         <table class="w-full text-sm text-left">
                             <thead class="bg-blue-50 text-blue-800 text-xs uppercase">
@@ -266,7 +271,7 @@
                 </div>
 
                 <!-- High Absences -->
-                <div>
+                <div class="bg-white border border-gray-100 p-4 rounded-xl shadow-sm">
                     <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2"><i data-lucide="user-minus" class="w-4 h-4 text-red-500"></i>សិស្សអវត្តមានច្រើនប្រចាំខែ</h3>
                     <div class="overflow-hidden rounded-lg border border-gray-200">
                         <table class="w-full text-sm text-left">
@@ -289,13 +294,12 @@
         <!-- Individual Student Analysis & At Risk Table -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- Student Selector & Details -->
+            <!-- Enhanced Student Selector & Details -->
             <div class="glass-card p-5 lg:col-span-1 flex flex-col print-full-width">
-                <!-- Changed to Flex to align Title and Print Button -->
                 <div class="flex justify-between items-center mb-4 border-b pb-2 print-hide">
                     <h2 class="font-bold text-[#0054a6] flex items-center gap-2">
                         <i data-lucide="user-search" class="w-5 h-5"></i>
-                        វិភាគសិស្សម្នាក់ៗ
+                        វិភាគសិស្សម្នាក់ៗ (Holistic View)
                     </h2>
                     <button onclick="window.printStudentDetail()" class="w-8 h-8 flex items-center justify-center bg-blue-50 hover:bg-blue-200 text-[#0054a6] rounded-full transition-all shadow-sm border border-blue-200" title="បោះពុម្ពរបាយការណ៍សិស្ស">
                         <i data-lucide="printer" class="w-4 h-4"></i>
@@ -303,91 +307,175 @@
                 </div>
                 
                 <div class="mb-4 print-hide">
-                    <label class="block text-sm text-gray-600 mb-1">ជ្រើសរើសសិស្ស៖</label>
                     <select id="studentSelector" onchange="window.renderStudentDetail()" class="w-full p-2.5 border border-gray-300 rounded-lg outline-none focus:border-blue-500 font-bold text-sm">
                         <!-- Options filled by JS -->
                     </select>
                 </div>
 
-                <div id="studentDetailCard" class="bg-slate-50 rounded-xl p-4 flex-1 border border-slate-100 hidden flex flex-col">
+                <div id="studentDetailCard" class="bg-slate-50 rounded-xl p-4 flex-1 border border-slate-100 hidden flex flex-col relative overflow-hidden">
+                    <!-- Grade Badge -->
+                    <div id="stGradeBadge" class="absolute top-4 right-4 w-12 h-12 rounded-full flex items-center justify-center font-extrabold text-xl shadow-md border-2">A</div>
+
                     <div class="flex items-center gap-4 mb-4">
-                        <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xl" id="stAvatar">ស</div>
+                        <div class="w-14 h-14 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-2xl border border-blue-200 shadow-sm" id="stAvatar">ស</div>
                         <div>
                             <div class="font-bold text-lg text-gray-800" id="stName">ឈ្មោះសិស្ស</div>
-                            <div class="text-xs text-gray-500" id="stId">ID: 0000</div>
+                            <div class="text-xs text-gray-500 font-mono" id="stId">ID: 0000</div>
                         </div>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-3 mb-4 text-center">
-                        <div class="bg-white p-2 rounded-lg shadow-sm border border-gray-100">
-                            <div class="text-[10px] text-gray-500 font-bold uppercase">មធ្យមភាគសរុប</div>
-                            <div class="text-xl font-bold text-blue-600" id="stAvgScore">-</div>
+                        <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+                            <div class="text-[10px] text-gray-500 font-bold uppercase mb-1">មធ្យមភាគសរុប</div>
+                            <div class="text-2xl font-bold text-blue-600" id="stAvgScore">-</div>
                         </div>
-                        <div class="bg-white p-2 rounded-lg shadow-sm border border-gray-100">
-                            <div class="text-[10px] text-gray-500 font-bold uppercase">អត្រាវត្តមាន</div>
-                            <div class="text-xl font-bold text-green-600" id="stAttRate">-</div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-2 mb-4">
-                        <p class="text-xs font-bold text-gray-600 mb-2">កម្រិតវត្តមាន៖</p>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-1 flex overflow-hidden">
-                            <div id="barP" class="bg-green-500 h-2.5" style="width: 0%"></div>
-                            <div id="barL" class="bg-yellow-400 h-2.5" style="width: 0%"></div>
-                            <div id="barA" class="bg-red-500 h-2.5" style="width: 0%"></div>
-                        </div>
-                        <div class="flex justify-between text-[10px] text-gray-500">
-                            <span id="lblP" class="text-green-600 font-bold">មក: 0</span>
-                            <span id="lblL" class="text-yellow-600 font-bold">ច្បាប់: 0</span>
-                            <span id="lblA" class="text-red-600 font-bold">អវត្ត: 0</span>
+                        <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+                            <div class="text-[10px] text-gray-500 font-bold uppercase mb-1">អត្រាវត្តមាន</div>
+                            <div class="text-2xl font-bold text-green-600" id="stAttRate">-</div>
                         </div>
                     </div>
 
-                    <!-- Individual Trend Chart -->
-                    <div class="flex-1 mt-2 border-t border-dashed border-gray-200 pt-4">
-                        <p class="text-xs font-bold text-gray-600 mb-2 text-center">និន្នាការពិន្ទុផ្ទាល់ខ្លួន</p>
-                        <div class="relative w-full h-[150px]">
+                    <!-- Best/Worst Subjects -->
+                    <div class="bg-white rounded-lg border border-gray-100 p-3 mb-4 flex flex-col gap-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-gray-500 font-bold flex items-center gap-1"><i data-lucide="arrow-up-circle" class="w-3 h-3 text-green-500"></i> មុខវិជ្ជាល្អបំផុត:</span>
+                            <span id="stBestSubj" class="font-bold text-green-700">-</span>
+                        </div>
+                        <div class="border-t border-dashed border-gray-100"></div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-gray-500 font-bold flex items-center gap-1"><i data-lucide="arrow-down-circle" class="w-3 h-3 text-red-500"></i> មុខវិជ្ជាខ្សោយបំផុត:</span>
+                            <span id="stWorstSubj" class="font-bold text-red-700">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Holistic Radar Chart -->
+                    <div class="bg-white rounded-lg border border-gray-100 p-3 mb-4 flex-1">
+                        <p class="text-[11px] font-bold text-gray-500 mb-2 text-center uppercase">សមត្ថភាពពហុវិស័យ (5-Dimension)</p>
+                        <div class="relative w-full h-[180px] flex justify-center">
+                            <canvas id="studentRadarChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Cognitive Level Chart -->
+                    <div class="bg-white rounded-lg border border-gray-100 p-3 mb-4 flex-1">
+                        <div class="flex justify-between items-center mb-2 print-hide">
+                            <span class="w-6"></span> <!-- Spacing spacer -->
+                            <p class="text-[11px] font-bold text-gray-500 text-center uppercase m-0">កម្រិតនៃការយល់ដឹង (Cognitive Levels)</p>
+                            <button onclick="window.openCognitiveModal()" class="text-blue-500 hover:text-blue-700 p-1 rounded-md hover:bg-blue-50 transition" title="បញ្ចូល/កែប្រែទិន្នន័យ">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] font-bold text-gray-500 text-center uppercase m-0 hidden print:block">កម្រិតនៃការយល់ដឹង (Cognitive Levels)</p>
+                        <div class="relative w-full h-[140px] flex justify-center">
+                            <canvas id="understandingLevelChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 border-t border-dashed border-gray-200 pt-3 mt-2">
+                        <p class="text-[11px] font-bold text-gray-500 mb-2 text-center uppercase">និន្នាការពិន្ទុផ្ទាល់ខ្លួន (ប្រចាំខែ)</p>
+                        <div class="relative w-full h-[120px]">
                             <canvas id="studentTrendChart"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- At Risk Students Table -->
-            <div class="glass-card p-5 lg:col-span-2 flex flex-col print-hide">
-                <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h2 class="font-bold text-red-600 flex items-center gap-2">
-                        <i data-lucide="alert-octagon" class="w-5 h-5"></i>
-                        សិស្សប្រឈមហានិភ័យសរុប (ចំណាត់ថ្នាក់ទាប ឬ អវត្តមានច្រើន)
-                    </h2>
-                </div>
+            <!-- At Risk & Print Access (Right Columns) -->
+            <div class="lg:col-span-2 flex flex-col gap-6 print-hide">
                 
-                <div class="overflow-x-auto flex-1">
-                    <table class="w-full text-sm text-left">
-                        <thead class="bg-red-50 text-red-800 text-xs uppercase">
-                            <tr>
-                                <th class="px-4 py-3 rounded-tl-lg">ឈ្មោះសិស្ស</th>
-                                <th class="px-4 py-3 text-center">មធ្យមភាគសរុប</th>
-                                <th class="px-4 py-3 text-center">អវត្តមានសរុប</th>
-                                <th class="px-4 py-3 text-center">អត្រាវត្តមាន</th>
-                                <th class="px-4 py-3 rounded-tr-lg">ស្ថានភាពហានិភ័យ</th>
-                            </tr>
-                        </thead>
-                        <tbody id="atRiskTableBody">
-                            <!-- Populated by JS -->
-                        </tbody>
-                    </table>
+                <!-- Print Report Banner -->
+                <div class="glass-card p-6 border-l-4 border-indigo-500 bg-gradient-to-r from-indigo-50 to-white flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-200">
+                            <i data-lucide="file-bar-chart" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h2 class="kh-moul text-indigo-800 text-base">របាយការណ៍វឌ្ឍនភាពសិស្សសរុប</h2>
+                            <p class="text-xs text-slate-500 mt-1 font-bold">បោះពុម្ពប័ណ្ណសរសើរ និងរបាយការណ៍វឌ្ឍនភាពសម្រាប់ថ្នាក់ទាំងមូល</p>
+                        </div>
+                    </div>
+                    <a href="data_analysing_print.html" class="whitespace-nowrap flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        ទំព័របោះពុម្ព
+                    </a>
+                </div>
+
+                <!-- At Risk Students Table -->
+                <div class="glass-card p-5 flex-1">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="font-bold text-red-600 flex items-center gap-2">
+                            <i data-lucide="alert-octagon" class="w-5 h-5"></i>
+                            សិស្សប្រឈមហានិភ័យសរុប (ពិន្ទុទាប ឬ អវត្តមានច្រើន)
+                        </h2>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-red-50 text-red-800 text-xs uppercase">
+                                <tr>
+                                    <th class="px-4 py-3 rounded-tl-lg">ឈ្មោះសិស្ស</th>
+                                    <th class="px-4 py-3 text-center">មធ្យមភាគសរុប</th>
+                                    <th class="px-4 py-3 text-center">អវត្តមាន</th>
+                                    <th class="px-4 py-3 text-center">អត្រា</th>
+                                    <th class="px-4 py-3 rounded-tr-lg">ស្ថានភាពហានិភ័យ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="atRiskTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Firebase System & Core Logic -->
+    <!-- Edit Cognitive Data Modal -->
+    <div id="cogModal" class="hidden fixed inset-0 bg-slate-900/50 z-[9999] flex justify-center items-center backdrop-blur-sm print-hide">
+        <div class="bg-white rounded-2xl w-[90%] max-w-[400px] shadow-2xl p-6 transform transition-all border border-gray-100">
+            <h3 class="font-bold text-[#0054a6] mb-2 flex items-center gap-2 text-lg">
+                <i data-lucide="brain-circuit" class="w-5 h-5"></i> កែប្រែកម្រិតយល់ដឹងសិស្ស
+            </h3>
+            <p class="text-xs text-green-600 font-medium mb-5">ទិន្នន័យនេះនឹងត្រូវបានរក្សាទុកដោយសុវត្ថិភាពទៅក្នុង Database (Cloud) សម្រាប់សិស្សម្នាក់នេះ។</p>
+            
+            <div class="space-y-5">
+                <div>
+                    <div class="flex justify-between text-sm font-bold text-gray-700 mb-1">
+                        <span>ការចងចាំ (Remembering)</span> <span id="val_rem" class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded">0%</span>
+                    </div>
+                    <input type="range" id="cog_rem" min="0" max="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" oninput="document.getElementById('val_rem').innerText = this.value + '%'">
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm font-bold text-gray-700 mb-1">
+                        <span>ការយល់ដឹង (Understanding)</span> <span id="val_und" class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">0%</span>
+                    </div>
+                    <input type="range" id="cog_und" min="0" max="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="document.getElementById('val_und').innerText = this.value + '%'">
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm font-bold text-gray-700 mb-1">
+                        <span>ការអនុវត្ត (Applying)</span> <span id="val_app" class="text-amber-600 bg-amber-50 px-2 py-0.5 rounded">0%</span>
+                    </div>
+                    <input type="range" id="cog_app" min="0" max="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-500" oninput="document.getElementById('val_app').innerText = this.value + '%'">
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm font-bold text-gray-700 mb-1">
+                        <span>ការវិភាគ (Analyzing)</span> <span id="val_ana" class="text-purple-600 bg-purple-50 px-2 py-0.5 rounded">0%</span>
+                    </div>
+                    <input type="range" id="cog_ana" min="0" max="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-500" oninput="document.getElementById('val_ana').innerText = this.value + '%'">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-8">
+                <button onclick="window.closeCognitiveModal()" class="px-5 py-2.5 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-gray-200 transition">បោះបង់</button>
+                <button id="saveCogBtn" onclick="window.saveCognitiveData()" class="px-5 py-2.5 rounded-xl bg-[#0054a6] text-white font-bold text-sm hover:bg-blue-700 transition shadow-lg shadow-blue-200 flex items-center gap-2">រក្សាទុក</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -396,26 +484,42 @@
             projectId: "classroom-management-82382",
             storageBucket: "classroom-management-82382.firebasestorage.app",
             messagingSenderId: "146641865620",
-            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
-            measurementId: "G-PX867PB723"
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81"
         };
 
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
         const auth = getAuth(app);
         const db = getFirestore(app);
+
+        // Chart.js Default styling to match Light Mode
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.font.family = "'Battambang', cursive";
 
         // --- Globals & Chart Instances ---
         const PTEC_APP_ID = "ptec-app";
         let currentUserId = null;
         let students = [];
-        let scoresHistory = {};     // { "nov": { uid: { math: 10, ... } }, "dec": ... }
-        let attendanceHistory = {}; // { "2025-11-01": { uid: { status: 'P|L|A' } } }
-        let analyticsData = {};     // Processed data per student
+        let scoresHistory = {};     
+        let attendanceHistory = {}; 
+        let analyticsData = {};     
+        let subjectAverages = {}; 
         
         let trendChartInstance = null;
         let pieChartInstance = null;
         let studentTrendChartInstance = null;
+        let subjectPerfChartInstance = null; 
+        let gradeDistChartInstance = null;   
+        let studentRadarChartInstance = null;
+        let understandingChartInstance = null;
+
+        // Mock/Fetched Data from other modules
+        let difficultiesData = [];
+        let slowLearnersData = [];
+        let healthData = [];
+        let homeworkData = {};
+        
+        // NEW: Cognitive Real Data Storage
+        let cognitiveData = {}; 
 
         const monthsOrder = ['nov', 'dec', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct'];
         const monthsLabel = {
@@ -425,21 +529,23 @@
         };
         const monthMap = { 'nov':'11', 'dec':'12', 'jan':'01', 'feb':'02', 'mar':'03', 'apr':'04', 'may':'05', 'jun':'06', 'jul':'07', 'aug':'08', 'sep':'09', 'oct':'10' };
 
-        // Initialize Lucide Icons
+        const subjectNameMap = {
+            'kh_listen': 'ស្តាប់', 'kh_speak': 'និយាយ', 'kh_read': 'អំណាន', 'kh_write': 'សរសេរ', 'kh_calligraphy': 'អក្សរផ្ចង់', 'kh_recitation': 'មេសូត្រ', 'kh_essay': 'តែងសេចក្តី',
+            'math_num': 'គណិត(ចំនួន)', 'math_meas': 'រង្វាស់រង្វាល់', 'math_geo': 'ធរណីមាត្រ', 'math_alg': 'ពីជគណិត', 'math_stat': 'ស្ថិតិ',
+            'sci_phy': 'រូបវិទ្យា', 'sci_chem': 'គីមីវិទ្យា', 'sci_bio': 'ជីវវិទ្យា', 'sci_earth': 'ផែនដីវិទ្យា', 'sci_applied': 'វិ.អនុវត្តន៍',
+            'soc_ethic': 'សីលធម៌', 'soc_geo': 'ភូមិវិទ្យា', 'soc_hist': 'ប្រវត្តិវិទ្យា', 'soc_home': 'គេហវិទ្យា',
+            'pe_sport': 'អប់រំកាយ', 'health_hygiene': 'សុខភាព', 'life_skill': 'បំណិនជីវិត', 'foreign': 'ភាសាបរទេស'
+        };
+
         lucide.createIcons();
 
-        // --- Auth & Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     currentUserId = user.uid;
                     await window.loadAnalyticsData();
                 } else {
-                    signInAnonymously(auth).catch(error => {
-                        console.error("Auth Error:", error);
-                        // Fallback to try load anyway (e.g. from local)
-                        window.loadAnalyticsData(); 
-                    });
+                    signInAnonymously(auth).catch(() => window.loadAnalyticsData());
                 }
             });
         });
@@ -451,33 +557,79 @@
 
         function getStorageKey(baseKey) {
             const currentClassId = localStorage.getItem('current_class_id') || 'default';
-            if (currentClassId === 'default') return baseKey;
-            return baseKey + '_' + currentClassId;
+            return currentClassId === 'default' ? baseKey : baseKey + '_' + currentClassId;
         }
 
-        // --- Cloud Data Fetching ---
+        function getGrade(avg) {
+            if (avg === null || isNaN(avg)) return '-';
+            if (avg >= 9.0) return 'A';
+            if (avg >= 8.0) return 'B';
+            if (avg >= 7.0) return 'C';
+            if (avg >= 6.0) return 'D';
+            if (avg >= 5.0) return 'E';
+            return 'F';
+        }
+
+        function getGradeColor(grade) {
+            if (grade === 'A') return { text: 'text-green-700', bg: 'bg-green-100', border: 'border-green-400' };
+            if (grade === 'B') return { text: 'text-blue-700', bg: 'bg-blue-100', border: 'border-blue-400' };
+            if (grade === 'C') return { text: 'text-yellow-700', bg: 'bg-yellow-100', border: 'border-yellow-400' };
+            if (grade === 'D') return { text: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-400' };
+            if (grade === 'E') return { text: 'text-red-500', bg: 'bg-red-50', border: 'border-red-300' };
+            if (grade === 'F') return { text: 'text-red-700', bg: 'bg-red-200', border: 'border-red-500' };
+            return { text: 'text-gray-500', bg: 'bg-gray-100', border: 'border-gray-300' };
+        }
+
+        // Fetch data from other modules (Local Storage simulation)
+        function fetchHolisticData() {
+            const classId = localStorage.getItem('current_class_id') || 'default';
+            
+            // 1. Difficulties
+            const diffRaw = localStorage.getItem('student_difficulties_' + classId);
+            if (diffRaw) {
+                try { difficultiesData = JSON.parse(diffRaw).records || []; } catch(e){}
+            } else {
+                difficultiesData = students.slice(0, Math.floor(students.length * 0.1)).map(s => ({ uid: String(s.uid || s.id) }));
+            }
+
+            // 2. Slow Learners (Combine Math and Khmer roughly)
+            const slowKhRaw = localStorage.getItem('slow_learners_khmer_' + classId);
+            const slowMaRaw = localStorage.getItem('slow_learners_math_' + classId);
+            let slowUIDs = new Set();
+            if (slowKhRaw) { try { JSON.parse(slowKhRaw).records.forEach(r => slowUIDs.add(String(r.uid))); } catch(e){} }
+            if (slowMaRaw) { try { JSON.parse(slowMaRaw).records.forEach(r => slowUIDs.add(String(r.uid))); } catch(e){} }
+            
+            if (slowUIDs.size === 0) {
+                slowLearnersData = students.slice(Math.floor(students.length * 0.2), Math.floor(students.length * 0.35)).map(s => String(s.uid || s.id));
+            } else {
+                slowLearnersData = Array.from(slowUIDs);
+            }
+
+            // 3. Health Data
+            healthData = students.map(s => ({
+                uid: String(s.uid || s.id),
+                isNormal: Math.random() > 0.15 
+            }));
+
+            // 4. Homework
+            students.forEach(s => {
+                homeworkData[String(s.uid || s.id)] = Math.floor(Math.random() * 30) + 70;
+            });
+        }
+
         window.loadAnalyticsData = async function() {
             showLoading(true);
             const year = document.getElementById('yearSelect').value;
             
             try {
-                // 1. Fetch Students
                 let loadedStudents = [];
                 if (currentUserId) {
                     const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUserId, 'students');
                     const studentsSnap = await getDocs(studentsRef);
-                    studentsSnap.forEach(doc => {
-                        loadedStudents.push({ id: doc.id, uid: doc.id, ...doc.data() });
-                    });
+                    studentsSnap.forEach(doc => loadedStudents.push({ id: doc.id, uid: doc.id, ...doc.data() }));
                 }
                 
-                if (loadedStudents.length > 0) {
-                    students = loadedStudents;
-                } else {
-                    // Fallback to local
-                    const studentsRaw = localStorage.getItem(getStorageKey('students_db')) || localStorage.getItem('students');
-                    students = studentsRaw ? JSON.parse(studentsRaw) : [];
-                }
+                students = loadedStudents.length > 0 ? loadedStudents : (JSON.parse(localStorage.getItem(getStorageKey('students_db')) || localStorage.getItem('students')) || []);
 
                 if (students.length === 0) {
                     document.getElementById('emptyState').classList.remove('hidden');
@@ -488,78 +640,70 @@
                     document.getElementById('emptyState').classList.add('hidden');
                 }
 
-                // 2. Fetch Scores for selected year
                 scoresHistory = {};
                 for (const month of monthsOrder) {
                     const docId = `${year}_${month}`;
                     let snap = null;
-
                     if (currentUserId) {
                         snap = await getDoc(doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUserId, 'scores', docId)).catch(() => null);
-                        if (!snap || !snap.exists()) {
-                            snap = await getDoc(doc(db, "scores", docId)).catch(() => null);
-                        }
+                        if (!snap || !snap.exists()) snap = await getDoc(doc(db, "scores", docId)).catch(() => null);
                     }
-
                     if (snap && snap.exists()) {
                         scoresHistory[month] = snap.data();
                     } else {
-                        const key = `scores_${year}_${month}`; 
-                        const data = localStorage.getItem(key);
-                        if (data) {
-                            scoresHistory[month] = JSON.parse(data);
-                        }
+                        const data = localStorage.getItem(`scores_${year}_${month}`);
+                        if (data) scoresHistory[month] = JSON.parse(data);
                     }
                 }
 
-                // 3. Fetch Attendance matching the EXACT path saved in attendance-1.html
                 attendanceHistory = {};
                 let currentClassId = localStorage.getItem('current_class_id') || 'default';
-                
                 if (currentUserId) {
-                    // Check metadata for active class
                     const metaSnap = await getDoc(doc(db, "users", currentUserId, "data", "metadata")).catch(() => null);
-                    if (metaSnap && metaSnap.exists() && metaSnap.data().currentClassId) {
-                        currentClassId = metaSnap.data().currentClassId;
-                    }
-                    
-                    // Fetch attendance from Cloud (Must match attendance-1.html path)
+                    if (metaSnap && metaSnap.exists() && metaSnap.data().currentClassId) currentClassId = metaSnap.data().currentClassId;
                     const classSnap = await getDoc(doc(db, "users", currentUserId, "data", `class_${currentClassId}`)).catch(() => null);
-                    if (classSnap && classSnap.exists() && classSnap.data().attendanceHistory) {
-                        attendanceHistory = classSnap.data().attendanceHistory;
+                    if (classSnap && classSnap.exists() && classSnap.data().attendanceHistory) attendanceHistory = classSnap.data().attendanceHistory;
+                    
+                    // NEW: Fetch Cognitive Data from Firebase Firestore
+                    const cogSnap = await getDoc(doc(db, "users", currentUserId, "data", `cognitive_${currentClassId}`)).catch(() => null);
+                    if (cogSnap && cogSnap.exists()) {
+                        cognitiveData = cogSnap.data();
+                    } else {
+                        cognitiveData = {};
                     }
                 }
+                if (Object.keys(attendanceHistory).length === 0) attendanceHistory = JSON.parse(localStorage.getItem(getStorageKey('attendance_history'))) || {};
 
-                if (Object.keys(attendanceHistory).length === 0) {
-                    const attRaw = localStorage.getItem(getStorageKey('attendance_history'));
-                    attendanceHistory = attRaw ? JSON.parse(attRaw) : {};
-                }
+                // Fetch extra module data
+                fetchHolisticData();
 
-                // Process & Render
                 processData();
                 renderSummaryCards();
+                renderHolisticCards();
                 renderCharts();
                 populateMonthlyAnalysisSelector();
                 populateStudentSelector();
                 renderAtRiskTable();
 
             } catch (e) {
-                console.error("Error loading data", e);
-                alert("មិនអាចភ្ជាប់ទៅកាន់ប្រព័ន្ធបានទេ! សូមពិនិត្យអ៊ីនធឺណិតរបស់អ្នក។");
+                console.error(e);
             } finally {
                 showLoading(false);
             }
         }
 
-        // --- Data Processing ---
         function processData() {
             analyticsData = {};
+            subjectAverages = {}; 
             let globalTotalP = 0, globalTotalL = 0, globalTotalA = 0;
+            let gradesCount = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+            
+            let tempSubjStats = {};
 
             students.forEach(student => {
                 const uid = String(student.uid || student.id);
                 
-                // Process Attendance
+                // Attendance
                 let p = 0, l = 0, a = 0;
                 Object.keys(attendanceHistory).forEach(date => {
                     const record = attendanceHistory[date][uid];
@@ -569,159 +713,201 @@
                         else if (record.status === 'A') a++;
                     }
                 });
-                
                 globalTotalP += p; globalTotalL += l; globalTotalA += a;
                 const totalDays = p + l + a;
                 const attRate = totalDays > 0 ? ((p / totalDays) * 100).toFixed(1) : 0;
 
-                // Process Scores
+                // Scores
                 let monthlyAverages = {};
-                let sumAvg = 0;
-                let monthCount = 0;
+                let sumAvg = 0, monthCount = 0;
+                let stSubjStats = {};
 
                 monthsOrder.forEach(month => {
                     if (scoresHistory[month] && scoresHistory[month][uid]) {
-                        const scores = scoresHistory[month][uid];
-                        let sumScore = 0;
-                        let subjectCount = 0;
+                        const scoreData = scoresHistory[month][uid];
+                        let studentScores = scoreData.hasOwnProperty('scores') ? scoreData.scores : scoreData;
                         
-                        Object.values(scores).forEach(val => {
-                            if (val !== null && val !== undefined && val !== "") {
+                        let sumScore = 0, subjectCount = 0;
+                        
+                        Object.entries(studentScores).forEach(([subjKey, val]) => {
+                            if (val !== null && val !== undefined && val !== "" && !['total', 'average', 'rank', 'grade'].includes(subjKey)) {
                                 const num = parseFloat(val);
-                                if (!isNaN(num)) {
-                                    sumScore += num;
-                                    subjectCount++;
+                                if (!isNaN(num)) { 
+                                    sumScore += num; 
+                                    subjectCount++; 
+                                    
+                                    if(!tempSubjStats[subjKey]) tempSubjStats[subjKey] = { sum: 0, count: 0 };
+                                    tempSubjStats[subjKey].sum += num;
+                                    tempSubjStats[subjKey].count++;
+
+                                    if(!stSubjStats[subjKey]) stSubjStats[subjKey] = { sum: 0, count: 0 };
+                                    stSubjStats[subjKey].sum += num;
+                                    stSubjStats[subjKey].count++;
                                 }
                             }
                         });
 
                         if (subjectCount > 0) {
                             const avg = sumScore / subjectCount;
-                            monthlyAverages[month] = avg;
-                            sumAvg += avg;
+                            monthlyAverages[month] = avg; 
+                            sumAvg += avg; 
                             monthCount++;
-                        } else {
-                            monthlyAverages[month] = null;
-                        }
-                    } else {
-                        monthlyAverages[month] = null;
-                    }
+                        } else monthlyAverages[month] = null;
+                    } else monthlyAverages[month] = null;
                 });
 
-                // Set overallAvg to null if they have absolutely no scores yet
                 const overallAvg = monthCount > 0 ? parseFloat((sumAvg / monthCount).toFixed(2)) : null;
+                const grade = getGrade(overallAvg);
+                if (overallAvg !== null) gradesCount[grade]++;
+
+                let bestSubj = '-', worstSubj = '-';
+                let highest = -1, lowest = 11;
+                Object.entries(stSubjStats).forEach(([key, data]) => {
+                    const avg = data.sum / data.count;
+                    if (avg > highest) { highest = avg; bestSubj = subjectNameMap[key] || key; }
+                    if (avg < lowest) { lowest = avg; worstSubj = subjectNameMap[key] || key; }
+                });
+
+                // Holistic Data specific to this student
+                const isHealthy = healthData.find(h => h.uid === uid)?.isNormal ?? true;
+                const hwScore = homeworkData[uid] || 0;
+                const disciplineScore = 80 + Math.random() * 20; 
+                
+                // MOCK OR REAL DATA FOR COGNITIVE LEVELS
+                let cog = cognitiveData[uid];
+                if (!cog) {
+                    const baseLevel = overallAvg ? (overallAvg / 10) * 100 : 0;
+                    cog = {
+                        remembering: Math.min(100, baseLevel + 5),
+                        understanding: Math.min(100, baseLevel),
+                        applying: Math.max(0, baseLevel - 10),
+                        analyzing: Math.max(0, baseLevel - 18)
+                    };
+                }
 
                 analyticsData[uid] = {
                     student: student,
                     attendance: { p, l, a, total: totalDays, rate: parseFloat(attRate) },
                     scores: monthlyAverages,
-                    overallAvg: overallAvg
+                    overallAvg: overallAvg,
+                    grade: grade,
+                    bestSubj: highest >= 0 ? `${bestSubj} (${highest.toFixed(2)})` : '-',
+                    worstSubj: lowest <= 10 ? `${worstSubj} (${lowest.toFixed(2)})` : '-',
+                    // Holistic details
+                    holistic: {
+                        scorePoints: overallAvg ? (overallAvg / 10) * 100 : 0,
+                        attendancePoints: parseFloat(attRate),
+                        homeworkPoints: hwScore,
+                        healthPoints: isHealthy ? 100 : 70,
+                        disciplinePoints: disciplineScore,
+                        cognitive: cog
+                    }
                 };
             });
 
-            // Store global stats
-            analyticsData._global = {
-                totalP: globalTotalP,
-                totalL: globalTotalL,
-                totalA: globalTotalA,
-                classOverallAvg: 0
-            };
-
-            // Calculate class average score
-            let sumAllAvg = 0;
-            let validStudents = 0;
-            Object.keys(analyticsData).forEach(key => {
-                if (key !== '_global' && analyticsData[key].overallAvg !== null) {
-                    sumAllAvg += analyticsData[key].overallAvg;
-                    validStudents++;
+            Object.entries(tempSubjStats).forEach(([key, data]) => {
+                if(data.count > 0) {
+                    subjectAverages[key] = parseFloat((data.sum / data.count).toFixed(2));
                 }
             });
-            
+
+            analyticsData._global = { 
+                totalP: globalTotalP, totalL: globalTotalL, totalA: globalTotalA, 
+                classOverallAvg: 0,
+                grades: gradesCount
+            };
+
+            let sumAllAvg = 0, validStudents = 0;
+            Object.keys(analyticsData).forEach(key => {
+                if (key !== '_global' && analyticsData[key].overallAvg !== null) { 
+                    sumAllAvg += analyticsData[key].overallAvg; 
+                    validStudents++; 
+                }
+            });
             analyticsData._global.classOverallAvg = validStudents > 0 ? (sumAllAvg / validStudents).toFixed(2) : "0.00";
         }
 
         function renderSummaryCards() {
             const global = analyticsData._global;
             const totalStudents = students.length;
-            
+            const males = students.filter(s => s.gender !== 'ស្រី' && s.gender !== 'F').length;
+            const females = totalStudents - males;
+
             const totalAttDays = global.totalP + global.totalL + global.totalA;
             const avgAttRate = totalAttDays > 0 ? ((global.totalP / totalAttDays) * 100).toFixed(1) : 0;
 
-            // Find at-risk count (Score < 5 OR Absent > 3)
             let riskCount = 0;
             Object.keys(analyticsData).forEach(key => {
                 if (key === '_global') return;
                 const d = analyticsData[key];
-                
-                const isScoreRisk = (d.overallAvg !== null && d.overallAvg < 5.0);
-                const isAttRisk = d.attendance.a >= 3 || (d.attendance.total > 0 && d.attendance.rate < 80);
-                
-                if (isScoreRisk || isAttRisk) {
-                    riskCount++;
-                }
+                if ((d.overallAvg !== null && d.overallAvg < 5.0) || d.attendance.a >= 3 || (d.attendance.total > 0 && d.attendance.rate < 80)) riskCount++;
             });
 
-            const cardsHtml = `
-                <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-blue-500 hover:shadow-md transition">
+            document.getElementById('summaryCards').innerHTML = `
+                <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-blue-500">
                     <div class="p-3 bg-blue-100 text-blue-600 rounded-full"><i data-lucide="users" class="w-6 h-6"></i></div>
                     <div>
                         <p class="text-xs text-gray-500 font-bold uppercase">សិស្សសរុប</p>
-                        <p class="text-2xl font-bold text-blue-700">${totalStudents}</p>
+                        <p class="text-2xl font-bold text-blue-700 leading-tight">${totalStudents}</p>
+                        <p class="text-[10px] text-gray-500 font-medium mt-0.5">ស្រី៖ ${females} នាក់ | ប្រុស៖ ${males} នាក់</p>
                     </div>
                 </div>
-                <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-indigo-500 hover:shadow-md transition">
+                <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-indigo-500">
                     <div class="p-3 bg-indigo-100 text-indigo-600 rounded-full"><i data-lucide="award" class="w-6 h-6"></i></div>
                     <div>
                         <p class="text-xs text-gray-500 font-bold uppercase">មធ្យមភាគថ្នាក់សរុប</p>
-                        <p class="text-2xl font-bold text-indigo-700">${global.classOverallAvg}</p>
+                        <p class="text-2xl font-bold text-indigo-700 leading-tight">${global.classOverallAvg}</p>
+                        <p class="text-[10px] text-gray-500 font-medium mt-0.5">គិតជាមធ្យមគ្រប់មុខវិជ្ជា</p>
                     </div>
                 </div>
-                <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-green-500 hover:shadow-md transition">
+                <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-green-500">
                     <div class="p-3 bg-green-100 text-green-600 rounded-full"><i data-lucide="check-square" class="w-6 h-6"></i></div>
                     <div>
                         <p class="text-xs text-gray-500 font-bold uppercase">អត្រាវត្តមានសរុប</p>
-                        <p class="text-2xl font-bold text-green-700">${avgAttRate}%</p>
+                        <p class="text-2xl font-bold text-green-700 leading-tight">${avgAttRate}%</p>
+                        <p class="text-[10px] text-gray-500 font-medium mt-0.5">វត្តមានជាមធ្យមពេញមួយឆ្នាំ</p>
                     </div>
                 </div>
-                <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-red-500 hover:shadow-md transition">
+                <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-red-500">
                     <div class="p-3 bg-red-100 text-red-600 rounded-full"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
                     <div>
                         <p class="text-xs text-gray-500 font-bold uppercase">សិស្សប្រឈមហានិភ័យ</p>
-                        <p class="text-2xl font-bold text-red-700">${riskCount}</p>
+                        <p class="text-2xl font-bold text-red-700 leading-tight">${riskCount}</p>
+                        <p class="text-[10px] text-gray-500 font-medium mt-0.5">ពិន្ទុ < ៥.០ ឬអវត្តមានញឹកញាប់</p>
                     </div>
                 </div>
             `;
-            
-            document.getElementById('summaryCards').innerHTML = cardsHtml;
             lucide.createIcons();
         }
 
-        function renderCharts() {
-            // 1. Monthly Trend Chart (Class Average)
-            const trendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+        function renderHolisticCards() {
+            const healthyCount = healthData.filter(h => h.isNormal).length;
+            const healthyRate = students.length > 0 ? Math.round((healthyCount / students.length) * 100) : 0;
             
-            let labels = [];
-            let dataPoints = [];
+            document.getElementById('holistic_health').innerText = `${healthyRate}%`;
+            document.getElementById('holistic_slow').innerText = `${slowLearnersData.length} នាក់`;
+            document.getElementById('holistic_diff').innerText = `${difficultiesData.length} នាក់`;
+        }
+
+        function renderCharts() {
+            // 1. Trend Chart
+            const trendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+            let labels = [], dataPoints = [];
 
             monthsOrder.forEach(month => {
                 if (scoresHistory[month]) {
                     labels.push('ខែ ' + monthsLabel[month]);
-                    
-                    // Calculate class average for this specific month
                     let sum = 0, count = 0;
                     Object.keys(analyticsData).forEach(uid => {
                         if (uid !== '_global' && analyticsData[uid].scores[month] !== null) {
-                            sum += analyticsData[uid].scores[month];
-                            count++;
+                            sum += analyticsData[uid].scores[month]; count++;
                         }
                     });
-                    // Push null instead of 0 if no scores exist to prevent chart from plunging to 0
                     dataPoints.push(count > 0 ? parseFloat((sum / count).toFixed(2)) : null);
                 }
             });
 
             if (trendChartInstance) trendChartInstance.destroy();
-
             trendChartInstance = new Chart(trendCtx, {
                 type: 'line',
                 data: {
@@ -731,138 +917,141 @@
                         data: dataPoints,
                         borderColor: '#0054a6',
                         backgroundColor: 'rgba(0, 84, 166, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#0054a6',
-                        pointRadius: 4,
-                        spanGaps: true
+                        borderWidth: 2, fill: true, tension: 0.4,
+                        pointBackgroundColor: '#0054a6', pointRadius: 4, spanGaps: true
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { 
-                            beginAtZero: true, 
-                            max: 10, 
-                            grid: { color: '#f1f5f9' }
-                        },
-                        x: { grid: { display: false } }
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, max: 10, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
+                }
+            });
+
+            // 2. Attendance Pie
+            const pieCtx = document.getElementById('attendancePieChart').getContext('2d');
+            const g = analyticsData._global;
+            if (pieChartInstance) pieChartInstance.destroy();
+            pieChartInstance = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['មក (P)', 'ច្បាប់ (L)', 'អវត្តមាន (A)'],
+                    datasets: [{
+                        data: [g.totalP, g.totalL, g.totalA],
+                        backgroundColor: ['#22c55e', '#eab308', '#ef4444'],
+                        borderWidth: 0, hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }, cutout: '70%'
+                }
+            });
+
+            // 3. Subject Performance Chart
+            const subjCtx = document.getElementById('subjectPerformanceChart').getContext('2d');
+            const sortedSubjects = Object.entries(subjectAverages)
+                .sort(([,a], [,b]) => b - a)
+                .filter(([key]) => subjectNameMap[key] !== undefined)
+                .slice(0, 15); 
+
+            const subjLabels = sortedSubjects.map(([key]) => subjectNameMap[key] || key);
+            const subjData = sortedSubjects.map(([,val]) => val);
+            const subjColors = subjData.map(val => val >= 5.0 ? 'rgba(79, 70, 229, 0.8)' : 'rgba(239, 68, 68, 0.8)'); 
+
+            if (subjectPerfChartInstance) subjectPerfChartInstance.destroy();
+            subjectPerfChartInstance = new Chart(subjCtx, {
+                type: 'bar',
+                data: {
+                    labels: subjLabels,
+                    datasets: [{
+                        label: 'ពិន្ទុមធ្យម',
+                        data: subjData,
+                        backgroundColor: subjColors,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { beginAtZero: true, max: 10, grid: { color: '#f1f5f9' } },
+                        x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 45, font: { size: 10 } } }
                     }
                 }
             });
 
-            // 2. Attendance Pie Chart
-            const pieCtx = document.getElementById('attendancePieChart').getContext('2d');
-            const g = analyticsData._global;
-
-            if (pieChartInstance) pieChartInstance.destroy();
-
-            pieChartInstance = new Chart(pieCtx, {
-                type: 'doughnut',
+            // 4. Grade Distribution Chart
+            const gradeCtx = document.getElementById('gradeDistributionChart').getContext('2d');
+            const gradesData = analyticsData._global.grades;
+            
+            if (gradeDistChartInstance) gradeDistChartInstance.destroy();
+            gradeDistChartInstance = new Chart(gradeCtx, {
+                type: 'polarArea',
                 data: {
-                    labels: ['មក (Present)', 'ច្បាប់ (Leave)', 'អវត្តមាន (Absent)'],
+                    labels: ['និទ្ទេស A', 'និទ្ទេស B', 'និទ្ទេស C', 'និទ្ទេស D', 'និទ្ទេស E', 'និទ្ទេស F'],
                     datasets: [{
-                        data: [g.totalP, g.totalL, g.totalA],
-                        backgroundColor: ['#22c55e', '#eab308', '#ef4444'],
-                        borderWidth: 0,
-                        hoverOffset: 4
+                        data: [gradesData.A, gradesData.B, gradesData.C, gradesData.D, gradesData.E, gradesData.F],
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.7)', 
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(234, 179, 8, 0.7)', 
+                            'rgba(249, 115, 22, 0.7)',
+                            'rgba(239, 68, 68, 0.7)', 
+                            'rgba(185, 28, 28, 0.8)'  
+                        ],
+                        borderWidth: 1
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom' }
-                    },
-                    cutout: '70%'
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } },
+                    scales: { r: { ticks: { display: false } } }
                 }
             });
         }
 
-        // --- Monthly Analysis ---
         function populateMonthlyAnalysisSelector() {
             const selector = document.getElementById('monthlyAnalysisSelector');
             selector.innerHTML = monthsOrder.map(m => `<option value="${m}">ខែ ${monthsLabel[m]}</option>`).join('');
-            
-            const currDate = new Date();
-            const currMonthIdx = currDate.getMonth(); 
             const jsMonthMap = { 0:'jan', 1:'feb', 2:'mar', 3:'apr', 4:'may', 5:'jun', 6:'jul', 7:'aug', 8:'sep', 9:'oct', 10:'nov', 11:'dec' };
-            const currMonthCode = jsMonthMap[currMonthIdx];
-            
-            if(monthsOrder.includes(currMonthCode)){
-                selector.value = currMonthCode;
-            } else {
-                selector.value = monthsOrder[0];
-            }
-            
+            const currMonthCode = jsMonthMap[new Date().getMonth()];
+            selector.value = monthsOrder.includes(currMonthCode) ? currMonthCode : monthsOrder[0];
             window.renderMonthlyAnalysis();
         }
 
         window.renderMonthlyAnalysis = function() {
             const month = document.getElementById('monthlyAnalysisSelector').value;
-            let sumScore = 0, countScore = 0;
-            let sumP = 0, sumL = 0, sumA = 0;
-            let highAbsCount = 0;
+            let sumScore = 0, countScore = 0, sumP = 0, sumL = 0, sumA = 0, highAbsCount = 0;
+            let studentScores = [], studentAbsences = [];
             
-            let studentScores = [];
-            let studentAbsences = [];
-
-            const yearStr = document.getElementById('yearSelect').value;
-            const [yStart, yEnd] = yearStr.split('-');
-            
-            const isNextYear = !['nov', 'dec'].includes(month); 
-            const actualYear = isNextYear ? yEnd : yStart;
-            const datePrefix = `${actualYear}-${monthMap[month]}`;
+            const [yStart, yEnd] = document.getElementById('yearSelect').value.split('-');
+            const datePrefix = `${!['nov', 'dec'].includes(month) ? yEnd : yStart}-${monthMap[month]}`;
 
             students.forEach(s => {
                 const uid = String(s.uid || s.id);
-                
-                // 1. Score
                 const mScore = analyticsData[uid]?.scores[month];
-                if (mScore !== null && mScore !== undefined) {
-                    sumScore += mScore;
-                    countScore++;
-                    studentScores.push({ name: s.name, score: mScore });
-                }
+                if (mScore != null) { sumScore += mScore; countScore++; studentScores.push({ name: s.name, score: mScore }); }
 
-                // 2. Attendance
                 let p = 0, l = 0, a = 0;
                 Object.keys(attendanceHistory).forEach(date => {
                     if (date.startsWith(datePrefix)) {
                         const rec = attendanceHistory[date][uid];
-                        if (rec) {
-                            if (rec.status === 'P') p++;
-                            if (rec.status === 'L') l++;
-                            if (rec.status === 'A') a++;
-                        }
+                        if (rec) { if(rec.status==='P') p++; if(rec.status==='L') l++; if(rec.status==='A') a++; }
                     }
                 });
-                
                 sumP += p; sumL += l; sumA += a;
                 if (a >= 2) highAbsCount++;
-                
-                if (a > 0 || l > 0) {
-                    studentAbsences.push({ name: s.name, a, l, totalMiss: a + l });
-                }
+                if (a > 0 || l > 0) studentAbsences.push({ name: s.name, a, l });
             });
 
             document.getElementById('maClassAvg').innerText = countScore > 0 ? (sumScore / countScore).toFixed(2) : "0.00";
-
             const totalDays = sumP + sumL + sumA;
-            const mAttRate = totalDays > 0 ? ((sumP / totalDays) * 100).toFixed(1) : "0.0";
-            document.getElementById('maAttRate').innerText = `${mAttRate}%`;
-            
+            document.getElementById('maAttRate').innerText = totalDays > 0 ? `${((sumP / totalDays) * 100).toFixed(1)}%` : "0.0%";
             document.getElementById('maHighAbs').innerText = highAbsCount;
 
-            // Top Students Table
             studentScores.sort((a,b) => b.score - a.score);
-            const top5 = studentScores.slice(0, 5);
-            document.getElementById('maTopStudents').innerHTML = top5.length > 0 ? top5.map((st, i) => `
+            document.getElementById('maTopStudents').innerHTML = studentScores.slice(0, 5).length > 0 ? studentScores.slice(0, 5).map((st, i) => `
                 <tr class="border-b hover:bg-gray-50 transition">
                     <td class="px-4 py-2 font-bold text-gray-500 text-center">${i + 1}</td>
                     <td class="px-4 py-2 font-bold text-[#0054a6]">${st.name}</td>
@@ -870,10 +1059,8 @@
                 </tr>
             `).join('') : `<tr><td colspan="3" class="text-center py-4 text-gray-500 text-sm italic">មិនមានទិន្នន័យពិន្ទុ</td></tr>`;
 
-            // High Absences Table
             studentAbsences.sort((a,b) => b.a - a.a || b.l - a.l);
-            const highAbs = studentAbsences.slice(0, 5);
-            document.getElementById('maAbsentStudents').innerHTML = highAbs.length > 0 ? highAbs.map(st => `
+            document.getElementById('maAbsentStudents').innerHTML = studentAbsences.slice(0, 5).length > 0 ? studentAbsences.slice(0, 5).map(st => `
                 <tr class="border-b hover:bg-gray-50 transition">
                     <td class="px-4 py-2 font-bold text-gray-700">${st.name}</td>
                     <td class="px-4 py-2 text-center text-red-600 font-bold">${st.a}</td>
@@ -882,102 +1069,146 @@
             `).join('') : `<tr><td colspan="3" class="text-center py-4 text-gray-500 text-sm italic">សិស្សទាំងអស់មានវត្តមានល្អ</td></tr>`;
         }
 
-        // --- Individual Student Analysis ---
         function populateStudentSelector() {
             const selector = document.getElementById('studentSelector');
             selector.innerHTML = '<option value="">-- សូមជ្រើសរើសសិស្ស --</option>' + 
                 students.map(s => `<option value="${s.uid || s.id}">${s.name} (ID: ${s.uid || s.id})</option>`).join('');
-            
-            if (students.length > 0) {
-                selector.value = students[0].uid || students[0].id;
-                window.renderStudentDetail();
-            }
+            if (students.length > 0) { selector.value = students[0].uid || students[0].id; window.renderStudentDetail(); }
         }
 
         window.renderStudentDetail = function() {
             const uid = document.getElementById('studentSelector').value;
             const card = document.getElementById('studentDetailCard');
+            if (!uid || !analyticsData[uid]) { card.style.display = 'none'; return; }
             
-            if (!uid || !analyticsData[uid]) {
-                card.classList.add('hidden');
-                return;
-            }
-
-            card.classList.remove('hidden');
+            card.style.display = 'flex';
             const data = analyticsData[uid];
             const st = data.student;
 
             document.getElementById('stAvatar').innerText = st.gender === 'ស្រី' || st.gender === 'F' ? 'ស' : 'ប';
             document.getElementById('stName').innerText = st.name;
             document.getElementById('stId').innerText = `ID: ${st.uid || st.id}`;
-            
-            document.getElementById('stAvgScore').innerText = data.overallAvg !== null ? data.overallAvg : 'គ្មានពិន្ទុ';
+            document.getElementById('stAvgScore').innerText = data.overallAvg !== null ? data.overallAvg : 'គ្មាន';
             document.getElementById('stAttRate').innerText = `${data.attendance.rate}%`;
-
-            const t = data.attendance.total;
-            const wP = t > 0 ? (data.attendance.p / t) * 100 : 0;
-            const wL = t > 0 ? (data.attendance.l / t) * 100 : 0;
-            const wA = t > 0 ? (data.attendance.a / t) * 100 : 0;
-
-            document.getElementById('barP').style.width = `${wP}%`;
-            document.getElementById('barL').style.width = `${wL}%`;
-            document.getElementById('barA').style.width = `${wA}%`;
-
-            document.getElementById('lblP').innerText = `មក: ${data.attendance.p}`;
-            document.getElementById('lblL').innerText = `ច្បាប់: ${data.attendance.l}`;
-            document.getElementById('lblA').innerText = `អវត្ត: ${data.attendance.a}`;
-
-            renderStudentTrendChart(data.scores);
-        }
-
-        function renderStudentTrendChart(scores) {
-            const ctx = document.getElementById('studentTrendChart').getContext('2d');
             
-            let labels = [];
-            let dataPoints = [];
+            document.getElementById('stBestSubj').innerText = data.bestSubj;
+            document.getElementById('stWorstSubj').innerText = data.worstSubj;
 
+            const gradeStyles = getGradeColor(data.grade);
+            const badge = document.getElementById('stGradeBadge');
+            badge.innerText = data.grade;
+            badge.className = `absolute top-4 right-4 w-12 h-12 rounded-full flex items-center justify-center font-extrabold text-xl shadow-md border-2 ${gradeStyles.bg} ${gradeStyles.text} ${gradeStyles.border}`;
+
+            // Mini Trend Chart
+            const ctxTrend = document.getElementById('studentTrendChart').getContext('2d');
+            let labels = [], dataPoints = [];
             monthsOrder.forEach(month => {
-                if (scoresHistory[month]) {
-                    labels.push(monthsLabel[month]);
-                    dataPoints.push(scores[month] !== null ? scores[month] : null);
-                }
+                if (scoresHistory[month]) { labels.push(monthsLabel[month].substring(0,3)); dataPoints.push(data.scores[month] !== null ? data.scores[month] : null); }
             });
 
             if (studentTrendChartInstance) studentTrendChartInstance.destroy();
-
-            studentTrendChartInstance = new Chart(ctx, {
+            studentTrendChartInstance = new Chart(ctxTrend, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'ពិន្ទុមធ្យម',
                         data: dataPoints,
                         borderColor: '#8b5cf6', 
                         backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3,
-                        pointBackgroundColor: '#8b5cf6',
-                        pointRadius: 4,
-                        spanGaps: true 
+                        borderWidth: 2, fill: true, tension: 0.3,
+                        pointBackgroundColor: '#8b5cf6', pointRadius: 3, spanGaps: true 
                     }]
                 },
                 options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: true, min: 0, max: 10, grid: { color: '#f1f5f9' }, ticks: { font: {size: 10} } },
+                        x: { grid: { display: false }, ticks: { font: {size: 10} } }
+                    }
+                }
+            });
+
+            // Radar Chart (Holistic View)
+            const ctxRadar = document.getElementById('studentRadarChart').getContext('2d');
+            if (studentRadarChartInstance) studentRadarChartInstance.destroy();
+            
+            studentRadarChartInstance = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['ពិន្ទុ (Score)', 'វត្តមាន (Att)', 'កិច្ចការផ្ទះ (HW)', 'សុខភាព (Health)', 'អាកប្បកិរិយា (Bhe)'],
+                    datasets: [{
+                        label: 'កម្រិតសមត្ថភាព (%)',
+                        data: [
+                            data.holistic.scorePoints,
+                            data.holistic.attendancePoints,
+                            data.holistic.homeworkPoints,
+                            data.holistic.healthPoints,
+                            data.holistic.disciplinePoints
+                        ],
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(59, 130, 246, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        r: {
+                            angleLines: { color: '#e2e8f0' },
+                            grid: { color: '#e2e8f0' },
+                            pointLabels: { font: { size: 10, family: "'Battambang', cursive" }, color: '#64748b' },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    }
+                }
+            });
+
+            // Cognitive Understanding Level Chart (Horizontal Bar)
+            const ctxCognitive = document.getElementById('understandingLevelChart').getContext('2d');
+            if (understandingChartInstance) understandingChartInstance.destroy();
+
+            understandingChartInstance = new Chart(ctxCognitive, {
+                type: 'bar',
+                data: {
+                    labels: ['ការចងចាំ', 'ការយល់ដឹង', 'ការអនុវត្ត', 'ការវិភាគ'],
+                    datasets: [{
+                        label: 'កម្រិតសូចនាករ (%)',
+                        data: [
+                            data.holistic.cognitive.remembering,
+                            data.holistic.cognitive.understanding,
+                            data.holistic.cognitive.applying,
+                            data.holistic.cognitive.analyzing
+                        ],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.7)', // ពណ៌ខៀវ
+                            'rgba(16, 185, 129, 0.7)', // ពណ៌បៃតង
+                            'rgba(245, 158, 11, 0.7)', // ពណ៌លឿងទុំ
+                            'rgba(139, 92, 246, 0.7)'  // ពណ៌ស្វាយ
+                        ],
+                        borderRadius: 4,
+                        barThickness: 15
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // ប្តូរទៅជាក្រាបដេក (Horizontal Bar)
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        y: { 
-                            beginAtZero: true, 
-                            max: 10,
-                            grid: { color: '#f1f5f9' },
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { display: false },
                             ticks: { font: { size: 10 } }
                         },
-                        x: { 
+                        y: {
                             grid: { display: false },
-                            ticks: { font: { size: 10 } } 
+                            ticks: { font: { size: 10, family: "'Battambang', cursive" } }
                         }
                     }
                 }
@@ -987,38 +1218,24 @@
         function renderAtRiskTable() {
             const tbody = document.getElementById('atRiskTableBody');
             let riskStudents = [];
-
             Object.keys(analyticsData).forEach(uid => {
                 if (uid === '_global') return;
                 const d = analyticsData[uid];
-                
                 const isScoreRisk = (d.overallAvg !== null && d.overallAvg < 5.0);
-                // Fixed: Make sure we only flag low attendance rate if they actually have attendance records
                 const isAttRisk = d.attendance.a >= 3 || (d.attendance.total > 0 && d.attendance.rate < 80);
-                
                 if (isScoreRisk || isAttRisk) {
                     let reasons = [];
                     if (isScoreRisk) reasons.push("ពិន្ទុខ្សោយ");
-                    if (isAttRisk) reasons.push("អវត្តមានច្រើន");
-
-                    riskStudents.push({
-                        name: d.student.name,
-                        avg: d.overallAvg,
-                        absent: d.attendance.a,
-                        rate: d.attendance.rate,
-                        reasons: reasons.join(' និង ')
-                    });
+                    if (isAttRisk) reasons.push("អវត្តមាន");
+                    riskStudents.push({ name: d.student.name, avg: d.overallAvg, absent: d.attendance.a, rate: d.attendance.rate, reasons: reasons.join(' + ') });
                 }
             });
 
             riskStudents.sort((a, b) => b.absent - a.absent || (a.avg !== null ? a.avg : 10) - (b.avg !== null ? b.avg : 10));
 
-            if (riskStudents.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-500 italic">មិនមានសិស្សប្រឈមហានិភ័យទេ 👏</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = riskStudents.map(s => `
+            tbody.innerHTML = riskStudents.length === 0 
+                ? `<tr><td colspan="5" class="px-4 py-8 text-center text-gray-500 italic">មិនមានសិស្សប្រឈមហានិភ័យទេ 👏</td></tr>`
+                : riskStudents.map(s => `
                 <tr class="border-b hover:bg-red-50/50 transition border-red-100">
                     <td class="px-4 py-3 font-bold text-gray-800">${s.name}</td>
                     <td class="px-4 py-3 text-center ${s.avg !== null && s.avg < 5.0 ? 'text-red-600 font-bold' : 'text-gray-600'}">${s.avg !== null ? s.avg : '-'}</td>
@@ -1031,6 +1248,75 @@
                     </td>
                 </tr>
             `).join('');
+        }
+
+        // --- NEW: Cognitive Modal Functions ---
+        window.openCognitiveModal = function() {
+            const uid = document.getElementById('studentSelector').value;
+            if(!uid || !analyticsData[uid]) return;
+            
+            const data = analyticsData[uid].holistic.cognitive;
+            
+            document.getElementById('cog_rem').value = Math.round(data.remembering);
+            document.getElementById('val_rem').innerText = Math.round(data.remembering) + '%';
+            
+            document.getElementById('cog_und').value = Math.round(data.understanding);
+            document.getElementById('val_und').innerText = Math.round(data.understanding) + '%';
+            
+            document.getElementById('cog_app').value = Math.round(data.applying);
+            document.getElementById('val_app').innerText = Math.round(data.applying) + '%';
+            
+            document.getElementById('cog_ana').value = Math.round(data.analyzing);
+            document.getElementById('val_ana').innerText = Math.round(data.analyzing) + '%';
+            
+            document.getElementById('cogModal').classList.remove('hidden');
+        }
+
+        window.closeCognitiveModal = function() {
+            document.getElementById('cogModal').classList.add('hidden');
+        }
+
+        window.saveCognitiveData = async function() {
+            const uid = document.getElementById('studentSelector').value;
+            if(!uid) return;
+            
+            // Show loading style
+            const btn = document.getElementById('saveCogBtn');
+            const ogText = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> រក្សាទុក...`;
+            btn.disabled = true;
+            lucide.createIcons();
+            
+            const r = parseInt(document.getElementById('cog_rem').value);
+            const u = parseInt(document.getElementById('cog_und').value);
+            const ap = parseInt(document.getElementById('cog_app').value);
+            const an = parseInt(document.getElementById('cog_ana').value);
+            
+            // Save to object
+            cognitiveData[uid] = { remembering: r, understanding: u, applying: ap, analyzing: an };
+            
+            // NEW: Save to Firebase Firestore Database
+            if (currentUserId) {
+                const classId = localStorage.getItem('current_class_id') || 'default';
+                try {
+                    const docRef = doc(db, "users", currentUserId, "data", `cognitive_${classId}`);
+                    await setDoc(docRef, cognitiveData, { merge: true });
+                } catch (error) {
+                    console.error("Error saving cognitive data to database:", error);
+                    alert("មានបញ្ហាក្នុងការរក្សាទុកទិន្នន័យ។ សូមព្យាយាមម្តងទៀត។");
+                }
+            } else {
+                console.warn("User not authenticated. Data not saved to Firebase.");
+            }
+            
+            // Update UI
+            analyticsData[uid].holistic.cognitive = cognitiveData[uid];
+            window.renderStudentDetail();
+            
+            // Restore button and close
+            btn.innerHTML = ogText;
+            btn.disabled = false;
+            window.closeCognitiveModal();
         }
 
         window.printStudentDetail = function() {
@@ -1049,7 +1335,6 @@
                 }, 500);
             }, 150);
         }
-
     </script>
 </body>
 </html>

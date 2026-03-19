@@ -192,6 +192,12 @@
 
                     <div class="w-px h-8 bg-slate-200 mx-1 hidden md:block"></div>
 
+                    <!-- Print Button Added Here -->
+                    <button onclick="window.open('subject-scores_print.html', '_blank')" class="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl font-bold shadow-lg shadow-emerald-200 transition-all hover:scale-105 active:scale-95">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        <span>បោះពុម្ព</span>
+                    </button>
+
                     <!-- Save Button -->
                     <button onclick="saveScores()" class="flex items-center gap-2 px-5 py-2.5 bg-[#0054a6] text-white hover:bg-[#1e40af] rounded-xl font-bold shadow-lg shadow-blue-200 transition-all hover:scale-105 active:scale-95">
                         <i data-lucide="cloud-upload" class="w-4 h-4"></i>
@@ -325,20 +331,23 @@
             },
             semester: {
                 groups: [
-                    { name: 'ភាសាខ្មែរ', cols: 3, color: 'bg-blue-800' },
+                    { name: 'ភាសាខ្មែរ', cols: 4, color: 'bg-blue-800' },
                     { name: 'គណិត & វិទ្យាសាស្ត្រ', cols: 2, color: 'bg-blue-700' },
                     { name: 'សិក្សាសង្គម', cols: 4, color: 'bg-blue-800' },
                     { name: 'មុខវិជ្ជាទូទៅ', cols: 3, color: 'bg-blue-700' },
-                    { name: 'អាកប្បកិរិយា', cols: 3, color: 'bg-green-700' }
+                    { name: 'អាកប្បកិរិយា', cols: 4, color: 'bg-green-700' }
                 ],
                 columns: [
-                    { key: 'sem_kh_reading_speaking', label: 'អំណាន-និយាយ', color: 'bg-blue-800/90' }, { key: 'sem_kh_dictation', label: 'សរសេរតាមអាន', color: 'bg-blue-800/90' },
+                    { key: 'sem_kh_reading', label: 'អំណាន', color: 'bg-blue-800/90' },
+                    { key: 'sem_kh_listening_speaking', label: 'ស្តាប់-និយាយ', color: 'bg-blue-800/90' }, 
+                    { key: 'sem_kh_dictation', label: 'សរសេរតាមអាន', color: 'bg-blue-800/90' },
                     { key: 'sem_kh_essay', label: 'តែងសេចក្តី', color: 'bg-blue-800/90' },
                     { key: 'sem_math', label: 'គណិតវិទ្យា', color: 'bg-blue-700/90' }, { key: 'sem_science', label: 'វិទ្យាសាស្ត្រ', color: 'bg-blue-700/90' },
                     { key: 'sem_moral_civics', label: 'សីលធម៌', color: 'bg-blue-800/90' }, { key: 'sem_geo', label: 'ភូមិវិទ្យា', color: 'bg-blue-800/90' },
                     { key: 'sem_hist', label: 'ប្រវត្តិវិទ្យា', color: 'bg-blue-800/90' }, { key: 'sem_home_arts', label: 'គេហវិទ្យា', color: 'bg-blue-800/90' },
                     { key: 'sem_life_skills', label: 'បំណិនជីវិត', color: 'bg-blue-700/90' }, { key: 'sem_foreign', label: 'ភាសាបរទេស', color: 'bg-blue-700/90' },
                     { key: 'sem_sport', label: 'កីឡា', color: 'bg-blue-700/90' },
+                    { key: 'sem_eval_knowledge', label: 'ចំណេះដឹង', color: 'bg-green-700/90', isText: true, options: behaviorOptions },
                     { key: 'sem_eval_skill', label: 'បំណិន-ចំណេះធ្វើ', color: 'bg-green-700/90', isText: true, options: behaviorOptions },
                     { key: 'sem_eval_moral', label: 'តម្លៃ-សីលធម៌', color: 'bg-green-700/90', isText: true, options: behaviorOptions },
                     { key: 'sem_eval_participate', label: 'សាមគ្គីភាព', color: 'bg-green-700/90', isText: true, options: behaviorOptions }
@@ -392,24 +401,32 @@
 
             selectedSemesterMonths.forEach(month => {
                 const scoresData = allMonthsScoresCache[month] || {};
-                const studentScores = scoresData[studentId];
+                const studentData = scoresData[studentId];
                 
-                if (studentScores) {
-                    let mSum = 0;
-                    let mCount = 0;
-                    config.monthly.columns.forEach(col => {
-                        if(col.isText) return; // Ignore string/text columns for numbers
-                        const val = studentScores[col.key];
-                        if (val !== null && val !== undefined && val !== "") {
-                            const numVal = parseFloat(val);
-                            if (!isNaN(numVal)) {
-                                mSum += numVal;
-                                mCount++;
+                if (studentData) {
+                    // បើមានទិន្នន័យមធ្យមភាគដែលធ្លាប់បាន Save នៅក្នុងប្រព័ន្ធ (New Format) យើងយកមកប្រើតែម្តង
+                    if (studentData.results && studentData.results.average !== undefined) {
+                        sumOfAverages += parseFloat(studentData.results.average) || 0;
+                    } else {
+                        // ការពារករណីទិន្នន័យចាស់ ដែលមិនទាន់មានលទ្ធផលសរុប (Backward Compatibility)
+                        let studentScores = studentData.hasOwnProperty('scores') ? studentData.scores : studentData;
+                        
+                        let mSum = 0;
+                        let mCount = 0;
+                        config.monthly.columns.forEach(col => {
+                            if(col.isText) return; // Ignore string/text columns for numbers
+                            const val = studentScores[col.key];
+                            if (val !== null && val !== undefined && val !== "") {
+                                const numVal = parseFloat(val);
+                                if (!isNaN(numVal)) {
+                                    mSum += numVal;
+                                    mCount++;
+                                }
                             }
+                        });
+                        if (mCount > 0) {
+                            sumOfAverages += (mSum / mCount);
                         }
-                    });
-                    if (mCount > 0) {
-                        sumOfAverages += (mSum / mCount);
                     }
                 }
             });
@@ -536,7 +553,7 @@
             const tbody = document.getElementById('scoreTableBody');
             const mainTable = document.getElementById('mainTable');
             
-            const minW = currentMode === 'monthly' ? '2800px' : '2300px';
+            const minW = currentMode === 'monthly' ? '2800px' : '2400px';
             mainTable.style.minWidth = minW;
             document.getElementById('studentCount').innerText = `សិស្សសរុប: ${students.length} នាក់`;
 
@@ -742,7 +759,6 @@
                             }
                         }
                         
-                        // ចំណុចដែលខ្វះ៖ ត្រូវយកពី LocalStorage មកបូកដែរ បើសិនជា Offline Backup
                         if (Object.keys(mData).length === 0) {
                             const localData = localStorage.getItem(`scores_${mDocId}`);
                             if (localData) mData = JSON.parse(localData);
@@ -753,10 +769,14 @@
                 }
 
                 students = loadedStudents.map(s => {
-                    let studentScores = parsedScores[s.id] || {};
+                    let dbRecord = parsedScores[s.id] || {};
+                    // បែងចែករវាងទិន្នន័យចាស់ (ដែលមានតែពិន្ទុ) និងទិន្នន័យថ្មី (ដែលមានពិន្ទុ និងលទ្ធផលសរុប)
+                    let studentScores = dbRecord.hasOwnProperty('scores') ? dbRecord.scores : dbRecord;
+                    
                     currentColumns.forEach(col => {
                         if (studentScores[col.key] === undefined) studentScores[col.key] = null;
                     });
+                    
                     return {
                         id: s.id, name: s.name, gender: s.gender || '',
                         scores: studentScores,
@@ -828,7 +848,22 @@
             lucide.createIcons();
 
             const scoresToSave = {};
-            students.forEach(s => { scoresToSave[s.id] = s.scores; });
+            students.forEach(s => { 
+                // កែប្រែទម្រង់រក្សាទុក ដោយរាប់បញ្ចូលទាំងលទ្ធផលសរុប និងចំណាត់ថ្នាក់
+                scoresToSave[s.id] = {
+                    scores: s.scores,
+                    results: {
+                        total: s.total,
+                        average: s.average,
+                        examTotal: s.examTotal,
+                        examAverage: s.examAverage,
+                        monthlyAverage: s.monthlyAverage,
+                        semesterAverage: s.semesterAverage,
+                        rank: s.rank,
+                        grade: s.grade
+                    }
+                }; 
+            });
             const docId = getStorageKey();
 
             try {

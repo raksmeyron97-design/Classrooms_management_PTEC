@@ -10,10 +10,10 @@
 
     <style>
         :root {
-            --primary: #2563eb; /* Blue 600 */
-            --primary-hover: #1d4ed8; /* Blue 700 */
-            --bg-body: #f1f5f9; /* Slate 100 */
-            --border: #e2e8f0; /* Slate 200 */
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-body: #f1f5f9;
+            --border: #e2e8f0;
         }
         
         body { 
@@ -88,23 +88,20 @@
         }
         .data-table th, .data-table td { 
             border: 1px solid var(--border); 
-            padding: 10px 12px; 
+            padding: 8px 10px; 
             vertical-align: middle; 
         }
         .data-table thead th { 
-            background-color: #f8fafc; 
-            color: #1e293b; 
-            font-weight: 700; 
             position: sticky; 
             top: 0; 
             z-index: 20;
         }
-        .data-table thead tr:nth-child(2) th { top: 41px; }
+        .data-table thead tr:nth-child(2) th { top: 38px; }
         .data-table tbody tr:hover td { background-color: #f1f5f9; }
         
-        .sticky-col-1 { position: sticky; left: 0; background-color: inherit; z-index: 10; width: 50px; }
-        .sticky-col-2 { position: sticky; left: 50px; background-color: inherit; z-index: 10; min-width: 180px; text-align: left; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.05); }
-        .data-table thead .sticky-col-1, .data-table thead .sticky-col-2 { z-index: 30; background-color: #f8fafc; }
+        .sticky-col-1 { position: sticky; left: 0; background-color: inherit; z-index: 10; width: 40px; }
+        .sticky-col-2 { position: sticky; left: 40px; background-color: inherit; z-index: 10; min-width: 180px; box-shadow: 2px 0 5px -2px rgba(0,0,0,0.05); }
+        .data-table thead .sticky-col-1, .data-table thead .sticky-col-2 { z-index: 30; }
         .data-table tbody tr { background-color: #ffffff; }
         .data-table tbody tr:nth-child(even) { background-color: #fafafa; }
 
@@ -112,21 +109,45 @@
         .highlight-col { background-color: #f0fdf4 !important; font-weight: 700; font-size: 14px; color: #166534; }
         .highlight-yearly { background-color: #fdf4ff !important; font-weight: 700; font-size: 15px; color: #a21caf; }
 
-        /* Print Styles */
+        .print-vertical-text { display: inline-block; }
+
+        /* Print Specific Styles */
         @media print {
-            @page { size: A4 landscape; margin: 10mm; }
-            body { background: white !important; padding: 0; margin: 0; color: #000; font-size: 11pt; }
+            @page {
+                size: A4 landscape;
+                margin: 10mm;
+            }
+            body { background: white !important; margin: 0; padding: 0; font-size: 10pt; color: #0f172a; }
             .no-print { display: none !important; }
             .print-wrapper { display: block !important; }
             
-            .table-container { overflow: visible; border: none; }
-            .data-table th, .data-table td { border: 1px solid #000; padding: 6px 4px; font-size: 10pt; color: #000 !important; }
-            .data-table thead th { background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact; color-adjust: exact; position: static; }
-            .sticky-col-1, .sticky-col-2 { position: static; box-shadow: none; }
-            .data-table tbody tr:nth-child(even) td { background-color: transparent !important; }
-            .highlight-col, .highlight-yearly { background-color: #f3f4f6 !important; color: #000 !important; }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
             
-            .vertical-text { writing-mode: vertical-rl; transform: rotate(180deg); height: 100px; text-align: left; padding: 4px 0; }
+            .table-container { overflow: visible !important; border: none; }
+            
+            .data-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+            .data-table th, .data-table td {
+                border: 1px solid #1e293b !important;
+                padding: 3px !important;
+                text-align: center;
+                color: #0f172a !important;
+            }
+            
+            .data-table thead th { position: static !important; }
+            .sticky-col-1, .sticky-col-2 { position: static !important; box-shadow: none !important; border-right: 1px solid #1e293b !important; }
+            
+            .print-vertical-text {
+                writing-mode: vertical-rl;
+                transform: rotate(180deg);
+                white-space: nowrap;
+                height: 160px;
+                text-align: left;
+                padding: 4px;
+                font-weight: normal;
+            }
         }
 
         /* Loading Overlay */
@@ -137,8 +158,8 @@
 
     <!-- Loading Overlay -->
     <div id="loadingOverlay">
-        <div class="w-12 h-12 border-4 border-[#2563eb] border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="kh-moul text-[#2563eb] text-lg animate-pulse" id="loadingText">កំពុងទាញយកទិន្នន័យពី Cloud...</p>
+        <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-[#0054a6] mb-3"></i>
+        <p class="font-bold text-slate-700 font-kantumruy" id="loadingText">កំពុងទាញយកទិន្នន័យពី Cloud...</p>
     </div>
 
     <!-- ==================== 1. SELECTION SCREEN ==================== -->
@@ -216,7 +237,6 @@
                             
                             <div class="my-2 border-b border-slate-200"></div>
 
-                            <!-- New Prominent Yearly Button -->
                             <button class="select-btn select-btn-yearly py-4" data-type="yearly" data-period="yearly" onclick="window.selectPeriod('yearly', 'yearly')">
                                 <i data-lucide="award" class="w-5 h-5 text-fuchsia-600"></i>
                                 <span class="kh-moul text-[16px] text-fuchsia-700">ប្រចាំឆ្នាំ</span>
@@ -305,21 +325,31 @@
             <div id="printTableContainer" class="mb-6"></div>
 
             <!-- Footer Section -->
-            <div class="flex justify-between w-full mt-8 text-[12pt] font-bold">
-                <div class="text-center w-[300px]">
-                    <p class="mb-2">បានឃើញ និងឯកភាព</p>
-                    <p class="kh-moul mb-20" id="print_manager_role">នាយកសាលា</p>
+            <div class="mt-6 flex justify-between text-[11px] font-bold text-blue-900 w-full">
+                <!-- Signature Left -->
+                <div class="text-center mt-4 w-[250px]">
+                    <p class="mb-1">បានឃើញ និងឯកភាព</p>
+                    <p class="kh-moul text-green-700" id="print_manager_role">នាយកសាលា</p>
+                    <div class="h-20"></div>
                 </div>
-                <div class="text-center w-[300px]">
-                    <p class="mb-2" id="print_date">ថ្ងៃ........ខែ........ឆ្នាំ........</p>
-                    <p class="kh-moul mb-20">គ្រូបន្ទុកថ្នាក់</p>
-                    <p class="kh-moul" id="print_teacher"></p>
+
+                <!-- Signature Right -->
+                <div class="text-center mt-4 w-[250px]">
+                    <!-- Auto Date Fields -->
+                    <p class="mb-1 text-blue-800 font-moul" id="sig-lunar">ថ្ងៃ...........ខែ.........ឆ្នាំ...........ព.ស ២៥៦...</p>
+                    <p class="mb-1 text-blue-800 font-moul" id="print_date">ធ្វើនៅ..............ថ្ងៃទី.......ខែ...........ឆ្នាំ២០២...</p>
+                    
+                    <p class="kh-moul text-green-700 mt-2">គ្រូប្រចាំថ្នាក់</p>
+                    <div class="h-10"></div>
+                    <p class="kh-moul text-red-600" id="print_teacher">ឈ្មោះគ្រូ</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- ==================== FIREBASE & JAVASCRIPT ==================== -->
+    <!-- Moment KH for Lunar Date in Print -->
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -332,8 +362,7 @@
             projectId: "classroom-management-82382",
             storageBucket: "classroom-management-82382.firebasestorage.app",
             messagingSenderId: "146641865620",
-            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
-            measurementId: "G-PX867PB723"
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -342,18 +371,23 @@
         const PTEC_APP_ID = "ptec-app";
         let currentUser = null;
 
-        // --- System Data ---
+        // --- System Data (Synchronized with subject-scores.html) ---
         const tableConfig = {
             monthly: [
-                { group: 'ភាសាខ្មែរ', cols: [ { id: 'kh_listen', label: 'ស្តាប់' }, { id: 'kh_speak', label: 'និយាយ' }, { id: 'kh_read', label: 'អាន' }, { id: 'kh_write', label: 'សរសេរ' } ] },
-                { group: 'គណិតវិទ្យា', cols: [ { id: 'math_num', label: 'ចំនួន' }, { id: 'math_meas', label: 'រង្វាស់' }, { id: 'math_geo', label: 'ធរណី' }, { id: 'math_alg', label: 'ពីជគណិត' }, { id: 'math_stat', label: 'ស្ថិតិ' } ] },
-                { group: 'វិទ្យាសាស្ត្រ', cols: [ { id: 'sci_phy', label: 'រូប' }, { id: 'sci_chem', label: 'គីមី' }, { id: 'sci_bio', label: 'ជីវៈ' }, { id: 'sci_earth', label: 'ផែនដី' } ] },
-                { group: 'សិក្សាសង្គម', cols: [ { id: 'soc_ethic', label: 'សីលធម៌' }, { id: 'soc_geo', label: 'ភូមិ' }, { id: 'soc_hist', label: 'ប្រវត្តិ' }, { id: 'soc_home', label: 'គេហៈ' } ] },
-                { group: 'មុខវិជ្ជាផ្សេងៗ', cols: [ { id: 'pe_sport', label: 'អប់រំកាយ' }, { id: 'life_skill', label: 'បំណិនជីវិត' }, { id: 'foreign', label: 'បរទេស' } ] },
-                { group: 'ការបំពេញបន្ថែម', cols: [ { id: 'ex_oral', label: 'ផ្ទាល់មាត់' }, { id: 'ex_att', label: 'វត្តមាន' }, { id: 'ex_book', label: 'សៀវភៅ' }, { id: 'ex_hw', label: 'កិច្ចការផ្ទះ' } ] }
+                { group: 'ភាសាខ្មែរ', cols: [ { id: 'kh_listen', label: 'សមត្ថភាពស្តាប់' }, { id: 'kh_speak', label: 'សមត្ថភាពនិយាយ' }, { id: 'kh_read', label: 'សមត្ថភាពអាន' }, { id: 'kh_write', label: 'សមត្ថភាពសរសេរ' }, { id: 'kh_calligraphy', label: 'អក្សរផ្ចង់' }, { id: 'kh_recitation', label: 'មេសូត្រ' }, { id: 'kh_essay', label: 'តែងសេចក្តី' } ] },
+                { group: 'គណិតវិទ្យា', cols: [ { id: 'math_num', label: 'ចំនួន' }, { id: 'math_meas', label: 'រង្វាស់រង្វាល់' }, { id: 'math_geo', label: 'ធរណីមាត្រ' }, { id: 'math_alg', label: 'ពីជគណិត' }, { id: 'math_stat', label: 'ស្ថិតិ' } ] },
+                { group: 'វិទ្យាសាស្ត្រ', cols: [ { id: 'sci_phy', label: 'រូបវិទ្យា' }, { id: 'sci_chem', label: 'គីមីវិទ្យា' }, { id: 'sci_bio', label: 'ជីវវិទ្យា' }, { id: 'sci_earth', label: 'ផែនដីវិទ្យា-បរិស្ថាន' }, { id: 'sci_applied', label: 'វិទ្យាសាស្ត្រអនុវត្តន៍' } ] },
+                { group: 'សិក្សាសង្គម', cols: [ { id: 'soc_ethic', label: 'សីលធម៌-ពលរដ្ឋវិជ្ជា' }, { id: 'soc_geo', label: 'ភូមិវិទ្យា' }, { id: 'soc_hist', label: 'ប្រវត្តិវិទ្យា' }, { id: 'soc_home', label: 'គេហវិទ្យា-អប់រំសិល្បៈ' } ] },
+                { group: 'អប់រំសុខភាព', cols: [ { id: 'pe_sport', label: 'អប់រំកាយ និងកីឡា' }, { id: 'health_hygiene', label: 'សុខភាព និងអនាម័យ' } ] },
+                { group: 'ផ្សេងៗ', cols: [ { id: 'life_skill', label: 'អប់រំបំណិនជីវិត' }, { id: 'foreign', label: 'ភាសាបរទេស' } ] },
+                { group: 'ការបំពេញបន្ថែម', cols: [ { id: 'ex_oral', label: 'សំណួរផ្ទាល់មាត់' }, { id: 'ex_att', label: 'វត្តមាន' }, { id: 'ex_book', label: 'សៀវភៅ' }, { id: 'ex_hw', label: 'កិច្ចការផ្ទះ' } ] }
             ],
             semester: [
-                { group: 'មុខវិជ្ជាទាំងអស់ (ប្រចាំឆមាស)', cols: [ { id: 'sem_kh_reading_speaking', label: 'អំណាន-ស្តាប់-និយាយ' }, { id: 'sem_kh_dictation', label: 'សរសេរតាមអាន' }, { id: 'sem_kh_essay', label: 'តែងសេចក្តី' }, { id: 'sem_math', label: 'គណិតវិទ្យា' }, { id: 'sem_science', label: 'វិទ្យាសាស្ត្រ' }, { id: 'sem_moral_civics', label: 'សីលធម៌-ពលរដ្ឋ' }, { id: 'sem_geo', label: 'ភូមិវិទ្យា' }, { id: 'sem_hist', label: 'ប្រវត្តិវិទ្យា' }, { id: 'sem_home_arts', label: 'គេហៈ-សិល្បៈ' }, { id: 'sem_life_skills', label: 'បំណិនជីវិត' }, { id: 'sem_foreign', label: 'ភាសាបរទេស' }, { id: 'sem_sport', label: 'កីឡា' } ] }
+                { group: 'ភាសាខ្មែរ', cols: [ { id: 'sem_kh_reading', label: 'អំណាន' }, { id: 'sem_kh_listening_speaking', label: 'ស្តាប់-និយាយ' }, { id: 'sem_kh_dictation', label: 'សរសេរតាមអាន' }, { id: 'sem_kh_essay', label: 'តែងសេចក្តី' } ] },
+                { group: 'គណិត & វិទ្យាសាស្ត្រ', cols: [ { id: 'sem_math', label: 'គណិតវិទ្យា' }, { id: 'sem_science', label: 'វិទ្យាសាស្ត្រ' } ] },
+                { group: 'សិក្សាសង្គម', cols: [ { id: 'sem_moral_civics', label: 'សីលធម៌-ពលរដ្ឋវិជ្ជា' }, { id: 'sem_geo', label: 'ភូមិវិទ្យា' }, { id: 'sem_hist', label: 'ប្រវត្តិវិទ្យា' }, { id: 'sem_home_arts', label: 'គេហវិទ្យា-អប់រំសិល្បៈ' } ] },
+                { group: 'មុខវិជ្ជាទូទៅ', cols: [ { id: 'sem_life_skills', label: 'អប់រំបំណិនជីវិត' }, { id: 'sem_foreign', label: 'ភាសាបរទេស' }, { id: 'sem_sport', label: 'អប់រំកាយ និងកីឡា' } ] },
+                { group: 'អាកប្បកិរិយា', cols: [ { id: 'sem_eval_knowledge', label: 'ចំណេះដឹង' }, { id: 'sem_eval_skill', label: 'បំណិន-ចំណេះធ្វើ' }, { id: 'sem_eval_moral', label: 'តម្លៃ-សីលធម៌' }, { id: 'sem_eval_participate', label: 'សាមគ្គីភាព' } ] }
             ]
         };
 
@@ -364,6 +398,10 @@
             'sem1': 'ឆមាសទី១', 'sem2': 'ឆមាសទី២',
             'yearly': 'ប្រចាំឆ្នាំ'
         };
+
+        const khDigits = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
+        const toKhNum = (n) => n.toString().split('').map(d => khDigits[d] || d).join('');
+        const khMonths = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
 
         // Application State
         window.appState = {
@@ -557,31 +595,45 @@
         function getMonthlyAverageForStudent(studentId, year, semester) {
             const months = semester === 'sem1' ? ['nov', 'dec', 'jan', 'feb'] : ['mar', 'apr', 'may', 'jun'];
             let sumOfAverages = 0;
-            let validMonthsCount = 0;
 
             months.forEach(month => {
-                const studentScores = (window.appState.allScoresCache[`${year}_${month}`] || {})[studentId];
-                if (studentScores) {
-                    let mSum = 0; let mCount = 0;
-                    tableConfig.monthly.flatMap(g => g.cols).forEach(col => {
-                        const val = studentScores[col.id];
-                        if (val !== null && val !== undefined && val !== "") {
-                            const numVal = parseFloat(val);
-                            if (!isNaN(numVal)) { mSum += numVal; mCount++; }
-                        }
-                    });
-                    if (mCount > 0) { sumOfAverages += (mSum / mCount); validMonthsCount++; }
+                const rawData = window.appState.allScoresCache[`${year}_${month}`] || {};
+                const studentData = rawData[studentId];
+                
+                if (studentData) {
+                    if (studentData.results && studentData.results.average !== undefined) {
+                        sumOfAverages += parseFloat(studentData.results.average) || 0;
+                    } else {
+                        let mSum = 0; let mCount = 0;
+                        const sScores = studentData.scores || studentData;
+                        tableConfig.monthly.flatMap(g => g.cols).forEach(col => {
+                            const val = sScores[col.id];
+                            if (val !== null && val !== undefined && val !== "") {
+                                const numVal = parseFloat(val);
+                                if (!isNaN(numVal)) { mSum += numVal; mCount++; }
+                            }
+                        });
+                        if (mCount > 0) { sumOfAverages += (mSum / mCount); }
+                    }
                 }
             });
-            return validMonthsCount > 0 ? (sumOfAverages / 4) : 0; 
+            return sumOfAverages / months.length; 
         }
 
         function getSemesterAverageForStudent(studentId, year, semester) {
-            const semScores = (window.appState.allScoresCache[`${year}_${semester}`] || {})[studentId];
+            const semDoc = window.appState.allScoresCache[`${year}_${semester}`] || {};
+            const semStudentData = semDoc[studentId];
+            
+            if (semStudentData && semStudentData.results && semStudentData.results.semesterAverage !== undefined) {
+                return parseFloat(semStudentData.results.semesterAverage) || 0;
+            }
+            
             let sum = 0; let count = 0;
             
-            if (semScores) {
-                tableConfig.semester[0].cols.forEach(col => {
+            if (semStudentData) {
+                const semScores = semStudentData.scores || semStudentData;
+                tableConfig.semester.flatMap(g => g.cols).forEach(col => {
+                    if (['sem_eval_knowledge', 'sem_eval_skill', 'sem_eval_moral', 'sem_eval_participate'].includes(col.id)) return;
                     const val = semScores[col.id];
                     if (val !== null && val !== undefined && val !== "") {
                         const numVal = parseFloat(val);
@@ -608,10 +660,9 @@
         }
 
         function formatKhNum(num) {
-            if (num === null || num === undefined || num === '') return '-';
+            if (num === null || num === undefined || num === '') return '';
             const parsed = parseFloat(num);
-            if (isNaN(parsed) || parsed === 0) return '-';
-            if (Number.isInteger(parsed)) return parsed.toString();
+            if (isNaN(parsed)) return num; // Return original string for behavior evaluations (e.g. ល្អ)
             return parsed.toFixed(2).replace('.', ',');
         }
 
@@ -628,7 +679,7 @@
                 thead.innerHTML = `
                     <tr>
                         <th class="sticky-col-1 bg-slate-100 border-b-2 border-slate-300">ល.រ</th>
-                        <th class="sticky-col-2 bg-slate-100 border-b-2 border-slate-300">គោត្តនាម នាម</th>
+                        <th class="sticky-col-2 bg-slate-100 border-b-2 border-slate-300 text-left px-2">គោត្តនាម នាម</th>
                         <th class="w-16 bg-slate-100 border-b-2 border-slate-300">ភេទ</th>
                         <th class="w-24 bg-slate-100 border-b-2 border-slate-300">ឆ.១</th>
                         <th class="w-24 bg-slate-100 border-b-2 border-slate-300">ឆ.២</th>
@@ -663,11 +714,11 @@
                 processedStudents.sort((a, b) => a.name.localeCompare(b.name, 'km'));
 
                 tbody.innerHTML = processedStudents.map((s, index) => {
-                    let gradeColor = s.grade === 'F' ? "text-red-600 font-bold" : (['A','B'].includes(s.grade) ? "text-green-600 font-bold" : "font-bold");
+                    let gradeColor = s.grade === 'F' ? "text-red-600 bg-red-100/50 font-bold" : (['A','B'].includes(s.grade) ? "text-green-600 font-bold" : "font-bold text-blue-600");
                     return `<tr>
                         <td class="sticky-col-1 text-slate-500 font-bold">${index + 1}</td>
-                        <td class="sticky-col-2 font-bold text-slate-800">${s.name}</td>
-                        <td class="text-slate-600">${s.gender === 'ស្រី' || s.gender === 'F' ? 'ស' : 'ប'}</td>
+                        <td class="sticky-col-2 font-bold text-slate-800 text-left px-2">${s.name}</td>
+                        <td class="text-slate-600 text-[10px]">${s.gender === 'ស្រី' || s.gender === 'F' ? 'ស' : 'ប'}</td>
                         <td class="font-bold text-slate-700">${formatKhNum(s.sem1Avg)}</td>
                         <td class="font-bold text-slate-700">${formatKhNum(s.sem2Avg)}</td>
                         <td class="highlight-yearly">${formatKhNum(s.finalAvg)}</td>
@@ -681,11 +732,12 @@
             // 2. ================= MONTHLY & SEMESTER =================
             const originalLayout = tableConfig[sel.type];
 
-            // ស្វែងរកមុខវិជ្ជាណាដែលមានសិស្សទទួលបានពិន្ទុ ទើបបង្ហាញ
+            // Filter Active Subjects (Where at least one student has a score)
             const activeSubjectIds = new Set();
             if (students.length > 0) {
                 students.forEach(s => {
-                    const sScores = scoresData[s.id] || {};
+                    const rawData = scoresData[s.id] || {};
+                    const sScores = rawData.scores || rawData;
                     originalLayout.flatMap(g => g.cols).forEach(col => {
                         const val = sScores[col.id];
                         if (val !== null && val !== undefined && val !== "") {
@@ -695,7 +747,6 @@
                 });
             }
 
-            // បង្កើត Layout ថ្មី
             let layout = [];
             originalLayout.forEach(group => {
                 const activeCols = group.cols.filter(col => activeSubjectIds.has(col.id));
@@ -705,32 +756,38 @@
             });
 
             let headerRow1 = `<tr>
-                <th rowspan="2" class="sticky-col-1 bg-slate-100">ល.រ</th>
-                <th rowspan="2" class="sticky-col-2 bg-slate-100">គោត្តនាម នាម</th>
-                <th rowspan="2" class="w-16 bg-slate-100">ភេទ</th>`;
+                <th rowspan="2" class="sticky-col-1 bg-blue-50/50 print:bg-blue-50/50 border-b border-slate-300">ល.រ</th>
+                <th rowspan="2" class="sticky-col-2 bg-blue-50/50 print:bg-blue-50/50 border-b border-slate-300 text-left px-2 whitespace-nowrap">គោត្តនាម និងនាម</th>
+                <th rowspan="2" class="w-16 bg-blue-50/50 print:bg-blue-50/50 border-b border-slate-300">ភេទ</th>`;
             let headerRow2 = `<tr>`;
 
             layout.forEach(group => {
-                headerRow1 += `<th colspan="${group.cols.length}" class="bg-slate-50">${group.group}</th>`;
+                let thClass = "bg-blue-50 text-blue-900 border-b border-slate-300 print:bg-blue-50";
+                if (group.group === 'អាកប្បកិរិយា') {
+                     thClass = "bg-purple-50 text-purple-900 border-b border-slate-300 print:bg-purple-50";
+                }
+                headerRow1 += `<th colspan="${group.cols.length}" class="${thClass}">${group.group}</th>`;
                 group.cols.forEach(col => {
-                    headerRow2 += `<th><span class="print:vertical-text inline-block text-[12px] text-slate-600 font-bold">${col.label}</span></th>`;
+                    let labelClass = "text-slate-700";
+                    if (group.group === 'អាកប្បកិរិយា') labelClass = "text-purple-700";
+                    headerRow2 += `<th class="bg-white print:bg-white border-b border-slate-300"><div class="print-vertical-text text-[11px] ${labelClass} font-bold">${col.label}</div></th>`;
                 });
             });
 
             if (sel.type === 'monthly') {
                 headerRow1 += `
-                    <th rowspan="2" class="bg-slate-100">ពិន្ទុសរុប</th>
-                    <th rowspan="2" class="bg-emerald-50 text-emerald-800">មធ្យមភាគ</th>
-                    <th rowspan="2" class="bg-slate-100">ចំណាត់ថ្នាក់</th>
-                    <th rowspan="2" class="bg-slate-100">និទ្ទេស</th>
+                    <th rowspan="2" class="bg-blue-50/50 print:bg-blue-50/50 border-b border-slate-300"><div class="print-vertical-text text-blue-800 font-bold">ពិន្ទុសរុប</div></th>
+                    <th rowspan="2" class="bg-blue-50/50 print:bg-blue-50/50 border-b border-slate-300"><div class="print-vertical-text text-blue-800 font-bold">មធ្យមភាគ</div></th>
+                    <th rowspan="2" class="bg-green-50/50 print:bg-green-50/50 border-b border-slate-300"><div class="print-vertical-text text-red-600 font-bold">ចំណាត់ថ្នាក់</div></th>
+                    <th rowspan="2" class="bg-green-50/50 print:bg-green-50/50 border-b border-slate-300"><div class="print-vertical-text text-red-600 font-bold">និទ្ទេស</div></th>
                 </tr>`;
             } else {
                 headerRow1 += `
-                    <th rowspan="2" class="bg-slate-100">ម.ប្រ.ឆ</th>
-                    <th rowspan="2" class="bg-slate-100">ម.ខែ</th>
-                    <th rowspan="2" class="bg-emerald-50 text-emerald-800">ម.ឆមាស</th>
-                    <th rowspan="2" class="bg-slate-100">ចំណាត់ថ្នាក់</th>
-                    <th rowspan="2" class="bg-slate-100">និទ្ទេស</th>
+                    <th rowspan="2" class="bg-blue-50/50 print:bg-blue-50/50 border-b border-slate-300"><div class="print-vertical-text text-blue-800 font-bold">ម.ភាគប្រឡង</div></th>
+                    <th rowspan="2" class="bg-green-50/50 print:bg-green-50/50 border-b border-slate-300"><div class="print-vertical-text text-green-700 font-bold">ម.ភាគខែ</div></th>
+                    <th rowspan="2" class="bg-green-50/50 print:bg-green-50/50 border-b border-slate-300"><div class="print-vertical-text text-green-700 font-bold">ម.ភាគឆមាស</div></th>
+                    <th rowspan="2" class="bg-green-50/50 print:bg-green-50/50 border-b border-slate-300"><div class="print-vertical-text text-red-600 font-bold">ចំណាត់ថ្នាក់</div></th>
+                    <th rowspan="2" class="bg-green-50/50 print:bg-green-50/50 border-b border-slate-300"><div class="print-vertical-text text-red-600 font-bold">និទ្ទេស</div></th>
                 </tr>`;
             }
             headerRow2 += `</tr>`;
@@ -744,26 +801,30 @@
             const flatCols = layout.flatMap(g => g.cols);
             
             let processedStudents = students.map(s => {
-                const sScores = scoresData[s.id] || {};
+                const rawData = scoresData[s.id] || {};
+                const sScores = rawData.scores || rawData;
                 let sum = 0; let count = 0;
                 let displayScores = {};
                 
                 flatCols.forEach(col => {
                     const rawVal = sScores[col.id];
                     displayScores[col.id] = rawVal !== undefined ? rawVal : '';
-                    if (rawVal !== null && rawVal !== undefined && rawVal !== "") {
-                        const val = parseFloat(rawVal);
-                        if (!isNaN(val)) { sum += val; count++; }
+                    if (!['sem_eval_knowledge', 'sem_eval_skill', 'sem_eval_moral', 'sem_eval_participate'].includes(col.id)) {
+                        if (rawVal !== null && rawVal !== undefined && rawVal !== "") {
+                            const val = parseFloat(rawVal);
+                            if (!isNaN(val)) { sum += val; count++; }
+                        }
                     }
                 });
 
                 if (sel.type === 'monthly') {
-                    const avg = count > 0 ? (sum / count) : 0;
-                    return { ...s, displayScores, total: sum, avg: avg, finalAvg: avg };
+                    const avg = rawData.results ? parseFloat(rawData.results.average) : (count > 0 ? (sum / count) : 0);
+                    const total = rawData.results ? parseFloat(rawData.results.total) : sum;
+                    return { ...s, displayScores, total: total, avg: avg, finalAvg: avg };
                 } else {
-                    const examAvg = count > 0 ? (sum / count) : 0;
-                    const monthlyAvg = getMonthlyAverageForStudent(s.id, sel.year, sel.period);
-                    let semAvg = (examAvg + monthlyAvg) / 2;
+                    const examAvg = rawData.results ? parseFloat(rawData.results.examAverage) : (count > 0 ? (sum / count) : 0);
+                    const monthlyAvg = rawData.results ? parseFloat(rawData.results.monthlyAverage) : getMonthlyAverageForStudent(s.id, sel.year, sel.period);
+                    let semAvg = rawData.results ? parseFloat(rawData.results.semesterAverage) : ((examAvg + monthlyAvg) / 2);
                     if (count === 0 && monthlyAvg === 0) semAvg = 0;
                     return { ...s, displayScores, examAvg, monthlyAvg, semAvg, finalAvg: semAvg };
                 }
@@ -774,8 +835,8 @@
             let currentRank = 1;
             processedStudents.forEach((s, index) => {
                 if (index > 0 && s.finalAvg < processedStudents[index - 1].finalAvg) { currentRank = index + 1; }
-                s.rank = s.finalAvg > 0 ? currentRank : '-';
-                s.grade = s.finalAvg > 0 ? calculateGrade(s.finalAvg) : '-';
+                s.rank = s.finalAvg > 0 ? currentRank : '';
+                s.grade = s.finalAvg > 0 ? calculateGrade(s.finalAvg) : '';
             });
 
             processedStudents.sort((a, b) => a.name.localeCompare(b.name, 'km'));
@@ -784,31 +845,36 @@
             tbody.innerHTML = processedStudents.map((s, index) => {
                 let rowHTML = `<tr>
                     <td class="sticky-col-1 text-slate-500 font-bold">${index + 1}</td>
-                    <td class="sticky-col-2 font-bold text-slate-800">${s.name}</td>
-                    <td class="text-slate-600">${s.gender === 'ស្រី' || s.gender === 'F' ? 'ស' : 'ប'}</td>`;
+                    <td class="sticky-col-2 font-bold text-slate-800 text-left px-2 whitespace-nowrap">${s.name}</td>
+                    <td class="text-[10px] text-slate-600">${s.gender === 'ស្រី' || s.gender === 'F' ? 'ស' : 'ប'}</td>`;
 
                 flatCols.forEach(col => {
                     let val = s.displayScores[col.id];
                     let cellClass = (val !== '' && parseFloat(val) < 5) ? "score-fail" : "text-slate-700";
+                    
+                    if (['sem_eval_knowledge', 'sem_eval_skill', 'sem_eval_moral', 'sem_eval_participate'].includes(col.id)) {
+                         let color = val === 'ល្អ' ? 'text-green-600' : (val === 'មធ្យម' ? 'text-orange-500' : (val === 'ខ្សោយ' ? 'text-red-500' : 'text-blue-600'));
+                         cellClass = `font-bold text-[10px] bg-purple-50/50 print:bg-purple-50/50 ${color}`;
+                    }
                     rowHTML += `<td class="${cellClass}">${formatKhNum(val)}</td>`;
                 });
 
-                let gradeColor = s.grade === 'F' ? "text-red-600 font-bold" : (['A','B'].includes(s.grade) ? "text-green-600 font-bold" : "font-bold");
+                let gradeColor = s.grade === 'F' ? "text-red-600 bg-red-100/50 font-bold" : "text-blue-600 font-bold";
 
                 if (sel.type === 'monthly') {
                     rowHTML += `
-                        <td class="font-bold text-slate-800">${formatKhNum(s.total)}</td>
-                        <td class="highlight-col">${formatKhNum(s.avg)}</td>
-                        <td class="font-bold text-red-600">${s.rank}</td>
-                        <td class="${gradeColor}">${s.grade}</td>
+                        <td class="font-bold bg-blue-50/50 print:bg-blue-50/50">${formatKhNum(s.total)}</td>
+                        <td class="font-bold bg-blue-50/50 print:bg-blue-50/50">${formatKhNum(s.avg)}</td>
+                        <td class="font-bold text-red-600 bg-green-50/50 print:bg-green-50/50">${s.rank}</td>
+                        <td class="bg-green-50/50 print:bg-green-50/50 ${gradeColor}">${s.grade}</td>
                     </tr>`;
                 } else {
                     rowHTML += `
-                        <td class="font-bold text-slate-700">${formatKhNum(s.examAvg)}</td>
-                        <td class="font-bold text-slate-700">${formatKhNum(s.monthlyAvg)}</td>
-                        <td class="highlight-col">${formatKhNum(s.semAvg)}</td>
-                        <td class="font-bold text-red-600">${s.rank}</td>
-                        <td class="${gradeColor}">${s.grade}</td>
+                        <td class="font-bold bg-blue-50/50 print:bg-blue-50/50">${formatKhNum(s.examAvg)}</td>
+                        <td class="font-bold bg-green-50/50 print:bg-green-50/50 text-green-700">${formatKhNum(s.monthlyAvg)}</td>
+                        <td class="font-bold bg-green-50/50 print:bg-green-50/50 text-green-700">${formatKhNum(s.semAvg)}</td>
+                        <td class="font-bold bg-green-50/50 print:bg-green-50/50 text-red-600">${s.rank}</td>
+                        <td class="bg-green-50/50 print:bg-green-50/50 ${gradeColor}">${s.grade}</td>
                     </tr>`;
                 }
                 return rowHTML;
@@ -819,34 +885,47 @@
         window.preparePrint = function() {
             const conf = window.appState.classConfig;
             const sel = window.appState.currentSelection;
+            const students = window.appState.students;
             
             document.getElementById('print_manager_role').textContent = conf.managerRole || 'នាយកសាលា';
             document.getElementById('print_teacher').textContent = conf.teacher || 'ឈ្មោះគ្រូ';
 
             const today = new Date();
-            document.getElementById('print_date').textContent = `${conf.location}, ថ្ងៃទី ${today.getDate().toString().padStart(2, '0')} ខែ ${(today.getMonth()+1).toString().padStart(2, '0')} ឆ្នាំ ${today.getFullYear()}`;
+            document.getElementById('print_date').textContent = `ធ្វើនៅ ${conf.location || '.........'}, ថ្ងៃទី ${toKhNum(today.getDate())} ខែ ${khMonths[today.getMonth()]} ឆ្នាំ ${toKhNum(today.getFullYear())}`;
+            
+            try {
+                const m = momentkh.fromDate(today);
+                document.getElementById('sig-lunar').innerText = momentkh.format(m).replace('ពុទ្ធសករាជ', 'ព.ស.');
+            } catch(e) { }
 
             const periodText = monthLabels[sel.period];
             const displayTitle = sel.type === 'monthly' ? `ប្រចាំខែ ${periodText}` : periodText;
 
-            // Updated Layout based on user request (mt-8 and specific alignment)
+            // Updated Layout based on user request to perfectly match print format
             const headerHtml = `
-                <div class="flex justify-between items-start w-full mb-2">
-                    <div class="text-[11pt] font-bold leading-relaxed text-left mt-8" style="min-width: 250px;">
-                        <p class="kh-moul">${conf.org1}</p>
-                        <p class="kh-moul">${conf.org2}</p>
-                        <p class="kh-moul text-[12pt]">${conf.school}</p>
-                    </div>
-                    <div class="text-center" style="min-width: 300px;">
-                        <h3 class="kh-moul text-[13pt] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h3>
-                        <h3 class="kh-moul text-[13pt] mb-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
-                        <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12px] w-auto mx-auto mt-2" crossorigin="anonymous">
-                    </div>
+            <div class="header-section relative pb-4">
+                <div class="absolute top-0 w-full text-center">
+                    <h2 class="kh-moul text-lg text-blue-900">ព្រះរាជាណាចក្រកម្ពុជា</h2>
+                    <h3 class="kh-moul text-md text-blue-900 mt-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                    <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[10px] w-auto mx-auto mt-2" crossorigin="anonymous">
                 </div>
-                <div class="text-center mb-3">
-                    <h2 class="kh-moul text-[15pt] mb-1">បញ្ជីបូកលទ្ធផលសរុប</h2>
-                    <p class="font-bold text-[11pt]">${displayTitle} ${conf.className} សិក្សាឆ្នាំ ${sel.year}</p>
+
+                <div class="text-[12px] kh-moul text-blue-900 pt-2 leading-relaxed">
+                    <div>${conf.org1 || '.............................'}</div>
+                    <div>${conf.org2 || '.............................'}</div>
+                    <div>${conf.school || '.............................'}</div>
+                    <div>${conf.className ? 'ថ្នាក់ទី ' + conf.className : '.............'}</div>
                 </div>
+
+                <div class="text-center mt-6">
+                    <h1 class="kh-moul text-xl text-red-600 tracking-wider">តារាងសរុបពិន្ទុ <span class="text-red-600">${displayTitle}</span></h1>
+                    <p class="font-bold text-blue-800 mt-1 text-sm">ឆ្នាំសិក្សា ${sel.year}</p>
+                </div>
+
+                <div class="absolute right-0 top-[60px] text-[11px] font-bold text-blue-900 text-right leading-tight">
+                    <div>សិស្សសរុប ៖ <span class="px-2">${students.length}</span> នាក់ <span class="ml-2">ស្រី ៖ <span>${students.filter(s => s.gender === 'ស្រី' || s.gender === 'F').length}</span> នាក់</span></div>
+                </div>
+            </div>
             `;
             
             document.getElementById('printHeaderContainer').innerHTML = headerHtml;

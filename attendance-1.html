@@ -3,298 +3,403 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PTEC - បោះពុម្ពបណ្ណសរសើរ</title>
+    <title>PTEC - ប្រព័ន្ធគ្រប់គ្រងវត្តមានសិស្ស</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hanuman:wght@300;400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
-        :root { --primary: #0054a6; --secondary: #3b82f6; }
+        :root { --primary: #0054a6; --present: #22c55e; --permission: #eab308; --absent: #ef4444; }
+        body { font-family: 'Hanuman', serif; background-color: #f0f4f8;}
+        .kh-moul { font-family: 'Moul', cursive; font-weight: normal; }
         
-        body { font-family: 'Battambang', cursive; background: #f0f4f8; min-height: 100vh; }
-        .kh-moul { font-family: 'Moul', cursive; }
-
-        /* Form Controls */
-        .input-field {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border-radius: 0.75rem;
-            border: 1px solid #e5e7eb;
-            background: #f9fafb;
-            font-family: 'Battambang', cursive;
-            outline: none;
-            transition: all 0.2s;
-        }
-        .input-field:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(0,84,166,0.1); }
-
-        /* Custom Scrollbar for table */
-        .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        /* Print A4 Landscape Styles */
+        /* PDF Report Styles */
+        #pdf-content { width: 210mm; min-height: 295mm; margin: auto; background: white; box-sizing: border-box; padding: 10mm 15mm 15mm 15mm; position: relative; }
+        .header-section { text-align: center; margin-bottom: 10px; }
+        .report-header-img { height: 12pt; width: auto; display: block; margin: 5px auto; }
         @media print {
-            @page { size: A4 landscape; margin: 0; }
-            body { background: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             .no-print { display: none !important; }
-            
-            #printContainer {
-                display: block !important;
-                width: 100%;
-                background: white;
-            }
-
-            .cert-page {
-                width: 29.7cm;
-                height: 21cm;
-                position: relative;
-                page-break-after: always;
-                page-break-inside: avoid;
-                overflow: hidden;
-            }
-
-            .cert-bg-image {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: 0;
-                object-fit: cover;
-            }
-
-            .cert-content {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: 10;
-            }
+            body { background: none; }
+            #pdf-content { border: none; box-shadow: none; padding: 10mm; }
         }
+        .signature-container { width: 100%; margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; }
+        .sig-col-left { text-align: center; }
+        .sig-col-right { text-align: center; padding-left: 10mm; }
+        .teacher-name-final { font-family: 'Moul', cursive; font-size: 10.5pt; margin-top: 60px; display: block; text-align: center; white-space: pre-wrap; }
+        .lunar-date { font-size: 10pt; margin-bottom: 2px; white-space: nowrap; }
+        .solar-date { font-size: 10.5pt; font-weight: normal; margin-bottom: 8px; }
+        .role-title { font-family: 'Moul', cursive; font-size: 11pt; }
+        #report_title_display { text-decoration: underline; text-underline-offset: 5px; }
 
-        /* Hide print container on screen */
-        #printContainer { display: none; }
+        /* General Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; }
+        
+        .status-badge { padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: bold; }
+        .bg-p { background: #dcfce7; color: #166534; }
+        .bg-l { background: #fef9c3; color: #854d0e; }
+        .bg-a { background: #fee2e2; color: #991b1b; }
 
-        /* Loading Overlay */
-        #loadingOverlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(4px); transition: opacity 0.3s; }
+        /* --- Seating Plan Styles --- */
+        .seat { transition: all 0.2s; cursor: pointer; user-select: none; }
+        .seat.empty { border: 2px dashed #cbd5e1; background: #f1f5f9; color: #94a3b8; }
+        .seat.empty:hover { border-color: var(--primary); background: #e0f2fe; color: var(--primary); transform: scale(1.05); z-index: 50; }
+        .seat.filled:hover { transform: scale(1.05); z-index: 50; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        
+        .status-P { background-color: #dcfce7; border: 2px solid var(--present); color: #166534; }
+        .status-L { background-color: #fef9c3; border: 2px solid var(--permission); color: #854d0e; }
+        .status-A { background-color: #fee2e2; border: 2px solid var(--absent); color: #991b1b; }
+
+        .mode-edit .seat.filled { position: relative; }
+        .remove-btn { display: none; position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; padding: 2px; width: 20px; height: 20px; align-items: center; justify-content: center; font-size: 12px; z-index: 10; }
+        .mode-edit .seat.filled:hover .remove-btn { display: flex; }
     </style>
 </head>
-<body class="text-slate-800 pb-20">
+<body class="min-h-screen text-gray-800">
 
     <!-- Loading Overlay -->
-    <div id="loadingOverlay">
-        <div class="w-12 h-12 border-4 border-[#0054a6] border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="kh-moul text-[#0054a6] text-lg animate-pulse" id="loadingText">កំពុងរៀបចំទិន្នន័យ...</p>
+    <div id="loadingOverlay" style="display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(4px);">
+        <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-[#0054a6] mb-2"></i>
+        <p class="font-bold text-slate-600" id="loadingText">កំពុងទាញយកទិន្នន័យពី Cloud...</p>
     </div>
 
-    <!-- UI App Screen (No Print) -->
-    <div class="no-print max-w-[1200px] mx-auto px-4 py-6">
-        
-        <!-- Header -->
-        <div class="flex items-center gap-4 mb-6">
-            <a href="index.html" class="p-3 bg-white rounded-xl shadow-sm hover:shadow-md text-blue-600 transition-all border border-slate-200">
-                <i data-lucide="arrow-left" class="w-6 h-6"></i>
-            </a>
-            <div>
-                <h1 class="text-2xl kh-moul text-[#0054a6] flex items-center gap-3">
-                    <i data-lucide="award" class="w-8 h-8 text-yellow-500"></i> បោះពុម្ពបណ្ណសរសើរ (Certificates)
-                </h1>
-                <p class="text-slate-500 text-sm mt-1">ទាញយកទិន្នន័យពិន្ទុ និងចំណាត់ថ្នាក់ ដើម្បីបញ្ចូលក្នុងស៊ុមបណ្ណសរសើរដោយស្វ័យប្រវត្តិ</p>
+    <nav class="bg-[#0054a6] text-white p-4 shadow-lg sticky top-0 z-50 no-print">
+        <div class="container mx-auto flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="flex items-center gap-2 hover:text-yellow-400 transition font-bold text-sm bg-white/10 px-3 py-1.5 rounded-lg">
+                    <i data-lucide="home" class="w-4 h-4"></i> ទំព័រដើម
+                </a>
+                <h1 class="kh-moul text-lg hidden lg:block">ប្រព័ន្ធគ្រប់គ្រងវត្តមាន</h1>
+                
+                <div class="flex items-center bg-white/10 rounded px-2 py-1 border border-white/20">
+                    <span class="text-xs mr-2 text-indigo-100"></span>
+                    <select id="class_selector" onchange="window.changeClass(this.value)" class="bg-transparent text-sm font-bold outline-none text-white cursor-pointer w-32"></select>
+                    <button onclick="window.createNewClass()" class="ml-2 bg-green-500 hover:bg-green-600 text-white text-xs px-2 py-1 rounded font-bold" title="បង្កើតថ្នាក់ថ្មី">+</button>
+                    <button onclick="window.editClassName()" class="ml-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-2 py-1 rounded font-bold" title="ប្តូរឈ្មោះថ្នាក់">✎</button>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-4 text-sm font-bold items-center">
+                <button onclick="window.showSection('attendance')" class="hover:text-yellow-400 flex items-center gap-1"><i data-lucide="list" class="w-4 h-4"></i> វត្តមានបញ្ជី</button>
+                <button onclick="window.showSection('seating')" class="hover:text-yellow-400 flex items-center gap-1"><i data-lucide="layout" class="w-4 h-4"></i> វត្តមានប្លង់តុ</button>
+                <button onclick="window.showSection('reports')" class="hover:text-yellow-400 flex items-center gap-1"><i data-lucide="file-text" class="w-4 h-4"></i> របាយការណ៍</button>
+                <button onclick="window.showSection('dashboard')" class="hover:text-yellow-400 flex items-center gap-1 hidden md:flex"><i data-lucide="pie-chart" class="w-4 h-4"></i> ទិន្នន័យ</button>
             </div>
         </div>
+    </nav>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Left Column: Controls & Settings -->
-            <div class="flex flex-col gap-6">
+    <div class="container mx-auto p-4 max-w-6xl mt-4">
+        
+        <!-- ================= ATTENDANCE LIST SECTION ================= -->
+        <section id="attendance-section" class="no-print">
+            <div class="bg-white p-6 rounded-xl shadow-md mb-6 border-t-4 border-[#0054a6]">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="list-checks" class="w-8 h-8 text-[#0054a6]"></i>
+                        <h2 class="kh-moul text-[#0054a6] text-xl">បញ្ជីវត្តមានសិស្ស <span class="display_current_class text-sm font-sans text-gray-500 ml-2"></span></h2>
+                    </div>
+                    <div class="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border">
+                        <label class="font-bold text-sm text-gray-700">កាលបរិច្ឆេទ៖</label>
+                        <input type="date" id="attendance_date" class="border p-2 rounded font-bold text-[#0054a6] outline-none" onchange="window.syncDate(this.value)">
+                        <div id="lock_status_container"></div>
+                    </div>
+                </div>
                 
-                <!-- Step 1: Data Source -->
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h2 class="font-bold text-lg mb-4 flex items-center gap-2 text-slate-700">
-                        <span class="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span> ជ្រើសរើសទិន្នន័យ
-                    </h2>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-bold text-slate-600 mb-2">ប្រភេទពិន្ទុ</label>
-                            <div class="flex bg-slate-100 p-1 rounded-xl">
-                                <button onclick="window.setType('monthly')" id="btnMonthly" class="flex-1 py-2 rounded-lg bg-white shadow text-[#0054a6] font-bold transition text-sm">ប្រចាំខែ</button>
-                                <button onclick="window.setType('semester')" id="btnSemester" class="flex-1 py-2 rounded-lg text-slate-500 font-bold hover:bg-white/50 transition text-sm">ប្រចាំឆមាស</button>
-                                <button onclick="window.setType('yearly')" id="btnYearly" class="flex-1 py-2 rounded-lg text-slate-500 font-bold hover:bg-white/50 transition text-sm">ប្រចាំឆ្នាំ</button>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-600 mb-2">ឆ្នាំសិក្សា</label>
-                                <select id="yearSelect" class="input-field py-2 text-sm" onchange="window.updateMonthOptions(); window.loadRankings();">
-                                    <option value="2025-2026" selected>2025-2026</option>
-                                    <option value="2026-2027">2026-2027</option>
-                                    <option value="2027-2028">2027-2028</option>
-                                </select>
-                            </div>
-                            <div id="monthInputGroup">
-                                <label class="block text-sm font-bold text-slate-600 mb-2">ខែ</label>
-                                <select id="monthSelect" class="input-field py-2 text-sm" onchange="window.loadRankings()">
-                                    <!-- Populated by JS -->
-                                </select>
-                            </div>
-                            <div id="semesterInputGroup" class="hidden">
-                                <label class="block text-sm font-bold text-slate-600 mb-2">ឆមាស</label>
-                                <select id="semesterSelect" class="input-field py-2 text-sm" onchange="window.handleSemesterChange()">
-                                    <option value="sem1" selected>ឆមាសទី១</option>
-                                    <option value="sem2">ឆមាសទី២</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <button onclick="window.loadRankings()" id="btnLoadData" class="w-full bg-[#0054a6] text-white py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-800 transition-colors shadow-lg shadow-blue-200 mt-2">
-                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> ទាញយកចំណាត់ថ្នាក់សិស្ស (Refresh)
-                        </button>
-                    </div>
+                <div class="bg-blue-50 border border-blue-100 text-blue-800 text-xs p-3 rounded-lg mb-6 flex items-start gap-2">
+                    <i data-lucide="info" class="w-4 h-4 flex-shrink-0 mt-0.5"></i>
+                    <p>ទិន្នន័យសិស្សត្រូវបានទាញយកដោយស្វ័យប្រវត្តិពី <b>បញ្ជីឈ្មោះសិស្ស (Student List)</b>។ បន្ទាប់ពីកត់ត្រា និងចុចរក្សាទុករួច ទិន្នន័យនឹងត្រូវចាក់សោមិនអាចកែប្រែបានទេ ហើយវានឹងត្រូវរក្សាទុកទៅកាន់ Cloud ស្វ័យប្រវត្តិ។</p>
                 </div>
 
-                <!-- Step 2: Template Settings -->
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h2 class="font-bold text-lg mb-4 flex items-center gap-2 text-slate-700">
-                        <span class="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span> រូបភាពស៊ុម & ព័ត៌មាន
-                    </h2>
-
-                    <div class="space-y-4">
-                        <!-- Direct Selection from Folder -->
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                            <label class="block text-sm font-bold text-slate-600 mb-2">ជ្រើសរើសស៊ុមពី Folder របស់អ្នក</label>
-                            <select id="predefinedTemplate" class="input-field py-2 text-sm text-[#0054a6] font-bold mb-3 border-blue-200 shadow-sm" onchange="window.handlePredefinedTemplate()">
-                                <option value="">-- ជ្រើសរើសរូបភាពស៊ុម --</option>
-                                <option value="Certificate-1.jpg">Certificate-1.jpg</option>
-                                <option value="Certificate-2.jpg">Certificate-2.jpg</option>
-                                <option value="Certificate-3.jpg">Certificate-3.jpg</option>
-                                <option value="Certificate-4.jpg">Certificate-4.jpg</option>
-                                <option value="Certificate-5.jpg">Certificate-5.jpg</option>
-                                <option value="Certificate-6.jpg">Certificate-6.jpg</option>
-                                <option value="Certificate-7.jpg">Certificate-7.jpg</option>
-                                <option value="Certificate-8.jpg">Certificate-8.jpg</option>
-                            </select>
-
-                            <div class="relative w-full h-32 bg-white rounded-lg border border-slate-200 flex flex-col items-center justify-center overflow-hidden shadow-inner">
-                                <img id="templatePreview" src="" class="hidden absolute inset-0 w-full h-full object-cover z-0">
-                                <div id="previewOverlay" class="hidden absolute inset-0 bg-white/40 z-0"></div>
-                                <div id="uploadPlaceholder" class="relative z-10 text-center">
-                                    <i data-lucide="image" class="w-8 h-8 mx-auto text-slate-300 mb-1"></i>
-                                    <p class="text-[11px] text-slate-400 font-bold">ទីតាំងបង្ហាញរូបភាព</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-bold text-slate-600 mb-1">ការិយាល័យ / មន្ទីរអប់រំ</label>
-                            <input type="text" id="certOffice" class="input-field py-2 text-sm text-green-800 font-bold" value="ការិយាល័យអប់រំ យុវជន និងកីឡា ស្រុកព្រះស្តេច">
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-600 mb-1">ឈ្មោះសាលា</label>
-                                <input type="text" id="certSchool" class="input-field py-2 text-sm text-green-800 font-bold" value="សាលាបឋមសិក្សាភក្សោ">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-slate-600 mb-1">ថ្នាក់ទី</label>
-                                <input type="text" id="certClass" class="input-field py-2 text-sm text-red-600 font-bold" value="៤">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-bold text-slate-600 mb-1">កាលបរិច្ឆេទ (ចន្ទគតិ)</label>
-                            <input type="text" id="certDate1" class="input-field py-2 text-[11px] text-[#000080]" value="ថ្ងៃសៅរ៍ ១៤ កើត ខែអស្សុជ ឆ្នាំថោះ បញ្ចស័ក ព.ស.២៥៦៧">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-600 mb-1">កាលបរិច្ឆេទ (សុរិយគតិ)</label>
-                            <input type="text" id="certDate2" class="input-field py-2 text-[11px] text-[#000080]" value="ត្រូវនឹងថ្ងៃទី២៨ ខែតុលា ឆ្នាំ២០២៣">
-                        </div>
-
-                        <!-- មុខងារបើក/បិទ រូបថតសិស្ស (Photo Toggle Button) -->
-                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-600 mb-1 flex items-center gap-2">
-                                    <i data-lucide="camera" class="w-4 h-4 text-[#0054a6]"></i> ភ្ជាប់រូបថតសិស្ស (៤x៦)
-                                </label>
-                                <p class="text-[10px] text-slate-500">បើកដើម្បីទាញយករូបថតពីបញ្ជីឈ្មោះសិស្សមកបង្ហាញ</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="togglePhoto" class="sr-only peer" checked>
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0054a6]"></div>
-                            </label>
-                        </div>
-
-                    </div>
-                </div>
-
+                <div id="attendance-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                
+                <button id="btn_save_attendance" onclick="window.saveAttendance()" class="mt-8 bg-[#0054a6] text-white px-8 py-4 rounded-xl w-full font-bold shadow-lg hover:bg-blue-800 transition flex items-center justify-center gap-2 text-lg">
+                    <i data-lucide="save" class="w-5 h-5"></i> រក្សាទុកវត្តមានថ្ងៃនេះ
+                </button>
             </div>
+        </section>
 
-            <!-- Right Column: Results & Printing -->
-            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden h-full min-h-[500px]">
+        <!-- ================= SEATING PLAN SECTION ================= -->
+        <section id="seating-section" class="hidden no-print">
+            <div class="bg-white p-6 rounded-xl shadow-md mb-6 border-t-4 border-[#0054a6] overflow-x-auto">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 min-w-[600px]">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="layout" class="w-8 h-8 text-[#0054a6]"></i>
+                        <h2 class="kh-moul text-[#0054a6] text-xl">ចុះវត្តមានតាមប្លង់តុ <span class="display_current_class text-sm font-sans text-gray-500 ml-2"></span></h2>
+                    </div>
+                    <div class="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border">
+                        <label class="font-bold text-sm text-gray-700">កាលបរិច្ឆេទ៖</label>
+                        <input type="date" id="seating_date" class="border p-2 rounded font-bold text-[#0054a6] outline-none" onchange="window.syncDate(this.value)">
+                        <div id="lock_status_container_seating"></div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-4 mb-8 items-center justify-between border-b pb-4 min-w-[600px]">
+                    <div class="flex items-center gap-4 bg-gray-50 px-4 py-2 rounded-xl border">
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-green-500"></div><span class="text-xs font-bold text-gray-600">មក</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-yellow-500"></div><span class="text-xs font-bold text-gray-600">ច្បាប់</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><span class="text-xs font-bold text-gray-600">អវត្តមាន</span></div>
+                    </div>
+
+                    <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                        <button id="toggleModeBtn" onclick="window.toggleSeatingMode()" class="whitespace-nowrap px-4 py-2 rounded-lg font-bold text-white bg-[#7c3aed] hover:bg-[#6d28d9] transition flex items-center gap-2 text-sm shadow">
+                            <i data-lucide="edit" class="w-4 h-4"></i> រៀបចំប្លង់តុសិស្ស
+                        </button>
+
+                        <!-- Edit Tools -->
+                        <div id="editTools" class="hidden flex items-center gap-2 bg-gray-100 p-1.5 rounded-xl">
+                            <button onclick="window.toggleSeatingMode()" class="px-3 py-1.5 text-white bg-green-500 hover:bg-green-600 rounded-lg transition flex items-center gap-1 text-sm font-bold shadow whitespace-nowrap">
+                                <i data-lucide="check" class="w-4 h-4"></i> រួចរាល់
+                            </button>
+                            
+                            <!-- Layout Select -->
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                    <i data-lucide="layout-template" class="w-3.5 h-3.5 text-gray-400"></i>
+                                </div>
+                                <select id="layoutSelect" onchange="window.updateGridConfig()" class="appearance-none bg-white pl-8 pr-8 py-1.5 rounded-lg border text-xs font-bold outline-none cursor-pointer w-[150px]">
+                                    <option value="grid">ប្លង់ធម្មតា</option>
+                                    <option value="u-shape">រាង U</option>
+                                    <option value="group-4">ក្រុម ៤នាក់</option>
+                                    <option value="group-5">ក្រុម ៥នាក់</option>
+                                    <option value="group-6">ក្រុម ៦នាក់</option>
+                                    <option value="group-7">ក្រុម ៧នាក់</option>
+                                    <option value="group-8">ក្រុម ៨នាក់</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 pointer-events-none"></i>
+                            </div>
+
+                            <div class="flex items-center gap-1 bg-white px-2 py-1.5 rounded-lg border">
+                                <span class="text-xs text-gray-500">តុ:</span>
+                                <input type="number" id="inputTables" oninput="window.updateGridConfig()" value="20" class="w-10 text-center font-bold outline-none text-sm bg-transparent">
+                            </div>
+                            <div class="flex items-center gap-1 bg-white px-2 py-1.5 rounded-lg border">
+                                <span class="text-xs text-gray-500">ជួរ:</span>
+                                <input type="number" id="inputCols" oninput="window.updateGridConfig()" value="4" class="w-10 text-center font-bold outline-none text-sm bg-transparent">
+                            </div>
+                            
+                            <div class="relative">
+                                <select id="seatsPerTable" onchange="window.updateGridConfig()" class="appearance-none bg-white px-3 py-1.5 pr-8 rounded-lg border text-xs font-bold outline-none cursor-pointer">
+                                    <option value="2">២ នាក់/តុ</option>
+                                    <option value="1">១ នាក់/តុ</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 pointer-events-none"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
-                <div class="p-4 border-b border-slate-100 bg-slate-50 flex flex-col gap-4">
-                    <div class="flex flex-wrap justify-between items-center gap-3">
-                        <h2 class="font-bold text-lg flex items-center gap-2 text-slate-700">
-                            <span class="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-sm">3</span> បញ្ជីសិស្សទទួលបានចំណាត់ថ្នាក់
-                        </h2>
-                        <div class="flex items-center gap-3 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm w-full sm:w-auto justify-between">
-                            <span class="text-sm text-slate-500 font-bold px-3" id="selectedCountText">បានជ្រើសរើស: 0 នាក់</span>
-                            <button onclick="window.prepareAndPrint()" id="btnPrint" disabled class="bg-green-600 text-white px-5 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-green-700 transition-colors shadow-md shadow-green-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap">
-                                <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ពបណ្ណសរសើរ
+                <!-- Blackboard & Teacher Desk -->
+                <div class="flex flex-col mb-10 gap-4 min-w-[600px]">
+                    <div class="flex justify-start">
+                        <div class="bg-white px-6 py-3 rounded-2xl shadow-sm border-b-4 border-blue-600 flex items-center gap-3 transform -translate-y-2">
+                            <i data-lucide="user" class="w-5 h-5 text-gray-800"></i>
+                            <span class="font-bold text-gray-800 text-lg kh-moul">តុគ្រូបង្រៀន</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-center w-full">
+                        <div class="w-full max-w-4xl bg-[#1e293b] rounded-full h-10 flex items-center justify-center shadow-lg border-2 border-[#451a03] relative">
+                            <span class="text-slate-400 font-sans tracking-[0.2em] text-xs font-bold uppercase">ក្ដារខៀន</span>
+                        </div>
+                    </div>
+                    <div class="w-full border-b-2 border-dashed border-gray-200 mt-2"></div>
+                </div>
+
+                <!-- Seating Grid -->
+                <div id="tablesGrid" class="grid gap-6 min-w-[600px]"></div>
+
+                <button id="btn_save_attendance_seating" onclick="window.saveAttendance()" class="mt-10 bg-[#0054a6] text-white px-8 py-4 rounded-xl w-full font-bold shadow-lg hover:bg-blue-800 transition flex items-center justify-center gap-2 text-lg">
+                    <i data-lucide="save" class="w-5 h-5"></i> រក្សាទុកវត្តមានថ្ងៃនេះ
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= DASHBOARD SECTION ================= -->
+        <section id="dashboard-section" class="hidden no-print">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500 flex items-center gap-4">
+                    <div class="p-3 bg-blue-50 rounded-full text-blue-500"><i data-lucide="users" class="w-8 h-8"></i></div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase">សិស្សសរុប</p>
+                        <p id="dash_total_students" class="text-2xl font-bold text-blue-600">០ នាក់</p>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-yellow-500 flex items-center gap-4">
+                    <div class="p-3 bg-yellow-50 rounded-full text-yellow-500"><i data-lucide="user-minus" class="w-8 h-8"></i></div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase">ច្បាប់សរុប (ខែនេះ)</p>
+                        <p id="dash_total_leave" class="text-2xl font-bold text-yellow-600">០ លើក</p>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-500 flex items-center gap-4">
+                    <div class="p-3 bg-red-50 rounded-full text-red-500"><i data-lucide="user-x" class="w-8 h-8"></i></div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase">អវត្តមានសរុប (ខែនេះ)</p>
+                        <p id="dash_total_absent" class="text-2xl font-bold text-red-600">០ លើក</p>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-1 bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-4 border-b bg-indigo-50 flex justify-between items-center">
+                        <h3 class="kh-moul text-sm text-indigo-800">ទិន្នន័យតាមថ្ងៃ</h3>
+                        <input type="date" id="dash_filter_day" class="border p-1 rounded text-xs outline-none" onchange="window.renderDashboard()">
+                    </div>
+                    <div class="max-h-[500px] overflow-y-auto">
+                        <table class="w-full text-xs">
+                            <thead class="bg-gray-100 sticky top-0">
+                                <tr><th class="p-2 text-left">ឈ្មោះសិស្ស</th><th class="p-2 text-center">ស្ថានភាព</th></tr>
+                            </thead>
+                            <tbody id="dash-day-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+                        <h3 class="kh-moul text-sm text-[#0054a6]">សង្ខេបប្រចាំខែ</h3>
+                        <div class="flex items-center gap-2">
+                            <input type="month" id="dash_filter_month" class="border p-1.5 rounded text-sm outline-none" onchange="window.renderDashboard()">
+                            <button onclick="window.generateMonthlyDetailReport()" class="bg-[#0054a6] text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-blue-800 flex items-center gap-1">
+                                <i data-lucide="external-link" class="w-3 h-3"></i> របាយការណ៍លម្អិត
                             </button>
                         </div>
                     </div>
-                    <div class="flex gap-2">
-                        <button onclick="window.selectAll(1, 3)" class="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-lg text-sm font-bold hover:bg-yellow-200 transition">រើស Top 3</button>
-                        <button onclick="window.selectAll(1, 5)" class="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-lg text-sm font-bold hover:bg-yellow-200 transition">រើស Top 5</button>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-blue-50 text-[#0054a6] font-bold border-b">
+                                <tr>
+                                    <th class="p-3 text-left">ឈ្មោះសិស្ស</th>
+                                    <th class="p-3 text-center">មក (P)</th>
+                                    <th class="p-3 text-center">ច្បាប់ (L)</th>
+                                    <th class="p-3 text-center">អវត្ត (A)</th>
+                                    <th class="p-3 text-left">មូលហេតុចុងក្រោយ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboard-table-body"></tbody>
+                        </table>
                     </div>
                 </div>
-
-                <!-- Table -->
-                <div class="flex-1 overflow-auto custom-scrollbar p-0">
-                    <table class="w-full text-sm text-left">
-                        <thead class="bg-slate-100 text-slate-600 sticky top-0 z-10">
-                            <tr>
-                                <th class="p-3 w-12 text-center">
-                                    <input type="checkbox" id="selectAllCb" class="w-4 h-4 rounded border-gray-300 text-blue-600" onchange="window.toggleAllCheckboxes()">
-                                </th>
-                                <th class="p-3 font-bold">ចំណាត់ថ្នាក់</th>
-                                <th class="p-3 font-bold">ឈ្មោះសិស្ស</th>
-                                <th class="p-3 font-bold">ភេទ</th>
-                                <th class="p-3 font-bold">ពិន្ទុសរុប</th>
-                                <th class="p-3 font-bold">មធ្យមភាគ</th>
-                                <th class="p-3 font-bold">និទ្ទេស</th>
-                            </tr>
-                        </thead>
-                        <tbody id="studentRankBody" class="divide-y divide-slate-100">
-                            <tr>
-                                <td colspan="7" class="p-8 text-center text-slate-400">
-                                    <i data-lucide="list-ordered" class="w-12 h-12 mx-auto mb-3 opacity-30"></i>
-                                    សូមរង់ចាំបន្តិច ទិន្នន័យកំពុងទាញយក...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
             </div>
+        </section>
 
+        <!-- ================= REPORTS SECTION ================= -->
+        <section id="reports-section" class="hidden">
+            <div class="bg-white p-6 rounded-xl shadow-md mb-6 no-print">
+                <div class="flex items-center gap-3 mb-4 border-b pb-4">
+                    <i data-lucide="printer" class="w-6 h-6 text-[#0054a6]"></i>
+                    <h2 class="kh-moul text-[#0054a6]">បោះពុម្ពរបាយការណ៍</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label class="text-sm font-bold text-gray-700">ប្រភេទរបាយការណ៍:</label>
+                        <select id="report_type" class="border p-2.5 rounded-lg w-full mt-1 outline-none" onchange="window.handleReportTypeChange(); window.updateReport();">
+                            <option value="daily">ប្រចាំថ្ងៃ</option>
+                            <option value="monthly" selected>ប្រចាំខែ</option>
+                            <option value="semester1">ឆមាសទី ១</option>
+                            <option value="semester2">ឆមាសទី ២</option>
+                            <option value="custom">កំណត់តាមចន្លោះខែ</option>
+                        </select>
+                    </div>
+                    <div id="div_daily_select" style="display:none;">
+                        <label class="text-sm font-bold text-gray-700">ជ្រើសរើសថ្ងៃ:</label>
+                        <input type="date" id="report_daily_date" class="border p-2.5 rounded-lg w-full mt-1 outline-none" onchange="window.updateReport()">
+                    </div>
+                    <div id="div_single_month">
+                        <label class="text-sm font-bold text-gray-700">ជ្រើសរើសខែ:</label>
+                        <input type="month" id="single_month_input" class="border p-2.5 rounded-lg w-full mt-1 outline-none" onchange="window.updateReport()">
+                    </div>
+                    <div id="div_range_select" class="md:col-span-2 grid grid-cols-2 gap-4" style="display:none;">
+                        <div><label class="text-sm font-bold text-gray-700">ចាប់ពីខែ:</label><input type="month" id="semester_start" class="border p-2.5 rounded-lg w-full mt-1 outline-none" onchange="window.updateReport()"></div>
+                        <div><label class="text-sm font-bold text-gray-700">រហូតដល់ខែ:</label><input type="month" id="semester_end" class="border p-2.5 rounded-lg w-full mt-1 outline-none" onchange="window.updateReport()"></div>
+                    </div>
+                    <div class="flex items-end gap-2 lg:col-span-2">
+                        <button onclick="window.generatePDF()" class="bg-red-600 text-white px-4 py-2.5 rounded-lg flex-1 font-bold text-sm flex justify-center items-center gap-2 hover:bg-red-700">
+                            <i data-lucide="file-down" class="w-4 h-4"></i> ទាញយក PDF
+                        </button>
+                        <button onclick="window.exportToExcel()" class="bg-green-600 text-white px-4 py-2.5 rounded-lg flex-1 font-bold text-sm flex justify-center items-center gap-2 hover:bg-green-700">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> ទាញយក Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="pdf-content">
+                <div class="header-section">
+                    <h3 class="kh-moul text-[13pt] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                    <h3 class="kh-moul text-[13pt] mb-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                    <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="report-header-img" crossorigin="anonymous">
+                </div>
+                <div class="w-full text-[11pt] leading-relaxed mb-4">
+                    <p id="print_org_1" class="font-bold"></p><p id="print_org_2" class="font-bold"></p><p id="print_school" class="font-bold"></p>
+                    <div id="info-header-container" class="info-header-row flex justify-between items-end w-full">
+                        <p id="print_class" class="font-bold"></p><p id="report_subtitle_date" class="font-bold text-[10.5pt]"></p>
+                    </div>
+                </div>
+                <h2 id="report_title_display" class="kh-moul text-center text-[13pt] mb-4 uppercase">របាយការណ៍វត្តមានសិស្ស</h2>
+                <table class="w-full border-collapse border border-black text-[10pt]">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-black p-1 w-[8mm] text-center font-bold">ល.រ</th>
+                            <th class="border border-black p-1 w-[18mm] text-center font-bold">អត្តលេខ</th>
+                            <th class="border border-black p-1 text-center font-bold">ឈ្មោះសិស្ស</th>
+                            <th class="border border-black p-1 w-[12mm] text-center font-bold">មក</th>
+                            <th class="border border-black p-1 w-[12mm] text-center font-bold">ច្បាប់</th>
+                            <th class="border border-black p-1 w-[12mm] text-center font-bold">អវត្ត</th>
+                            <th class="border border-black p-1 text-center w-[35mm] font-bold">មូលហេតុ/ចំណាំ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="report-table-body"></tbody>
+                </table>
+                <div class="signature-container">
+                    <div class="sig-col-left"><div class="mb-4 invisible">.</div><p class="text-[10.5pt] mb-2">បានឃើញ និងឯកភាព</p><p id="print_manager_role" class="role-title uppercase"></p><p id="print_manager_name_val" class="teacher-name-final"></p></div>
+                    <div class="sig-col-right"><p id="print_lunar_date" class="lunar-date">...</p><p id="print_solar_date" class="solar-date"></p><p class="role-title">គ្រូបន្ទុកថ្នាក់</p><p id="print_teacher_sign" class="teacher-name-final"></p></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal: Note for Leave/Absent -->
+    <div id="noteModal" class="modal no-print flex">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-80 border-t-4 border-[#0054a6]">
+            <h3 class="kh-moul text-sm text-[#0054a6] mb-3 flex items-center gap-2"><i data-lucide="pen-tool" class="w-4 h-4"></i> បញ្ជាក់មូលហេតុ</h3>
+            <p id="note_student_name" class="text-sm mb-3 font-bold text-gray-700"></p>
+            <input type="hidden" id="note_uid"><input type="hidden" id="note_status">
+            <textarea id="note_text" class="w-full border p-3 rounded-lg text-sm mb-4 outline-none focus:border-[#0054a6]" placeholder="សូមសរសេរមូលហេតុនៅទីនេះ..." rows="3"></textarea>
+            <div class="flex gap-2">
+                <button onclick="window.confirmMarkWithNote()" class="flex-1 bg-[#0054a6] text-white py-2.5 rounded-lg text-sm font-bold hover:bg-blue-800 transition">យល់ព្រម</button>
+                <button onclick="window.closeNoteModal()" class="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg text-sm font-bold hover:bg-gray-300 transition">បោះបង់</button>
+            </div>
         </div>
     </div>
 
-    <!-- Hidden Print Container -->
-    <div id="printContainer">
-        <!-- Certificates injected here via JS -->
+    <!-- Modal: Select Student for Seating Plan -->
+    <div id="studentModal" class="modal fixed inset-0 z-50 flex p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                    <i data-lucide="users" class="w-5 h-5 text-blue-600"></i>
+                    ជ្រើសរើសសិស្ស
+                </h3>
+                <button onclick="window.closeStudentModal()" class="p-1 hover:bg-gray-200 rounded-full"><i data-lucide="x" class="w-5 h-5 text-gray-500"></i></button>
+            </div>
+            <div class="p-3 border-b border-gray-100">
+                <div class="relative">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    <input type="text" id="studentSearch" onkeyup="window.filterStudents()" placeholder="ស្វែងរកឈ្មោះ ឬអត្តលេខ..." class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm">
+                </div>
+            </div>
+            <div id="studentListContainer" class="overflow-y-auto p-2 flex-1 space-y-1 min-h-[200px]"></div>
+        </div>
     </div>
 
-    <!-- Firebase SDK & Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
 
+        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
             authDomain: "classroom-management-82382.firebaseapp.com",
@@ -306,559 +411,947 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        
         const PTEC_APP_ID = "ptec-app";
-        let currentUser = null;
+        let currentUserId = null;
 
-        let studentsList = [];
-        let rankedStudentsData = [];
-        let selectedSemesterMonths = ['nov', 'dec', 'jan', 'feb'];
-        let allMonthsScoresCache = {};
-        let currentType = 'monthly'; // default
-        let uploadedTemplateUrl = ''; 
+        lucide.createIcons();
+        document.getElementById('noteModal').style.display = 'none';
+        document.getElementById('studentModal').style.display = 'none';
 
-        const allMonthsMap = [
-            { id: 'nov', label: 'វិច្ឆិកា', isNextYear: false }, { id: 'dec', label: 'ធ្នូ', isNextYear: false },
-            { id: 'jan', label: 'មករា', isNextYear: true }, { id: 'feb', label: 'កុម្ភៈ', isNextYear: true },
-            { id: 'mar', label: 'មីនា', isNextYear: true }, { id: 'apr', label: 'មេសា', isNextYear: true },
-            { id: 'may', label: 'ឧសភា', isNextYear: true }, { id: 'jun', label: 'មិថុនា', isNextYear: true },
-            { id: 'jul', label: 'កក្កដា', isNextYear: true }, { id: 'aug', label: 'សីហា', isNextYear: true },
-            { id: 'sep', label: 'កញ្ញា', isNextYear: true }, { id: 'oct', label: 'តុលា', isNextYear: true }
-        ];
+        const khMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+        const khDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+        function toKhmerNum(num) { return num.toString().split('').map(d => khDigits[d] || d).join(''); }
 
-        const config = {
-            monthly: {
-                columns: ['kh_listen','kh_speak','kh_read','kh_write','math_num','math_meas','math_geo','math_alg','math_stat','sci_phy','sci_chem','sci_bio','sci_earth','soc_ethic','soc_geo','soc_hist','soc_home','pe_sport','life_skill','foreign','ex_oral','ex_att','ex_book','ex_hw']
-            },
-            semester: {
-                columns: ['sem_kh_reading_speaking','sem_kh_dictation','sem_kh_essay','sem_math','sem_science','sem_moral_civics','sem_geo','sem_hist','sem_home_arts','sem_life_skills','sem_foreign','sem_sport']
-            }
-        };
+        let classList = JSON.parse(localStorage.getItem('app_classes')) || [{id: 'default', name: 'ថ្នាក់ដើម'}];
+        let currentClassId = localStorage.getItem('current_class_id') || 'default';
 
-        function hideLoading() {
-            const overlay = document.getElementById('loadingOverlay');
-            if(overlay) {
-                overlay.style.opacity = '0';
-                setTimeout(() => overlay.style.display = 'none', 300);
-            }
+        function getKey(baseKey) {
+            if (currentClassId === 'default') return baseKey; 
+            return baseKey + '_' + currentClassId;
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            window.updateMonthOptions(); 
-            
-            const initAuth = async () => {
-                try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                } catch (error) {
-                    console.error("Auth init failed:", error);
-                    hideLoading(); 
-                }
-            };
+        // --- Core Data ---
+        let students = [];
+        let classConfig = {};
+        let attendanceHistory = {};
+        let lockedDates = [];
 
+        // --- Seating Plan Data ---
+        let TOTAL_TABLES = 20;
+        let GRID_COLS = 4;
+        let SEATS_PER_TABLE = 2;
+        let CURRENT_LAYOUT = 'grid';
+        let isSeatingEditMode = false;
+        let selectedSeatId = null;
+        let seatingLayout = {}; 
+
+        // MAIN INITIALIZATION LOGIC
+        document.addEventListener('DOMContentLoaded', () => {
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
-                    currentUser = user;
-                    try { 
-                        await fetchProfile(); 
-                        await window.loadRankings(); 
-                    } catch (e) { console.error(e); }
+                    currentUserId = user.uid;
+                    await initApp();
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                    showSection('attendance');
+                } else {
+                    signInAnonymously(auth).catch(err => {
+                        console.error(err);
+                        document.getElementById('loadingOverlay').style.display = 'none';
+                    });
                 }
-                hideLoading(); 
             });
-
-            initAuth();
         });
 
-        // --- Helpers ---
-        const khmerDigits = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
-        function toKhmerNum(num) {
-            if (num === null || num === undefined) return '';
-            return num.toString().split('').map(d => /[0-9]/.test(d) ? khmerDigits[parseInt(d)] : d).join('');
+        async function initApp() {
+            await loadClassData();
+            renderClassSelector();
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('attendance_date').value = today;
+            document.getElementById('seating_date').value = today;
+            document.getElementById('dash_filter_day').value = today;
+            document.getElementById('dash_filter_month').value = today.substring(0, 7);
+            document.getElementById('single_month_input').value = today.substring(0, 7);
+            document.getElementById('report_daily_date').value = today; 
+            document.getElementById('semester_start').value = today.substring(0, 4) + "-10";
+            document.getElementById('semester_end').value = today.substring(0, 7);
+            
+            handleReportTypeChange();
+            updateGridConfig(); // Init Seating Plan View
+            loadAttendance();
         }
 
-        function formatKhmerDOB(dobString) {
-            if (!dobString || dobString === '-') return { day: '...', month: '...', year: '...' };
-            const parts = dobString.split('-'); 
-            if (parts.length !== 3) return { day: '...', month: '...', year: '...' };
-            const months = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
-            return {
-                day: toKhmerNum(parseInt(parts[2])),
-                month: months[parseInt(parts[1]) - 1],
-                year: toKhmerNum(parts[0])
-            };
-        }
-
-        function isFemale(genderStr) {
-            if (!genderStr) return false;
-            const s = genderStr.trim().toLowerCase();
-            return s === 'ស្រី' || s === 'f';
-        }
-
-        function calculateGrade(avg) {
-            if (avg >= 9.0) return 'A'; if (avg >= 8.0) return 'B';
-            if (avg >= 7.0) return 'C'; if (avg >= 6.0) return 'D';
-            if (avg >= 5.0) return 'E'; return 'F';
-        }
-
-        // --- Data Fetching ---
-        async function fetchProfile() {
-            if (!currentUser) return;
-            const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'profile', 'data');
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                if(data.management_unit_1) document.getElementById('certOffice').value = data.management_unit_1;
-                if(data.school_name_admin) document.getElementById('certSchool').value = data.school_name_admin;
-                if(data.class_name) {
-                    const classMatch = data.class_name.match(/\d+/);
-                    if(classMatch) document.getElementById('certClass').value = classMatch[0];
-                }
-                if(data.academic_year) {
-                    const ySelect = document.getElementById('yearSelect');
-                    if([...ySelect.options].some(o => o.value === data.academic_year)) {
-                        ySelect.value = data.academic_year;
-                        window.updateMonthOptions();
-                    }
-                }
-            }
-        }
-
-        async function fetchScores(year, period) {
+        async function loadClassData() {
+            // Fetch students directly from Firebase to solve the "names not showing" issue
             try {
-                let parsedScores = {};
-                const docId = `${year}_${period}`;
-                if (currentUser) {
-                    const scoresRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'scores', docId);
-                    const scoresSnap = await getDoc(scoresRef);
-                    if (scoresSnap.exists()) {
-                        parsedScores = scoresSnap.data();
-                    } else {
-                        const oldSnap = await getDoc(doc(db, "scores", docId)).catch(() => null);
-                        if (oldSnap && oldSnap.exists()) parsedScores = oldSnap.data();
-                    }
-                }
-                if (Object.keys(parsedScores).length === 0) {
-                    const localScores = localStorage.getItem(`scores_${docId}`);
-                    if (localScores) parsedScores = JSON.parse(localScores);
-                }
-                return parsedScores;
-            } catch (error) { 
-                console.error("Error loading scores:", error);
-                return {}; 
-            }
-        }
-
-        // --- Centralized Averages Logic (Replaced to support Yearly) ---
-        function getMonthsAvg(studentId, monthsArr) {
-            let sumOfAverages = 0;
-            monthsArr.forEach(m => {
-                const sScores = (allMonthsScoresCache[m] || {})[studentId];
-                if (sScores) {
-                    let mSum = 0; let mCount = 0;
-                    config.monthly.columns.forEach(key => {
-                        const val = sScores[key];
-                        if (val !== null && val !== undefined && val !== "") {
-                            const numVal = parseFloat(val);
-                            if (!isNaN(numVal)) { mSum += numVal; mCount++; }
-                        }
+                const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUserId, 'students');
+                const studentsSnap = await getDocs(studentsRef);
+                const loadedStudents = [];
+                
+                studentsSnap.forEach(docSnap => {
+                    const s = docSnap.data();
+                    loadedStudents.push({
+                        uid: s.id ? String(s.id) : 'N/A',
+                        name: s.name || 'គ្មានឈ្មោះ',
+                        gender: s.gender || '-',
+                        dob: s.dob || '-',
+                        parent: s.father || s.mother || '-',
+                        phone: s.phone || '-',
+                        photo: s.photo || `https://api.dicebear.com/7.x/notionists/svg?seed=${s.id || s.name}`,
+                        createdAt: s.createdAt || 0
                     });
-                    if (mCount > 0) sumOfAverages += (mSum / mCount);
-                }
-            });
-            return monthsArr.length > 0 ? sumOfAverages / monthsArr.length : 0;
-        }
-
-        function getSemAvg(studentId, semId) {
-            const semScores = (allMonthsScoresCache[semId] || {})[studentId];
-            let sum = 0; let count = 0;
-            if (semScores) {
-                config.semester.columns.forEach(key => {
-                    const raw = semScores[key];
-                    if (raw !== null && raw !== undefined && raw !== "") {
-                        const val = parseFloat(raw);
-                        if (!isNaN(val)) { sum += val; count++; }
-                    }
                 });
-            }
-            const examAvg = count > 0 ? (sum / count) : 0;
-            const months = semId === 'sem1' ? ['nov', 'dec', 'jan', 'feb'] : ['mar', 'apr', 'may', 'jun'];
-            const monthlyAvg = getMonthsAvg(studentId, months);
-            
-            let semAvg = (examAvg + monthlyAvg) / 2;
-            if (count === 0 && monthlyAvg === 0) semAvg = 0;
-            return { semAvg, sum };
-        }
-
-        // --- Core Application Logic ---
-        
-        window.setType = function(type) {
-            currentType = type;
-            const btnMonthly = document.getElementById('btnMonthly');
-            const btnSemester = document.getElementById('btnSemester');
-            const btnYearly = document.getElementById('btnYearly');
-            const monthGroup = document.getElementById('monthInputGroup');
-            const semGroup = document.getElementById('semesterInputGroup');
-
-            btnMonthly.className = "flex-1 py-2 rounded-lg font-bold transition text-sm " + (type === 'monthly' ? "bg-white shadow text-[#0054a6]" : "text-slate-500 hover:bg-white/50");
-            btnSemester.className = "flex-1 py-2 rounded-lg font-bold transition text-sm " + (type === 'semester' ? "bg-white shadow text-[#0054a6]" : "text-slate-500 hover:bg-white/50");
-            btnYearly.className = "flex-1 py-2 rounded-lg font-bold transition text-sm " + (type === 'yearly' ? "bg-white shadow text-[#0054a6]" : "text-slate-500 hover:bg-white/50");
-
-            if (type === 'monthly') {
-                monthGroup.classList.remove('hidden'); semGroup.classList.add('hidden');
-            } else if (type === 'semester') {
-                monthGroup.classList.add('hidden'); semGroup.classList.remove('hidden');
-            } else { // yearly
-                monthGroup.classList.add('hidden'); semGroup.classList.add('hidden');
-            }
-            
-            window.loadRankings();
-        };
-
-        window.updateMonthOptions = function() {
-            const yearVal = document.getElementById('yearSelect').value;
-            if (!yearVal || !yearVal.includes('-')) return;
-            
-            const [startYear, endYear] = yearVal.split('-');
-            const monthSelect = document.getElementById('monthSelect');
-            let currentMonthVal = monthSelect.value;
-
-            if (!currentMonthVal) {
-                const currentMonthIndex = new Date().getMonth();
-                const jsMonthToId = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-                currentMonthVal = jsMonthToId[currentMonthIndex];
-            }
-
-            let optionsHTML = '';
-            allMonthsMap.forEach(m => {
-                const y = m.isNextYear ? endYear : startYear;
-                const selected = m.id === currentMonthVal ? 'selected' : '';
-                optionsHTML += `<option value="${m.id}" ${selected}>ខែ${m.label} ឆ្នាំ ${y}</option>`;
-            });
-
-            monthSelect.innerHTML = optionsHTML;
-            if (currentMonthVal) monthSelect.value = currentMonthVal;
-        };
-
-        window.handleSemesterChange = function() {
-            const sem = document.getElementById('semesterSelect').value;
-            selectedSemesterMonths = sem === 'sem1' ? ['nov', 'dec', 'jan', 'feb'] : ['mar', 'apr', 'may', 'jun'];
-            window.loadRankings();
-        };
-
-        window.handlePredefinedTemplate = function() {
-            const select = document.getElementById('predefinedTemplate');
-            const preview = document.getElementById('templatePreview');
-            const overlay = document.getElementById('previewOverlay');
-            const placeholder = document.getElementById('uploadPlaceholder');
-            
-            if (select.value) {
-                uploadedTemplateUrl = select.value; 
-                preview.src = uploadedTemplateUrl;
-                preview.classList.remove('hidden');
-                overlay.classList.remove('hidden');
-                placeholder.classList.add('hidden');
-            } else {
-                uploadedTemplateUrl = '';
-                preview.classList.add('hidden');
-                overlay.classList.add('hidden');
-                placeholder.classList.remove('hidden');
-            }
-        };
-
-        window.loadRankings = async function() {
-            if (!currentUser) return;
-            
-            const btn = document.getElementById('btnLoadData');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> កំពុងគណនាចំណាត់ថ្នាក់...';
-            btn.disabled = true; lucide.createIcons();
-
-            try {
-                studentsList = [];
-                const studentsSnap = await getDocs(collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students'));
-                studentsSnap.forEach(doc => studentsList.push({ ...doc.data(), id: doc.id }));
                 
-                if (studentsList.length === 0) {
-                    const storedStudents = localStorage.getItem('students_db') || localStorage.getItem('students');
-                    if (storedStudents) studentsList = JSON.parse(storedStudents);
-                }
+                loadedStudents.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                students = loadedStudents;
                 
-                if(studentsList.length === 0) {
-                    const tbody = document.getElementById('studentRankBody');
-                    tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">មិនមានទិន្នន័យសិស្សទេ! សូមបញ្ចូលឈ្មោះសិស្សជាមុន។</td></tr>`;
-                    return;
-                }
-
-                const year = document.getElementById('yearSelect').value;
-                let scoresData = {};
-                allMonthsScoresCache = {};
-
-                // កំណត់ទាញយកទិន្នន័យដោយប្រើ Promise.all ឲ្យបានលឿន
-                if (currentType === 'monthly') {
-                    const month = document.getElementById('monthSelect').value;
-                    scoresData = await fetchScores(year, month);
-                } else if (currentType === 'semester') {
-                    const semester = document.getElementById('semesterSelect').value;
-                    scoresData = await fetchScores(year, semester);
-                    await Promise.all(selectedSemesterMonths.map(async m => {
-                        allMonthsScoresCache[m] = await fetchScores(year, m);
-                    }));
-                } else if (currentType === 'yearly') {
-                    const allNeeded = ['sem1', 'sem2', 'nov', 'dec', 'jan', 'feb', 'mar', 'apr', 'may', 'jun'];
-                    await Promise.all(allNeeded.map(async p => {
-                        allMonthsScoresCache[p] = await fetchScores(year, p);
-                    }));
-                }
-
-                // គណនាពិន្ទុ
-                rankedStudentsData = studentsList.map(s => {
-                    let totalScore = 0;
-                    let finalAvg = 0;
-
-                    if (currentType === 'monthly') {
-                        const sScores = scoresData[s.id] || {};
-                        let sum = 0; let count = 0;
-                        config.monthly.columns.forEach(key => {
-                            const raw = sScores[key];
-                            if (raw !== null && raw !== undefined && raw !== "") {
-                                const val = parseFloat(raw);
-                                if (!isNaN(val)) { sum += val; count++; }
-                            }
-                        });
-                        totalScore = sum;
-                        finalAvg = count > 0 ? (sum / count) : 0;
-                    } 
-                    else if (currentType === 'semester') {
-                        const sScores = scoresData[s.id] || {};
-                        let sum = 0; let count = 0;
-                        config.semester.columns.forEach(key => {
-                            const raw = sScores[key];
-                            if (raw !== null && raw !== undefined && raw !== "") {
-                                const val = parseFloat(raw);
-                                if (!isNaN(val)) { sum += val; count++; }
-                            }
-                        });
-                        const examAvg = count > 0 ? (sum / count) : 0;
-                        const monthlyAvg = getMonthsAvg(s.id, selectedSemesterMonths);
-                        let semAvg = (examAvg + monthlyAvg) / 2;
-                        if (count === 0 && monthlyAvg === 0) semAvg = 0;
-                        
-                        totalScore = sum; 
-                        finalAvg = semAvg;
-                    } 
-                    else if (currentType === 'yearly') {
-                        const sem1 = getSemAvg(s.id, 'sem1');
-                        const sem2 = getSemAvg(s.id, 'sem2');
-                        finalAvg = (sem1.semAvg > 0 || sem2.semAvg > 0) ? ((sem1.semAvg + sem2.semAvg) / 2) : 0;
-                        totalScore = sem1.sum + sem2.sum; 
-                    }
-
-                    return { ...s, totalScore, average: finalAvg };
-                });
-
-                // វាយតម្លៃចំណាត់ថ្នាក់
-                rankedStudentsData.sort((a, b) => b.average - a.average);
-                let currentRank = 1;
-                rankedStudentsData.forEach((item, index) => {
-                    if (index > 0 && item.average < rankedStudentsData[index - 1].average) {
-                        currentRank = index + 1;
-                    }
-                    item.rank = item.average > 0 ? currentRank : '-';
-                    item.grade = item.average > 0 ? calculateGrade(item.average) : '-';
-                });
-
-                renderStudentTable();
-
             } catch (error) {
-                console.error("Error loading rankings:", error);
-                const tbody = document.getElementById('studentRankBody');
-                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-red-500">មានបញ្ហាក្នុងការទាញយកទិន្នន័យ។ សូមពិនិត្យមើលអ៊ីនធឺណិត។</td></tr>`;
-            } finally {
-                btn.innerHTML = originalHTML;
-                btn.disabled = false; lucide.createIcons();
+                console.error("Error fetching students from Firebase:", error);
+                const globalStudents = JSON.parse(localStorage.getItem('students') || '[]');
+                students = globalStudents.map(s => ({
+                    uid: s.id ? String(s.id) : 'N/A',
+                    name: s.name,
+                    gender: s.gender,
+                    dob: s.dob || '-',
+                    parent: s.father || s.mother || '-',
+                    phone: s.phone || '-',
+                    photo: `https://api.dicebear.com/7.x/notionists/svg?seed=${s.id || s.name}`
+                }));
             }
-        };
 
-        function renderStudentTable() {
-            const tbody = document.getElementById('studentRankBody');
-            if (rankedStudentsData.length === 0) return;
-
-            tbody.innerHTML = rankedStudentsData.map((s, idx) => {
-                let gradeColor = s.grade === 'F' ? 'text-red-500' : (['A','B'].includes(s.grade) ? 'text-green-600' : '');
-                let totalDisplay = s.totalScore > 0 ? s.totalScore.toFixed(2) : '-';
-                let avgDisplay = s.average > 0 ? s.average.toFixed(2) : '-';
-                
-                return `
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="p-3 text-center">
-                            <input type="checkbox" value="${idx}" class="cert-cb w-4 h-4 rounded border-gray-300 text-[#0054a6]" onchange="window.updatePrintButton()">
-                        </td>
-                        <td class="p-3 font-bold text-red-600 text-lg">${s.rank}</td>
-                        <td class="p-3 font-bold text-[#0054a6]">
-                            <div class="flex items-center gap-2">
-                                <img src="${s.photo || 'https://api.dicebear.com/7.x/notionists/svg?seed=' + s.id}" class="w-8 h-8 rounded-full border border-gray-200 object-cover hidden md:block">
-                                <span>${s.name}</span>
-                            </div>
-                        </td>
-                        <td class="p-3 text-slate-600">${s.gender || '-'}</td>
-                        <td class="p-3 font-mono font-bold text-slate-700">${totalDisplay}</td>
-                        <td class="p-3 font-mono font-bold">${avgDisplay}</td>
-                        <td class="p-3 font-bold ${gradeColor}">${s.grade}</td>
-                    </tr>
-                `;
-            }).join('');
+            let teacherProfile = JSON.parse(localStorage.getItem('teacherProfile')) || {};
             
-            document.getElementById('btnPrint').disabled = true;
-            document.getElementById('selectedCountText').innerText = "បានជ្រើសរើស: 0 នាក់";
+            // --- FETCH PROFILE DATA FROM FIREBASE (Fix for Report Section) ---
+            if (currentUserId) {
+                try {
+                    const profileRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUserId, 'profile', 'data');
+                    const profileSnap = await getDoc(profileRef);
+                    if (profileSnap.exists()) {
+                        const profileData = profileSnap.data();
+                        teacherProfile = { ...teacherProfile, ...profileData };
+                        // Save back to local storage as fallback
+                        localStorage.setItem('teacherProfile', JSON.stringify(teacherProfile));
+                    }
+                } catch (error) {
+                    console.error("Error fetching teacher profile from Firebase:", error);
+                }
+            }
+            
+            classConfig = {
+                org1: teacherProfile.management_unit_1 || "មន្ទីរអប់រំ យុវជន និងកីឡា",
+                org2: teacherProfile.management_unit_2 || "ការិយាល័យអប់រំ យុវជន និងកីឡា",
+                school: teacherProfile.school_name_admin || "សាលារបស់អ្នក",
+                className: teacherProfile.class_name || "ឧ.១២ ក",
+                teacher: teacherProfile.homeroom_teacher || "ឈ្មោះរបស់អ្នក",
+                location: teacherProfile.province_for_date || "រាជធានីភ្នំពេញ",
+                managerRole: teacherProfile.manager_role || "នាយកសាលា"
+            };
+
+            const cls = classList.find(c => c.id === currentClassId);
+            if(cls) {
+                if (cls.name === 'ថ្នាក់ដើម' && teacherProfile.class_name) {
+                    cls.name = teacherProfile.class_name;
+                    saveClassList();
+                }
+                classConfig.className = cls.name;
+            }
+
+            // --- CLOUD SYNC: Fetch Attendance History from Firebase ---
+            if (currentUserId) {
+                try {
+                    const classDocRef = doc(db, "users", currentUserId, "data", "class_" + currentClassId);
+                    const classDocSnap = await getDoc(classDocRef);
+                    if (classDocSnap.exists()) {
+                        const cloudData = classDocSnap.data();
+                        if (cloudData.attendanceHistory) attendanceHistory = cloudData.attendanceHistory;
+                        if (cloudData.lockedDates) lockedDates = cloudData.lockedDates;
+                        
+                        // Keep local storage in sync as fallback
+                        localStorage.setItem(getKey('attendance_history'), JSON.stringify(attendanceHistory));
+                        localStorage.setItem(getKey('locked_dates'), JSON.stringify(lockedDates));
+                    } else {
+                        // Fallback to local if not in cloud yet
+                        attendanceHistory = JSON.parse(localStorage.getItem(getKey('attendance_history'))) || {};
+                        lockedDates = JSON.parse(localStorage.getItem(getKey('locked_dates'))) || [];
+                    }
+                } catch (e) {
+                    console.error("Error loading attendance from Firebase", e);
+                    attendanceHistory = JSON.parse(localStorage.getItem(getKey('attendance_history'))) || {};
+                    lockedDates = JSON.parse(localStorage.getItem(getKey('locked_dates'))) || [];
+                }
+            } else {
+                attendanceHistory = JSON.parse(localStorage.getItem(getKey('attendance_history'))) || {};
+                lockedDates = JSON.parse(localStorage.getItem(getKey('locked_dates'))) || [];
+            }
+
+            seatingLayout = JSON.parse(localStorage.getItem(getKey('seatingLayout'))) || {};
+            const seatConfig = JSON.parse(localStorage.getItem(getKey('seatingConfig'))) || {
+                totalTables: 20, gridCols: 4, seatsPerTable: 2, layout: 'grid'
+            };
+            document.getElementById('inputTables').value = seatConfig.totalTables;
+            document.getElementById('inputCols').value = seatConfig.gridCols;
+            if(seatConfig.seatsPerTable) document.getElementById('seatsPerTable').value = seatConfig.seatsPerTable;
+            if(seatConfig.layout) document.getElementById('layoutSelect').value = seatConfig.layout;
         }
 
-        window.toggleAllCheckboxes = function() {
-            const isChecked = document.getElementById('selectAllCb').checked;
-            document.querySelectorAll('.cert-cb').forEach(cb => cb.checked = isChecked);
-            window.updatePrintButton();
-        };
+        // --- FIREBASE SYNC FUNCTION ---
+        async function syncToCloud() {
+            if (!currentUserId) return;
+            try {
+                const classDocRef = doc(db, "users", currentUserId, "data", "class_" + currentClassId);
+                await setDoc(classDocRef, {
+                    attendanceHistory: attendanceHistory,
+                    lockedDates: lockedDates,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+            } catch (error) {
+                console.error("Error syncing to Cloud:", error);
+            }
+        }
 
-        window.selectAll = function(minRank, maxRank) {
-            document.getElementById('selectAllCb').checked = false;
-            document.querySelectorAll('.cert-cb').forEach(cb => {
-                const sIndex = parseInt(cb.value);
-                const sRankStr = rankedStudentsData[sIndex].rank;
-                if (sRankStr !== '-') {
-                    const sRank = parseInt(sRankStr);
-                    cb.checked = (sRank >= minRank && sRank <= maxRank);
+        // --- Class Management ---
+        function saveClassList() { localStorage.setItem('app_classes', JSON.stringify(classList)); }
+
+        function renderClassSelector() {
+            const select = document.getElementById('class_selector');
+            select.innerHTML = classList.map(c => `<option value="${c.id}" ${c.id === currentClassId ? 'selected' : ''} class="text-gray-800">${c.name}</option>`).join('');
+            document.querySelectorAll('.display_current_class').forEach(el => el.innerText = "(" + (classList.find(c => c.id === currentClassId)?.name || '') + ")");
+        }
+
+        function changeClass(newId) {
+            currentClassId = newId;
+            localStorage.setItem('current_class_id', currentClassId);
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            document.getElementById('loadingText').innerText = "កំពុងប្តូរថ្នាក់...";
+            initApp().then(() => {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            });
+        }
+
+        function createNewClass() {
+            const name = prompt("បញ្ចូលឈ្មោះថ្នាក់ថ្មី (ឧ. ១២ ខ):");
+            if (name) {
+                const newId = 'class_' + Date.now();
+                classList.push({id: newId, name: name});
+                saveClassList();
+                currentClassId = newId;
+                localStorage.setItem('current_class_id', currentClassId);
+                
+                classConfig.className = name;
+                document.getElementById('loadingOverlay').style.display = 'flex';
+                initApp().then(() => document.getElementById('loadingOverlay').style.display = 'none');
+            }
+        }
+
+        function editClassName() {
+            const clsIdx = classList.findIndex(c => c.id === currentClassId);
+            if(clsIdx !== -1) {
+                const newName = prompt("កែឈ្មោះថ្នាក់នេះ៖", classList[clsIdx].name);
+                if(newName) {
+                    classList[clsIdx].name = newName;
+                    saveClassList();
+                    classConfig.className = newName;
+                    document.getElementById('loadingOverlay').style.display = 'flex';
+                    initApp().then(() => document.getElementById('loadingOverlay').style.display = 'none');
+                }
+            }
+        }
+
+        function showSection(id) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            const target = document.getElementById(`${id}-section`);
+            if(target) target.classList.remove('hidden');
+            
+            if(id === 'reports') updateReport();
+            if(id === 'attendance') loadAttendance();
+            if(id === 'dashboard') renderDashboard();
+            if(id === 'seating') {
+                updateGridConfig(); 
+                loadAttendance();
+            }
+        }
+
+        function syncDate(val) {
+            document.getElementById('attendance_date').value = val;
+            document.getElementById('seating_date').value = val;
+            loadAttendance();
+        }
+
+        // --- Shared Attendance Logic ---
+        function loadAttendance() {
+            const date = document.getElementById('attendance_date').value;
+            const records = attendanceHistory[date] || {};
+            const grid = document.getElementById('attendance-grid');
+            
+            let isSunday = false;
+            if (date) {
+                const [y, m, d] = date.split('-');
+                isSunday = new Date(y, m - 1, d).getDay() === 0;
+            }
+
+            const isLocked = lockedDates.includes(date);
+
+            const msgSunday = '<span class="text-red-500 bg-red-50 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-200 flex items-center gap-1"><i data-lucide="calendar-off" class="w-4 h-4"></i>ថ្ងៃអាទិត្យ ឈប់សម្រាក</span>';
+            const msgLocked = '<button onclick="window.unlockAttendance()" class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg flex items-center gap-1 text-xs font-bold border border-red-200 transition" title="ដោះសោ"><i data-lucide="lock" class="w-4 h-4"></i></button>';
+            
+            const lock1 = document.getElementById('lock_status_container');
+            const lock2 = document.getElementById('lock_status_container_seating');
+            if(lock1) lock1.innerHTML = isSunday ? msgSunday : (isLocked ? msgLocked : '');
+            if(lock2) lock2.innerHTML = isSunday ? msgSunday : (isLocked ? msgLocked : '');
+
+            const updateSaveBtn = (btn) => {
+                if(!btn) return;
+                if (isSunday) {
+                    btn.innerHTML = '<i data-lucide="calendar-off" class="w-5 h-5"></i> ថ្ងៃអាទិត្យ មិនអាចកត់វត្តមានបានទេ';
+                    btn.className = "mt-8 bg-gray-400 text-white px-8 py-4 rounded-xl w-full font-bold shadow flex items-center justify-center gap-2 text-lg cursor-not-allowed";
+                    btn.disabled = true;
+                } else if (isLocked) {
+                    btn.innerHTML = '<i data-lucide="lock" class="w-5 h-5"></i> ទិន្នន័យថ្ងៃនេះត្រូវបានចាក់សោ (Cloud Saved)';
+                    btn.className = "mt-8 bg-gray-400 text-white px-8 py-4 rounded-xl w-full font-bold shadow flex items-center justify-center gap-2 text-lg cursor-not-allowed";
+                    btn.disabled = true;
                 } else {
-                    cb.checked = false;
+                    btn.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> រក្សាទុកវត្តមានទៅ Cloud';
+                    btn.className = "mt-8 bg-[#0054a6] text-white px-8 py-4 rounded-xl w-full font-bold shadow-lg hover:bg-blue-800 transition flex items-center justify-center gap-2 text-lg";
+                    btn.disabled = false;
+                }
+            };
+            updateSaveBtn(document.getElementById('btn_save_attendance'));
+            updateSaveBtn(document.getElementById('btn_save_attendance_seating'));
+
+            // Render List View
+            if (students.length === 0) { 
+                grid.innerHTML = '<div class="col-span-full text-center p-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300"><p class="text-gray-500 font-bold text-lg mb-2">មិនទាន់មានទិន្នន័យសិស្សទេ</p><p class="text-sm text-gray-400 mb-6">សូមទៅបញ្ចូលព័ត៌មានសិស្សជាមុនសិន។</p></div>'; 
+            } else {
+                grid.innerHTML = students.map(s => {
+                    const att = records[s.uid] || { status: '', note: '' };
+                    const getBtnClass = (st, base) => {
+                        const isDisabled = isLocked || isSunday;
+                        if (att.status === st) return `${base} text-white ring-4 ring-offset-1 ring-opacity-50 scale-105 ${isDisabled ? 'cursor-not-allowed opacity-80' : ''}`;
+                        return `bg-gray-100 text-gray-600 ${isDisabled ? 'cursor-not-allowed opacity-40' : 'hover:bg-gray-200 transition'}`;
+                    };
+
+                    return `
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition">
+                        <img src="${s.photo}" class="w-14 h-14 rounded-full border shadow-sm object-cover bg-gray-50" onerror="this.src='https://api.dicebear.com/7.x/notionists/svg?seed=error'">
+                        <div class="flex-1">
+                            <p class="font-bold text-[#0054a6] truncate w-32 md:w-40">${s.name}</p>
+                            <p class="text-xs text-gray-400 font-mono mb-2">ID: ${s.uid}</p>
+                            <div class="flex gap-2">
+                                <button onclick="window.mark('${s.uid}', 'P')" class="flex-1 py-1.5 text-xs rounded-lg font-bold transition ${getBtnClass('P', 'bg-green-600 ring-green-300')}" ${(isLocked || isSunday) ? 'disabled' : ''}>មក</button>
+                                <button onclick="window.mark('${s.uid}', 'L')" class="flex-1 py-1.5 text-xs rounded-lg font-bold transition ${getBtnClass('L', 'bg-yellow-500 ring-yellow-300')}" ${(isLocked || isSunday) ? 'disabled' : ''}>ច្បាប់</button>
+                                <button onclick="window.mark('${s.uid}', 'A')" class="flex-1 py-1.5 text-xs rounded-lg font-bold transition ${getBtnClass('A', 'bg-red-600 ring-red-300')}" ${(isLocked || isSunday) ? 'disabled' : ''}>អវត្ត</button>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+            
+            // Sync Map View Render
+            renderGrid();
+            lucide.createIcons();
+        }
+
+        function mark(uid, status) {
+            const date = document.getElementById('attendance_date').value;
+            if (date) {
+                const [y, m, d] = date.split('-');
+                if (new Date(y, m - 1, d).getDay() === 0) return; 
+            }
+            if (lockedDates.includes(date)) return;
+
+            const student = students.find(s => String(s.uid) === String(uid));
+            if (status === 'L' || status === 'A') {
+                document.getElementById('note_uid').value = uid;
+                document.getElementById('note_status').value = status;
+                document.getElementById('note_student_name').innerText = "សិស្ស៖ " + (student ? student.name : 'មិនស្គាល់');
+                document.getElementById('note_text').value = '';
+                document.getElementById('noteModal').style.display = 'flex';
+            } else { saveStatus(uid, status, ''); }
+        }
+
+        function confirmMarkWithNote() {
+            const uid = document.getElementById('note_uid').value;
+            const status = document.getElementById('note_status').value;
+            const note = document.getElementById('note_text').value.trim();
+            saveStatus(uid, status, note); closeNoteModal();
+        }
+
+        function closeNoteModal() { document.getElementById('noteModal').style.display = 'none'; }
+        
+        function saveStatus(uid, status, note) {
+            const date = document.getElementById('attendance_date').value;
+            if(!attendanceHistory[date]) attendanceHistory[date] = {};
+            attendanceHistory[date][uid] = { status: status, note: note };
+            
+            localStorage.setItem(getKey('attendance_history'), JSON.stringify(attendanceHistory));
+            loadAttendance(); // Re-render instantly
+            
+            syncToCloud(); // Sync in background
+        }
+
+        async function saveAttendance() { 
+            if(students.length === 0) return alert('មិនមានសិស្សសម្រាប់រក្សាទុកទេ!');
+            
+            const date = document.getElementById('attendance_date').value;
+            if (date) {
+                const [y, m, d] = date.split('-');
+                if (new Date(y, m - 1, d).getDay() === 0) return alert('មិនអាចកត់ត្រាវត្តមាននៅថ្ងៃអាទិត្យបានទេ!');
+            }
+            if (lockedDates.includes(date)) return;
+
+            if (!confirm('តើអ្នកពិតជាចង់រក្សាទុកវត្តមានថ្ងៃនេះទៅ Cloud មែនទេ? បន្ទាប់ពីររក្សាទុករួច ទិន្នន័យនឹងត្រូវបានចាក់សោ (មិនអាចកែប្រែបាន)។')) return;
+
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            document.getElementById('loadingText').innerText = "កំពុងរក្សាទុកទៅកាន់ Cloud...";
+
+            if(!attendanceHistory[date]) attendanceHistory[date] = {};
+            students.forEach(s => {
+                if (!attendanceHistory[date][s.uid]) {
+                    attendanceHistory[date][s.uid] = { status: 'P', note: '' }; // Auto 'P' for unmarked
                 }
             });
-            window.updatePrintButton();
-        };
-
-        window.updatePrintButton = function() {
-            const count = document.querySelectorAll('.cert-cb:checked').length;
-            document.getElementById('selectedCountText').innerText = `បានជ្រើសរើស: ${count} នាក់`;
-            document.getElementById('btnPrint').disabled = count === 0;
-        };
-
-        // --- Print Generation ---
-        window.prepareAndPrint = function() {
-            if (!uploadedTemplateUrl) {
-                const confirmMsg = "អ្នកមិនទាន់បានជ្រើសរើសរូបភាពស៊ុម (Template) នៅឡើយទេ។ \nតើអ្នកចង់បន្តបោះពុម្ពជាមួយផ្ទៃទទេ (សម្រាប់ព្រីនលើក្រដាសមានស៊ុមស្រាប់) មែនទេ?";
-                if(!confirm(confirmMsg)) return;
-            }
-
-            const printContainer = document.getElementById('printContainer');
-            printContainer.innerHTML = ''; 
-
-            const officeName = document.getElementById('certOffice').value;
-            const schoolName = document.getElementById('certSchool').value;
-            const classNum = toKhmerNum(document.getElementById('certClass').value);
-            const date1 = document.getElementById('certDate1').value;
-            const date2 = document.getElementById('certDate2').value;
+            localStorage.setItem(getKey('attendance_history'), JSON.stringify(attendanceHistory)); 
             
-            const usePhoto = document.getElementById('togglePhoto').checked;
-            const yearText = document.getElementById('yearSelect').value;
-            const [startYear, endYear] = yearText.split('-');
-            const khmerYearDisplay = `${toKhmerNum(startYear)}-${toKhmerNum(endYear)}`;
+            lockedDates.push(date);
+            localStorage.setItem(getKey('locked_dates'), JSON.stringify(lockedDates));
 
-            let periodDisplay = 'ប្រចាំឆ្នាំសិក្សា';
-            if (currentType === 'monthly') {
-                const monthSelect = document.getElementById('monthSelect');
-                if (monthSelect.selectedIndex >= 0) {
-                    const mText = monthSelect.options[monthSelect.selectedIndex].text;
-                    periodDisplay = `ប្រចាំ${mText.split(' ')[0]} ឆ្នាំសិក្សា`;
-                }
-            } else if (currentType === 'semester') {
-                const semesterSelect = document.getElementById('semesterSelect');
-                if (semesterSelect.selectedIndex >= 0) {
-                    const sText = semesterSelect.options[semesterSelect.selectedIndex].text;
-                    periodDisplay = `ប្រចាំ${sText} ឆ្នាំសិក្សា`;
-                }
-            }
+            await syncToCloud(); // Wait for sync to finish
 
-            const selectedIndexes = Array.from(document.querySelectorAll('.cert-cb:checked')).map(cb => parseInt(cb.value));
+            document.getElementById('loadingOverlay').style.display = 'none';
+            loadAttendance();
             
-            selectedIndexes.forEach(idx => {
-                const s = rankedStudentsData[idx];
-                const dobKhmer = formatKhmerDOB(s.dob);
-                const genderKh = isFemale(s.gender) ? 'ស្រី' : 'ប្រុស';
-                const rankKh = s.rank !== '-' ? toKhmerNum(s.rank) : '-';
+            const toast = document.createElement('div');
+            toast.className = "fixed top-10 left-1/2 -translate-x-1/2 bg-green-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-[3000] kh-moul flex items-center gap-3 animate-bounce";
+            toast.innerHTML = '<i data-lucide="check-circle" class="w-6 h-6"></i> បានរក្សាទុក និងចាក់សោដោយជោគជ័យ!';
+            document.body.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => toast.remove(), 2500);
+        }
 
-                let photoBoxHtml = '';
-                if (usePhoto) {
-                    const imgSrc = s.photo || `https://api.dicebear.com/7.x/notionists/svg?seed=${s.id}`;
-                    photoBoxHtml = `
-                        <div style="position: absolute; top: 62%; left: 50%; transform: translateX(-50%); width: 3.5cm; height: 4.5cm; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                            <img src="${imgSrc}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
-                        </div>
-                    `;
-                }
-
-                const certPage = document.createElement('div');
-                certPage.className = 'cert-page';
+        async function unlockAttendance() {
+            const date = document.getElementById('attendance_date').value;
+            if(confirm('តើអ្នកពិតជាចង់ដោះសោទិន្នន័យថ្ងៃនេះ ដើម្បីអាចកែប្រែឡើងវិញមែនទេ? ទិន្នន័យលើ Cloud ក៏នឹងត្រូវដោះសោដែរ។')) {
+                lockedDates = lockedDates.filter(d => d !== date);
+                localStorage.setItem(getKey('locked_dates'), JSON.stringify(lockedDates));
                 
-                if (uploadedTemplateUrl) {
-                    certPage.innerHTML += `<img src="${uploadedTemplateUrl}" class="cert-bg-image">`;
+                document.getElementById('loadingOverlay').style.display = 'flex';
+                document.getElementById('loadingText').innerText = "កំពុងធ្វើបច្ចុប្បន្នភាពលើ Cloud...";
+                
+                await syncToCloud(); // Update Cloud status
+                
+                document.getElementById('loadingOverlay').style.display = 'none';
+                loadAttendance();
+            }
+        }
+
+        // ================= SEATING PLAN LOGIC =================
+        function updateGridConfig() {
+            TOTAL_TABLES = parseInt(document.getElementById('inputTables').value) || 0;
+            GRID_COLS = parseInt(document.getElementById('inputCols').value) || 1;
+            CURRENT_LAYOUT = document.getElementById('layoutSelect').value;
+            
+            const seatsPerTableDropdown = document.getElementById('seatsPerTable');
+            if (CURRENT_LAYOUT.startsWith('group-')) {
+                const groupSize = parseInt(CURRENT_LAYOUT.split('-')[1]);
+                SEATS_PER_TABLE = groupSize;
+                seatsPerTableDropdown.disabled = true;
+                seatsPerTableDropdown.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                SEATS_PER_TABLE = parseInt(seatsPerTableDropdown.value) || 2;
+                seatsPerTableDropdown.disabled = false;
+                seatsPerTableDropdown.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+            for (const seatId in seatingLayout) {
+                const parts = seatId.match(/t(\d+)-s(\d+)/);
+                if (parts) {
+                    const tNum = parseInt(parts[1]);
+                    const sNum = parseInt(parts[2]);
+                    if (tNum > TOTAL_TABLES || sNum > SEATS_PER_TABLE) {
+                        delete seatingLayout[seatId]; 
+                    }
                 }
+            }
 
-                certPage.innerHTML += `
-                    <div class="cert-content">
-                        <!-- Top Left Green Texts -->
-                        <div style="position: absolute; top: 25.5%; left: 8.5%; width: 33%; text-align: center; color: #166534; font-family: 'Moul', cursive; font-size: 13pt;">
-                            ${officeName}
-                        </div>
-                        <div style="position: absolute; top: 29.5%; left: 8.5%; width: 33%; text-align: center; color: #166534; font-family: 'Moul', cursive; font-size: 13pt;">
-                            ${schoolName}
-                        </div>
+            const grid = document.getElementById('tablesGrid');
+            if(!grid) return;
+            grid.style.gridTemplateColumns = '';
 
-                        <!-- Missing Principal Title (Below 5 Stars) -->
-                        <div style="position: absolute; top: 47.5%; left: 0; width: 100%; text-align: center; color: #000080; font-family: 'Moul', cursive; font-size: 14pt;">
-                            នាយក${schoolName.replace('សាលា', '')}
-                        </div>
+            if (CURRENT_LAYOUT.startsWith('group-')) {
+                grid.className = 'grid gap-y-12 gap-x-8 mt-12 w-max mx-auto pb-16 min-w-[600px]';
+                grid.style.gridTemplateColumns = `repeat(${GRID_COLS}, 300px)`;
+            } else if (CURRENT_LAYOUT === 'u-shape') {
+                grid.className = 'grid gap-6 min-w-[600px] w-full';
+                if (GRID_COLS < 3) GRID_COLS = 3; 
+                grid.style.gridTemplateColumns = `repeat(${GRID_COLS}, minmax(0, 1fr))`;
+            } else {
+                grid.className = 'grid gap-6 min-w-[600px] w-full';
+                grid.style.gridTemplateColumns = `repeat(${GRID_COLS}, minmax(0, 1fr))`;
+            }
+            
+            renderGrid();
+            saveSeatingConfig();
+        }
 
-                        <!-- Main Paragraph Block -->
-                        <div style="position: absolute; top: 52.5%; left: 5%; width: 90%; text-align: center; color: #000080; font-family: 'Battambang', cursive; font-size: 13pt; line-height: 1.2;">
-                            សូមសរសើរចំពោះសិស្សឈ្មោះ <span style="color: #dc2626; font-family: 'Moul', cursive; font-size: 12pt;">${s.name}</span> 
-                            ភេទ <span style="color: #dc2626; font-family: 'Moul', cursive;">${genderKh}</span> 
-                            កើតនៅថ្ងៃទី<span style="color: #dc2626; font-family: 'Moul', cursive;">${dobKhmer.day}</span> 
-                            ខែ<span style="color: #dc2626; font-family: 'Moul', cursive;">${dobKhmer.month}</span> 
-                            ឆ្នាំ<span style="color: #dc2626; font-family: 'Moul', cursive;">${dobKhmer.year}</span> 
-                            រៀនថ្នាក់ទី<span style="color: #dc2626; font-family: 'Moul', cursive;">${classNum}</span> 
-                            នៃ${schoolName} <br>
-                            ដែលបានខិតខំរៀនសូត្រដែលទទួលបានលទ្ធផលល្អក្នុងការសិក្សា និងទទួលបានចំណាត់ថ្នាក់លេខ <span style="color: #dc2626; font-family: 'Moul', cursive; font-size: 16pt;">${rankKh}</span> 
-                            ${periodDisplay} <span style="color: #dc2626; font-family: 'Moul', cursive;">${khmerYearDisplay}</span> ។<br>
-                            បណ្ណសរសើរនេះប្រគល់ជូនសាមីខ្លួនប្រើប្រាស់តាមការដែលអាចប្រើបាន។
-                        </div>
+        function saveSeatingConfig() {
+            const config = { totalTables: TOTAL_TABLES, gridCols: GRID_COLS, seatsPerTable: SEATS_PER_TABLE, layout: CURRENT_LAYOUT };
+            localStorage.setItem(getKey('seatingConfig'), JSON.stringify(config));
+        }
 
-                        <!-- Bottom Left -->
-                        <div style="position: absolute; top: 73%; left: 23.5%; transform: translateX(-50%); color: #000080; font-family: 'Moul', cursive; font-size: 13pt;">
-                            នាយកសាលា
-                        </div>
+        function renderGrid() {
+            const grid = document.getElementById('tablesGrid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            
+            if (CURRENT_LAYOUT === 'u-shape') {
+                const bottomCount = TOTAL_TABLES % 2 === 0 ? 2 : 1;
+                const sideRows = Math.floor((TOTAL_TABLES - bottomCount) / 2);
+                let currentTable = 1;
+                const spacerSpan = GRID_COLS - 2;
 
-                        <!-- ទីតាំងរូបថតសិស្ស (Photo Box) -->
-                        ${photoBoxHtml}
+                for (let r = 0; r < sideRows; r++) {
+                    grid.insertAdjacentHTML('beforeend', createTableHTML(currentTable++));
+                    if (spacerSpan > 0) grid.insertAdjacentHTML('beforeend', `<div class="hidden md:block" style="grid-column: span ${spacerSpan}; pointer-events: none;"></div>`);
+                    grid.insertAdjacentHTML('beforeend', createTableHTML(currentTable++));
+                }
+                if (bottomCount > 0) {
+                    let bottomHtml = `<div style="grid-column: span ${GRID_COLS}; display: flex; justify-content: center; gap: 1.5rem;">`;
+                    for(let i=0; i<bottomCount; i++) bottomHtml += createTableHTML(currentTable++);
+                    bottomHtml += `</div>`;
+                    grid.insertAdjacentHTML('beforeend', bottomHtml);
+                }
+            } else {
+                for (let i = 1; i <= TOTAL_TABLES; i++) {
+                    grid.insertAdjacentHTML('beforeend', createTableHTML(i));
+                }
+            }
+            lucide.createIcons();
+        }
 
-                        <!-- Bottom Right Dates & Role -->
-                        <div style="position: absolute; top: 62%; left: 75%; transform: translateX(-50%); text-align: center; color: #000080; width: 40%;">
-                            <div style="font-family: 'Battambang', cursive; font-size: 11pt; white-space: nowrap;">${date1}</div>
-                            <div style="font-family: 'Battambang', cursive; font-size: 11pt; white-space: nowrap;">............${date2}</div>
-                            <div style="font-family: 'Moul', cursive; font-size: 13pt; margin-top: 10px;">គ្រូបន្ទុកថ្នាក់</div>
-                        </div>
+        function createTableHTML(i) {
+            if (CURRENT_LAYOUT.startsWith('group-')) {
+                return createCircularGroupHTML(i);
+            }
+
+            let seatsHtml = '';
+            for(let s = 1; s <= SEATS_PER_TABLE; s++) seatsHtml += renderSeat(i, s, false);
+            return `
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3 flex-1 min-w-[150px]">
+                    <div class="text-center text-xs font-bold text-gray-400 uppercase tracking-wider">តុទី ${i}</div>
+                    <div class="flex gap-3 h-24">${seatsHtml}</div>
+                </div>
+            `;
+        }
+
+        function createCircularGroupHTML(tableNum) {
+            let seatsHtml = '';
+            const radius = 105; 
+            
+            let startAngleOffset = -90; 
+            if (SEATS_PER_TABLE === 6) startAngleOffset = 0; 
+            else if (SEATS_PER_TABLE === 8) startAngleOffset = -90; 
+
+            for(let s = 1; s <= SEATS_PER_TABLE; s++) {
+                const angleDeg = (360 / SEATS_PER_TABLE) * (s - 1) + startAngleOffset;
+                const angleRad = angleDeg * (Math.PI / 180);
+                
+                const x = Math.cos(angleRad) * radius;
+                const y = Math.sin(angleRad) * radius;
+                
+                seatsHtml += `
+                    <div class="absolute hover:z-50 transition-all duration-200" style="top: calc(50% + ${y}px); left: calc(50% + ${x}px); transform: translate(-50%, -50%); width: 75px; height: 50px; z-index: 20;">
+                        ${renderSeat(tableNum, s, true)}
                     </div>
                 `;
+            }
+
+            return `
+                <div class="relative w-[300px] h-[300px] shrink-0 flex items-center justify-center">
+                    <div class="w-[84px] h-[84px] rounded-full border-2 border-gray-400 bg-gray-50 flex items-center justify-center z-10 shadow-sm relative">
+                        <span class="font-bold text-gray-600 text-sm">តុទី ${tableNum}</span>
+                    </div>
+                    ${seatsHtml}
+                </div>
+            `;
+        }
+
+        function renderSeat(tableNum, seatNum, isCircular = false) {
+            const seatId = `t${tableNum}-s${seatNum}`;
+            const studentId = seatingLayout[seatId];
+            const student = students.find(s => String(s.uid) === String(studentId));
+            
+            const extraClasses = isCircular ? 'w-full h-full shadow-sm' : 'flex-1';
+
+            if (student) {
+                const date = document.getElementById('attendance_date').value;
+                const status = attendanceHistory[date]?.[student.uid]?.status || 'P'; // Default visual 'P'
+                const statusClass = `status-${status}`;
                 
-                printContainer.appendChild(certPage);
+                return `
+                    <div id="${seatId}" onclick="window.handleSeatClick('${seatId}')" 
+                        class="seat filled ${extraClasses} rounded-xl p-1 flex flex-col items-center justify-center text-center gap-0.5 relative overflow-hidden ${statusClass}">
+                        <div class="remove-btn" onclick="event.stopPropagation(); window.removeStudentFromSeat('${seatId}')">
+                            <i data-lucide="x" class="w-3 h-3"></i>
+                        </div>
+                        <div class="font-bold text-[11px] leading-tight line-clamp-2" title="${student.name}">${student.name}</div>
+                        <div class="text-[9px] opacity-80">${student.uid || ''}</div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div id="${seatId}" onclick="window.handleSeatClick('${seatId}')" 
+                        class="seat empty ${extraClasses} rounded-xl flex items-center justify-center text-xs font-bold bg-white">
+                        <span>+</span>
+                    </div>
+                `;
+            }
+        }
+
+        function toggleSeatingMode() {
+            isSeatingEditMode = !isSeatingEditMode;
+            const toggleBtn = document.getElementById('toggleModeBtn');
+            const editTools = document.getElementById('editTools');
+            const seatingSection = document.getElementById('seating-section');
+
+            if (isSeatingEditMode) {
+                seatingSection.classList.add('mode-edit');
+                toggleBtn.classList.add('hidden');
+                editTools.classList.remove('hidden');
+            } else {
+                seatingSection.classList.remove('mode-edit');
+                toggleBtn.classList.remove('hidden');
+                editTools.classList.add('hidden');
+                localStorage.setItem(getKey('seatingLayout'), JSON.stringify(seatingLayout));
+                saveSeatingConfig();
+            }
+            lucide.createIcons();
+        }
+
+        function handleSeatClick(seatId) {
+            const studentId = seatingLayout[seatId];
+            
+            if (!studentId) {
+                if (isSeatingEditMode) openStudentModal(seatId);
+            } else {
+                if (!isSeatingEditMode) {
+                    const date = document.getElementById('attendance_date').value;
+                    if(lockedDates.includes(date)) return;
+                    if (date) {
+                        const [y, m, d] = split('-');
+                        if (new Date(y, m - 1, d).getDay() === 0) return; 
+                    }
+                    toggleSeatAttendanceStatus(studentId);
+                }
+            }
+        }
+
+        function toggleSeatAttendanceStatus(studentId) {
+            const date = document.getElementById('attendance_date').value;
+            let current = attendanceHistory[date]?.[studentId]?.status || 'P';
+            const flow = { 'P': 'L', 'L': 'A', 'A': 'P' };
+            const nextStatus = flow[current];
+            
+            mark(studentId, nextStatus); 
+        }
+
+        function openStudentModal(seatId) {
+            selectedSeatId = seatId;
+            const modal = document.getElementById('studentModal');
+            const seatedIds = Object.values(seatingLayout).map(id => String(id));
+            const availableStudents = students.filter(s => !seatedIds.includes(String(s.uid)));
+            renderStudentList(availableStudents);
+            modal.style.display = 'flex';
+            document.getElementById('studentSearch').value = '';
+            document.getElementById('studentSearch').focus();
+        }
+
+        function closeStudentModal() {
+            document.getElementById('studentModal').style.display = 'none';
+            selectedSeatId = null;
+        }
+
+        function renderStudentList(listData) {
+            const container = document.getElementById('studentListContainer');
+            container.innerHTML = '';
+            
+            if (students.length === 0) {
+                container.innerHTML = `
+                    <div class="p-6 text-center flex flex-col items-center gap-3">
+                        <i data-lucide="user-x" class="w-10 h-10 text-gray-300"></i>
+                        <div class="text-gray-500 text-sm">មិនទាន់មានទិន្នន័យសិស្សទេ!</div>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            if (listData.length === 0) {
+                container.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">សិស្សទាំងអស់ត្រូវបានចាត់ចូលតុរួចរាល់</div>';
+                return;
+            }
+            
+            listData.forEach(s => {
+                const el = document.createElement('div');
+                el.className = 'p-3 hover:bg-blue-50 cursor-pointer rounded-xl flex items-center gap-3 border border-transparent hover:border-blue-100 transition';
+                el.onclick = () => assignStudent(s.uid);
+                
+                const stName = s.name || 'គ្មានឈ្មោះ';
+                const stId = s.uid || 'គ្មានអត្តលេខ';
+                const stGender = s.gender === 'ស្រី' ? 'ស' : 'ប';
+                
+                el.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">
+                        ${stGender}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-bold text-gray-700 text-sm truncate">${stName}</div>
+                        <div class="text-xs text-gray-400">ID: ${stId}</div>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function filterStudents() {
+            const query = document.getElementById('studentSearch').value.toLowerCase();
+            const seatedIds = Object.values(seatingLayout).map(id => String(id));
+            const filtered = students.filter(s => 
+                !seatedIds.includes(String(s.uid)) && 
+                (s.name.toLowerCase().includes(query) || String(s.uid).toLowerCase().includes(query))
+            );
+            renderStudentList(filtered);
+        }
+
+        function assignStudent(studentId) {
+            if (selectedSeatId) {
+                seatingLayout[selectedSeatId] = String(studentId);
+                localStorage.setItem(getKey('seatingLayout'), JSON.stringify(seatingLayout));
+                renderGrid();
+                closeStudentModal();
+            }
+        }
+
+        function removeStudentFromSeat(seatId) {
+            if (!isSeatingEditMode) return;
+            delete seatingLayout[seatId];
+            localStorage.setItem(getKey('seatingLayout'), JSON.stringify(seatingLayout));
+            renderGrid();
+        }
+
+        // ================= DASHBOARD & REPORTS =================
+        function renderDashboard() {
+            const filterDay = document.getElementById('dash_filter_day').value;
+            const filterMonth = document.getElementById('dash_filter_month').value;
+            const monthRecords = Object.keys(attendanceHistory).filter(d => d.startsWith(filterMonth));
+            const dayRecord = attendanceHistory[filterDay] || {};
+            
+            document.getElementById('dash-day-body').innerHTML = students.map(s => {
+                const rec = dayRecord[s.uid];
+                let badge = '<span class="text-gray-300 text-[10px] bg-gray-100 px-2 py-0.5 rounded-full">មិនទាន់កត់ត្រា</span>';
+                if(rec) {
+                    const cls = rec.status === 'P' ? 'bg-p' : (rec.status === 'L' ? 'bg-l' : 'bg-a');
+                    const lbl = rec.status === 'P' ? 'មក' : (rec.status === 'L' ? 'ច្បាប់' : 'អវត្ត');
+                    badge = `<span class="status-badge ${cls}">${lbl}</span>`;
+                }
+                return `<tr class="border-b hover:bg-gray-50"><td class="p-2 font-bold text-gray-700">${s.name}</td><td class="p-2 text-center">${badge}</td></tr>`;
+            }).join('');
+
+            let totalL = 0, totalA = 0;
+            document.getElementById('dashboard-table-body').innerHTML = students.map(s => {
+                let p = 0, l = 0, a = 0, lastNote = '-';
+                monthRecords.forEach(date => {
+                    const record = attendanceHistory[date]?.[s.uid];
+                    if(record) {
+                        if(record.status === 'P') p++;
+                        else if(record.status === 'L') { l++; totalL++; if(record.note) lastNote = record.note; }
+                        else if(record.status === 'A') { a++; totalA++; if(record.note) lastNote = record.note; }
+                    }
+                });
+                return `<tr class="border-b hover:bg-gray-50"><td class="p-3 font-bold text-[#0054a6]">${s.name}</td><td class="p-3 text-center text-green-600 font-bold">${toKhmerNum(p)}</td><td class="p-3 text-center text-yellow-600 font-bold">${toKhmerNum(l)}</td><td class="p-3 text-center text-red-600 font-bold">${toKhmerNum(a)}</td><td class="p-3 text-xs text-gray-500 italic">${lastNote}</td></tr>`;
+            }).join('');
+
+            document.getElementById('dash_total_students').innerText = toKhmerNum(students.length) + " នាក់";
+            document.getElementById('dash_total_leave').innerText = toKhmerNum(totalL) + " លើក";
+            document.getElementById('dash_total_absent').innerText = toKhmerNum(totalA) + " លើក";
+        }
+
+        function handleReportTypeChange() {
+            const type = document.getElementById('report_type').value;
+            const divRange = document.getElementById('div_range_select'), divSingle = document.getElementById('div_single_month'), divDaily = document.getElementById('div_daily_select');
+            const currentYear = new Date().getFullYear();
+            
+            divRange.style.display = 'none'; divSingle.style.display = 'none'; divDaily.style.display = 'none';
+            
+            if (type === 'daily') divDaily.style.display = 'block';
+            else if (type === 'monthly') divSingle.style.display = 'block';
+            else if (type === 'semester1') { divRange.style.display = 'grid'; document.getElementById('semester_start').value = (currentYear - 1) + "-10"; document.getElementById('semester_end').value = currentYear + "-03"; }
+            else if (type === 'semester2') { divRange.style.display = 'grid'; document.getElementById('semester_start').value = currentYear + "-04"; document.getElementById('semester_end').value = currentYear + "-08"; }
+            else if (type === 'custom') divRange.style.display = 'grid';
+        }
+
+        function updateReport() {
+            const type = document.getElementById('report_type').value;
+            const dailyDate = document.getElementById('report_daily_date').value;
+            let startM = document.getElementById('semester_start').value, endM = document.getElementById('semester_end').value, singleM = document.getElementById('single_month_input').value;
+
+            document.getElementById('print_org_1').innerText = classConfig.org1;
+            document.getElementById('print_org_2').innerText = classConfig.org2;
+            document.getElementById('print_school').innerText = classConfig.school;
+            document.getElementById('print_manager_role').innerText = classConfig.managerRole;
+            document.getElementById('print_teacher_sign').innerText = "                    " + classConfig.teacher;
+            document.getElementById('print_class').innerText = ' ' + classConfig.className;
+
+            let title = "របាយការណ៍វត្តមានសិស្ស", subDate = "";
+            const dateText = document.getElementById('report_subtitle_date');
+            dateText.style.display = 'block';
+
+            if(type === 'daily') {
+                const d = new Date(dailyDate);
+                title = "របាយការណ៍វត្តមានសិស្សប្រចាំថ្ងៃ";
+                subDate = `ថ្ងៃទី${toKhmerNum(d.getDate())} ខែ${khMonths[d.getMonth()]} ឆ្នាំ${toKhmerNum(d.getFullYear())}`;
+            } else if (type === 'monthly') {
+                const dSelect = new Date(singleM + "-01");
+                title = "របាយការណ៍វត្តមានសិស្សប្រចាំខែ " + khMonths[dSelect.getMonth()];
+                dateText.style.display = 'none'; startM = singleM; endM = singleM;
+            } else {
+                const dStart = new Date(startM + "-01"), dEnd = new Date(endM + "-01");
+                title = type === 'semester1' ? "របាយការណ៍វត្តមានសិស្ស ឆមាសទី ១" : (type === 'semester2' ? "របាយការណ៍វត្តមានសិស្ស ឆមាសទី ២" : "របាយការណ៍វត្តមានសិស្ស");
+                subDate = dStart.getFullYear() !== dEnd.getFullYear() ? `ចាប់ពីខែ ${khMonths[dStart.getMonth()]} ឆ្នាំ${toKhmerNum(dStart.getFullYear())} ដល់ខែ ${khMonths[dEnd.getMonth()]} ឆ្នាំ${toKhmerNum(dEnd.getFullYear())}` : `ចាប់ពីខែ ${khMonths[dStart.getMonth()]} ដល់ខែ ${khMonths[dEnd.getMonth()]} ឆ្នាំ${toKhmerNum(dEnd.getFullYear())}`;
+            }
+            document.getElementById('report_title_display').innerText = title;
+            dateText.innerText = subDate;
+            
+            const today = new Date();
+            if (typeof momentkh !== 'undefined') {
+                try { document.getElementById('print_lunar_date').innerText = momentkh.format(momentkh.fromDate(today)).replace('ពុទ្ធសករាជ', 'ព.ស.'); } catch (e) { document.getElementById('print_lunar_date').innerText = ""; }
+            }
+            document.getElementById('print_solar_date').innerText = `${classConfig.location}, ថ្ងៃទី${toKhmerNum(today.getDate())} ខែ${khMonths[today.getMonth()]} ឆ្នាំ${toKhmerNum(today.getFullYear())}`;
+
+            let filterDates = Object.keys(attendanceHistory).filter(d => {
+                if(type === 'daily') return d === dailyDate;
+                if(type === 'monthly') return d.startsWith(singleM);
+                return d >= startM && d <= endM;
+            }).sort();
+
+            document.getElementById('report-table-body').innerHTML = students.map((s, idx) => {
+                let p = 0, l = 0, a = 0, notes = [];
+                filterDates.forEach(date => {
+                    const r = attendanceHistory[date]?.[s.uid];
+                    if(r) {
+                        if(r.status === 'P') p++;
+                        else if(r.status === 'L') { l++; if(r.note) notes.push(r.note); }
+                        else if(r.status === 'A') { a++; if(r.note) notes.push(r.note); }
+                    }
+                });
+                const display = (v) => type === 'daily' ? (v > 0 ? '✓' : '') : (v > 0 ? toKhmerNum(v) : '');
+                return `<tr class="border-b border-black">
+                    <td class="border-r border-black p-1 text-center font-mono">${idx+1}</td>
+                    <td class="border-r border-black p-1 text-center font-mono">${s.uid}</td>
+                    <td class="border-r border-black p-1 font-bold pl-2">${s.name}</td>
+                    <td class="border-r border-black p-1 text-center font-bold">${display(p)}</td>
+                    <td class="border-r border-black p-1 text-center font-bold">${display(l)}</td>
+                    <td class="border-r border-black p-1 text-center font-bold">${display(a)}</td>
+                    <td class="p-1 text-[8pt] italic text-gray-600">${notes.slice(0, 2).join(', ')}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function generatePDF() {
+            const element = document.getElementById('pdf-content');
+            html2pdf().from(element).set({ margin: 0, filename: 'Attendance_Report.pdf', image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 3, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).save();
+        }
+
+        function exportToExcel() {
+            const type = document.getElementById('report_type').value;
+            const singleM = document.getElementById('single_month_input').value;
+            const dailyDate = document.getElementById('report_daily_date').value;
+            let startM = document.getElementById('semester_start').value, endM = document.getElementById('semester_end').value;
+
+            let filterDates = [];
+            if (type === 'daily') filterDates = [dailyDate];
+            else if (type === 'monthly') filterDates = Object.keys(attendanceHistory).filter(d => d.startsWith(singleM));
+            else filterDates = Object.keys(attendanceHistory).filter(d => d >= startM && d <= endM);
+
+            const fontMoul = { name: "Moul", sz: 11 }, fontMoulBig = { name: "Moul", sz: 14, bold: true }, fontTacteing = { name: "Tacteing", sz: 40 }, fontText = { name: "Hanuman", sz: 11 }, fontBold = { name: "Hanuman", sz: 11, bold: true };
+            const borderAll = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+            const s_kingdom = { font: fontMoul, alignment: { horizontal: "center" } }, s_tacteing = { font: fontTacteing, alignment: { horizontal: "center" } }, s_title = { font: fontMoulBig, alignment: { horizontal: "center" } }, s_org = { font: fontBold, alignment: { horizontal: "left" } };
+            const s_th = { font: fontBold, border: borderAll, alignment: { horizontal: "center", vertical: "center", wrapText: true }, fill: { fgColor: { rgb: "EEEEEE" } } };
+            const s_td_center = { font: fontText, border: borderAll, alignment: { horizontal: "center", vertical: "center" } }, s_td_left = { font: fontText, border: borderAll, alignment: { horizontal: "left", vertical: "center" } };
+
+            let wsData = [
+                [{ v: "ព្រះរាជាណាចក្រកម្ពុជា", s: s_kingdom }, "", "", "", "", "", ""],
+                [{ v: "ជាតិ សាសនា ព្រះមហាក្សត្រ", s: s_kingdom }, "", "", "", "", "", ""],
+                [{ v: "6", s: s_tacteing }, "", "", "", "", "", ""], 
+                [{ v: classConfig.org1, s: s_org }, "", "", "", "", "", ""], 
+                [{ v: classConfig.org2, s: s_org }, "", "", "", "", "", ""], 
+                [{ v: classConfig.school, s: s_org }, "", "", "", "", "", ""], 
+                [{ v: "" + classConfig.className, s: s_org }, "", "", "", "", { v: document.getElementById('report_subtitle_date').innerText || document.getElementById('print_solar_date').innerText, s: { font: fontText, alignment: { horizontal: "right" } } }, ""],
+                [""], 
+                [{ v: document.getElementById('report_title_display').innerText, s: s_title }, "", "", "", "", "", ""],
+                [""],
+                [{ v: "ល.រ", s: s_th }, { v: "អត្តលេខ", s: s_th }, { v: "ឈ្មោះសិស្ស", s: s_th }, { v: "មក", s: s_th }, { v: "ច្បាប់", s: s_th }, { v: "អវត្ត", s: s_th }, { v: "មូលហេតុ/ចំណាំ", s: s_th }]
+            ];
+
+            students.forEach((s, idx) => {
+                let p = 0, l = 0, a = 0, notes = [];
+                filterDates.forEach(date => {
+                    const r = attendanceHistory[date]?.[s.uid];
+                    if (r) {
+                        if (r.status === 'P') p++;
+                        else if (r.status === 'L') { l++; if(r.note) notes.push(r.note); }
+                        else if (r.status === 'A') { a++; if(r.note) notes.push(r.note); }
+                    }
+                });
+                wsData.push([
+                    { v: toKhmerNum(idx + 1), s: s_td_center }, { v: s.uid, s: s_td_center }, { v: s.name, s: s_td_left },
+                    { v: type === 'daily' ? (p > 0 ? "✓" : "") : (p > 0 ? toKhmerNum(p) : ""), s: s_td_center },
+                    { v: type === 'daily' ? (l > 0 ? "✓" : "") : (l > 0 ? toKhmerNum(l) : ""), s: s_td_center },
+                    { v: type === 'daily' ? (a > 0 ? "✓" : "") : (a > 0 ? toKhmerNum(a) : ""), s: s_td_center },
+                    { v: notes.join(', '), s: s_td_left }
+                ]);
             });
 
-            setTimeout(() => {
-                window.print();
-            }, 500);
-        };
+            wsData.push([""]);
+            const fStart = wsData.length;
+            wsData.push([{ v: "បានឃើញ និងឯកភាព", s: { font: fontText, alignment: { horizontal: "center" } } }, "", "", "", { v: document.getElementById('print_lunar_date').innerText, s: { font: fontText, alignment: { horizontal: "center" } } }, "", ""]);
+            wsData.push([{ v: classConfig.managerRole, s: { font: fontMoul, alignment: { horizontal: "center" } } }, "", "", "", { v: document.getElementById('print_solar_date').innerText, s: { font: fontText, alignment: { horizontal: "center" } } }, "", ""]);
+            wsData.push(["", "", "", "", { v: "គ្រូបន្ទុកថ្នាក់", s: { font: fontMoul, alignment: { horizontal: "center" } } }, "", ""]);
+            wsData.push([""]); wsData.push([""]); 
+            wsData.push(["", "", "", "", { v: classConfig.teacher, s: { font: fontMoul, alignment: { horizontal: "center" } } }, "", ""]);
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            ws['!pageSetup'] = { paperSize: 9, orientation: 'landscape' };
+            ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } }, { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } }, { s: { r: 3, c: 0 }, e: { r: 3, c: 3 } }, { s: { r: 4, c: 0 }, e: { r: 4, c: 3 } }, { s: { r: 5, c: 0 }, e: { r: 5, c: 3 } }, { s: { r: 6, c: 0 }, e: { r: 6, c: 4 } }, { s: { r: 6, c: 5 }, e: { r: 6, c: 6 } }, { s: { r: 8, c: 0 }, e: { r: 8, c: 6 } }, { s: { r: fStart, c: 0 }, e: { r: fStart, c: 2 } }, { s: { r: fStart + 1, c: 0 }, e: { r: fStart + 1, c: 2 } }, { s: { r: fStart, c: 4 }, e: { r: fStart, c: 6 } }, { s: { r: fStart + 1, c: 4 }, e: { r: fStart + 1, c: 6 } }, { s: { r: fStart + 2, c: 4 }, e: { r: fStart + 2, c: 6 } }, { s: { r: fStart + 5, c: 4 }, e: { r: fStart + 5, c: 6 } }];
+            ws['!cols'] = [{ wch: 6 }, { wch: 12 }, { wch: 35 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 35 }];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+            XLSX.writeFile(wb, "Attendance_" + (classConfig.className || "Class") + "_" + (type === 'daily' ? dailyDate : singleM) + ".xlsx");
+        }
+
+        function generateMonthlyDetailReport() {
+            const selectedMonth = document.getElementById('dash_filter_month').value;
+            if (!selectedMonth) return alert("សូមជ្រើសរើសខែ!");
+            const [year, month] = selectedMonth.split('-');
+            const reportData = { year: year, month: parseInt(month) - 1, className: classConfig.className || '........', school: classConfig.school || '..................................', org1: classConfig.org1 || 'មន្ទីរអប់រំ យុវជន និងកីឡា ខេត្ត........', org2: classConfig.org2 || 'ការិយាល័យអប់រំ យុវជន និងកីឡា នៃកម្រង........', teacher: classConfig.teacher || '..................................', students: students, attendance: attendanceHistory };
+            localStorage.setItem('temp_report_data', JSON.stringify(reportData));
+            window.open('monthly-report.html', '_blank');
+        }
+        
+        // Export functions to Window so HTML inline-events (onclick, onchange) can access them
+        window.changeClass = changeClass; window.createNewClass = createNewClass; window.editClassName = editClassName;
+        window.showSection = showSection; window.syncDate = syncDate; window.mark = mark;
+        window.confirmMarkWithNote = confirmMarkWithNote; window.closeNoteModal = closeNoteModal;
+        window.saveAttendance = saveAttendance; window.unlockAttendance = unlockAttendance;
+        window.toggleSeatingMode = toggleSeatingMode; window.updateGridConfig = updateGridConfig;
+        window.handleSeatClick = handleSeatClick; window.removeStudentFromSeat = removeStudentFromSeat;
+        window.openStudentModal = openStudentModal; window.closeStudentModal = closeStudentModal;
+        window.filterStudents = filterStudents; window.renderDashboard = renderDashboard;
+        window.handleReportTypeChange = handleReportTypeChange; window.updateReport = updateReport;
+        window.generatePDF = generatePDF; window.exportToExcel = exportToExcel; window.generateMonthlyDetailReport = generateMonthlyDetailReport;
     </script>
 </body>
 </html>

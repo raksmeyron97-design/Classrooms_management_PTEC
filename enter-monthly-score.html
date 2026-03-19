@@ -424,7 +424,8 @@
                 <option value="sem_home_arts">គេហវិទ្យា-អប់រំសិល្បៈ</option>
                 <option value="sem_life_skills">អប់រំបំណិនជីវិត</option>
                 <option value="sem_foreign">ភាសាបរទេស</option>
-                <option value="sem_kh_reading_speaking">អំណាន ស្តាប់ និង និយាយ</option>
+                <option value="sem_kh_reading">អំណាន</option>
+                <option value="sem_kh_listening_speaking">ស្តាប់ និង និយាយ</option>
                 <option value="sem_kh_dictation">សរសេរតាមអាន</option>
                 <option value="sem_kh_essay">តែងសេចក្តី</option>
                 <option value="sem_math">គណិតវិទ្យា</option>
@@ -432,7 +433,8 @@
                 <option value="sem_sport">អប់រំកាយ-សុខភាព</option>
             </optgroup>
             <optgroup label="ការវាយតម្លៃអាកប្បកិរិយា">
-                <option value="sem_behavior_all">វាយតម្លៃរួមទាំង៣ (បំណិន, សីលធម៌, សាមគ្គីភាព)</option>
+                <option value="sem_behavior_all">វាយតម្លៃរួមទាំង៤ (ចំណេះដឹង, បំណិន, សីលធម៌, សាមគ្គីភាព)</option>
+                <option value="sem_eval_knowledge">ចំណេះដឹង</option>
                 <option value="sem_eval_skill">បំណិន-ចំណេះធ្វើ</option>
                 <option value="sem_eval_moral">តម្លៃ-សីលធម៌</option>
                 <option value="sem_eval_participate">សាមគ្គីភាព-ការចូលរួម</option>
@@ -517,7 +519,8 @@
             'sem_home_arts': [{ id: 'sem_home_arts', label: 'គេហៈ-សិល្បៈ', width: '150px' }],
             'sem_life_skills': [{ id: 'sem_life_skills', label: 'បំណិនជីវិត', width: '150px' }],
             'sem_foreign': [{ id: 'sem_foreign', label: 'ភាសាបរទេស', width: '150px' }],
-            'sem_kh_reading_speaking': [{ id: 'sem_kh_reading_speaking', label: 'អំណាន-ស្តាប់-និយាយ', width: '150px' }],
+            'sem_kh_reading': [{ id: 'sem_kh_reading', label: 'អំណាន', width: '150px' }],
+            'sem_kh_listening_speaking': [{ id: 'sem_kh_listening_speaking', label: 'ស្តាប់-និយាយ', width: '150px' }],
             'sem_kh_dictation': [{ id: 'sem_kh_dictation', label: 'សរសេរតាមអាន', width: '150px' }],
             'sem_kh_essay': [{ id: 'sem_kh_essay', label: 'តែងសេចក្តី', width: '150px' }],
             'sem_math': [{ id: 'sem_math', label: 'គណិតវិទ្យា', width: '150px' }],
@@ -526,10 +529,12 @@
 
             // Behavioral Evaluations for Semester
             'sem_behavior_all': [
+                { id: 'sem_eval_knowledge', label: 'ចំណេះដឹង', width: '110px', type: 'select', options: behaviorOptions },
                 { id: 'sem_eval_skill', label: 'បំណិន-ចំណេះធ្វើ', width: '110px', type: 'select', options: behaviorOptions },
                 { id: 'sem_eval_moral', label: 'តម្លៃ-សីលធម៌', width: '110px', type: 'select', options: behaviorOptions },
                 { id: 'sem_eval_participate', label: 'សាមគ្គីភាព-ការចូលរួម', width: '110px', type: 'select', options: behaviorOptions }
             ],
+            'sem_eval_knowledge': [{ id: 'sem_eval_knowledge', label: 'ចំណេះដឹង', width: '150px', type: 'select', options: behaviorOptions }],
             'sem_eval_skill': [{ id: 'sem_eval_skill', label: 'បំណិន-ចំណេះធ្វើ', width: '150px', type: 'select', options: behaviorOptions }],
             'sem_eval_moral': [{ id: 'sem_eval_moral', label: 'តម្លៃ-សីលធម៌', width: '150px', type: 'select', options: behaviorOptions }],
             'sem_eval_participate': [{ id: 'sem_eval_participate', label: 'សាមគ្គីភាព-ការចូលរួម', width: '150px', type: 'select', options: behaviorOptions }]

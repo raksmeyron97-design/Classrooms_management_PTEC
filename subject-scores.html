@@ -151,11 +151,14 @@
                         <button onclick="switchScoreType('semester')" id="btnSemester" class="type-btn inactive">
                             <i data-lucide="award" class="w-4 h-4"></i> ឆមាស
                         </button>
+                        <button onclick="switchScoreType('annual')" id="btnAnnual" class="type-btn inactive">
+                            <i data-lucide="graduation-cap" class="w-4 h-4"></i> ប្រចាំឆ្នាំ
+                        </button>
                     </div>
 
                     <!-- Year Select -->
                     <div class="relative">
-                        <select id="yearSelect" class="form-select pl-9" onchange="updateMonthOptions(); loadData()">
+                        <select id="yearSelect" class="form-select pl-9" onchange="handleYearChange()">
                             <option value="2025-2026" selected>2025-2026</option>
                             <option value="2026-2027">2026-2027</option>
                             <option value="2027-2028">2027-2028</option>
@@ -186,13 +189,13 @@
                         <button onclick="openMonthSelectorModal()" class="flex items-center gap-2 px-3 py-2 bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 hover:border-purple-300 rounded-xl text-sm font-bold transition-all shadow-sm">
                             <i data-lucide="settings-2" class="w-4 h-4"></i>
                             ជ្រើសរើសខែបូក
-                            <span id="selectedMonthCount" class="bg-purple-600 text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">4</span>
+                            <span id="selectedMonthCount" class="bg-purple-600 text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">5</span>
                         </button>
                     </div>
 
                     <div class="w-px h-8 bg-slate-200 mx-1 hidden md:block"></div>
 
-                    <!-- Print Button Added Here -->
+                    <!-- Print Button -->
                     <button onclick="window.open('subject-scores_print.html', '_blank')" class="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl font-bold shadow-lg shadow-emerald-200 transition-all hover:scale-105 active:scale-95">
                         <i data-lucide="printer" class="w-4 h-4"></i>
                         <span>បោះពុម្ព</span>
@@ -252,7 +255,7 @@
             <div class="p-6 bg-slate-50/50">
                 <p class="text-sm text-slate-500 mb-4 flex items-center gap-2">
                     <i data-lucide="info" class="w-4 h-4 text-blue-500"></i>
-                    មធ្យមភាគប្រចាំខែសរុប នឹងត្រូវចែកនឹង <b class="text-blue-600" id="liveMonthCount">៤</b> (តាមចំនួនខែដែលអ្នកបានជ្រើសរើស)។
+                    មធ្យមភាគប្រចាំខែសរុប នឹងត្រូវចែកនឹង <b class="text-blue-600" id="liveMonthCount">៥</b> (តាមចំនួនខែដែលអ្នកបានជ្រើសរើស)។
                 </p>
                 
                 <div id="modalMonthsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -352,14 +355,31 @@
                     { key: 'sem_eval_moral', label: 'តម្លៃ-សីលធម៌', color: 'bg-green-700/90', isText: true, options: behaviorOptions },
                     { key: 'sem_eval_participate', label: 'សាមគ្គីភាព', color: 'bg-green-700/90', isText: true, options: behaviorOptions }
                 ]
+            },
+            annual: {
+                groups: [
+                    { name: 'ពិន្ទុមធ្យមភាគប្រចាំឆមាស', cols: 2, color: 'bg-blue-800' }
+                ],
+                columns: [
+                    { key: 'sem1_avg', label: 'មធ្យមភាគ ឆមាសទី១', color: 'bg-blue-700/90', readOnly: true },
+                    { key: 'sem2_avg', label: 'មធ្យមភាគ ឆមាសទី២', color: 'bg-blue-700/90', readOnly: true }
+                ]
             }
         };
 
         let currentMode = 'monthly'; 
         let students = [];
         let currentColumns = []; 
-        let selectedSemesterMonths = ['nov', 'dec', 'jan', 'feb'];
-        let allMonthsScoresCache = {}; // Cache for monthly scores when in semester mode
+        let customSubjects = [];
+        
+        // កំណត់ខែ Default សម្រាប់ឆមាសនីមួយៗ
+        const defaultSemesterMonths = {
+            sem1: ['nov', 'dec', 'jan', 'feb', 'mar'],
+            sem2: ['apr', 'may', 'jun', 'jul', 'aug']
+        };
+        let selectedSemesterMonths = ['nov', 'dec', 'jan', 'feb', 'mar']; // Initial
+        
+        let allMonthsScoresCache = {}; 
 
         const allMonthsMap = [
             { id: 'nov', label: 'វិច្ឆិកា', isNextYear: false }, { id: 'dec', label: 'ធ្នូ', isNextYear: false },
@@ -369,6 +389,64 @@
             { id: 'jul', label: 'កក្កដា', isNextYear: true }, { id: 'aug', label: 'សីហា', isNextYear: true },
             { id: 'sep', label: 'កញ្ញា', isNextYear: true }, { id: 'oct', label: 'តុលា', isNextYear: true }
         ];
+
+        // --- CUSTOM SUBJECTS LOGIC ---
+        async function loadCustomSubjects() {
+            try {
+                if (currentUser) {
+                    const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'settings', 'custom_subjects');
+                    const snap = await getDoc(docRef);
+                    if (snap.exists()) {
+                        customSubjects = snap.data().subjects || [];
+                    }
+                } else {
+                    const local = localStorage.getItem('custom_subjects');
+                    if (local) customSubjects = JSON.parse(local);
+                }
+            } catch (e) {
+                console.error("Error loading custom subjects", e);
+            }
+            injectCustomSubjects();
+        }
+
+        function injectCustomSubjects() {
+            if (!customSubjects || customSubjects.length === 0) return;
+            
+            let monthlyCustomCols = [];
+            let semesterCustomCols = [];
+
+            customSubjects.forEach(sub => {
+                sub.columns.forEach(col => {
+                    const newCol = { key: col.id, label: col.label, color: 'bg-purple-600/90' };
+                    // Add to monthly if applicable
+                    if (sub.type === 'both' || sub.type === 'monthly') {
+                        if (!config.monthly.columns.find(c => c.key === col.id)) {
+                            monthlyCustomCols.push(newCol);
+                        }
+                    }
+                    // Add to semester if applicable
+                    if (sub.type === 'both' || sub.type === 'semester') {
+                        if (!config.semester.columns.find(c => c.key === col.id)) {
+                            semesterCustomCols.push(newCol);
+                        }
+                    }
+                });
+            });
+
+            if (monthlyCustomCols.length > 0) {
+                config.monthly.columns.push(...monthlyCustomCols);
+                let customGroup = config.monthly.groups.find(g => g.name === 'មុខវិជ្ជាបន្ថែម');
+                if (customGroup) customGroup.cols += monthlyCustomCols.length;
+                else config.monthly.groups.push({ name: 'មុខវិជ្ជាបន្ថែម', cols: monthlyCustomCols.length, color: 'bg-purple-800' });
+            }
+
+            if (semesterCustomCols.length > 0) {
+                config.semester.columns.push(...semesterCustomCols);
+                let customGroup = config.semester.groups.find(g => g.name === 'មុខវិជ្ជាបន្ថែម');
+                if (customGroup) customGroup.cols += semesterCustomCols.length;
+                else config.semester.groups.push({ name: 'មុខវិជ្ជាបន្ថែម', cols: semesterCustomCols.length, color: 'bg-purple-800' });
+            }
+        }
 
         // --- HELPER FUNCTIONS ---
         function showLoading(show) {
@@ -389,9 +467,15 @@
 
         function getStorageKey() {
             const year = document.getElementById('yearSelect').value;
-            let period = currentMode === 'monthly' ? document.getElementById('monthSelect').value : document.getElementById('semesterSelect').value;
-            if(!period) period = currentMode === 'monthly' ? 'nov' : 'sem1';
-            return `${year}_${period}`; // Format: 2025-2026_nov
+            let period = 'nov';
+            if (currentMode === 'monthly') {
+                period = document.getElementById('monthSelect').value || 'nov';
+            } else if (currentMode === 'semester') {
+                period = document.getElementById('semesterSelect').value || 'sem1';
+            } else if (currentMode === 'annual') {
+                period = 'annual';
+            }
+            return `${year}_${period}`; 
         }
 
         // --- CORE LOGIC ---
@@ -404,17 +488,14 @@
                 const studentData = scoresData[studentId];
                 
                 if (studentData) {
-                    // បើមានទិន្នន័យមធ្យមភាគដែលធ្លាប់បាន Save នៅក្នុងប្រព័ន្ធ (New Format) យើងយកមកប្រើតែម្តង
                     if (studentData.results && studentData.results.average !== undefined) {
                         sumOfAverages += parseFloat(studentData.results.average) || 0;
                     } else {
-                        // ការពារករណីទិន្នន័យចាស់ ដែលមិនទាន់មានលទ្ធផលសរុប (Backward Compatibility)
                         let studentScores = studentData.hasOwnProperty('scores') ? studentData.scores : studentData;
-                        
                         let mSum = 0;
                         let mCount = 0;
                         config.monthly.columns.forEach(col => {
-                            if(col.isText) return; // Ignore string/text columns for numbers
+                            if(col.isText) return; 
                             const val = studentScores[col.key];
                             if (val !== null && val !== undefined && val !== "") {
                                 const numVal = parseFloat(val);
@@ -438,7 +519,7 @@
             let scoredSubjectsCount = 0;
 
             currentColumns.forEach(col => {
-                if(col.isText) return; // Skip behavior evaluation for calculation
+                if(col.isText) return;
                 const rawVal = student.scores[col.key];
                 if (rawVal !== null && rawVal !== undefined && rawVal !== "") {
                     const val = parseFloat(rawVal);
@@ -453,7 +534,19 @@
                 student.total = sum;
                 student.average = scoredSubjectsCount > 0 ? (sum / scoredSubjectsCount).toFixed(2) : "0.00";
                 student.finalAverageForRank = parseFloat(student.average);
-            } else {
+            } else if (currentMode === 'annual') {
+                const s1 = parseFloat(student.scores['sem1_avg']);
+                const s2 = parseFloat(student.scores['sem2_avg']);
+                const val1 = isNaN(s1) ? 0 : s1;
+                const val2 = isNaN(s2) ? 0 : s2;
+                
+                student.annualTotal = val1 + val2;
+                student.annualAverage = ((val1 + val2) / 2).toFixed(2);
+                student.finalAverageForRank = parseFloat(student.annualAverage);
+                
+                student.total = student.annualTotal;
+                student.average = student.annualAverage;
+            } else { // semester
                 student.examTotal = sum;
                 student.examAverage = scoredSubjectsCount > 0 ? (sum / scoredSubjectsCount).toFixed(2) : "0.00";
                 
@@ -513,7 +606,7 @@
                 colsHTML += `<th class="p-2 min-w-[80px] border border-blue-400 ${c.color} text-white text-xs font-normal">${c.label}</th>`;
             });
 
-            const resultColspan = currentMode === 'semester' ? 6 : 4;
+            const resultColspan = currentMode === 'semester' ? 6 : (currentMode === 'annual' ? 3 : 4);
 
             let resultSubHeaders = '';
             if (currentMode === 'semester') {
@@ -526,7 +619,13 @@
                     <th class="p-2 w-20 border border-blue-400 bg-yellow-700 font-bold text-xs text-white">ចំណាត់ថ្នាក់</th>
                     <th class="p-2 w-16 border border-blue-400 bg-yellow-700 font-bold text-xs text-white">និទ្ទេស</th>
                 `;
-            } else {
+            } else if (currentMode === 'annual') {
+                resultSubHeaders = `
+                    <th class="p-2 w-28 border border-blue-400 bg-yellow-700 font-bold text-[11px] leading-tight text-white">លទ្ធផលប្រចាំឆ្នាំ</th>
+                    <th class="p-2 w-24 border border-blue-400 bg-yellow-700 font-bold text-xs text-white">ចំណាត់ថ្នាក់</th>
+                    <th class="p-2 w-16 border border-blue-400 bg-yellow-700 font-bold text-xs text-white">និទ្ទេស</th>
+                `;
+            } else { // monthly
                 resultSubHeaders = `
                     <th class="p-2 w-24 border border-blue-400 bg-yellow-700 font-bold text-xs text-white">សរុប</th>
                     <th class="p-2 w-24 border border-blue-400 bg-yellow-700 font-bold text-xs text-white">មធ្យម</th>
@@ -553,7 +652,7 @@
             const tbody = document.getElementById('scoreTableBody');
             const mainTable = document.getElementById('mainTable');
             
-            const minW = currentMode === 'monthly' ? '2800px' : '2400px';
+            const minW = currentMode === 'monthly' ? '2800px' : (currentMode === 'annual' ? '800px' : '2400px');
             mainTable.style.minWidth = minW;
             document.getElementById('studentCount').innerText = `សិស្សសរុប: ${students.length} នាក់`;
 
@@ -579,6 +678,14 @@
                             </select>
                         </td>
                         `;
+                    } else if (col.readOnly) {
+                        return `
+                        <td class="p-0 border border-slate-200 relative bg-slate-50/80">
+                            <input type="text" readonly
+                                value="${val !== '' ? formatKhmerNumber(val) : '-'}" 
+                                class="w-full h-full min-h-[40px] text-center p-1 outline-none text-slate-600 font-bold bg-transparent cursor-default pointer-events-none">
+                        </td>
+                        `;
                     } else {
                         return `
                         <td class="p-0 border border-slate-200 relative">
@@ -601,7 +708,13 @@
                         <td class="p-2 text-center font-bold bg-yellow-50 border border-yellow-200 text-slate-800 rank-cell" id="rank-${s.id}">${s.rank}</td>
                         <td class="p-2 text-center font-extrabold border border-yellow-200 grade-cell ${getGradeColor(s.grade)}" id="grade-${index}">${s.grade}</td>
                     `;
-                } else {
+                } else if (currentMode === 'annual') {
+                    resultCells = `
+                        <td class="p-2 text-center font-bold bg-yellow-50 border border-yellow-200 text-slate-800" id="annAvg-${index}">${formatKhmerNumber(s.annualAverage)}</td>
+                        <td class="p-2 text-center font-bold bg-yellow-50 border border-yellow-200 text-slate-800 rank-cell" id="rank-${s.id}">${s.rank}</td>
+                        <td class="p-2 text-center font-extrabold border border-yellow-200 grade-cell ${getGradeColor(s.grade)}" id="grade-${index}">${s.grade}</td>
+                    `;
+                } else { // semester
                     resultCells = `
                         <td class="p-2 text-center font-bold bg-yellow-50 border border-yellow-200 text-slate-800" id="examTotal-${index}">${formatKhmerNumber(s.examTotal)}</td>
                         <td class="p-2 text-center font-bold bg-yellow-50 border border-yellow-200 text-slate-800" id="examAvg-${index}">${formatKhmerNumber(s.examAverage)}</td>
@@ -625,9 +738,17 @@
             }).join('');
         }
 
-
         // --- WINDOW EXPORTED FUNCTIONS (For HTML Inline Handlers) ---
         
+        window.handleYearChange = async function() {
+            window.updateMonthOptions();
+            if (currentMode === 'semester') {
+                await window.handleSemesterChange();
+            } else {
+                window.loadData();
+            }
+        }
+
         window.updateMonthOptions = function() {
             const yearVal = document.getElementById('yearSelect').value;
             if (!yearVal || !yearVal.includes('-')) return;
@@ -636,7 +757,6 @@
             const monthSelect = document.getElementById('monthSelect');
             let currentMonthVal = monthSelect.value;
 
-            // Auto-select current month if not already selected
             if (!currentMonthVal) {
                 const currentMonthIndex = new Date().getMonth();
                 const jsMonthToId = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
@@ -657,12 +777,20 @@
             }
         }
 
-        window.switchScoreType = function(mode) {
+        window.switchScoreType = async function(mode) {
             currentMode = mode;
             const monthContainer = document.getElementById('monthContainer');
             const semesterContainer = document.getElementById('semesterContainer');
+            
             const btnMonthly = document.getElementById('btnMonthly');
             const btnSemester = document.getElementById('btnSemester');
+            const btnAnnual = document.getElementById('btnAnnual');
+
+            // Reset buttons to inactive
+            [btnMonthly, btnSemester, btnAnnual].forEach(btn => {
+                btn.classList.add('inactive');
+                btn.classList.remove('active');
+            });
 
             if (mode === 'monthly') {
                 monthContainer.classList.remove('hidden');
@@ -670,25 +798,60 @@
                 semesterContainer.classList.remove('flex');
                 
                 btnMonthly.classList.add('active'); btnMonthly.classList.remove('inactive');
-                btnSemester.classList.add('inactive'); btnSemester.classList.remove('active');
-            } else {
+                window.loadData();
+            } else if (mode === 'semester') {
                 monthContainer.classList.add('hidden');
                 semesterContainer.classList.remove('hidden');
                 semesterContainer.classList.add('flex');
 
                 btnSemester.classList.add('active'); btnSemester.classList.remove('inactive');
-                btnMonthly.classList.add('inactive'); btnMonthly.classList.remove('active');
-            }
+                await window.handleSemesterChange(); // Load with saved custom months
+            } else if (mode === 'annual') {
+                monthContainer.classList.add('hidden');
+                semesterContainer.classList.add('hidden');
+                semesterContainer.classList.remove('flex');
 
-            window.loadData();
+                btnAnnual.classList.add('active'); btnAnnual.classList.remove('inactive');
+                window.loadData();
+            }
         }
 
-        window.handleSemesterChange = function() {
+        // មុខងារទាញយកខែដែលបានជ្រើសរើសចុងក្រោយ ឬប្រើ Default ពី Cloud Database
+        window.handleSemesterChange = async function() {
+            showLoading(true);
+            const year = document.getElementById('yearSelect').value;
             const sem = document.getElementById('semesterSelect').value;
-            if (sem === 'sem1') selectedSemesterMonths = ['nov', 'dec', 'jan', 'feb'];
-            else selectedSemesterMonths = ['mar', 'apr', 'may', 'jun'];
+            
+            // បង្កើត Key សម្រាប់ទុក (ឧ. selected_months_2025-2026_sem1)
+            const storageKey = `selected_months_${year}_${sem}`;
+            let foundInCloud = false;
+
+            // ១. ព្យាយាមទាញយកពី Firebase Cloud សិន
+            if (currentUser) {
+                try {
+                    const settingsRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'settings', 'preferences');
+                    const settingsSnap = await getDoc(settingsRef);
+                    if (settingsSnap.exists() && settingsSnap.data()[storageKey]) {
+                        selectedSemesterMonths = settingsSnap.data()[storageKey];
+                        foundInCloud = true;
+                    }
+                } catch (error) {
+                    console.error("Error loading settings from Cloud:", error);
+                }
+            }
+            
+            // ២. បើអត់មាននៅ Cloud ទេ ទាញពី LocalStorage (Backup) ឬប្រើ Default
+            if (!foundInCloud) {
+                const savedMonths = localStorage.getItem(storageKey);
+                if (savedMonths) {
+                    selectedSemesterMonths = JSON.parse(savedMonths);
+                } else {
+                    selectedSemesterMonths = defaultSemesterMonths[sem];
+                }
+            }
+            
             updateMonthCountBadge();
-            window.loadData();
+            await window.loadData();
         }
 
         window.loadData = async function() {
@@ -699,7 +862,6 @@
             renderTableHeader(conf);
 
             try {
-                // ១. ទាញយកឈ្មោះសិស្ស
                 let loadedStudents = [];
                 if (currentUser) {
                     const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
@@ -709,13 +871,11 @@
                     });
                 }
                 
-                // Fallback local ពេលគ្មានសិស្ស
                 if (loadedStudents.length === 0) {
                     const studentsRaw = localStorage.getItem('students_db') || localStorage.getItem('students');
                     if (studentsRaw) loadedStudents = JSON.parse(studentsRaw);
                 }
 
-                // ២. ទាញយកពិន្ទុសម្រាប់ខែ ឬឆមាសដែលជ្រើសរើស
                 let parsedScores = {};
                 const docId = getStorageKey();
                 
@@ -725,19 +885,68 @@
                     if (scoresSnap.exists()) {
                         parsedScores = scoresSnap.data();
                     } else {
-                        // Fallback ចាស់
                         const oldSnap = await getDoc(doc(db, "scores", docId)).catch(() => null);
                         if (oldSnap && oldSnap.exists()) parsedScores = oldSnap.data();
                     }
                 }
                 
-                // Fallback local
                 if (Object.keys(parsedScores).length === 0) {
                     const localScores = localStorage.getItem(`scores_${docId}`);
                     if (localScores) parsedScores = JSON.parse(localScores);
                 }
+
+                // -----------------------------------------------------
+                // Auto-fetch semester 1 and 2 averages for Annual mode
+                // -----------------------------------------------------
+                if (currentMode === 'annual') {
+                    const year = document.getElementById('yearSelect').value;
+                    let sem1Data = {};
+                    let sem2Data = {};
+                    
+                    try {
+                        if (currentUser) {
+                            const s1Snap = await getDoc(doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'scores', `${year}_sem1`));
+                            if(s1Snap.exists()) sem1Data = s1Snap.data();
+                            
+                            const s2Snap = await getDoc(doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'scores', `${year}_sem2`));
+                            if(s2Snap.exists()) sem2Data = s2Snap.data();
+                        }
+                    } catch(e) { console.error(e); }
+                    
+                    if(Object.keys(sem1Data).length === 0) {
+                        const ls = localStorage.getItem(`scores_${year}_sem1`);
+                        if(ls) sem1Data = JSON.parse(ls);
+                    }
+                    if(Object.keys(sem2Data).length === 0) {
+                        const ls = localStorage.getItem(`scores_${year}_sem2`);
+                        if(ls) sem2Data = JSON.parse(ls);
+                    }
+                    
+                    loadedStudents.forEach(s => {
+                        let dbRecord = parsedScores[s.id] || {};
+                        let stScores = dbRecord.hasOwnProperty('scores') ? dbRecord.scores : dbRecord;
+                        
+                        // យកពិន្ទុឆមាសទី១ មកដាក់ដោយស្វ័យប្រវត្តិ បើមិនទាន់មានទិន្នន័យ
+                        if (stScores['sem1_avg'] === null || stScores['sem1_avg'] === undefined || stScores['sem1_avg'] === "") {
+                            if (sem1Data[s.id] && sem1Data[s.id].results && sem1Data[s.id].results.semesterAverage) {
+                                stScores['sem1_avg'] = sem1Data[s.id].results.semesterAverage;
+                            }
+                        }
+                        // យកពិន្ទុឆមាសទី២ មកដាក់ដោយស្វ័យប្រវត្តិ បើមិនទាន់មានទិន្នន័យ
+                        if (stScores['sem2_avg'] === null || stScores['sem2_avg'] === undefined || stScores['sem2_avg'] === "") {
+                            if (sem2Data[s.id] && sem2Data[s.id].results && sem2Data[s.id].results.semesterAverage) {
+                                stScores['sem2_avg'] = sem2Data[s.id].results.semesterAverage;
+                            }
+                        }
+                        
+                        if (!parsedScores[s.id]) {
+                            parsedScores[s.id] = { scores: stScores };
+                        } else if (!parsedScores[s.id].scores) {
+                            parsedScores[s.id].scores = stScores;
+                        }
+                    });
+                }
                 
-                // ៣. ទាញយកពិន្ទុខែចាស់ៗ បើសិនជាស្ថិតក្នុងឆមាស ដោយប្រើ Promise.all ដើម្បីឲ្យដើរលឿន
                 allMonthsScoresCache = {};
                 if (currentMode === 'semester') {
                     const year = document.getElementById('yearSelect').value;
@@ -753,7 +962,6 @@
                             if (mSnap.exists()) {
                                 mData = mSnap.data();
                             } else {
-                                // Fallback ចាស់ពី Database ជំនាន់មុន
                                 const oldSnap = await getDoc(doc(db, "scores", mDocId)).catch(() => null);
                                 if (oldSnap && oldSnap.exists()) mData = oldSnap.data();
                             }
@@ -770,7 +978,6 @@
 
                 students = loadedStudents.map(s => {
                     let dbRecord = parsedScores[s.id] || {};
-                    // បែងចែករវាងទិន្នន័យចាស់ (ដែលមានតែពិន្ទុ) និងទិន្នន័យថ្មី (ដែលមានពិន្ទុ និងលទ្ធផលសរុប)
                     let studentScores = dbRecord.hasOwnProperty('scores') ? dbRecord.scores : dbRecord;
                     
                     currentColumns.forEach(col => {
@@ -781,7 +988,9 @@
                         id: s.id, name: s.name, gender: s.gender || '',
                         scores: studentScores,
                         total: 0, average: 0, examTotal: 0, examAverage: 0,
-                        monthlyAverage: 0, semesterAverage: 0, finalAverageForRank: 0,
+                        monthlyAverage: 0, semesterAverage: 0, 
+                        annualTotal: 0, annualAverage: 0,
+                        finalAverageForRank: 0,
                         rank: 0, grade: 'F'
                     };
                 });
@@ -802,7 +1011,6 @@
         window.updateScoreText = function(index, subject, value) {
             const student = students[index];
             student.scores[subject] = value;
-            // No need to recalculate numeric totals, just saves in state
         }
 
         window.updateScore = function(index, subject, value) {
@@ -815,7 +1023,9 @@
             if (currentMode === 'monthly') {
                 document.getElementById(`total-${index}`).innerText = formatKhmerNumber(student.total);
                 document.getElementById(`avg-${index}`).innerText = formatKhmerNumber(student.average);
-            } else {
+            } else if (currentMode === 'annual') {
+                document.getElementById(`annAvg-${index}`).innerText = formatKhmerNumber(student.annualAverage);
+            } else { // semester
                 document.getElementById(`examTotal-${index}`).innerText = formatKhmerNumber(student.examTotal);
                 document.getElementById(`examAvg-${index}`).innerText = formatKhmerNumber(student.examAverage);
                 document.getElementById(`monthlyAvg-${index}`).innerText = formatKhmerNumber(student.monthlyAverage);
@@ -849,7 +1059,6 @@
 
             const scoresToSave = {};
             students.forEach(s => { 
-                // កែប្រែទម្រង់រក្សាទុក ដោយរាប់បញ្ចូលទាំងលទ្ធផលសរុប និងចំណាត់ថ្នាក់
                 scoresToSave[s.id] = {
                     scores: s.scores,
                     results: {
@@ -859,6 +1068,8 @@
                         examAverage: s.examAverage,
                         monthlyAverage: s.monthlyAverage,
                         semesterAverage: s.semesterAverage,
+                        annualTotal: s.annualTotal,
+                        annualAverage: s.annualAverage,
                         rank: s.rank,
                         grade: s.grade
                     }
@@ -872,7 +1083,6 @@
                     await setDoc(scoresRef, scoresToSave, { merge: true });
                 }
                 
-                // រក្សាទុកបម្រុងទុកក្នុង LocalStorage (Backup)
                 localStorage.setItem(`scores_${docId}`, JSON.stringify(scoresToSave));
                 
                 setTimeout(() => {
@@ -945,11 +1155,42 @@
             document.getElementById('liveMonthCount').innerText = checkedBoxes.length;
         }
 
-        window.applyMonthSelection = function() {
+        // រក្សាទុកខែដែលបានជ្រើសរើសទៅក្នុង Firebase Cloud Database និង LocalStorage ជា Backup
+        window.applyMonthSelection = async function() {
             const checkedBoxes = document.querySelectorAll('.month-card-input:checked');
             const newSelection = Array.from(checkedBoxes).map(cb => cb.value);
             if (newSelection.length === 0) { alert("សូមជ្រើសរើសយ៉ាងហោចណាស់មួយខែ!"); return; }
+            
             selectedSemesterMonths = newSelection;
+            
+            const year = document.getElementById('yearSelect').value;
+            const sem = document.getElementById('semesterSelect').value;
+            const storageKey = `selected_months_${year}_${sem}`;
+            
+            // ១. សន្សំទុកការកំណត់ក្នុង LocalStorage ជា Backup
+            localStorage.setItem(storageKey, JSON.stringify(selectedSemesterMonths));
+
+            // ២. រក្សាទុកចូល Firebase Online
+            if (currentUser) {
+                try {
+                    // បង្ហាញសញ្ញា Loading លើប៊ូតុងពេលកំពុង Save
+                    const btn = document.querySelector('button[onclick="applyMonthSelection()"]');
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> កំពុងរក្សាទុក...';
+                    lucide.createIcons();
+
+                    const settingsRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'settings', 'preferences');
+                    await setDoc(settingsRef, {
+                        [storageKey]: selectedSemesterMonths
+                    }, { merge: true });
+
+                    btn.innerHTML = originalHTML;
+                    lucide.createIcons();
+                } catch (error) {
+                    console.error("Error saving settings to Cloud:", error);
+                }
+            }
+
             window.closeMonthSelectorModal();
             window.loadData(); 
         }
@@ -962,14 +1203,14 @@
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     currentUser = user;
+                    await loadCustomSubjects(); // ដំណើរការទាញយកមុខវិជ្ជាបន្ថែម
                     await window.loadData();
                 } else {
                     try {
-                        // បង្កើត Anonymous Session ដើម្បីអនុញ្ញាតឱ្យ Save ចូល Firebase បាន
                         await signInAnonymously(auth);
                     } catch (error) {
                         console.error("Auth Error:", error);
-                        // បើ Offline ទាញចេញពី Local ធម្មតា
+                        await loadCustomSubjects(); // ដំណើរការទាញយកមុខវិជ្ជាបន្ថែម
                         await window.loadData();
                     }
                 }

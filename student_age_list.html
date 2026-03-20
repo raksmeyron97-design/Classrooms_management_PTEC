@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - បញ្ជីរាប់ និងវិភាគអាយុ-កម្ពស់សិស្ស</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root { --primary: #0054a6; --secondary: #3b82f6; }
+        
+        body { font-family: 'Battambang', cursive; background: #f0f4f8; min-height: 100vh; margin: 0; color: #1e293b; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        
+        /* Background Animation */
+        .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 10% 20%, #e0e7ff 0%, transparent 40%), radial-gradient(circle at 90% 80%, #dcfce7 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 50%); animation: moveBg 20s infinite alternate ease-in-out; }
+        @keyframes moveBg { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        /* Form Control */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        /* Table specific styles for Stats */
+        .stats-table-wrapper {
+            overflow-x: auto;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            background: white;
+        }
+        
+        .stats-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .stats-table th, .stats-table td { border: 1px solid #cbd5e1; padding: 8px 4px; text-align: center; vertical-align: middle; white-space: nowrap; }
+        .stats-table th { background-color: #f1f5f9; font-family: 'Moul', cursive; font-weight: normal; font-size: 12px; color: #1e293b; }
+        .stats-table td.gender-col { font-family: 'Moul', cursive; background-color: #f8fafc; }
+
+        /* Print Container & A4 Landscape Styling */
+        .print-container {
+            background: white; width: 297mm; min-height: 210mm;
+            margin: 2rem auto; padding: 10mm 15mm; box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative; box-sizing: border-box; color: black;
+        }
+
+        /* Print Sections */
+        .print-section {
+            display: flex;
+            flex-direction: column;
+            page-break-after: always;
+            padding-bottom: 5mm;
+            min-height: 180mm; /* កំណត់កម្ពស់អប្បបរមាដើម្បីឱ្យ margin-top: auto ដំណើរការបានល្អ */
+        }
+        .print-section:last-child {
+            page-break-after: auto;
+        }
+
+        .report-table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-top: 15px; }
+        .report-table th, .report-table td { border: 1px solid #000; padding: 4px; text-align: center; vertical-align: middle; }
+        .report-table th { background-color: #f3f4f6 !important; font-family: 'Moul', cursive; font-weight: normal; font-size: 10pt; }
+        
+        /* ប្រើប្រាស់ margin-top: auto ដើម្បីរុញហត្ថលេខាទៅបាតទំព័រជានិច្ច */
+        .signature-container { width: 100%; margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; padding-top: 15px; page-break-inside: avoid; }
+        .sig-col-left { text-align: center; }
+        .sig-col-right { text-align: center; padding-left: 20mm; }
+        .teacher-name-final { font-family: 'Moul', cursive; font-size: 11.5pt; margin-top: 60px; display: block; text-align: center; }
+        .lunar-date { font-size: 11pt; margin-bottom: 2px; white-space: nowrap; }
+        .solar-date { font-size: 11pt; font-weight: normal; margin-bottom: 8px; }
+        .role-title { font-family: 'Moul', cursive; font-size: 12pt; }
+
+        @media print {
+            @page { size: A4 landscape; margin: 10mm; }
+            body { background: white !important; padding: 0; margin: 0; }
+            .no-print { display: none !important; }
+            .print-container { display: block !important; width: 100%; box-shadow: none !important; padding: 0 !important; margin: 0 !important; }
+            .report-table th { background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .bg-animate { display: none; }
+        }
+        .preview-mode { background: #94a3b8; padding-top: 2rem; padding-bottom: 2rem; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-animate no-print"></div>
+
+    <!-- Main Screen -->
+    <div id="mainScreen" class="min-h-screen flex flex-col pt-6 px-4 no-print relative pb-20">
+        <div class="max-w-[1200px] mx-auto w-full">
+            
+            <!-- Navigation -->
+            <a href="index.html" class="inline-flex items-center gap-2 text-[#0054a6] hover:text-blue-800 font-bold transition mb-6 bg-white/50 px-4 py-2 rounded-xl backdrop-blur-sm shadow-sm w-fit">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i> ត្រឡប់ទៅទំព័រដើម
+            </a>
+
+            <!-- Form & Management Section -->
+            <div class="glass-card p-6 md:p-8 mb-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b pb-4 gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-blue-100 rounded-full text-[#0054a6]">
+                            <i data-lucide="calendar" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h1 class="kh-moul text-xl md:text-2xl text-[#0054a6]">បញ្ជីរាប់ និងវិភាគអាយុ-កម្ពស់សិស្ស</h1>
+                            <p class="text-sm text-gray-500 mt-1" id="loadingText">កំពុងទាញយកទិន្នន័យ...</p>
+                        </div>
+                    </div>
+                    
+                    <button onclick="window.previewPDF()" id="printBtn" disabled class="bg-[#0054a6] hover:bg-blue-700 disabled:bg-gray-400 text-white px-5 py-2.5 rounded-xl font-bold transition shadow-md flex items-center gap-2 text-sm">
+                        <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ពទិន្នន័យ
+                    </button>
+                </div>
+
+                <!-- Summary Cards for Count -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" id="summaryCards" style="display: none;">
+                    <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-bold mb-1">សិស្សសរុប</p>
+                            <h3 class="text-2xl font-bold text-blue-700" id="cardTotal">0</h3>
+                        </div>
+                        <div class="p-3 bg-blue-200 text-blue-700 rounded-full"><i data-lucide="users" class="w-6 h-6"></i></div>
+                    </div>
+                    <div class="bg-pink-50 border border-pink-100 p-4 rounded-xl flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-bold mb-1">សិស្សស្រី</p>
+                            <h3 class="text-2xl font-bold text-pink-600" id="cardFemale">0</h3>
+                        </div>
+                        <div class="p-3 bg-pink-200 text-pink-600 rounded-full"><i data-lucide="user" class="w-6 h-6"></i></div>
+                    </div>
+                    <div class="bg-sky-50 border border-sky-100 p-4 rounded-xl flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-bold mb-1">សិស្សប្រុស</p>
+                            <h3 class="text-2xl font-bold text-sky-600" id="cardMale">0</h3>
+                        </div>
+                        <div class="p-3 bg-sky-200 text-sky-600 rounded-full"><i data-lucide="user" class="w-6 h-6"></i></div>
+                    </div>
+                </div>
+
+                <!-- Data Table for Age Stats -->
+                <div class="stats-table-wrapper mb-12" id="tableContainer">
+                    <table class="stats-table" id="mainTable">
+                        <tbody>
+                            <tr><td class="p-6 text-center text-gray-400 font-bold">កំពុងផ្ទៀងផ្ទាត់គណនី និងវិភាគទិន្នន័យ...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Age Analysis Dashboard -->
+                <div class="border-t border-slate-200 pt-8" id="analysisDashboard" style="display: none;">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="p-3 bg-emerald-100 rounded-full text-emerald-600">
+                                <i data-lucide="calendar-clock" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h2 class="kh-moul text-lg md:text-xl text-[#0054a6]">ការវិភាគអាយុសិស្ស</h2>
+                                <p class="text-sm text-gray-500 mt-1">ទិន្នន័យសង្ខេបអាយុបង្ហាញតាមរយៈក្រាបផ្សេងៗគ្នា</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Age Average Counters -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-white border border-slate-200 p-4 rounded-xl text-center shadow-sm hover:border-emerald-300 transition-colors">
+                            <p class="text-sm font-bold text-slate-500 mb-1">អាយុមធ្យម (សរុប)</p>
+                            <h3 class="text-2xl font-bold text-emerald-600"><span id="avgAgeTotal">0</span> ឆ្នាំ</h3>
+                        </div>
+                        <div class="bg-white border border-slate-200 p-4 rounded-xl text-center shadow-sm hover:border-pink-300 transition-colors">
+                            <p class="text-sm font-bold text-slate-500 mb-1">អាយុមធ្យម (សិស្សស្រី)</p>
+                            <h3 class="text-2xl font-bold text-pink-600"><span id="avgAgeGirl">0</span> ឆ្នាំ</h3>
+                        </div>
+                        <div class="bg-white border border-slate-200 p-4 rounded-xl text-center shadow-sm hover:border-sky-300 transition-colors">
+                            <p class="text-sm font-bold text-slate-500 mb-1">អាយុមធ្យម (សិស្សប្រុស)</p>
+                            <h3 class="text-2xl font-bold text-sky-600"><span id="avgAgeBoy">0</span> ឆ្នាំ</h3>
+                        </div>
+                        <div class="bg-white border border-slate-200 p-4 rounded-xl text-center shadow-sm hover:border-purple-300 transition-colors">
+                            <p class="text-sm font-bold text-slate-500 mb-1">អាយុច្រើនបំផុត</p>
+                            <h3 class="text-2xl font-bold text-purple-600"><span id="maxAge">0</span> ឆ្នាំ</h3>
+                        </div>
+                    </div>
+
+                    <!-- Age Charts Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <!-- Pie Chart (Age Distribution Total) -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center">
+                            <h3 class="font-bold text-slate-700 mb-4 self-start flex items-center gap-2"><i data-lucide="pie-chart" class="w-4 h-4 text-emerald-600"></i> របាយចំនួនសិស្សតាមអាយុសរុប</h3>
+                            <div class="relative w-full max-w-[300px] h-[300px]">
+                                <canvas id="agePieChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Bar Chart (Age Distribution by Gender) -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i data-lucide="bar-chart" class="w-4 h-4 text-emerald-600"></i> ប្រៀបធៀបចំនួនសិស្សប្រុស និងស្រី តាមអាយុ</h3>
+                            <div class="relative w-full h-[300px]">
+                                <canvas id="ageGenderBarChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Line Chart (Trend by Age) -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-12">
+                        <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i data-lucide="line-chart" class="w-4 h-4 text-emerald-600"></i> និន្នាការចំនួនសិស្សតាមអាយុ</h3>
+                        <div class="relative w-full h-[350px]">
+                            <canvas id="ageLineChart"></canvas>
+                        </div>
+                        <p class="text-center text-xs text-slate-400 mt-4"><i data-lucide="info" class="w-3 h-3 inline pb-0.5"></i> បង្ហាញពីចំនួនសិស្សកើនឡើង ឬថយចុះនៅតាមចន្លោះអាយុនីមួយៗ។</p>
+                    </div>
+
+                    <!-- Height Analysis Dashboard (Data from healthy_tracking) -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-t border-slate-200 pt-8">
+                        <div class="flex items-center gap-3">
+                            <div class="p-3 bg-indigo-100 rounded-full text-indigo-600">
+                                <i data-lucide="trending-up" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h2 class="kh-moul text-lg md:text-xl text-[#0054a6]">ការវិភាគកម្ពស់សិស្ស</h2>
+                                <p class="text-sm text-gray-500 mt-1">ទិន្នន័យកម្ពស់ទាញយកពី "បញ្ជីតាមដានទម្ងន់-កម្ពស់"</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Height Average Counters -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl text-center shadow-sm">
+                            <p class="text-sm font-bold text-slate-500 mb-1">កម្ពស់មធ្យម (សរុប)</p>
+                            <h3 class="text-2xl font-bold text-indigo-600"><span id="avgHeightTotal">0</span> cm</h3>
+                        </div>
+                        <div class="bg-pink-50 border border-pink-100 p-4 rounded-xl text-center shadow-sm">
+                            <p class="text-sm font-bold text-slate-500 mb-1">កម្ពស់មធ្យម (សិស្សស្រី)</p>
+                            <h3 class="text-2xl font-bold text-pink-600"><span id="avgHeightGirl">0</span> cm</h3>
+                        </div>
+                        <div class="bg-sky-50 border border-sky-100 p-4 rounded-xl text-center shadow-sm">
+                            <p class="text-sm font-bold text-slate-500 mb-1">កម្ពស់មធ្យម (សិស្សប្រុស)</p>
+                            <h3 class="text-2xl font-bold text-sky-600"><span id="avgHeightBoy">0</span> cm</h3>
+                        </div>
+                        <div class="bg-amber-50 border border-amber-100 p-4 rounded-xl text-center shadow-sm">
+                            <p class="text-sm font-bold text-slate-500 mb-1">កម្ពស់អតិបរមា</p>
+                            <h3 class="text-2xl font-bold text-amber-600"><span id="maxHeight">0</span> cm</h3>
+                        </div>
+                    </div>
+
+                    <!-- Scatter Chart for Height -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-6">
+                        <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4 text-indigo-600"></i> របាយកម្ពស់សិស្សម្នាក់ៗធៀបនឹងអាយុ</h3>
+                        <div class="relative w-full h-[400px]">
+                            <canvas id="heightScatterChart"></canvas>
+                        </div>
+                        <p class="text-center text-xs text-slate-400 mt-4"><i data-lucide="info" class="w-3 h-3 inline pb-0.5"></i> ចំណុចនីមួយៗតំណាងឱ្យសិស្សម្នាក់។ យក Mouse ដាក់លើចំណុចដើម្បីមើលឈ្មោះ អាយុ និងកម្ពស់ជាក់ស្តែង។</p>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Preview Wrapper -->
+    <div id="printAreaWrapper" class="hidden">
+        
+        <!-- Preview Controls -->
+        <div class="fixed top-4 right-4 flex flex-col gap-3 z-50 no-print">
+            <button onclick="window.downloadPDF()" class="bg-red-600 text-white p-3 rounded-full shadow-xl hover:bg-red-700 hover:scale-105 transition" title="ទាញយក PDF">
+                <i data-lucide="download" class="w-6 h-6"></i>
+            </button>
+            <button onclick="window.print()" class="bg-blue-600 text-white p-3 rounded-full shadow-xl hover:bg-blue-700 hover:scale-105 transition" title="បោះពុម្ភ">
+                <i data-lucide="printer" class="w-6 h-6"></i>
+            </button>
+            <button onclick="window.closePreview()" class="bg-slate-600 text-white p-3 rounded-full shadow-xl hover:bg-slate-700 hover:scale-105 transition" title="បិទ">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- A4 Print Container (Landscape) -->
+        <div id="printContainer" class="print-container">
+            
+            <!-- ================= ផ្នែកទី ១៖ បញ្ជីរាប់ និងវិភាគអាយុសិស្ស (Table) ================= -->
+            <div class="print-section">
+                <!-- Header -->
+                <div class="flex justify-between items-start">
+                    <div class="text-[10pt] leading-relaxed kh-moul" style="margin-top: 40pt;">
+                        <p class="print_org_1"></p>
+                        <p class="print_org_2"></p>
+                        <p><span class="print_class"></span></p>
+                        <p>ឆ្នាំសិក្សា <span class="print_year"></span></p>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="kh-moul text-[12pt] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                        <h3 class="kh-moul text-[12pt] mb-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                        <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[10pt] w-auto mx-auto mt-1" crossorigin="anonymous">
+                    </div>
+                </div>
+
+                <!-- Title -->
+                <h2 class="kh-moul text-center text-[14pt] mt-4 mb-6 uppercase">បញ្ជីរាប់អាយុ និងភេទសិស្ស</h2>
+                
+                <div class="flex justify-between items-end mb-2">
+                    <p class="font-bold text-[11pt]">ចំនួនសិស្សសរុប <span class="print_total">0</span>នាក់ ស្រី <span class="print_female">0</span>នាក់</p>
+                    <p class="font-bold text-[11pt]">គិតត្រឹមថ្ងៃទី៖ <span class="print_current_date">...</span></p>
+                </div>
+
+                <!-- Table -->
+                <table class="report-table" id="printTable"></table>
+
+                <!-- Signatures -->
+                <div class="signature-container">
+                    <div class="sig-col-left">
+                        <p class="text-[11pt] font-bold mb-2">បានឃើញ និងឯកភាព</p>
+                        <p class="print_manager_role role-title uppercase">នាយកសាលា</p>
+                        <p class="print_manager_name teacher-name-final"></p>
+                    </div>
+                    <div class="sig-col-right">
+                        <p class="print_lunar_date lunar-date">...</p>
+                        <p class="print_solar_date solar-date"></p>
+                        <p class="role-title">គ្រូបន្ទុកថ្នាក់</p>
+                        <p class="print_teacher_sign teacher-name-final" style="margin-left: 2cm;"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= ផ្នែកទី ២៖ ការវិភាគអាយុសិស្ស ================= -->
+            <div class="print-section">
+                <!-- Title only, NO header -->
+                <h2 class="kh-moul text-center text-[14pt] mt-8 mb-6 uppercase">ការវិភាគអាយុសិស្ស</h2>
+                
+                <!-- Age Summary -->
+                <div class="flex justify-between text-[10pt] font-bold border-y border-black py-2 mb-4 bg-gray-50 px-4">
+                    <p>អាយុមធ្យមរួម: <span id="print_avgTotal">0</span> ឆ្នាំ</p>
+                    <p>អាយុមធ្យម(ស្រី): <span id="print_avgFemale">0</span> ឆ្នាំ</p>
+                    <p>អាយុមធ្យម(ប្រុស): <span id="print_avgMale">0</span> ឆ្នាំ</p>
+                    <p>អាយុច្រើនជាងគេ: <span id="print_maxAge">0</span> ឆ្នាំ</p>
+                </div>
+
+                <!-- 3 Charts fitting in one page -->
+                <div class="grid grid-cols-2 gap-4 mb-2">
+                    <div class="text-center border border-gray-200 p-2 rounded-xl">
+                        <h4 class="font-bold text-xs mb-1">របាយចំនួនសិស្សតាមអាយុសរុប</h4>
+                        <img id="img_agePieChart" src="" class="h-[140px] w-full object-contain mx-auto">
+                    </div>
+                    <div class="text-center border border-gray-200 p-2 rounded-xl">
+                        <h4 class="font-bold text-xs mb-1">ប្រៀបធៀបចំនួនសិស្សប្រុស និងស្រី តាមអាយុ</h4>
+                        <img id="img_ageGenderBarChart" src="" class="h-[140px] w-full object-contain mx-auto">
+                    </div>
+                </div>
+                <div class="text-center border border-gray-200 p-2 rounded-xl mb-2">
+                    <h4 class="font-bold text-xs mb-1">និន្នាការចំនួនសិស្សតាមអាយុ</h4>
+                    <img id="img_ageLineChart" src="" class="h-[150px] w-full object-contain mx-auto">
+                </div>
+
+                <!-- Signatures -->
+                <div class="signature-container">
+                    <div class="sig-col-left">
+                        <p class="text-[11pt] font-bold mb-2">បានឃើញ និងឯកភាព</p>
+                        <p class="print_manager_role role-title uppercase">នាយកសាលា</p>
+                        <p class="print_manager_name teacher-name-final"></p>
+                    </div>
+                    <div class="sig-col-right">
+                        <p class="print_lunar_date lunar-date">...</p>
+                        <p class="print_solar_date solar-date"></p>
+                        <p class="role-title">គ្រូបន្ទុកថ្នាក់</p>
+                        <p class="print_teacher_sign teacher-name-final" style="margin-left: 2cm;"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= ផ្នែកទី ៣៖ ការវិភាគកម្ពស់សិស្ស ================= -->
+            <div class="print-section">
+                <!-- Title only, NO header -->
+                <h2 class="kh-moul text-center text-[14pt] mt-8 mb-6 uppercase">ការវិភាគកម្ពស់សិស្ស</h2>
+                
+                <!-- Height Summary -->
+                <div class="flex justify-between text-[10pt] font-bold border-y border-black py-2 mb-4 bg-gray-50 px-4">
+                    <p>កម្ពស់មធ្យមរួម: <span id="print_avgHTotal">0</span> cm</p>
+                    <p>កម្ពស់មធ្យម(ស្រី): <span id="print_avgHFemale">0</span> cm</p>
+                    <p>កម្ពស់មធ្យម(ប្រុស): <span id="print_avgHMale">0</span> cm</p>
+                    <p>កម្ពស់អតិបរមា: <span id="print_maxHeight">0</span> cm</p>
+                </div>
+
+                <div class="text-center border border-gray-200 p-2 rounded-xl mb-4">
+                    <h4 class="font-bold text-xs mb-1">របាយកម្ពស់សិស្សម្នាក់ៗធៀបនឹងអាយុ</h4>
+                    <img id="img_heightScatterChart" src="" class="h-[320px] w-full object-contain mx-auto">
+                </div>
+
+                <!-- Signatures -->
+                <div class="signature-container">
+                    <div class="sig-col-left">
+                        <p class="text-[11pt] font-bold mb-2">បានឃើញ និងឯកភាព</p>
+                        <p class="print_manager_role role-title uppercase">នាយកសាលា</p>
+                        <p class="print_manager_name teacher-name-final"></p>
+                    </div>
+                    <div class="sig-col-right">
+                        <p class="print_lunar_date lunar-date">...</p>
+                        <p class="print_solar_date solar-date"></p>
+                        <p class="role-title">គ្រូបន្ទុកថ្នាក់</p>
+                        <p class="print_teacher_sign teacher-name-final" style="margin-left: 2cm;"></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Firebase Integration & Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Core Variables
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+        let studentsData = [];
+        let healthData = {}; 
+        
+        let classConfig = {
+            org1: "ការិយាល័យអប់រំ យុវជន និងកីឡា", org2: "សាលាអនុវិទ្យាល័យ",
+            className: "...", teacher: "ឈ្មោះគ្រូ", managerRole: "នាយកសាលា", managerName: "",
+            location: "រាជធានីភ្នំពេញ", academicYear: "២០២៥-២០២៦"
+        };
+
+        const khDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+        const khMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+        
+        const MIN_AGE = 5;
+        const MAX_AGE = 25; 
+
+        // Chart instances
+        let pieChartObj = null;
+        let barChartObj = null;
+        let lineChartObj = null;
+        let scatterChartObj = null;
+
+        function toKhmerNum(num) { 
+            if(num === undefined || num === null || isNaN(num)) return '-';
+            return num.toString().split('').map(d => khDigits[d] || d).join(''); 
+        }
+
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) { console.error("Auth error:", error); }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            Chart.defaults.font.family = "'Battambang', cursive";
+            initAuth().then(() => {
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        currentUser = user;
+                        await loadProfileDataAsConfig();
+                        loadDataFromFirestore();
+                    } else {
+                        document.getElementById('loadingText').textContent = "សូមចូលគណនី!";
+                    }
+                });
+            });
+        });
+
+        async function loadProfileDataAsConfig() {
+            try {
+                const profileRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'profile', 'data');
+                const profileSnap = await getDoc(profileRef);
+                if (profileSnap.exists()) {
+                    const profile = profileSnap.data();
+                    classConfig = {
+                        org1: profile.management_unit_1 || classConfig.org1,
+                        org2: profile.management_unit_2 || profile.school_name_admin || classConfig.org2,
+                        className: profile.class_name || classConfig.className,
+                        teacher: profile.homeroom_teacher || classConfig.teacher,
+                        managerRole: profile.manager_role || classConfig.managerRole,
+                        managerName: profile.manager_name || classConfig.managerName,
+                        location: profile.province_for_date || classConfig.location,
+                        academicYear: profile.academic_year || classConfig.academicYear
+                    };
+                }
+            } catch (error) { console.error("Error loading profile", error); }
+        }
+
+        function loadDataFromFirestore() {
+            if (!currentUser) return;
+            
+            const healthRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'settings', 'health_tracking');
+            onSnapshot(healthRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    healthData = docSnap.data();
+                } else {
+                    healthData = {};
+                }
+                if (studentsData.length > 0) analyzeAndRenderData();
+            });
+
+            const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
+            onSnapshot(studentsRef, (snapshot) => {
+                studentsData = [];
+                snapshot.forEach((doc) => { studentsData.push(doc.data()); });
+                
+                studentsData.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                
+                document.getElementById('loadingText').textContent = "ទិន្នន័យត្រូវបានធ្វើបច្ចុប្បន្នភាព";
+                document.getElementById('summaryCards').style.display = 'grid';
+                document.getElementById('analysisDashboard').style.display = 'block';
+                document.getElementById('printBtn').disabled = false;
+                
+                analyzeAndRenderData();
+                
+            }, (error) => {
+                console.error("Error fetching students: ", error);
+                document.getElementById('loadingText').textContent = "មានបញ្ហាក្នុងការទាញយកទិន្នន័យ។";
+            });
+        }
+
+        function calculateAge(dobStr) {
+            if(!dobStr || dobStr === '-') return null;
+            const dob = new Date(dobStr);
+            if(isNaN(dob)) return null;
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+            return age;
+        }
+
+        function calculateExactAge(dobStr) {
+            if(!dobStr || dobStr === '-') return null;
+            const dob = new Date(dobStr);
+            if(isNaN(dob)) return null;
+            return (new Date() - dob) / (1000 * 60 * 60 * 24 * 365.25);
+        }
+
+        function analyzeAndRenderData() {
+            const ageStats = { female: {}, male: {} };
+            for(let i = MIN_AGE; i <= MAX_AGE; i++) { ageStats.female[i] = 0; ageStats.male[i] = 0; }
+
+            let totalFemale = 0, totalMale = 0;
+            let ageGenderAgg = {}; 
+            let ageMetrics = { tSum: 0, tCnt: 0, fSum: 0, fCnt: 0, mSum: 0, mCnt: 0, max: 0, min: 999 };
+            
+            let heightMetrics = { tSum: 0, tCnt: 0, fSum: 0, fCnt: 0, mSum: 0, mCnt: 0, max: 0 };
+            let scatterData = { boy: [], girl: [] };
+
+            studentsData.forEach((s, index) => {
+                const age = calculateAge(s.dob);
+                const exactAge = calculateExactAge(s.dob);
+                const isFemale = s.gender === 'ស្រី' || s.gender === 'F';
+                const isBoy = !isFemale;
+                const hVal = healthData[`h_${index}`];
+                const height = parseFloat(hVal);
+
+                if(isFemale) totalFemale++; else totalMale++;
+
+                if (age !== null && age >= MIN_AGE && age <= MAX_AGE) {
+                    if (isFemale) ageStats.female[age]++; else ageStats.male[age]++;
+                    
+                    if(!ageGenderAgg[age]) ageGenderAgg[age] = { m: 0, f: 0, t: 0 };
+                    if (isBoy) ageGenderAgg[age].m++;
+                    else ageGenderAgg[age].f++;
+                    ageGenderAgg[age].t++;
+                }
+
+                if (exactAge !== null) {
+                    ageMetrics.tSum += exactAge;
+                    ageMetrics.tCnt++;
+                    if (exactAge > ageMetrics.max) ageMetrics.max = exactAge;
+                    if (exactAge < ageMetrics.min) ageMetrics.min = exactAge;
+
+                    if (isBoy) {
+                        ageMetrics.mSum += exactAge;
+                        ageMetrics.mCnt++;
+                    } else {
+                        ageMetrics.fSum += exactAge;
+                        ageMetrics.fCnt++;
+                    }
+                }
+
+                if (!isNaN(height) && height > 0 && exactAge !== null) {
+                    heightMetrics.tSum += height;
+                    heightMetrics.tCnt++;
+                    if (height > heightMetrics.max) heightMetrics.max = height;
+
+                    if (isBoy) {
+                        heightMetrics.mSum += height;
+                        heightMetrics.mCnt++;
+                        scatterData.boy.push({ x: exactAge, y: height, student: s });
+                    } else {
+                        heightMetrics.fSum += height;
+                        heightMetrics.fCnt++;
+                        scatterData.girl.push({ x: exactAge, y: height, student: s });
+                    }
+                }
+            });
+
+            if (ageMetrics.min === 999) ageMetrics.min = 0;
+
+            // DOM Updates
+            document.getElementById('cardTotal').textContent = toKhmerNum(studentsData.length);
+            document.getElementById('cardFemale').textContent = toKhmerNum(totalFemale);
+            document.getElementById('cardMale').textContent = toKhmerNum(totalMale);
+
+            const avgT = ageMetrics.tCnt > 0 ? (ageMetrics.tSum / ageMetrics.tCnt).toFixed(1) : 0;
+            const avgF = ageMetrics.fCnt > 0 ? (ageMetrics.fSum / ageMetrics.fCnt).toFixed(1) : 0;
+            const avgM = ageMetrics.mCnt > 0 ? (ageMetrics.mSum / ageMetrics.mCnt).toFixed(1) : 0;
+            
+            document.getElementById('avgAgeTotal').textContent = toKhmerNum(avgT);
+            document.getElementById('avgAgeGirl').textContent = toKhmerNum(avgF);
+            document.getElementById('avgAgeBoy').textContent = toKhmerNum(avgM);
+            document.getElementById('maxAge').textContent = toKhmerNum(ageMetrics.max > 0 ? ageMetrics.max.toFixed(1) : 0);
+
+            const avgHT = heightMetrics.tCnt > 0 ? (heightMetrics.tSum / heightMetrics.tCnt).toFixed(1) : 0;
+            const avgHF = heightMetrics.fCnt > 0 ? (heightMetrics.fSum / heightMetrics.fCnt).toFixed(1) : 0;
+            const avgHM = heightMetrics.mCnt > 0 ? (heightMetrics.mSum / heightMetrics.mCnt).toFixed(1) : 0;
+            
+            document.getElementById('avgHeightTotal').textContent = toKhmerNum(avgHT);
+            document.getElementById('avgHeightGirl').textContent = toKhmerNum(avgHF);
+            document.getElementById('avgHeightBoy').textContent = toKhmerNum(avgHM);
+            document.getElementById('maxHeight').textContent = toKhmerNum(heightMetrics.max > 0 ? heightMetrics.max : 0);
+
+            const tableHTML = generateTableHTML(ageStats, totalFemale, totalMale, studentsData.length);
+            document.getElementById('mainTable').innerHTML = tableHTML;
+            document.getElementById('printTable').innerHTML = tableHTML;
+
+            renderPieChart(ageGenderAgg);
+            renderBarChart(ageGenderAgg);
+            renderLineChart(ageGenderAgg);
+            renderScatterChart(scatterData);
+        }
+
+        function generateTableHTML(stats, totalF, totalM, allTotal) {
+            let html = `<thead><tr><th rowspan="2" class="w-16">ភេទ</th><th colspan="${MAX_AGE - MIN_AGE + 1}">អាយុ</th><th rowspan="2" class="w-16">សរុប</th><th rowspan="2" class="w-20">ផ្សេងៗ</th></tr><tr>`;
+            for(let i = MIN_AGE; i <= MAX_AGE; i++) html += `<th>${toKhmerNum(i)}</th>`;
+            html += `</tr></thead><tbody>`;
+
+            html += `<tr><td class="gender-col text-pink-700">ស្រី</td>`;
+            for(let i = MIN_AGE; i <= MAX_AGE; i++) html += `<td>${stats.female[i] > 0 ? toKhmerNum(stats.female[i]) : ''}</td>`;
+            html += `<td class="font-bold text-pink-700">${toKhmerNum(totalF)}</td><td></td></tr>`;
+
+            html += `<tr><td class="gender-col text-sky-700">ប្រុស</td>`;
+            for(let i = MIN_AGE; i <= MAX_AGE; i++) html += `<td>${stats.male[i] > 0 ? toKhmerNum(stats.male[i]) : ''}</td>`;
+            html += `<td class="font-bold text-sky-700">${toKhmerNum(totalM)}</td><td></td></tr>`;
+
+            html += `<tr><td class="gender-col text-blue-800">សរុប</td>`;
+            for(let i = MIN_AGE; i <= MAX_AGE; i++) html += `<td class="font-bold">${(stats.female[i] + stats.male[i]) > 0 ? toKhmerNum(stats.female[i] + stats.male[i]) : ''}</td>`;
+            html += `<td class="font-bold text-blue-800">${toKhmerNum(allTotal)}</td><td></td></tr></tbody>`;
+            return html;
+        }
+
+        // --- CHARTS ---
+
+        const khmerColors = [
+            '#059669', '#2563eb', '#db2777', '#d97706', '#7c3aed', 
+            '#14b8a6', '#f43f5e', '#8b5cf6', '#ea580c', '#0ea5e9'
+        ];
+
+        function renderPieChart(aggData) {
+            const ctx = document.getElementById('agePieChart').getContext('2d');
+            if(pieChartObj) pieChartObj.destroy();
+            
+            const ages = Object.keys(aggData).sort((a,b) => a - b);
+            const counts = ages.map(a => aggData[a].t);
+            const labels = ages.map(a => `អាយុ ${toKhmerNum(a)} ឆ្នាំ`);
+
+            pieChartObj = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: counts,
+                        backgroundColor: khmerColors.slice(0, ages.length),
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { font: { family: "'Battambang', cursive" } } },
+                        tooltip: { callbacks: { label: function(context) { return ` ${context.label}: ${toKhmerNum(context.raw)} នាក់`; } } }
+                    },
+                    animation: { duration: 0 } // Disable animation to export image properly
+                }
+            });
+        }
+
+        function renderBarChart(aggData) {
+            const ctx = document.getElementById('ageGenderBarChart').getContext('2d');
+            if(barChartObj) barChartObj.destroy();
+
+            const ages = Object.keys(aggData).sort((a,b) => a - b);
+            const labels = ages.map(a => `អាយុ ${toKhmerNum(a)}`);
+            const boysCount = ages.map(a => aggData[a].m);
+            const girlsCount = ages.map(a => aggData[a].f);
+
+            barChartObj = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'សិស្សប្រុស (នាក់)', data: boysCount, backgroundColor: '#3b82f6', borderRadius: 4 },
+                        { label: 'សិស្សស្រី (នាក់)', data: girlsCount, backgroundColor: '#ec4899', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: "'Battambang', cursive" } } },
+                        tooltip: { callbacks: { label: function(context) { return ` ${context.dataset.label}: ${toKhmerNum(context.raw)}`; } } }
+                    },
+                    scales: {
+                        y: { title: { display: true, text: 'ចំនួនសិស្ស (នាក់)' }, ticks: { callback: function(value) { return toKhmerNum(value); }, stepSize: 1 } }
+                    },
+                    animation: { duration: 0 }
+                }
+            });
+        }
+
+        function renderLineChart(aggData) {
+            const ctx = document.getElementById('ageLineChart').getContext('2d');
+            if(lineChartObj) lineChartObj.destroy();
+
+            const ages = Object.keys(aggData).sort((a,b) => a - b);
+            const labels = ages.map(a => `អាយុ ${toKhmerNum(a)}`);
+            const totalCount = ages.map(a => aggData[a].t);
+
+            lineChartObj = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'ចំនួនសិស្សសរុប',
+                        data: totalCount,
+                        borderColor: '#059669', backgroundColor: 'rgba(5, 150, 105, 0.2)', borderWidth: 3, fill: true, tension: 0.3,
+                        pointBackgroundColor: '#059669', pointBorderColor: '#fff', pointRadius: 5, pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: "'Battambang', cursive" } } },
+                        tooltip: { callbacks: { label: function(ctx) { return ` ចំនួន: ${toKhmerNum(ctx.raw)} នាក់`; } } }
+                    },
+                    scales: {
+                        y: { title: { display: true, text: 'ចំនួនសិស្សសរុប (នាក់)', font: { weight: 'bold' }, color: '#64748b' }, ticks: { callback: function(value) { return toKhmerNum(value); }, stepSize: 1 }, grid: { color: '#f1f5f9' }, beginAtZero: true },
+                        x: { title: { display: true, text: 'អាយុ (ឆ្នាំ)', font: { weight: 'bold' }, color: '#64748b' }, grid: { display: false } }
+                    },
+                    animation: { duration: 0 }
+                }
+            });
+        }
+
+        function renderScatterChart(scatterData) {
+            const ctx = document.getElementById('heightScatterChart').getContext('2d');
+            if(scatterChartObj) scatterChartObj.destroy();
+
+            scatterChartObj = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        { label: 'សិស្សប្រុស', data: scatterData.boy, backgroundColor: '#3b82f6', borderColor: '#ffffff', borderWidth: 1, pointRadius: 5, pointHoverRadius: 7 },
+                        { label: 'សិស្សស្រី', data: scatterData.girl, backgroundColor: '#ec4899', borderColor: '#ffffff', borderWidth: 1, pointRadius: 5, pointHoverRadius: 7 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: "'Battambang', cursive" } } },
+                        tooltip: { callbacks: { label: function(ctx) { const st = ctx.raw.student; return ` ${st.name} | អាយុ: ${toKhmerNum(ctx.raw.x.toFixed(1))} | កម្ពស់: ${toKhmerNum(ctx.raw.y)} cm`; } } }
+                    },
+                    scales: {
+                        y: { title: { display: true, text: 'កម្ពស់ (cm)', font: { weight: 'bold' }, color: '#64748b' }, ticks: { callback: function(value) { return toKhmerNum(value); } }, grid: { color: '#f1f5f9' } },
+                        x: { type: 'linear', min: MIN_AGE - 0.5, max: 20.5, title: { display: true, text: 'អាយុជាក់ស្តែង (ឆ្នាំ)', font: { weight: 'bold' }, color: '#64748b' }, ticks: { callback: function(value) { return toKhmerNum(value); } }, grid: { display: false } }
+                    },
+                    animation: { duration: 0 }
+                }
+            });
+        }
+
+        // --- Print Export Logic ---
+        window.previewPDF = function() {
+            if (studentsData.length === 0) { alert("មិនមានទិន្នន័យសម្រាប់បោះពុម្ពទេ!"); return; }
+
+            // Update Headings safely using querySelectorAll since we have multiple sections
+            const setTexts = (cls, txt) => document.querySelectorAll(cls).forEach(el => el.textContent = txt);
+            
+            setTexts('.print_org_1', classConfig.org1 || '');
+            setTexts('.print_org_2', classConfig.org2 || '');
+            setTexts('.print_class', classConfig.className || '');
+            setTexts('.print_year', classConfig.academicYear || '');
+            
+            setTexts('.print_total', toKhmerNum(studentsData.length));
+            setTexts('.print_female', toKhmerNum(studentsData.filter(s => s.gender === 'ស្រី' || s.gender === 'F').length));
+            
+            // Print Summary Update
+            document.getElementById('print_avgTotal').textContent = document.getElementById('avgAgeTotal').textContent;
+            document.getElementById('print_avgFemale').textContent = document.getElementById('avgAgeGirl').textContent;
+            document.getElementById('print_avgMale').textContent = document.getElementById('avgAgeBoy').textContent;
+            document.getElementById('print_maxAge').textContent = document.getElementById('maxAge').textContent;
+            
+            document.getElementById('print_avgHTotal').textContent = document.getElementById('avgHeightTotal').textContent;
+            document.getElementById('print_avgHFemale').textContent = document.getElementById('avgHeightGirl').textContent;
+            document.getElementById('print_avgHMale').textContent = document.getElementById('avgHeightBoy').textContent;
+            document.getElementById('print_maxHeight').textContent = document.getElementById('maxHeight').textContent;
+
+            setTexts('.print_manager_role', classConfig.managerRole || 'នាយកសាលា');
+            setTexts('.print_manager_name', classConfig.managerName || '');
+            setTexts('.print_teacher_sign', classConfig.teacher || 'ឈ្មោះគ្រូ');
+            
+            const today = new Date();
+            let lunarStr = "ថ្ងៃ................ខែ..........ឆ្នាំ..........ព.ស.២៥៦...";
+            if (typeof momentkh !== 'undefined') {
+                try { lunarStr = momentkh.format(momentkh.fromDate(today)).replace('ពុទ្ធសករាជ', 'ព.ស.'); } catch (e) { }
+            }
+            const solarDateStr = `${classConfig.location || 'រាជធានីភ្នំពេញ'}, ថ្ងៃទី${toKhmerNum(today.getDate())} ខែ${khMonths[today.getMonth()]} ឆ្នាំ${toKhmerNum(today.getFullYear())}`;
+            const currentDateStr = `${toKhmerNum(today.getDate())} ${khMonths[today.getMonth()]} ${toKhmerNum(today.getFullYear())}`;
+
+            setTexts('.print_lunar_date', lunarStr);
+            setTexts('.print_solar_date', solarDateStr);
+            setTexts('.print_current_date', currentDateStr);
+
+            // Convert Charts to Images for Printing seamlessly
+            if (pieChartObj) document.getElementById('img_agePieChart').src = pieChartObj.toBase64Image();
+            if (barChartObj) document.getElementById('img_ageGenderBarChart').src = barChartObj.toBase64Image();
+            if (lineChartObj) document.getElementById('img_ageLineChart').src = lineChartObj.toBase64Image();
+            if (scatterChartObj) document.getElementById('img_heightScatterChart').src = scatterChartObj.toBase64Image();
+
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('printAreaWrapper').classList.remove('hidden');
+            document.body.classList.add('preview-mode');
+        };
+
+        window.closePreview = function() {
+            document.getElementById('mainScreen').classList.remove('hidden');
+            document.getElementById('printAreaWrapper').classList.add('hidden');
+            document.body.classList.remove('preview-mode');
+        };
+
+        window.downloadPDF = function() {
+            const element = document.getElementById('printContainer');
+            html2pdf().from(element).set({
+                margin: [5, 0, 5, 0], // Top, Right, Bottom, Left margins
+                filename: `Student_Analysis_${classConfig.className || 'Class'}.pdf`, 
+                image: { type: 'jpeg', quality: 1 }, 
+                html2canvas: { scale: 2, useCORS: true }, 
+                pagebreak: { mode: 'css', avoid: 'tr' },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            }).save();
+        };
+    </script>
+</body>
+</html>

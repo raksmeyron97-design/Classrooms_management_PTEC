@@ -133,8 +133,8 @@
                         <th rowspan="2" class="w-36 border-slate-700 text-left px-2">គោត្តនាម និងនាម</th>
                         <th rowspan="2" class="w-8 border-slate-700">ភេទ</th>
                         
-                        <th colspan="9" class="bg-[#dcfce7] border-slate-700 text-green-900 py-1.5 font-bold">ឆមាសទី១</th>
-                        <th colspan="9" class="bg-[#fce7f3] border-slate-700 text-pink-900 py-1.5 font-bold">ឆមាសទី២</th>
+                        <th colspan="10" class="bg-[#dcfce7] border-slate-700 text-green-900 py-1.5 font-bold">ឆមាសទី១</th>
+                        <th colspan="10" class="bg-[#fce7f3] border-slate-700 text-pink-900 py-1.5 font-bold">ឆមាសទី២</th>
                         <th colspan="5" class="bg-[#e0f2fe] border-slate-700 text-blue-900 py-1.5 font-bold">ប្រចាំឆ្នាំ</th>
                     </tr>
                     <tr>
@@ -143,6 +143,7 @@
                         <th class="bg-green-50/50 border-slate-700"><div class="vertical-text">ខែធ្នូ</div></th>
                         <th class="bg-green-50/50 border-slate-700"><div class="vertical-text">ខែមករា</div></th>
                         <th class="bg-green-50/50 border-slate-700"><div class="vertical-text">ខែកុម្ភៈ</div></th>
+                        <th class="bg-green-50/50 border-slate-700"><div class="vertical-text">ខែមីនា</div></th>
                         <th class="bg-green-100 border-slate-700"><div class="vertical-text font-bold">មធ្យមភាគប្រចាំខែ</div></th>
                         <th class="bg-green-50/50 border-slate-700"><div class="vertical-text">ប្រឡងឆមាសទី១</div></th>
                         <th class="bg-green-200 border-slate-700"><div class="vertical-text font-bold text-green-800">ម.ភាគឆមាសទី១</div></th>
@@ -150,10 +151,11 @@
                         <th class="bg-green-50/50 border-slate-700"><div class="vertical-text font-bold text-blue-700">និទ្ទេស</div></th>
                         
                         <!-- Sem 2 -->
-                        <th class="bg-pink-50/50 border-slate-700"><div class="vertical-text">ខែមីនា</div></th>
                         <th class="bg-pink-50/50 border-slate-700"><div class="vertical-text">ខែមេសា</div></th>
                         <th class="bg-pink-50/50 border-slate-700"><div class="vertical-text">ខែឧសភា</div></th>
                         <th class="bg-pink-50/50 border-slate-700"><div class="vertical-text">ខែមិថុនា</div></th>
+                        <th class="bg-pink-50/50 border-slate-700"><div class="vertical-text">ខែកក្កដា</div></th>
+                        <th class="bg-pink-50/50 border-slate-700"><div class="vertical-text">ខែសីហា</div></th>
                         <th class="bg-pink-100 border-slate-700"><div class="vertical-text font-bold">មធ្យមភាគប្រចាំខែ</div></th>
                         <th class="bg-pink-50/50 border-slate-700"><div class="vertical-text">ប្រឡងឆមាសទី២</div></th>
                         <th class="bg-pink-200 border-slate-700"><div class="vertical-text font-bold text-green-800">ម.ភាគឆមាសទី២</div></th>
@@ -279,7 +281,7 @@
             if (!docData || !docData[studentId]) return null;
             let studentData = docData[studentId];
             
-            // ប្រសិនបើមានទិន្នន័យមធ្យមភាគដែលបានរក្សាទុករួច (New format ពី subject-scores)
+            // ប្រសិនបើមានទិន្នន័យមធ្យមភាគដែលបានរក្សាទុករួច
             if (studentData.results) {
                 if (isSemester) {
                     return studentData.results.examAverage !== undefined && studentData.results.examAverage !== null ? parseFloat(studentData.results.examAverage) : null;
@@ -306,7 +308,6 @@
             let currentRank = 1;
             for (let i = 0; i < rankable.length; i++) {
                 if (i > 0 && rankable[i][avgKey] < rankable[i-1][avgKey]) currentRank = i + 1;
-                // assign rank back to original student objects by finding them
                 let originalStudent = students.find(s => s.id === rankable[i].id);
                 if(originalStudent) originalStudent[rankKey] = currentRank;
             }
@@ -348,8 +349,8 @@
                     if (storedStudents) studentsData = JSON.parse(storedStudents);
                 }
 
-                // Fetch All 10 Docs
-                const periods = ['nov', 'dec', 'jan', 'feb', 'sem1', 'mar', 'apr', 'may', 'jun', 'sem2'];
+                // Fetch All 12 Docs
+                const periods = ['nov', 'dec', 'jan', 'feb', 'mar', 'sem1', 'apr', 'may', 'jun', 'jul', 'aug', 'sem2'];
                 let allDocs = {};
                 
                 await Promise.all(periods.map(async (period) => {
@@ -373,67 +374,68 @@
 
                 // Calculate Averages & Populate Students
                 studentsData.forEach(s => {
-                    // Sem 1 Months
+                    // Sem 1 Months (Nov, Dec, Jan, Feb, Mar)
                     s.nov = getDocAverage(allDocs['nov'], s.id, false);
                     s.dec = getDocAverage(allDocs['dec'], s.id, false);
                     s.jan = getDocAverage(allDocs['jan'], s.id, false);
                     s.feb = getDocAverage(allDocs['feb'], s.id, false);
+                    s.mar = getDocAverage(allDocs['mar'], s.id, false);
                     
                     let sem1Data = allDocs['sem1'] && allDocs['sem1'][s.id];
-                    let m1_hasData = (s.nov!==null || s.dec!==null || s.jan!==null || s.feb!==null);
+                    let m1_hasData = (s.nov!==null || s.dec!==null || s.jan!==null || s.feb!==null || s.mar!==null);
 
                     if (sem1Data && sem1Data.results && sem1Data.results.monthlyAverage !== undefined) {
-                        s.avg4m_1 = parseFloat(sem1Data.results.monthlyAverage);
+                        s.monthly_avg_1 = parseFloat(sem1Data.results.monthlyAverage);
                         s.exam1 = sem1Data.results.examAverage !== undefined ? parseFloat(sem1Data.results.examAverage) : null;
                         s.sem1_avg = sem1Data.results.semesterAverage !== undefined ? parseFloat(sem1Data.results.semesterAverage) : null;
 
-                        // ជម្រះទិន្នន័យដែលចេញ 0.00 ដោយស្វ័យប្រវត្តិពីប្រព័ន្ធ ពេលសិស្សពិតជាមិនមានពិន្ទុអ្វីសោះ
                         let hasScores = sem1Data.scores && Object.values(sem1Data.scores).some(v => v !== null && v !== "");
                         if (!hasScores && !m1_hasData) {
-                            if (s.avg4m_1 === 0) s.avg4m_1 = null;
+                            if (s.monthly_avg_1 === 0) s.monthly_avg_1 = null;
                             if (s.exam1 === 0) s.exam1 = null;
                             if (s.sem1_avg === 0) s.sem1_avg = null;
                         }
                     } else {
-                        s.sumM1 = (s.nov||0) + (s.dec||0) + (s.jan||0) + (s.feb||0);
-                        s.avg4m_1 = m1_hasData ? (s.sumM1 / 4) : null;
+                        s.sumM1 = (s.nov||0) + (s.dec||0) + (s.jan||0) + (s.feb||0) + (s.mar||0);
+                        s.monthly_avg_1 = m1_hasData ? (s.sumM1 / 5) : null;
                         s.exam1 = getDocAverage(allDocs['sem1'], s.id, true);
 
                         s.sem1_avg = null;
-                        if (s.avg4m_1 !== null && s.exam1 !== null) s.sem1_avg = (s.avg4m_1 + s.exam1) / 2;
-                        else if (s.avg4m_1 !== null) s.sem1_avg = s.avg4m_1;
+                        if (s.monthly_avg_1 !== null && s.exam1 !== null) s.sem1_avg = (s.monthly_avg_1 + s.exam1) / 2;
+                        else if (s.monthly_avg_1 !== null) s.sem1_avg = s.monthly_avg_1;
                         else if (s.exam1 !== null) s.sem1_avg = s.exam1;
                     }
                     s.sem1_grade = getGrade(s.sem1_avg);
 
-                    // Sem 2 Months
-                    s.mar = getDocAverage(allDocs['mar'], s.id, false);
+                    // Sem 2 Months (Apr, May, Jun, Jul, Aug)
                     s.apr = getDocAverage(allDocs['apr'], s.id, false);
                     s.may = getDocAverage(allDocs['may'], s.id, false);
                     s.jun = getDocAverage(allDocs['jun'], s.id, false);
+                    s.jul = getDocAverage(allDocs['jul'], s.id, false);
+                    s.aug = getDocAverage(allDocs['aug'], s.id, false);
 
                     let sem2Data = allDocs['sem2'] && allDocs['sem2'][s.id];
-                    let m2_hasData = (s.mar!==null || s.apr!==null || s.may!==null || s.jun!==null);
+                    let m2_hasData = (s.apr!==null || s.may!==null || s.jun!==null || s.jul!==null || s.aug!==null);
 
                     if (sem2Data && sem2Data.results && sem2Data.results.monthlyAverage !== undefined) {
-                        s.avg4m_2 = parseFloat(sem2Data.results.monthlyAverage);
+                        s.monthly_avg_2 = parseFloat(sem2Data.results.monthlyAverage);
                         s.exam2 = sem2Data.results.examAverage !== undefined ? parseFloat(sem2Data.results.examAverage) : null;
                         s.sem2_avg = sem2Data.results.semesterAverage !== undefined ? parseFloat(sem2Data.results.semesterAverage) : null;
 
                         let hasScores = sem2Data.scores && Object.values(sem2Data.scores).some(v => v !== null && v !== "");
                         if (!hasScores && !m2_hasData) {
-                            if (s.avg4m_2 === 0) s.avg4m_2 = null;
+                            if (s.monthly_avg_2 === 0) s.monthly_avg_2 = null;
                             if (s.exam2 === 0) s.exam2 = null;
                             if (s.sem2_avg === 0) s.sem2_avg = null;
                         }
                     } else {
-                        s.sumM2 = (s.mar||0) + (s.apr||0) + (s.may||0) + (s.jun||0);
-                        s.avg4m_2 = m2_hasData ? (s.sumM2 / 4) : null;
+                        s.sumM2 = (s.apr||0) + (s.may||0) + (s.jun||0) + (s.jul||0) + (s.aug||0);
+                        s.monthly_avg_2 = m2_hasData ? (s.sumM2 / 5) : null;
                         s.exam2 = getDocAverage(allDocs['sem2'], s.id, true);
 
                         s.sem2_avg = null;
-                        if (s.avg4m_2 !== null && s.exam2 !== null) s.sem2_avg = (s.avg4m_2 + s.exam2) / 2;
-                        else if (s.avg4m_2 !== null) s.sem2_avg = s.avg4m_2;
+                        if (s.monthly_avg_2 !== null && s.exam2 !== null) s.sem2_avg = (s.monthly_avg_2 + s.exam2) / 2;
+                        else if (s.monthly_avg_2 !== null) s.sem2_avg = s.monthly_avg_2;
                         else if (s.exam2 !== null) s.sem2_avg = s.exam2;
                     }
                     s.sem2_grade = getGrade(s.sem2_avg);
@@ -447,12 +449,12 @@
                     s.annual_grade = getGrade(s.annual_avg);
                 });
 
-                // Rank calculation (ចំណាត់ថ្នាក់នៅរក្សាការគណនាតាមមធ្យមភាគដដែល)
+                // Rank calculation
                 calculateRanks(studentsData, 'sem1_avg', 'sem1_rank');
                 calculateRanks(studentsData, 'sem2_avg', 'sem2_rank');
                 calculateRanks(studentsData, 'annual_avg', 'annual_rank');
 
-                // តម្រៀបឈ្មោះសិស្សតាមលំដាប់ដូចក្នុងបញ្ជីឈ្មោះសិស្ស student-listV2 (តម្រៀបតាមការបង្កើត createdAt)
+                // Sort by CreatedAt
                 studentsData.sort((a, b) => {
                     return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
                 });
@@ -471,7 +473,7 @@
         function renderTable() {
             let tbodyHtml = '';
             if(studentsData.length === 0) {
-                tbodyHtml = `<tr><td colspan="26" class="py-6 text-center text-slate-500">មិនមានទិន្នន័យទេ</td></tr>`;
+                tbodyHtml = `<tr><td colspan="28" class="py-6 text-center text-slate-500">មិនមានទិន្នន័យទេ</td></tr>`;
             }
 
             studentsData.forEach((s, i) => {
@@ -487,18 +489,20 @@
                     <td class="bg-green-50/40 border-slate-700 text-center">${formatNumber(s.dec)}</td>
                     <td class="bg-green-50/40 border-slate-700 text-center">${formatNumber(s.jan)}</td>
                     <td class="bg-green-50/40 border-slate-700 text-center">${formatNumber(s.feb)}</td>
-                    <td class="bg-green-100/50 border-slate-700 text-center font-bold text-slate-700">${formatNumber(s.avg4m_1)}</td>
+                    <td class="bg-green-50/40 border-slate-700 text-center">${formatNumber(s.mar)}</td>
+                    <td class="bg-green-100/50 border-slate-700 text-center font-bold text-slate-700">${formatNumber(s.monthly_avg_1)}</td>
                     <td class="bg-green-50/40 border-slate-700 text-center text-slate-700">${formatNumber(s.exam1)}</td>
                     <td class="bg-green-200/50 border-slate-700 text-center font-bold text-green-700">${formatNumber(s.sem1_avg)}</td>
                     <td class="bg-green-50/40 border-slate-700 text-center font-bold text-red-600">${s.sem1_rank}</td>
                     <td class="bg-green-50/40 border-slate-700 text-center font-bold ${s.sem1_grade==='F'?'text-red-600 bg-red-100/50':'text-blue-600'}">${s.sem1_grade}</td>
 
                     <!-- Sem 2 -->
-                    <td class="bg-pink-50/40 border-slate-700 text-center">${formatNumber(s.mar)}</td>
                     <td class="bg-pink-50/40 border-slate-700 text-center">${formatNumber(s.apr)}</td>
                     <td class="bg-pink-50/40 border-slate-700 text-center">${formatNumber(s.may)}</td>
                     <td class="bg-pink-50/40 border-slate-700 text-center">${formatNumber(s.jun)}</td>
-                    <td class="bg-pink-100/50 border-slate-700 text-center font-bold text-slate-700">${formatNumber(s.avg4m_2)}</td>
+                    <td class="bg-pink-50/40 border-slate-700 text-center">${formatNumber(s.jul)}</td>
+                    <td class="bg-pink-50/40 border-slate-700 text-center">${formatNumber(s.aug)}</td>
+                    <td class="bg-pink-100/50 border-slate-700 text-center font-bold text-slate-700">${formatNumber(s.monthly_avg_2)}</td>
                     <td class="bg-pink-50/40 border-slate-700 text-center text-slate-700">${formatNumber(s.exam2)}</td>
                     <td class="bg-pink-200/50 border-slate-700 text-center font-bold text-green-700">${formatNumber(s.sem2_avg)}</td>
                     <td class="bg-pink-50/40 border-slate-700 text-center font-bold text-red-600">${s.sem2_rank}</td>
@@ -603,8 +607,8 @@
             const ALIGN_LEFT = { vertical: 'center', horizontal: 'left' };
             
             const emptyCell = (style) => ({ v: '', t: 's', s: style || {} });
-            const totalCols = 26;
-            const mid = 13;
+            const totalCols = 28; // Increased from 26 to 28
+            const mid = 14; // Adjust mid point for 28 columns
 
             // Headers
             let r0 = Array(totalCols).fill(null).map(() => emptyCell());
@@ -660,10 +664,10 @@
             tr1[1] = { v: 'គោត្តនាម និងនាម', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 1 }, e: { r: startRow + 1, c: 1 } });
             tr1[2] = { v: 'ភេទ', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 2 }, e: { r: startRow + 1, c: 2 } });
 
-            // Groups
-            tr1[3] = { v: 'ឆមាសទី១', t: 's', s: TH_SEM1 }; merges.push({ s: { r: startRow, c: 3 }, e: { r: startRow, c: 11 } });
-            tr1[12] = { v: 'ឆមាសទី២', t: 's', s: TH_SEM2 }; merges.push({ s: { r: startRow, c: 12 }, e: { r: startRow, c: 20 } });
-            tr1[21] = { v: 'ប្រចាំឆ្នាំ', t: 's', s: TH_ANN }; merges.push({ s: { r: startRow, c: 21 }, e: { r: startRow, c: 25 } });
+            // Groups (10 cols for Sem 1 & Sem 2 now)
+            tr1[3] = { v: 'ឆមាសទី១', t: 's', s: TH_SEM1 }; merges.push({ s: { r: startRow, c: 3 }, e: { r: startRow, c: 12 } });
+            tr1[13] = { v: 'ឆមាសទី២', t: 's', s: TH_SEM2 }; merges.push({ s: { r: startRow, c: 13 }, e: { r: startRow, c: 22 } });
+            tr1[23] = { v: 'ប្រចាំឆ្នាំ', t: 's', s: TH_ANN }; merges.push({ s: { r: startRow, c: 23 }, e: { r: startRow, c: 27 } });
 
             const fillVert = (i, txt, styleBase, customFont) => {
                 let f = { ...FONT_NORMAL, ...customFont };
@@ -675,26 +679,26 @@
             const ST_AN = { border: BORDER, fill: { fgColor: { rgb: 'FFF0F9FF' } } }; // lighter blue
 
             // Sem 1 Sub
-            fillVert(3, 'ខែវិច្ឆិកា', ST_S1); fillVert(4, 'ខែធ្នូ', ST_S1); fillVert(5, 'ខែមករា', ST_S1); fillVert(6, 'ខែកុម្ភៈ', ST_S1);
-            fillVert(7, 'មធ្យមភាគប្រចាំខែ', { ...ST_S1, fill: { fgColor: { rgb: COLOR_BG_SEM1 } } }, { bold: true }); 
-            fillVert(8, 'ប្រឡងឆមាសទី១', ST_S1);
-            fillVert(9, 'ម.ភាគឆមាសទី១', { ...ST_S1, fill: { fgColor: { rgb: 'FFBBF7D0' } } }, { bold: true, color: { rgb: COLOR_TXT_GREEN } });
-            fillVert(10, 'ចំណាត់ថ្នាក់', ST_S1, { bold: true, color: { rgb: COLOR_TXT_RED } }); 
-            fillVert(11, 'និទ្ទេស', ST_S1, { bold: true, color: { rgb: COLOR_TXT_BLUE } });
+            fillVert(3, 'ខែវិច្ឆិកា', ST_S1); fillVert(4, 'ខែធ្នូ', ST_S1); fillVert(5, 'ខែមករា', ST_S1); fillVert(6, 'ខែកុម្ភៈ', ST_S1); fillVert(7, 'ខែមីនា', ST_S1);
+            fillVert(8, 'មធ្យមភាគប្រចាំខែ', { ...ST_S1, fill: { fgColor: { rgb: COLOR_BG_SEM1 } } }, { bold: true }); 
+            fillVert(9, 'ប្រឡងឆមាសទី១', ST_S1);
+            fillVert(10, 'ម.ភាគឆមាសទី១', { ...ST_S1, fill: { fgColor: { rgb: 'FFBBF7D0' } } }, { bold: true, color: { rgb: COLOR_TXT_GREEN } });
+            fillVert(11, 'ចំណាត់ថ្នាក់', ST_S1, { bold: true, color: { rgb: COLOR_TXT_RED } }); 
+            fillVert(12, 'និទ្ទេស', ST_S1, { bold: true, color: { rgb: COLOR_TXT_BLUE } });
 
             // Sem 2 Sub
-            fillVert(12, 'ខែមីនា', ST_S2); fillVert(13, 'ខែមេសា', ST_S2); fillVert(14, 'ខែឧសភា', ST_S2); fillVert(15, 'ខែមិថុនា', ST_S2);
-            fillVert(16, 'មធ្យមភាគប្រចាំខែ', { ...ST_S2, fill: { fgColor: { rgb: COLOR_BG_SEM2 } } }, { bold: true }); 
-            fillVert(17, 'ប្រឡងឆមាសទី២', ST_S2);
-            fillVert(18, 'ម.ភាគឆមាសទី២', { ...ST_S2, fill: { fgColor: { rgb: 'FFFBCFE8' } } }, { bold: true, color: { rgb: COLOR_TXT_GREEN } });
-            fillVert(19, 'ចំណាត់ថ្នាក់', ST_S2, { bold: true, color: { rgb: COLOR_TXT_RED } }); 
-            fillVert(20, 'និទ្ទេស', ST_S2, { bold: true, color: { rgb: COLOR_TXT_BLUE } });
+            fillVert(13, 'ខែមេសា', ST_S2); fillVert(14, 'ខែឧសភា', ST_S2); fillVert(15, 'ខែមិថុនា', ST_S2); fillVert(16, 'ខែកក្កដា', ST_S2); fillVert(17, 'ខែសីហា', ST_S2);
+            fillVert(18, 'មធ្យមភាគប្រចាំខែ', { ...ST_S2, fill: { fgColor: { rgb: COLOR_BG_SEM2 } } }, { bold: true }); 
+            fillVert(19, 'ប្រឡងឆមាសទី២', ST_S2);
+            fillVert(20, 'ម.ភាគឆមាសទី២', { ...ST_S2, fill: { fgColor: { rgb: 'FFFBCFE8' } } }, { bold: true, color: { rgb: COLOR_TXT_GREEN } });
+            fillVert(21, 'ចំណាត់ថ្នាក់', ST_S2, { bold: true, color: { rgb: COLOR_TXT_RED } }); 
+            fillVert(22, 'និទ្ទេស', ST_S2, { bold: true, color: { rgb: COLOR_TXT_BLUE } });
 
             // Annual Sub
-            fillVert(21, 'ម.ភាគឆមាសទី១', ST_AN); fillVert(22, 'ម.ភាគឆមាសទី២', ST_AN);
-            fillVert(23, 'ម.ភាគប្រចាំឆ្នាំ', { ...ST_AN, fill: { fgColor: { rgb: 'FFBAE6FD' } } }, { bold: true, color: { rgb: COLOR_TXT_GREEN } });
-            fillVert(24, 'ចំណាត់ថ្នាក់', ST_AN, { bold: true, color: { rgb: COLOR_TXT_RED } }); 
-            fillVert(25, 'និទ្ទេស', ST_AN, { bold: true, color: { rgb: COLOR_TXT_BLUE } });
+            fillVert(23, 'ម.ភាគឆមាសទី១', ST_AN); fillVert(24, 'ម.ភាគឆមាសទី២', ST_AN);
+            fillVert(25, 'ម.ភាគប្រចាំឆ្នាំ', { ...ST_AN, fill: { fgColor: { rgb: 'FFBAE6FD' } } }, { bold: true, color: { rgb: COLOR_TXT_GREEN } });
+            fillVert(26, 'ចំណាត់ថ្នាក់', ST_AN, { bold: true, color: { rgb: COLOR_TXT_RED } }); 
+            fillVert(27, 'និទ្ទេស', ST_AN, { bold: true, color: { rgb: COLOR_TXT_BLUE } });
 
             ws_data.push(tr1, tr2);
 
@@ -715,18 +719,21 @@
                 
                 const r = ws_data.length + 1; // Excel 1-based index
                 
-                // Formulate strictly dynamically
-                const f_sem1_avg = `IF(COUNT(H${r}, I${r})>0, AVERAGE(H${r}, I${r}), IF(ISNUMBER(H${r}), H${r}, IF(ISNUMBER(I${r}), I${r}, "")))`;
-                const f_sem1_rank = `IF(ISNUMBER(J${r}), RANK(J${r}, $J$13:$J$${dataEndRow}), "")`;
-                const f_sem1_grade = `IF(ISNUMBER(J${r}), IF(J${r}<5,"F",IF(J${r}<6,"E",IF(J${r}<7,"D",IF(J${r}<8,"C",IF(J${r}<9,"B","A"))))), "")`;
+                // Formulate strictly dynamically updated indices:
+                // I=8, J=9, K=10, L=11, M=12 
+                const f_sem1_avg = `IF(COUNT(I${r}, J${r})>0, AVERAGE(I${r}, J${r}), IF(ISNUMBER(I${r}), I${r}, IF(ISNUMBER(J${r}), J${r}, "")))`;
+                const f_sem1_rank = `IF(ISNUMBER(K${r}), RANK(K${r}, $K$13:$K$${dataEndRow}), "")`;
+                const f_sem1_grade = `IF(ISNUMBER(K${r}), IF(K${r}<5,"F",IF(K${r}<6,"E",IF(K${r}<7,"D",IF(K${r}<8,"C",IF(K${r}<9,"B","A"))))), "")`;
 
-                const f_sem2_avg = `IF(COUNT(Q${r}, R${r})>0, AVERAGE(Q${r}, R${r}), IF(ISNUMBER(Q${r}), Q${r}, IF(ISNUMBER(R${r}), R${r}, "")))`;
-                const f_sem2_rank = `IF(ISNUMBER(S${r}), RANK(S${r}, $S$13:$S$${dataEndRow}), "")`;
-                const f_sem2_grade = `IF(ISNUMBER(S${r}), IF(S${r}<5,"F",IF(S${r}<6,"E",IF(S${r}<7,"D",IF(S${r}<8,"C",IF(S${r}<9,"B","A"))))), "")`;
+                // S=18, T=19, U=20, V=21, W=22
+                const f_sem2_avg = `IF(COUNT(S${r}, T${r})>0, AVERAGE(S${r}, T${r}), IF(ISNUMBER(S${r}), S${r}, IF(ISNUMBER(T${r}), T${r}, "")))`;
+                const f_sem2_rank = `IF(ISNUMBER(U${r}), RANK(U${r}, $U$13:$U$${dataEndRow}), "")`;
+                const f_sem2_grade = `IF(ISNUMBER(U${r}), IF(U${r}<5,"F",IF(U${r}<6,"E",IF(U${r}<7,"D",IF(U${r}<8,"C",IF(U${r}<9,"B","A"))))), "")`;
 
-                const f_annual_avg = `IF(COUNT(V${r}, W${r})>0, AVERAGE(V${r}, W${r}), IF(ISNUMBER(V${r}), V${r}, IF(ISNUMBER(W${r}), W${r}, "")))`;
-                const f_annual_rank = `IF(ISNUMBER(X${r}), RANK(X${r}, $X$13:$X$${dataEndRow}), "")`;
-                const f_annual_grade = `IF(ISNUMBER(X${r}), IF(X${r}<5,"F",IF(X${r}<6,"E",IF(X${r}<7,"D",IF(X${r}<8,"C",IF(X${r}<9,"B","A"))))), "")`;
+                // X=23, Y=24, Z=25, AA=26, AB=27
+                const f_annual_avg = `IF(COUNT(X${r}, Y${r})>0, AVERAGE(X${r}, Y${r}), IF(ISNUMBER(X${r}), X${r}, IF(ISNUMBER(Y${r}), Y${r}, "")))`;
+                const f_annual_rank = `IF(ISNUMBER(Z${r}), RANK(Z${r}, $Z$13:$Z$${dataEndRow}), "")`;
+                const f_annual_grade = `IF(ISNUMBER(Z${r}), IF(Z${r}<5,"F",IF(Z${r}<6,"E",IF(Z${r}<7,"D",IF(Z${r}<8,"C",IF(Z${r}<9,"B","A"))))), "")`;
 
                 const fmtNum = { numFmt: "0.00", border: BORDER, alignment: ALIGN_CENTER };
                 const cellST = (base, fontCol) => ({ ...fmtNum, fill: { fgColor: { rgb: base } }, font: { ...FONT_NORMAL, color: { rgb: fontCol || COLOR_TXT_DEFAULT } } });
@@ -734,28 +741,28 @@
 
                 // Sem 1
                 row[3] = numCell(s.nov, cellST('FFF0FDF4')); row[4] = numCell(s.dec, cellST('FFF0FDF4'));
-                row[5] = numCell(s.jan, cellST('FFF0FDF4')); row[6] = numCell(s.feb, cellST('FFF0FDF4'));
-                row[7] = numCell(s.avg4m_1, cellSTB(COLOR_BG_SEM1));
-                row[8] = numCell(s.exam1, cellST('FFF0FDF4'));
-                row[9] = { v: s.sem1_avg || 0, f: f_sem1_avg, t: 'n', s: cellSTB('FFBBF7D0', COLOR_TXT_GREEN) };
-                row[10] = { v: s.sem1_rank || '', f: f_sem1_rank, t: 'n', s: cellSTB('FFF0FDF4', COLOR_TXT_RED) };
-                row[11] = { v: s.sem1_grade || '', f: f_sem1_grade, t: 's', s: cellSTB('FFF0FDF4', s.sem1_grade==='F'?COLOR_TXT_RED:COLOR_TXT_BLUE) };
+                row[5] = numCell(s.jan, cellST('FFF0FDF4')); row[6] = numCell(s.feb, cellST('FFF0FDF4')); row[7] = numCell(s.mar, cellST('FFF0FDF4'));
+                row[8] = numCell(s.monthly_avg_1, cellSTB(COLOR_BG_SEM1));
+                row[9] = numCell(s.exam1, cellST('FFF0FDF4'));
+                row[10] = { v: s.sem1_avg || 0, f: f_sem1_avg, t: 'n', s: cellSTB('FFBBF7D0', COLOR_TXT_GREEN) };
+                row[11] = { v: s.sem1_rank || '', f: f_sem1_rank, t: 'n', s: cellSTB('FFF0FDF4', COLOR_TXT_RED) };
+                row[12] = { v: s.sem1_grade || '', f: f_sem1_grade, t: 's', s: cellSTB('FFF0FDF4', s.sem1_grade==='F'?COLOR_TXT_RED:COLOR_TXT_BLUE) };
 
                 // Sem 2
-                row[12] = numCell(s.mar, cellST('FFFDF2F8')); row[13] = numCell(s.apr, cellST('FFFDF2F8'));
-                row[14] = numCell(s.may, cellST('FFFDF2F8')); row[15] = numCell(s.jun, cellST('FFFDF2F8'));
-                row[16] = numCell(s.avg4m_2, cellSTB(COLOR_BG_SEM2));
-                row[17] = numCell(s.exam2, cellST('FFFDF2F8'));
-                row[18] = { v: s.sem2_avg || 0, f: f_sem2_avg, t: 'n', s: cellSTB('FFFBCFE8', COLOR_TXT_GREEN) };
-                row[19] = { v: s.sem2_rank || '', f: f_sem2_rank, t: 'n', s: cellSTB('FFFDF2F8', COLOR_TXT_RED) };
-                row[20] = { v: s.sem2_grade || '', f: f_sem2_grade, t: 's', s: cellSTB('FFFDF2F8', s.sem2_grade==='F'?COLOR_TXT_RED:COLOR_TXT_BLUE) };
+                row[13] = numCell(s.apr, cellST('FFFDF2F8')); row[14] = numCell(s.may, cellST('FFFDF2F8'));
+                row[15] = numCell(s.jun, cellST('FFFDF2F8')); row[16] = numCell(s.jul, cellST('FFFDF2F8')); row[17] = numCell(s.aug, cellST('FFFDF2F8'));
+                row[18] = numCell(s.monthly_avg_2, cellSTB(COLOR_BG_SEM2));
+                row[19] = numCell(s.exam2, cellST('FFFDF2F8'));
+                row[20] = { v: s.sem2_avg || 0, f: f_sem2_avg, t: 'n', s: cellSTB('FFFBCFE8', COLOR_TXT_GREEN) };
+                row[21] = { v: s.sem2_rank || '', f: f_sem2_rank, t: 'n', s: cellSTB('FFFDF2F8', COLOR_TXT_RED) };
+                row[22] = { v: s.sem2_grade || '', f: f_sem2_grade, t: 's', s: cellSTB('FFFDF2F8', s.sem2_grade==='F'?COLOR_TXT_RED:COLOR_TXT_BLUE) };
 
                 // Annual
-                row[21] = { v: s.sem1_avg || 0, f: `IF(ISNUMBER(J${r}), J${r}, "")`, t: 'n', s: cellST('FFF0F9FF') };
-                row[22] = { v: s.sem2_avg || 0, f: `IF(ISNUMBER(S${r}), S${r}, "")`, t: 'n', s: cellST('FFF0F9FF') };
-                row[23] = { v: s.annual_avg || 0, f: f_annual_avg, t: 'n', s: cellSTB('FFBAE6FD', COLOR_TXT_GREEN) };
-                row[24] = { v: s.annual_rank || '', f: f_annual_rank, t: 'n', s: cellSTB('FFF0F9FF', COLOR_TXT_RED) };
-                row[25] = { v: s.annual_grade || '', f: f_annual_grade, t: 's', s: cellSTB('FFF0F9FF', s.annual_grade==='F'?COLOR_TXT_RED:COLOR_TXT_BLUE) };
+                row[23] = { v: s.sem1_avg || 0, f: `IF(ISNUMBER(K${r}), K${r}, "")`, t: 'n', s: cellST('FFF0F9FF') };
+                row[24] = { v: s.sem2_avg || 0, f: `IF(ISNUMBER(U${r}), U${r}, "")`, t: 'n', s: cellST('FFF0F9FF') };
+                row[25] = { v: s.annual_avg || 0, f: f_annual_avg, t: 'n', s: cellSTB('FFBAE6FD', COLOR_TXT_GREEN) };
+                row[26] = { v: s.annual_rank || '', f: f_annual_rank, t: 'n', s: cellSTB('FFF0F9FF', COLOR_TXT_RED) };
+                row[27] = { v: s.annual_grade || '', f: f_annual_grade, t: 's', s: cellSTB('FFF0F9FF', s.annual_grade==='F'?COLOR_TXT_RED:COLOR_TXT_BLUE) };
 
                 ws_data.push(row);
             });
@@ -764,9 +771,10 @@
             
             // Footer Stats - matching formulas to the HTML output
             let fRow = ws_data.length;
+
             const genderRange = `$C$13:$C$${dataEndRow}`;
-            const annAvgRange = `$X$13:$X$${dataEndRow}`; // X = index 23
-            const annGradeRange = `$Z$13:$Z$${dataEndRow}`; // Z = index 25
+            const annAvgRange = `$Z$13:$Z$${dataEndRow}`; // Z = index 25
+            const annGradeRange = `$AB$13:$AB$${dataEndRow}`; // AB = index 27
 
             const totalT = `COUNTA(${genderRange})`; const totalF = `COUNTIF(${genderRange}, "ស")`;
             const passT = `COUNTIF(${annAvgRange}, ">=5")`; const passF = `COUNTIFS(${genderRange}, "ស", ${annAvgRange}, ">=5")`;

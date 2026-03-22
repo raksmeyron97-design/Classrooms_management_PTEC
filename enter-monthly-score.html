@@ -418,7 +418,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
-        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // លុប signInAnonymously និងបន្ថែម signInWithCustomToken
+        import { getAuth, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -644,22 +645,29 @@
             updateMonthOptions(); 
             lucide.createIcons();
 
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    currentUser = user;
-                    await loadStudents();
-                    await loadCustomSubjects();
-                    await loadScoresForCurrentPeriod();
-                } else {
-                    try {
-                        await signInAnonymously(auth);
-                    } catch (error) {
-                        console.error("Auth Error:", error);
+            const initAuth = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    }
+                } catch (error) {
+                    console.error("Auth error:", error);
+                }
+            };
+
+            initAuth().then(() => {
+                onAuthStateChanged(auth, async (user) => {
+                    // បង្ខំឲ្យ Login បើមិនទាន់មាន user ឬបើជាការចូលដោយអនាមិក (ដើម្បីសម្អាតគណនីចាស់)
+                    if (user && !user.isAnonymous) {
+                        currentUser = user;
                         await loadStudents();
                         await loadCustomSubjects();
                         await loadScoresForCurrentPeriod();
+                    } else {
+                        // លោតទៅទំព័រ Login 
+                        window.location.href = 'index.html';
                     }
-                }
+                });
             });
         });
 
@@ -765,7 +773,7 @@
                 localStorage.setItem('custom_subjects', JSON.stringify(customSubjects));
                 
                 alert("លុបបានជោគជ័យ! ទំព័រនឹងធ្វើការផ្ទុកឡើងវិញ។");
-                location.reload(); // Reload ដើម្បីសម្អាត Options ទាំងអស់ឲ្យបានល្អ
+                location.reload(); 
             } catch (e) {
                 console.error("Error deleting subject", e);
                 alert("មានបញ្ហាក្នុងការលុប!");

@@ -280,7 +280,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
-        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // លុប signInAnonymously និងប្រើ signInWithCustomToken សម្រាប់ការពារ
+        import { getAuth, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -1200,20 +1201,28 @@
             lucide.createIcons();
             window.updateMonthOptions();
 
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    currentUser = user;
-                    await loadCustomSubjects(); // ដំណើរការទាញយកមុខវិជ្ជាបន្ថែម
-                    await window.loadData();
-                } else {
-                    try {
-                        await signInAnonymously(auth);
-                    } catch (error) {
-                        console.error("Auth Error:", error);
+            const initAuth = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    }
+                } catch (error) {
+                    console.error("Auth error:", error);
+                }
+            };
+
+            initAuth().then(() => {
+                onAuthStateChanged(auth, async (user) => {
+                    // បង្ខំឲ្យ Login បើមិនទាន់មាន user ឬបើជាការចូលដោយអនាមិក (ដើម្បីសម្អាតគណនីចាស់)
+                    if (user && !user.isAnonymous) {
+                        currentUser = user;
                         await loadCustomSubjects(); // ដំណើរការទាញយកមុខវិជ្ជាបន្ថែម
                         await window.loadData();
+                    } else {
+                        // លោតទៅទំព័រ Login
+                        window.location.href = 'index.html';
                     }
-                }
+                });
             });
         });
     </script>

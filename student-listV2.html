@@ -187,11 +187,17 @@
                     </table>
                 </div>
 
-                <!-- Empty State -->
-                <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-gray-400">
-                    <i data-lucide="users" class="w-16 h-16 mb-4 opacity-50"></i>
-                    <p class="text-lg font-bold">មិនទាន់មានទិន្នន័យសិស្សនៅឡើយទេ</p>
-                    <a href="enrollment_V2.html" class="mt-4 bg-[#2da143] text-white px-6 py-2 rounded font-bold hover:bg-[#238535] transition-colors">ទៅកាន់ទំព័របញ្ចូលសិស្ស</a>
+                <!-- Empty State with Clear Instructions -->
+                <div id="emptyState" class="hidden flex-col items-center justify-center py-16 px-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                    <i data-lucide="folder-search" class="w-16 h-16 mb-4 text-gray-400"></i>
+                    <h3 class="text-xl font-bold text-gray-700 mb-2">មិនទាន់មានទិន្នន័យសិស្សនៅក្នុងគណនីនេះទេ</h3>
+                    <div class="bg-blue-50 text-blue-800 p-4 rounded-lg max-w-2xl text-center text-sm shadow-sm border border-blue-100">
+                        <p class="mb-2 font-bold">⚠️ បញ្ជាក់ការរក្សាទុកទិន្នន័យ៖</p>
+                        <p>សូមប្រាកដថាអ្នកបានបញ្ចូលសិស្សនៅក្នុងទំព័រ <b>បញ្ចូលសិស្សថ្មី</b> រួចរាល់។</p>
+                    </div>
+                    <a href="enrollment_V2.html" class="mt-6 bg-[#2da143] text-white px-6 py-2.5 rounded font-bold hover:bg-[#238535] transition-colors flex items-center gap-2 shadow-md">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> ទៅកាន់ទំព័រនាំចូលទិន្នន័យសិស្ស
+                    </a>
                 </div>
 
             </div>
@@ -208,11 +214,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // លុប signInAnonymously ចេញពីការ Import
         import { getAuth, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, deleteDoc, writeBatch, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, deleteDoc, writeBatch, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
             authDomain: "classroom-management-82382.firebaseapp.com",
@@ -223,7 +227,6 @@
             measurementId: "G-PX867PB723"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -236,32 +239,26 @@
         const loadingOverlay = document.getElementById('loadingOverlay');
         const loadingText = document.getElementById('loading-text');
 
-        // Initialize Lucide Icons initially
         lucide.createIcons();
 
-        const initAuth = async () => {
-            try {
+        // ប្រើ onAuthStateChanged ដើម្បីចាប់យក Session ដែលមានស្រាប់
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                loadingText.textContent = "កំពុងរៀបចំទិន្នន័យពី Database...";
+                loadStudentsFromFirestore();
+            } else {
+                // បើអត់មាន Session ព្យាយាមប្រើ Token
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                }
-                // លែងប្រើប្រាស់ការចូលដោយអនាមិកទៀតហើយ
-            } catch (error) {
-                console.error("Auth error:", error);
-            }
-        };
-
-        initAuth().then(() => {
-            onAuthStateChanged(auth, (user) => {
-                // ប្រសិនបើមាន user ព្រមទាំងមិនមែនជាគណនីអនាមិក (ដើម្បីជម្រះគណនីចាស់ៗចេញ)
-                if (user && !user.isAnonymous) {
-                    currentUser = user;
-                    loadingText.textContent = "កំពុងរៀបចំទិន្នន័យពី Database...";
-                    loadStudentsFromFirestore();
+                    try {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } catch (error) {
+                        window.location.href = 'index.html';
+                    }
                 } else {
-                    // ប្រសិនបើអត់ទាន់ Login ទេ បង្ខំឲ្យលោតទៅទំព័រ Login វិញ (index.html)
                     window.location.href = 'index.html';
                 }
-            });
+            }
         });
 
         // =======================
@@ -270,16 +267,69 @@
         function loadStudentsFromFirestore() {
             if (!currentUser) return;
 
-            // ឥឡូវនេះវានឹងទាញយកទិន្នន័យដោយផ្អែកលើគណនី (Email) ដែលគាត់បាន Login ពិតប្រាកដ
             const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
 
-            unsubscribeSnapshot = onSnapshot(studentsRef, (snapshot) => {
+            unsubscribeSnapshot = onSnapshot(studentsRef, async (snapshot) => {
                 studentsData = [];
                 snapshot.forEach((doc) => {
-                    studentsData.push(doc.data());
+                    const data = doc.data();
+                    if (!data.id && !data.ID && !data['អត្តលេខ']) {
+                        data.id = doc.id;
+                    }
+                    studentsData.push(data);
                 });
                 
-                studentsData.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                // ------------------------------------------------------------
+                // ដំណោះស្រាយទី១៖ បើកូដចាស់រក្សាទុកទិន្នន័យក្នុង data/globals ជា Array
+                // ------------------------------------------------------------
+                if (studentsData.length === 0) {
+                    try {
+                        console.log("No students in collection, checking data/globals fallback...");
+                        const globalDocRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'data', 'globals');
+                        const globalSnap = await getDoc(globalDocRef);
+                        
+                        if (globalSnap.exists()) {
+                            const rawData = globalSnap.data();
+                            let extracted = [];
+                            
+                            // Extract objects inside the document that have number keys (0, 1, 2...)
+                            Object.keys(rawData).forEach(key => {
+                                if (!isNaN(key) && typeof rawData[key] === 'object') {
+                                    extracted.push(rawData[key]);
+                                }
+                            });
+
+                            if (extracted.length > 0) {
+                                studentsData = extracted;
+                                console.log("Success! Loaded from globals fallback.");
+                            }
+                        }
+                        
+                        // Try class_default if globals is empty
+                        if(studentsData.length === 0) {
+                            const defaultRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'data', 'class_default');
+                            const defaultSnap = await getDoc(defaultRef);
+                            if(defaultSnap.exists()) {
+                                const rawData = defaultSnap.data();
+                                Object.keys(rawData).forEach(key => {
+                                    if (!isNaN(key) && typeof rawData[key] === 'object') {
+                                        studentsData.push(rawData[key]);
+                                    }
+                                });
+                            }
+                        }
+
+                    } catch(e) {
+                        console.error("Fallback extraction failed", e);
+                    }
+                }
+                
+                // ការពារកុំឱ្យ Error ពេលអត់មានថ្ងៃខែបង្កើត
+                studentsData.sort((a, b) => {
+                    const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                    return timeA - timeB;
+                });
                 
                 renderTable();
                 loadingOverlay.style.display = 'none';
@@ -291,7 +341,48 @@
         }
 
         // =======================
-        // Table Rendering & Helpers
+        // Data Extraction Helpers (Fuzzy Match & Safety)
+        // =======================
+        function getStudentName(s) {
+            if (s.name) return s.name;
+            if (s.studentName) return s.studentName;
+            if (s['ឈ្មោះ']) return s['ឈ្មោះ'];
+            if (s['គោត្តនាម និងនាម']) return s['គោត្តនាម និងនាម'];
+
+            for (let k of Object.keys(s)) {
+                let cleanKey = k.toLowerCase().replace(/[\s\u200B-\u200D\uFEFF]+/g, '');
+                if (['name', 'studentname', 'khmername', 'fullname', 'ឈ្មោះ', 'ឈ្មោះសិស្ស', 'គោត្តនាមនិងនាម', 'គោត្តនាមនាម'].includes(cleanKey)) {
+                    if (s[k]) return s[k];
+                }
+            }
+            
+            for (let k of Object.keys(s)) {
+                let cleanKey = k.toLowerCase().replace(/[\s\u200B-\u200D\uFEFF]+/g, '');
+                if ((cleanKey.includes('ឈ្មោះ') || cleanKey.includes('នាម') || cleanKey.includes('name')) && 
+                    !cleanKey.includes('ឪពុក') && !cleanKey.includes('ម្តាយ') && !cleanKey.includes('father') && !cleanKey.includes('mother') && !cleanKey.includes('អាណាព្យាបាល')) {
+                    if (s[k]) return s[k];
+                }
+            }
+            return '';
+        }
+
+        function getStudentId(s) {
+            if (s.id) return s.id;
+            if (s.studentId) return s.studentId;
+            if (s.ID) return s.ID;
+            if (s['អត្តលេខ']) return s['អត្តលេខ'];
+
+            for (let k of Object.keys(s)) {
+                let cleanKey = k.toLowerCase().replace(/[\s\u200B-\u200D\uFEFF]+/g, '');
+                if (cleanKey === 'id' || cleanKey === 'studentid' || cleanKey.includes('អត្តលេខ') || (cleanKey.includes('លេខ') && !cleanKey.includes('ទូរស័ព្ទ'))) {
+                    if (s[k]) return s[k];
+                }
+            }
+            return '-';
+        }
+
+        // =======================
+        // Table Rendering & Formatting
         // =======================
         function calculateAge(dobStr) {
             if(!dobStr || dobStr === '-') return '-';
@@ -368,16 +459,33 @@
                 const motherInfo = formatParent(s.mother, s.motherJob);
                 const displayDob = formatDateDisplay(s.dob);
 
+                const displayName = getStudentName(s);
+                const displayId = getStudentId(s);
+
+                let finalNameHTML = '';
+                if (displayName) {
+                    finalNameHTML = `<span class="whitespace-nowrap">${displayName}</span>`;
+                } else {
+                    const rawJsonStr = JSON.stringify(s).replace(/"/g, '&quot;');
+                    finalNameHTML = `
+                        <div class="flex flex-col gap-1 max-w-[250px]">
+                            <span class="text-red-600 font-bold text-xs"><i data-lucide="alert-circle" class="w-3 h-3 inline"></i> រកឈ្មោះមិនឃើញ</span>
+                            <div class="text-[9px] bg-red-50 p-1.5 rounded border border-red-200 text-red-800 break-all h-16 overflow-y-auto leading-tight font-mono">
+                                RAW DATA: ${rawJsonStr}
+                            </div>
+                        </div>`;
+                }
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="text-center font-bold text-gray-500">${index + 1}</td>
-                    <td class="font-mono text-blue-600 font-bold">${s.id || '-'}</td>
+                    <td class="font-mono text-blue-600 font-bold">${displayId}</td>
                     <td class="sticky-col font-bold text-indigo-900 border-r border-gray-200">
                         <div class="flex items-center gap-2">
-                            <img src="${s.photo || 'https://api.dicebear.com/7.x/notionists/svg?seed=' + s.id}" 
-                                 class="w-8 h-8 rounded-full border border-gray-200 object-cover cursor-pointer hover:ring-2 ring-indigo-400 no-print" 
+                            <img src="${s.photo || 'https://api.dicebear.com/7.x/notionists/svg?seed=' + displayId}" 
+                                 class="w-8 h-8 rounded-full border border-gray-200 object-cover cursor-pointer hover:ring-2 ring-indigo-400 no-print flex-shrink-0" 
                                  onclick="window.showPhoto(this.src)">
-                            <span class="whitespace-nowrap">${s.name || '-'}</span>
+                            ${finalNameHTML}
                         </div>
                     </td>
                     <td>${s.gender || '-'}</td>
@@ -390,8 +498,8 @@
                     <td class="text-[11px]">${s.ethnicity || '-'}</td>
                     <td class="text-[11px] text-purple-600">${s.specialFeatures || '-'}</td>
                     <td class="text-[11px] text-gray-500 italic">${s.otherRemarks || '-'}</td>
-                    <td class="text-center no-print sticky right-0 bg-inherit border-l px-2 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">
-                        <div class="flex items-center justify-center gap-1 bg-inherit">
+                    <td class="text-center no-print sticky right-0 bg-gray-50 border-l z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                        <div class="flex items-center justify-center gap-1">
                             <button onclick="window.editStudent(${index})" class="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors" title="កែសម្រួល">
                                 <i data-lucide="edit" class="w-4 h-4"></i>
                             </button>
@@ -417,17 +525,21 @@
 
         window.editStudent = function(index) {
             const student = studentsData[index];
-            localStorage.setItem('editStudentId', student.id);
+            const editId = getStudentId(student);
+            localStorage.setItem('editStudentId', editId);
             window.location.href = 'enrollment_V2.html'; 
         };
 
         window.deleteStudent = async function(index) {
             if(!currentUser) return;
             const student = studentsData[index];
+            
+            const displayId = getStudentId(student);
+            const displayName = getStudentName(student) || 'សិស្សនេះ';
 
-            if(confirm(`តើអ្នកពិតជាចង់លុបទិន្នន័យសិស្សឈ្មោះ ${student.name} មែនទេ?`)) {
+            if(confirm(`តើអ្នកពិតជាចង់លុបទិន្នន័យសិស្សឈ្មោះ ${displayName} មែនទេ?`)) {
                 try {
-                    const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students', student.id.toString());
+                    const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students', displayId.toString());
                     await deleteDoc(docRef);
                 } catch (error) {
                     console.error("Error deleting student: ", error);
@@ -452,8 +564,11 @@
                 try {
                     const batch = writeBatch(db);
                     studentsData.forEach(student => {
-                        const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students', student.id.toString());
-                        batch.delete(docRef);
+                        const sId = getStudentId(student);
+                        if(sId !== '-') {
+                            const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students', sId.toString());
+                            batch.delete(docRef);
+                        }
                     });
                     
                     await batch.commit();

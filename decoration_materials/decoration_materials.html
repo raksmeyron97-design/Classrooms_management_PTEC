@@ -77,7 +77,7 @@
     <header class="sticky top-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 shadow-sm transition-colors duration-300">
         <nav class="max-w-7xl mx-auto px-4 md:px-8 py-3 flex justify-between items-center">
             <!-- ប្តូរ href ទៅកាន់ index.html ដើម្បីអាចត្រឡប់ទៅទំព័រដើមវិញបាន -->
-            <a href="index.html" class="flex items-center gap-2">
+            <a href="../index.html" class="flex items-center gap-2">
                 <i data-lucide="arrow-left" class="w-5 h-5 text-[#0054a6] dark:text-[#4facfe]"></i>
                 <span class="font-bold text-[#0054a6] dark:text-[#4facfe]">ត្រឡប់ក្រោយ</span>
             </a>
@@ -186,7 +186,7 @@
                 logoutBtns.forEach(btn => btn.classList.remove('hidden'));
             } else {
                 // ប្រសិនបើមិនទាន់ Log In ទេ ឲ្យត្រឡប់ទៅទំព័រដើមវិញ (index.html)
-                window.location.href = 'index.html';
+                window.location.href = '../index.html';
             }
         });
 
@@ -195,7 +195,7 @@
             btn.addEventListener('click', () => {
                 if (confirm('តើអ្នកពិតជាចង់ចាកចេញពីគណនីនេះមែនទេ?')) {
                     signOut(auth).then(() => {
-                        window.location.href = 'index.html';
+                        window.location.href = '../index.html';
                     }).catch((error) => {
                         console.error('Logout failed:', error);
                     });

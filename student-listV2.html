@@ -36,6 +36,7 @@
             padding: 10px 12px;
             border: 1px solid #e5e7eb;
             white-space: nowrap;
+            vertical-align: middle;
         }
         .data-table td {
             padding: 8px 12px;
@@ -76,10 +77,12 @@
             background-color: #f8fafc; 
         }
 
+        .min-w-id { min-width: 80px; }
         .min-w-name { min-width: 180px; }
         .min-w-place { min-width: 200px; }
         .min-w-parent { min-width: 160px; }
         .min-w-notes { min-width: 120px; }
+        .min-w-status { min-width: 90px; text-align: center; }
 
         /* Custom Scrollbar for Table */
         .table-wrapper {
@@ -87,7 +90,7 @@
             border-radius: 6px;
             border: 1px solid #e5e7eb;
         }
-        .table-wrapper::-webkit-scrollbar { height: 8px; }
+        .table-wrapper::-webkit-scrollbar { height: 10px; }
         .table-wrapper::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         .table-wrapper::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
         .table-wrapper::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
@@ -134,7 +137,7 @@
     </nav>
 
     <!-- Main Content Container -->
-    <div class="container mx-auto p-4 md:p-6 mt-4 pb-20 max-w-[1400px]">
+    <div class="container mx-auto p-4 md:p-6 mt-4 pb-20 max-w-[100%]">
         
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative" id="print-area">
             <!-- Top Border Decoration -->
@@ -149,7 +152,7 @@
                     </div>
                     
                     <div class="flex flex-wrap gap-2 no-print">
-                        <button onclick="window.location.href='print-student-list.html'" class="bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2 rounded text-[13px] font-bold flex items-center gap-2 shadow-sm transition-colors">
+                        <button onclick="window.location.href='print_student_list.html'" class="bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2 rounded text-[13px] font-bold flex items-center gap-2 shadow-sm transition-colors">
                             <i data-lucide="printer" class="w-4 h-4"></i> ទម្រង់បោះពុម្ព និង ទាញយក
                         </button>
                         
@@ -166,18 +169,29 @@
                         <thead>
                             <tr>
                                 <th class="text-center w-10">ល.រ</th>
-                                <th>អត្តលេខ</th>
-                                <th class="min-w-name sticky-col">គោត្តនាម នាម</th>
+                                <th class="min-w-id">អ.ល</th>
+                                <th class="min-w-name sticky-col">គោត្តនាម និងនាម</th>
                                 <th>ភេទ</th>
                                 <th>ថ្ងៃខែឆ្នាំកំណើត</th>
                                 <th class="text-center">អាយុ</th>
                                 <th class="min-w-place">ទីកន្លែងកំណើត</th>
-                                <th class="min-w-parent">ឈ្មោះឪពុក និងមុខរបរ</th>
-                                <th class="min-w-parent">ឈ្មោះម្តាយ និងមុខរបរ</th>
+                                <th class="min-w-parent">ឈ្មោះឪពុក និង មុខរបរ</th>
+                                <th class="min-w-parent">ឈ្មោះម្តាយ និង មុខរបរ</th>
+                                <th class="min-w-parent">អាណាព្យាបាល និងមុខរបរ</th>
+                                <th>លេខទូរសព្ទអាណាព្យាបាល</th>
                                 <th class="min-w-place">អាសយដ្ឋានសព្វថ្ងៃ</th>
-                                <th>ជនជាតិដើមភាគតិច</th>
+                                <th class="min-w-status">សិស្សថ្មី</th>
+                                <th class="min-w-status">ស.ត្រួត(សិស្សត្រួត)</th>
+                                <th class="min-w-status">ស.កំព្រា(សិស្សកំព្រា)</th>
+                                <th class="min-w-status">ស.ពិការ(សិស្សពិការ)</th>
+                                <th class="text-center">ក្រ១</th>
+                                <th class="text-center">ក្រ២</th>
+                                <th class="min-w-status">ស.ធម៌(សិស្សសមធម៌)</th>
+                                <th class="min-w-status">អ.រូបករណ៍</th>
                                 <th class="min-w-notes">លក្ខណៈពិសេស</th>
-                                <th class="min-w-notes">សេចក្តីផ្សេងៗ</th>
+                                <th>ជនជាតិភាគតិច</th>
+                                <th class="min-w-notes">ឈ្មោះសិស្សជាអក្សរឡាតាំង</th>
+                                <th class="min-w-notes">ផ្សេងៗ</th>
                                 <th class="text-center no-print sticky right-0 bg-gray-50 border-l z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">សកម្មភាព</th>
                             </tr>
                         </thead>
@@ -214,7 +228,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, getDoc, deleteDoc, writeBatch, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -242,22 +256,14 @@
         lucide.createIcons();
 
         // ប្រើ onAuthStateChanged ដើម្បីចាប់យក Session ដែលមានស្រាប់
-        onAuthStateChanged(auth, async (user) => {
+        onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
                 loadingText.textContent = "កំពុងរៀបចំទិន្នន័យពី Database...";
                 loadStudentsFromFirestore();
             } else {
-                // បើអត់មាន Session ព្យាយាមប្រើ Token
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    try {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } catch (error) {
-                        window.location.href = 'index.html';
-                    }
-                } else {
-                    window.location.href = 'index.html';
-                }
+                // បើគ្មានគណនី តម្រូវឲ្យត្រឡប់ទៅទំព័រដើម ដើម្បី Login វិញ
+                window.location.href = 'index.html';
             }
         });
 
@@ -359,7 +365,7 @@
             for (let k of Object.keys(s)) {
                 let cleanKey = k.toLowerCase().replace(/[\s\u200B-\u200D\uFEFF]+/g, '');
                 if ((cleanKey.includes('ឈ្មោះ') || cleanKey.includes('នាម') || cleanKey.includes('name')) && 
-                    !cleanKey.includes('ឪពុក') && !cleanKey.includes('ម្តាយ') && !cleanKey.includes('father') && !cleanKey.includes('mother') && !cleanKey.includes('អាណាព្យាបាល')) {
+                    !cleanKey.includes('ឪពុក') && !cleanKey.includes('ម្តាយ') && !cleanKey.includes('father') && !cleanKey.includes('mother') && !cleanKey.includes('អាណាព្យាបាល') && !cleanKey.includes('ឡាតាំង') && !cleanKey.includes('latin')) {
                     if (s[k]) return s[k];
                 }
             }
@@ -374,7 +380,7 @@
 
             for (let k of Object.keys(s)) {
                 let cleanKey = k.toLowerCase().replace(/[\s\u200B-\u200D\uFEFF]+/g, '');
-                if (cleanKey === 'id' || cleanKey === 'studentid' || cleanKey.includes('អត្តលេខ') || (cleanKey.includes('លេខ') && !cleanKey.includes('ទូរស័ព្ទ'))) {
+                if (cleanKey === 'id' || cleanKey === 'studentid' || cleanKey.includes('អត្តលេខ') || cleanKey === 'អ.ល' || (cleanKey.includes('លេខ') && !cleanKey.includes('ទូរស័ព្ទ'))) {
                     if (s[k]) return s[k];
                 }
             }
@@ -384,7 +390,8 @@
         // =======================
         // Table Rendering & Formatting
         // =======================
-        function calculateAge(dobStr) {
+        function calculateAge(dobStr, explicitAge) {
+            if (explicitAge) return explicitAge;
             if(!dobStr || dobStr === '-') return '-';
             const dob = new Date(dobStr);
             if(isNaN(dob)) return '-';
@@ -449,7 +456,7 @@
             tableBody.innerHTML = '';
             
             studentsData.forEach((s, index) => {
-                const age = calculateAge(s.dob);
+                const age = calculateAge(s.dob, s.age);
                 const birthPlace = formatLocation(s.village, s.commune, s.district, s.province);
                 const currPlace = formatLocation(s.currVillage, s.currCommune, s.currDistrict, s.currProvince) !== '-' ? 
                                   formatLocation(s.currVillage, s.currCommune, s.currDistrict, s.currProvince) : 
@@ -457,6 +464,7 @@
                                   
                 const fatherInfo = formatParent(s.father, s.fatherJob);
                 const motherInfo = formatParent(s.mother, s.motherJob);
+                const guardianInfo = formatParent(s.guardianName, s.guardianJob);
                 const displayDob = formatDateDisplay(s.dob);
 
                 const displayName = getStudentName(s);
@@ -476,6 +484,10 @@
                         </div>`;
                 }
 
+                // Check Poor status
+                const isPoor1 = s.poorStatus === 'ក្រ១' ? '✓' : '';
+                const isPoor2 = s.poorStatus === 'ក្រ២' ? '✓' : '';
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="text-center font-bold text-gray-500">${index + 1}</td>
@@ -494,10 +506,24 @@
                     <td class="text-gray-600 text-[11px]">${birthPlace}</td>
                     <td class="text-gray-700 text-[11px]">${fatherInfo}</td>
                     <td class="text-gray-700 text-[11px]">${motherInfo}</td>
+                    <td class="text-gray-700 text-[11px]">${guardianInfo}</td>
+                    <td class="text-gray-700 text-[11px]">${s.phone || '-'}</td>
                     <td class="text-gray-600 text-[11px]">${currPlace}</td>
-                    <td class="text-[11px]">${s.ethnicity || '-'}</td>
+                    
+                    <td class="text-[11px] text-center">${s.isNewStudent || '-'}</td>
+                    <td class="text-[11px] text-center">${s.isRepeater || '-'}</td>
+                    <td class="text-[11px] text-center">${s.orphanStatus || '-'}</td>
+                    <td class="text-[11px] text-center">${s.isDisabled || '-'}</td>
+                    <td class="text-[11px] text-center text-green-600 font-bold">${isPoor1}</td>
+                    <td class="text-[11px] text-center text-green-600 font-bold">${isPoor2}</td>
+                    <td class="text-[11px] text-center">${s.isEquity || '-'}</td>
+                    <td class="text-[11px] text-center">${s.isScholarship || '-'}</td>
+                    
                     <td class="text-[11px] text-purple-600">${s.specialFeatures || '-'}</td>
+                    <td class="text-[11px]">${s.ethnicity || '-'}</td>
+                    <td class="text-[11px] font-mono text-blue-800">${s.latinName || '-'}</td>
                     <td class="text-[11px] text-gray-500 italic">${s.otherRemarks || '-'}</td>
+                    
                     <td class="text-center no-print sticky right-0 bg-gray-50 border-l z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                         <div class="flex items-center justify-center gap-1">
                             <button onclick="window.editStudent(${index})" class="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors" title="កែសម្រួល">

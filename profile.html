@@ -544,9 +544,10 @@
             input.disabled = true;
         }
 
-        // 1. Check Auth & Load Data
+        // 1. Check Auth & Load Data (កែសម្រួលដកចេញទាំងស្រុងនូវការប្រើប្រាស់គណនីអនាមិក)
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
+            // តម្រូវឲ្យមាន user ហើយ user នោះមិនមែនជាគណនីអនាមិក (Anonymous)
+            if (user && !user.isAnonymous) {
                 currentUser = user;
                 loadingText.textContent = "កំពុងទាញយកទិន្នន័យ...";
                 await loadCSVData();
@@ -556,8 +557,9 @@
                 mainContent.classList.remove('hidden');
                 mainContent.classList.add('animate-fade-in');
             } else {
+                // ប្រសិនបើគ្មានគណនី ឬជាគណនីអនាមិក នឹងត្រូវបញ្ជូនទៅទំព័រដើមវិញ
                 alert('សូមចូលគណនីជាមុនសិន!');
-                window.location.href = 'index.html';
+                window.location.replace('index.html');
             }
         });
 

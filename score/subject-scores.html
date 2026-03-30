@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - បញ្ជីពិន្ទុសិស្សសរុប (Online)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root { --primary: #0054a6; --secondary: #3b82f6; }
+        
+        @font-face {
+            font-family: 'Tacteing';
+            src: local('Tacteing'); 
+        }
+
+        body { font-family: 'Battambang', cursive; background: #f0f4f8; min-height: 100vh; margin: 0; }
+        .kh-moul { font-family: 'Moul', cursive; }
+        
+        /* Background Animation */
+        .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 10% 20%, #e0e7ff 0%, transparent 40%), radial-gradient(circle at 90% 80%, #dcfce7 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 40%); opacity: 0.6; }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { height: 12px; width: 12px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; border: 3px solid #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Sticky Columns Configuration */
+        .sticky-col-1 { position: sticky; left: 0; z-index: 40; background-color: white; border-right: 1px solid #e2e8f0; }
+        .sticky-col-2 { position: sticky; left: 50px; z-index: 40; background-color: white; border-right: 2px solid #cbd5e1; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
+        
+        /* Sticky Header */
+        thead { position: sticky; top: 0; z-index: 50; }
+        
+        /* Ensure sticky headers sit above sticky columns */
+        thead th { position: sticky; top: 0; z-index: 50; }
+        thead th.sticky-col-1 { z-index: 60; }
+        thead th.sticky-col-2 { z-index: 60; }
+
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; margin: 0; 
+        }
+
+        /* Hover Effects */
+        tr:hover td { background-color: #f0f9ff; }
+        tr:hover td.sticky-col-1, tr:hover td.sticky-col-2 { background-color: #f0f9ff; }
+        
+        input:focus { background-color: #dbeafe !important; font-weight: bold; color: #1e40af; }
+        select:focus { background-color: #dcfce7 !important; font-weight: bold; }
+        
+        /* Transition for rank updates */
+        .rank-cell { transition: all 0.3s ease; }
+        .grade-cell { transition: all 0.3s ease; }
+
+        /* Toggle Buttons */
+        .type-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .type-btn.active {
+            background-color: #0054a6;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 84, 166, 0.2);
+        }
+        .type-btn.inactive {
+            background-color: white;
+            color: #64748b;
+            border-color: #e2e8f0;
+        }
+        .type-btn.inactive:hover {
+            border-color: #0054a6;
+            color: #0054a6;
+        }
+
+        /* Form Selects */
+        .form-select {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            outline: none;
+            background: white;
+            font-family: 'Battambang', cursive;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #1e293b;
+            cursor: pointer;
+        }
+        .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0, 84, 166, 0.1); }
+        
+        /* Custom Checkbox Card */
+        .month-card-input:checked + .month-card-content {
+            background-color: #f0f9ff;
+            border-color: #0054a6;
+            color: #0054a6;
+            box-shadow: 0 4px 6px -1px rgba(0, 84, 166, 0.1), 0 2px 4px -1px rgba(0, 84, 166, 0.06);
+        }
+        .month-card-input:checked + .month-card-content .check-icon {
+            display: block;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+    <div class="bg-animate"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(4px);">
+        <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-[#0054a6] mb-2"></i>
+        <p class="font-bold text-slate-600" id="loadingText">កំពុងទាញយកទិន្នន័យពី Cloud...</p>
+    </div>
+
+    <!-- Main Container -->
+    <div class="max-w-[98%] mx-auto px-2 py-4 h-screen flex flex-col">
+        
+        <!-- Header Section -->
+        <div class="mb-4 bg-white/80 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-white/50 flex flex-col gap-4">
+            
+            <!-- Top Row: Title & Actions -->
+            <div class="flex flex-col lg:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-4 w-full lg:w-auto">
+                    <a href="../index.html" class="bg-blue-50 p-3 rounded-xl hover:bg-blue-100 text-blue-600 transition flex items-center gap-2">
+                        <i data-lucide="home" class="w-5 h-5"></i>
+                    </a>
+                    <div class="bg-blue-600 p-3 rounded-xl shadow-lg shadow-blue-200 text-white">
+                        <i data-lucide="table-2" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl md:text-2xl kh-moul text-[#0054a6]">តារាងពិន្ទុសិស្សសរុប (Online)</h1>
+                        <p class="text-slate-500 font-medium text-xs md:text-sm">Score Master Sheet - Firebase Connected</p>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-center lg:justify-end">
+                    
+                    <!-- Type Toggle -->
+                    <div class="flex bg-slate-100 p-1 rounded-xl">
+                        <button onclick="switchScoreType('monthly')" id="btnMonthly" class="type-btn active">
+                            <i data-lucide="calendar" class="w-4 h-4"></i> ប្រចាំខែ
+                        </button>
+                        <button onclick="switchScoreType('semester')" id="btnSemester" class="type-btn inactive">
+                            <i data-lucide="award" class="w-4 h-4"></i> ឆមាស
+                        </button>
+                        <button onclick="switchScoreType('annual')" id="btnAnnual" class="type-btn inactive">
+                            <i data-lucide="graduation-cap" class="w-4 h-4"></i> ប្រចាំឆ្នាំ
+                        </button>
+                    </div>
+
+                    <!-- Year Select -->
+                    <div class="relative">
+                        <select id="yearSelect" class="form-select pl-9" onchange="handleYearChange()">
+                            <option value="2025-2026" selected>2025-2026</option>
+                            <option value="2026-2027">2026-2027</option>
+                            <option value="2027-2028">2027-2028</option>
+                            <option value="2028-2029">2028-2029</option>
+                            <option value="2029-2030">2029-2030</option>
+                            <option value="2030-2031">2030-2031</option>
+                        </select>
+                        <i data-lucide="calendar-days" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    </div>
+
+                    <!-- Month Select (For Monthly View) -->
+                    <div class="relative" id="monthContainer">
+                        <select id="monthSelect" class="form-select pl-9" onchange="loadData()">
+                            <!-- Options generated by JS -->
+                        </select>
+                        <i data-lucide="clock" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    </div>
+
+                    <!-- Semester Select & Custom Months Button (For Semester View) -->
+                    <div class="hidden flex items-center gap-2" id="semesterContainer">
+                        <div class="relative">
+                            <select id="semesterSelect" class="form-select pl-9" onchange="handleSemesterChange()">
+                                <option value="sem1" selected>ឆមាសទី១</option>
+                                <option value="sem2">ឆមាសទី២</option>
+                            </select>
+                            <i data-lucide="bookmark" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                        </div>
+                        <button onclick="openMonthSelectorModal()" class="flex items-center gap-2 px-3 py-2 bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 hover:border-purple-300 rounded-xl text-sm font-bold transition-all shadow-sm">
+                            <i data-lucide="settings-2" class="w-4 h-4"></i>
+                            ជ្រើសរើសខែបូក
+                            <span id="selectedMonthCount" class="bg-purple-600 text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">5</span>
+                        </button>
+                    </div>
+
+                    <div class="w-px h-8 bg-slate-200 mx-1 hidden md:block"></div>
+
+                    <!-- Print Button -->
+                    <button onclick="window.open('subject-scores_print.html', '_blank')" class="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl font-bold shadow-lg shadow-emerald-200 transition-all hover:scale-105 active:scale-95">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        <span>បោះពុម្ព</span>
+                    </button>
+
+                    <!-- Save Button -->
+                    <button onclick="saveScores()" class="flex items-center gap-2 px-5 py-2.5 bg-[#0054a6] text-white hover:bg-[#1e40af] rounded-xl font-bold shadow-lg shadow-blue-200 transition-all hover:scale-105 active:scale-95">
+                        <i data-lucide="cloud-upload" class="w-4 h-4"></i>
+                        <span>រក្សាទុក</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="flex-1 bg-white/95 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50 overflow-hidden flex flex-col relative">
+            <div class="flex-1 overflow-auto custom-scrollbar">
+                <table class="w-full border-collapse" id="mainTable">
+                    <thead id="tableHeader">
+                        <!-- Headers generated by JS -->
+                    </thead>
+                    <tbody id="scoreTableBody" class="bg-white text-sm">
+                        <!-- Rows generated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <!-- Footer Stats -->
+            <div class="p-3 bg-white border-t border-slate-200 flex justify-between items-center text-sm text-slate-500">
+                <span id="studentCount" class="font-bold text-[#0054a6]">Loading...</span>
+                <span class="italic text-xs bg-slate-100 px-2 py-1 rounded flex items-center gap-1" id="cloudStatus">
+                    <i data-lucide="check-circle" class="w-3 h-3 text-green-500"></i> Cloud Connected
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Select Months for Semester -->
+    <div id="monthSelectorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden transform transition-all scale-95 opacity-0" id="modalContent">
+            <!-- Modal Header -->
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-purple-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-purple-100 text-purple-600 rounded-xl">
+                        <i data-lucide="calendar-check-2" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-purple-900 kh-moul">ជ្រើសរើសខែសម្រាប់បូកមធ្យមភាគ</h3>
+                        <p class="text-xs text-purple-600 font-medium" id="modalSubtitle">ឆមាសទី១ ឆ្នាំសិក្សា ២០២៥-២០២៦</p>
+                    </div>
+                </div>
+                <button onclick="closeMonthSelectorModal()" class="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-red-500 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-6 bg-slate-50/50">
+                <p class="text-sm text-slate-500 mb-4 flex items-center gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-blue-500"></i>
+                    មធ្យមភាគប្រចាំខែសរុប នឹងត្រូវចែកនឹង <b class="text-blue-600" id="liveMonthCount">៥</b> (តាមចំនួនខែដែលអ្នកបានជ្រើសរើស)។
+                </p>
+                
+                <div id="modalMonthsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    <!-- Cards generated by JS -->
+                </div>
+            </div>
+            
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-slate-100 bg-white flex justify-end gap-3">
+                <button onclick="closeMonthSelectorModal()" class="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 font-bold hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                    បោះបង់
+                </button>
+                <button onclick="applyMonthSelection()" class="flex items-center gap-2 px-6 py-2.5 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 shadow-lg shadow-purple-200 transition-all">
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                    អនុវត្ត
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Script and Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // Added addDoc for Notifications
+        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
+
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+
+        const behaviorOptions = ['ល្អ', 'ល្អបង្គួរ', 'មធ្យម', 'ខ្សោយ'];
+
+        // --- Configuration ---
+        const config = {
+            monthly: {
+                groups: [
+                    { name: 'ភាសាខ្មែរ', cols: 7, color: 'bg-blue-800' },
+                    { name: 'គណិតវិទ្យា', cols: 5, color: 'bg-blue-700' },
+                    { name: 'វិទ្យាសាស្ត្រ', cols: 5, color: 'bg-blue-800' },
+                    { name: 'សិក្សាសង្គម', cols: 4, color: 'bg-blue-700' },
+                    { name: 'អប់រំសុខភាព', cols: 2, color: 'bg-blue-800' },
+                    { name: 'ផ្សេងៗ', cols: 2, color: 'bg-blue-700' },
+                    { name: 'ការបំពេញបន្ថែម', cols: 4, color: 'bg-blue-800' }
+                ],
+                columns: [
+                    { key: 'kh_listen', label: 'ស្តាប់', color: 'bg-blue-800/90' }, { key: 'kh_speak', label: 'និយាយ', color: 'bg-blue-800/90' },
+                    { key: 'kh_read', label: 'អាន', color: 'bg-blue-800/90' }, { key: 'kh_write', label: 'សរសេរ', color: 'bg-blue-800/90' },
+                    { key: 'kh_calligraphy', label: 'អក្សរផ្ចង់', color: 'bg-blue-800/90' }, { key: 'kh_recitation', label: 'មេសូត្រ', color: 'bg-blue-800/90' }, { key: 'kh_essay', label: 'តែងសេចក្តី', color: 'bg-blue-800/90' },
+                    { key: 'math_num', label: 'ចំនួន', color: 'bg-blue-700/90' }, { key: 'math_meas', label: 'រង្វាស់រង្វាល់', color: 'bg-blue-700/90' },
+                    { key: 'math_geo', label: 'ធរណីមាត្រ', color: 'bg-blue-700/90' }, { key: 'math_alg', label: 'ពីជគណិត', color: 'bg-blue-700/90' },
+                    { key: 'math_stat', label: 'ស្ថិតិ', color: 'bg-blue-700/90' },
+                    { key: 'sci_phy', label: 'រូបវិទ្យា', color: 'bg-blue-800/90' }, { key: 'sci_chem', label: 'គីមីវិទ្យា', color: 'bg-blue-800/90' },
+                    { key: 'sci_bio', label: 'ជីវវិទ្យា', color: 'bg-blue-800/90' }, { key: 'sci_earth', label: 'ផែនដីវិទ្យា', color: 'bg-blue-800/90' }, { key: 'sci_applied', label: 'អនុវត្តន៍', color: 'bg-blue-800/90' },
+                    { key: 'soc_ethic', label: 'សីលធម៌', color: 'bg-blue-700/90' }, { key: 'soc_geo', label: 'ភូមិវិទ្យា', color: 'bg-blue-700/90' },
+                    { key: 'soc_hist', label: 'ប្រវត្តិវិទ្យា', color: 'bg-blue-700/90' }, { key: 'soc_home', label: 'គេហវិទ្យា', color: 'bg-blue-700/90' },
+                    { key: 'pe_sport', label: 'អប់រំកាយ', color: 'bg-blue-800/90' }, { key: 'health_hygiene', label: 'សុខភាព', color: 'bg-blue-800/90' },
+                    { key: 'life_skill', label: 'បំណិនជីវិត', color: 'bg-blue-700/90' }, { key: 'foreign', label: 'ភាសាបរទេស', color: 'bg-blue-700/90' },
+                    { key: 'ex_oral', label: 'ផ្ទាល់មាត់', color: 'bg-blue-800/90' }, { key: 'ex_att', label: 'អវត្តមាន', color: 'bg-blue-800/90' },
+                    { key: 'ex_book', label: 'សៀវភៅ', color: 'bg-blue-800/90' }, { key: 'ex_hw', label: 'កិច្ចការផ្ទះ', color: 'bg-blue-800/90' }
+                ]
+            },
+            semester: {
+                groups: [
+                    { name: 'ភាសាខ្មែរ', cols: 4, color: 'bg-blue-800' },
+                    { name: 'គណិត & វិទ្យាសាស្ត្រ', cols: 2, color: 'bg-blue-700' },
+                    { name: 'សិក្សាសង្គម', cols: 4, color: 'bg-blue-800' },
+                    { name: 'មុខវិជ្ជាទូទៅ', cols: 3, color: 'bg-blue-700' },
+                    { name: 'អាកប្បកិរិយា', cols: 4, color: 'bg-green-700' }
+                ],
+                columns: [
+                    { key: 'sem_kh_reading', label: 'អំណាន', color: 'bg-blue-800/90' },
+                    { key: 'sem_kh_listening_speaking', label: 'ស្តាប់-និយាយ', color: 'bg-blue-800/90' }, 
+                    { key: 'sem_kh_dictation', label: 'សរសេរតាមអាន', color: 'bg-blue-800/90' },
+                    { key: 'sem_kh_essay', label: 'តែងសេចក្តី', color: 'bg-blue-800/90' },
+                    { key: 'sem_math', label: 'គណិតវិទ្យា', color: 'bg-blue-700/90' }, { key: 'sem_science', label: 'វិទ្យាសាស្ត្រ', color: 'bg-blue-700/90' },
+                    { key: 'sem_moral_civics', label: 'សីលធម៌', color: 'bg-blue-800/90' }, { key: 'sem_geo', label: 'ភូមិវិទ្យា', color: 'bg-blue-800/90' },
+                    { key: 'sem_hist', label: 'ប្រវត្តិវិទ្យា', color: 'bg-blue-800/90' }, { key: 'sem_home_arts', label: 'គេហវិទ្យា', color: 'bg-blue-800/90' },
+                    { key: 'sem_life_skills', label: 'បំណិនជីវិត', color: 'bg-blue-700/90' }, { key: 'sem_foreign', label: 'ភាសាបរទេស', color: 'bg-blue-700/90' },
+                    { key: 'sem_sport', label: 'កីឡា', color: 'bg-blue-700/90' },
+                    { key: 'sem_eval_knowledge', label: 'ចំណេះដឹង', color: 'bg-green-700/90', isText: true, options: behaviorOptions },
+                    { key: 'sem_eval_skill', label: 'បំណិន-ចំណេះធ្វើ', color: 'bg-green-700/90', isText: true, options: behaviorOptions },
+                    { key: 'sem_eval_moral', label: 'តម្លៃ-សីលធម៌', color: 'bg-green-700/90', isText: true, options: behaviorOptions },
+                    { key: 'sem_eval_participate', label: 'សាមគ្គីភាព', color: 'bg-green-700/90', isText: true, options: behaviorOptions }
+                ]
+            },
+            annual: {
+                groups: [
+                    { name: 'ពិន្ទុមធ្យមភាគប្រចាំឆមាស', cols: 2, color: 'bg-blue-800' }
+                ],
+                columns: [
+                    { key: 'sem1_avg', label: 'មធ្យមភាគ ឆមាសទី១', color: 'bg-blue-700/90', readOnly: true },
+                    { key: 'sem2_avg', label: 'មធ្យមភាគ ឆមាសទី២', color: 'bg-blue-700/90', readOnly: true }
+                ]
+            }
+        };
+
+        let currentMode = 'monthly'; 
+        let students = [];
+        let currentColumns = []; 
+        let customSubjects = [];
+        
+        const defaultSemesterMonths = {
+            sem1: ['nov', 'dec', 'jan', 'feb', 'mar'],
+            sem2: ['apr', 'may', 'jun', 'jul', 'aug']
+        };
+        let selectedSemesterMonths = ['nov', 'dec', 'jan', 'feb', 'mar']; 
+        
+        let allMonthsScoresCache = {}; 
+
+        const allMonthsMap = [
+            { id: 'nov', label: 'វិច្ឆិកា', isNextYear: false }, { id: 'dec', label: 'ធ្នូ', isNextYear: false },
+            { id: 'jan', label: 'មករា', isNextYear: true }, { id: 'feb', label: 'កុម្ភៈ', isNextYear: true },
+            { id: 'mar', label: 'មីនា', isNextYear: true }, { id: 'apr', label: 'មេសា', isNextYear: true },
+            { id: 'may', label: 'ឧសភា', isNextYear: true }, { id: 'jun', label: 'មិថុនា', isNextYear: true },
+            { id: 'jul', label: 'កក្កដា', isNextYear: true }, { id: 'aug', label: 'សីហា', isNextYear: true },
+            { id: 'sep', label: 'កញ្ញា', isNextYear: true }, { id: 'oct', label: 'តុលា', isNextYear: true }
+        ];
+
+        // --- CUSTOM SUBJECTS LOGIC ---
+        async function loadCustomSubjects() {
+            try {
+                if (currentUser) {
+                    const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'settings', 'custom_subjects');
+                    const snap = await getDoc(docRef);
+                    if (snap.exists()) {
+                        customSubjects = snap.data().subjects || [];
+                    }
+                } else {
+                    const local = localStorage.getItem('custom_subjects');
+                    if (local) customSubjects = JSON.parse(local);
+                }
+            } catch (e) {
+                console.error("Error loading custom subjects", e);
+            }
+            injectCustomSubjects();
+        }
+
+        function injectCustomSubjects() {
+            if (!customSubjects || customSubjects.length === 0) return;
+            
+            let monthlyCustomCols = [];
+            let semesterCustomCols = [];
+
+            customSubjects.forEach(sub => {
+                sub.columns.forEach(col => {
+                    const newCol = { key: col.id, label: col.label, color: 'bg-purple-600/90' };
+                    if (!sub.type || sub.type === 'both' || sub.type === 'monthly') {
+                        if (!config.monthly.columns.find(c => c.key === col.id)) {
+                            monthlyCustomCols.push(newCol);
+                        }
+                    }
+                    if (!sub.type || sub.type === 'both' || sub.type === 'semester') {
+                        if (!config.semester.columns.find(c => c.key === col.id)) {
+                            semesterCustomCols.push(newCol);
+                        }
+                    }
+                });
+            });
+
+            if (monthlyCustomCols.length > 0) {
+                config.monthly.columns.push(...monthlyCustomCols);
+                let customGroup = config.monthly.groups.find(g => g.name === 'មុខវិជ្ជាបន្ថែម');
+                if (customGroup) customGroup.cols += monthlyCustomCols.length;
+                else config.monthly.groups.push({ name: 'មុខវិជ្ជាបន្ថែម', cols: monthlyCustomCols.length, color: 'bg-purple-800' });
+            }
+
+            if (semesterCustomCols.length > 0) {
+                config.semester.columns.push(...semesterCustomCols);
+                let customGroup = config.semester.groups.find(g => g.name === 'មុខវិជ្ជាបន្ថែម');
+                if (customGroup) customGroup.cols += semesterCustomCols.length;
+                else config.semester.groups.push({ name: 'មុខវិជ្ជាបន្ថែម', cols: semesterCustomCols.length, color: 'bg-purple-800' });
+            }
+        }
+
+        function showLoading(show, message = "កំពុងទាញយកទិន្នន័យពី Cloud...") {
+            document.getElementById('loadingText').innerText = message;
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        function formatKhmerNumber(num) {
+            if (num === null || num === undefined || num === '') return '';
+            const parsed = parseFloat(num);
+            if (isNaN(parsed)) return num;
+            return parsed.toFixed(2).replace('.', ',');
+        }
+
+        function updateMonthCountBadge() {
+            const badge = document.getElementById('selectedMonthCount');
+            if(badge) badge.innerText = selectedSemesterMonths.length;
+        }
+
+        function getStorageKey() {
+            const year = document.getElementById('yearSelect').value;
+            let period = 'nov';
+            if (currentMode === 'monthly') {
+                period = document.getElementById('monthSelect').value || 'nov';
+            } else if (currentMode === 'semester') {
+                period = document.getElementById('semesterSelect').value || 'sem1';
+            } else if (currentMode === 'annual') {
+                period = 'annual';
+            }
+            return `${year}_${period}`; 
+        }
+
+        function getMonthlyAverageForStudent(studentId) {
+            if (!selectedSemesterMonths || selectedSemesterMonths.length === 0) return 0;
+            let sumOfAverages = 0;
+
+            selectedSemesterMonths.forEach(month => {
+                const scoresData = allMonthsScoresCache[month] || {};
+                const studentData = scoresData[studentId];
+                
+                if (studentData) {
+                    if (studentData.results && studentData.results.average !== undefined) {
+                        sumOfAverages += parseFloat(studentData.results.average) || 0;
+                    } else {
+                        let studentScores = studentData.hasOwnProperty('scores') ? studentData.scores : studentData;
+                        let mSum = 0;
+                        let mCount = 0;
+                        config.monthly.columns.forEach(col => {
+                            if(col.isText) return; 
+                            const val = studentScores[col.key];
+                            if (val !== null && val !== undefined && val !== "") {
+                                const numVal = parseFloat(val);
+                                if (!isNaN(numVal)) {
+                                    mSum += numVal;
+                                    mCount++;
+                                }
+                            }
+                        });
+                        if (mCount > 0) {
+                            sumOfAverages += (mSum / mCount);
+                        }
+                    }
+                }
+            });
+            return sumOfAverages / selectedSemesterMonths.length;
+        }
+
+        function calculateRow(student) {
+            let sum = 0;
+            let scoredSubjectsCount = 0;
+
+            currentColumns.forEach(col => {
+                if(col.isText) return;
+                const rawVal = student.scores[col.key];
+                if (rawVal !== null && rawVal !== undefined && rawVal !== "") {
+                    const val = parseFloat(rawVal);
+                    if (!isNaN(val)) {
+                        sum += val;
+                        scoredSubjectsCount++;
+                    }
+                }
+            });
+            
+            if (currentMode === 'monthly') {
+                student.total = sum;
+                student.average = scoredSubjectsCount > 0 ? (sum / scoredSubjectsCount).toFixed(2) : "0.00";
+                student.finalAverageForRank = parseFloat(student.average);
+            } else if (currentMode === 'annual') {
+                const s1 = parseFloat(student.scores['sem1_avg']);
+                const s2 = parseFloat(student.scores['sem2_avg']);
+                const val1 = isNaN(s1) ? 0 : s1;
+                const val2 = isNaN(s2) ? 0 : s2;
+                
+                student.annualTotal = val1 + val2;
+                student.annualAverage = ((val1 + val2) / 2).toFixed(2);
+                student.finalAverageForRank = parseFloat(student.annualAverage);
+                
+                student.total = student.annualTotal;
+                student.average = student.annualAverage;
+            } else { // semester
+                student.examTotal = sum;
+                student.examAverage = scoredSubjectsCount > 0 ? (sum / scoredSubjectsCount).toFixed(2) : "0.00";
+                
+                const monthlyAvg = getMonthlyAverageForStudent(student.id);
+                student.monthlyAverage = monthlyAvg.toFixed(2);
+                
+                let semAvg = (parseFloat(student.examAverage) + monthlyAvg) / 2;
+                if (scoredSubjectsCount === 0 && monthlyAvg === 0) semAvg = 0;
+                
+                student.semesterAverage = semAvg.toFixed(2);
+                student.finalAverageForRank = semAvg;
+                
+                student.total = student.examTotal;
+                student.average = student.semesterAverage;
+            }
+
+            const avgForGrade = student.finalAverageForRank;
+            if (avgForGrade >= 9.0) student.grade = 'A';
+            else if (avgForGrade >= 8.0) student.grade = 'B';
+            else if (avgForGrade >= 7.0) student.grade = 'C';
+            else if (avgForGrade >= 6.0) student.grade = 'D';
+            else if (avgForGrade >= 5.0) student.grade = 'E';
+            else student.grade = 'F';
+        }
+
+        function calculateAllRanks() {
+            const sorted = [...students].sort((a, b) => b.finalAverageForRank - a.finalAverageForRank);
+            let currentRank = 1;
+            for (let i = 0; i < sorted.length; i++) {
+                if (i > 0 && sorted[i].finalAverageForRank < sorted[i-1].finalAverageForRank) {
+                    currentRank = i + 1;
+                }
+                const original = students.find(s => s.id === sorted[i].id);
+                if(original) original.rank = currentRank;
+            }
+        }
+
+        function getGradeColor(grade) {
+            if (grade === 'A') return 'text-green-600 bg-green-50';
+            if (grade === 'B') return 'text-blue-600 bg-blue-50';
+            if (grade === 'C') return 'text-yellow-600 bg-yellow-50';
+            if (grade === 'D') return 'text-orange-600 bg-orange-50';
+            return 'text-red-600 bg-red-50';
+        }
+
+        function renderTableHeader(conf) {
+            const thead = document.getElementById('tableHeader');
+            let groupsHTML = '';
+            let colsHTML = '';
+
+            conf.groups.forEach(g => {
+                groupsHTML += `<th colspan="${g.cols}" class="p-2 border border-blue-400 ${g.color} text-white text-center text-sm">${g.name}</th>`;
+            });
+
+            conf.columns.forEach(c => {
+                colsHTML += `<th class="p-2 min-w-[80px] border border-blue-400 ${c.color} text-white text-xs font-normal">${c.label}</th>`;
+            });
+
+            const resultColspan = currentMode === 'semester' ? 6 : (currentMode === 'annual' ? 3 : 4);
+
+            let resultSubHeaders = '';
+            if (currentMode === 'semester') {
+                const divCount = selectedSemesterMonths.length > 0 ? selectedSemesterMonths.length : '-';
+                resultSubHeaders = `
+                    <th class="p-2 w-20 border border-blue-400 bg-yellow-700 font-bold text-xs text-white">ពិន្ទុសរុប</th>
+                    <th class="p-2 w-24 border border-blue-400 bg-yellow-700 font-bold text-[11px] leading-tight text-white" title="មធ្យមភាគប្រឡងឆមាស">ម.ភាគ<br>ប្រឡង</th>
+                    <th class="p-2 w-24 border border-blue-400 bg-yellow-700 font-bold text-[11px] leading-tight text-white" title="បូកមធ្យមភាគខែដែលរើស ចែកនឹង ${divCount}">ម.ភាគ<br>ប្រចាំខែ (÷${divCount})</th>
+                    <th class="p-2 w-24 border border-blue-400 bg-yellow-700 font-bold text-[11px] leading-tight text-white">មធ្យមភាគ<br>ប្រចាំឆមាស</th>
+                    <th class="p-2 w-20 border border-blue-400 bg-yellow-700 font-bold text-xs text-white">ចំណាត់ថ្នាក់</th>
+                    <th class="p-2 w-16 border border-blue-400 bg-yellow-700 font-bold text-xs text-white">និទ្ទេស</th>
+                `;
+            } else if (currentMode === 'annual') {
+                resultSubHeaders = `
+                    <th class="p-2 w-28 border border-blue-400 bg-yellow-700 font-bold text-[11px] leading-tight text-white">លទ្ធផលប្រចាំឆ្នាំ</th>
+                    <th class="p-2 w-24 border border-blue-400 bg-yellow-700 font-bold text-xs text-white">ចំណាត់ថ្នាក់</th>
+                    <th class="p-2 w-16 border border-blue-400 bg-yellow-700 font-bold text-xs text-white">និទ្ទេស</th>
+                `;
+            } else { // monthly
+                resultSubHeaders = `
+                    <th class="p-2 w-24 border border-blue-400 bg-yellow-700 font-bold text-xs text-white">សរុប</th>
+                    <th class="p-2 w-24 border border-blue-400 bg-yellow-700 font-bold text-xs text-white">មធ្យម</th>
+                    <th class="p-2 w-24 border border-blue-400 bg-yellow-700 font-bold text-xs text-white">ចំណាត់ថ្នាក់</th>
+                    <th class="p-2 w-16 border border-blue-400 bg-yellow-700 font-bold text-xs text-white">និទ្ទេស</th>
+                `;
+            }
+
+            thead.innerHTML = `
+                <tr>
+                    <th rowspan="2" class="p-3 border border-blue-400 sticky-col-1 bg-[#0054a6] text-white w-14 z-50">ល.រ</th>
+                    <th rowspan="2" class="p-3 border border-blue-400 sticky-col-2 bg-[#0054a6] text-white w-64 text-left z-50">ឈ្មោះសិស្ស</th>
+                    ${groupsHTML}
+                    <th colspan="${resultColspan}" class="p-2 border border-blue-400 bg-yellow-600 text-white text-center text-sm shadow-md z-40">លទ្ធផលសរុប</th>
+                </tr>
+                <tr>
+                    ${colsHTML}
+                    ${resultSubHeaders}
+                </tr>
+            `;
+        }
+
+        function renderTableBody() {
+            const tbody = document.getElementById('scoreTableBody');
+            const mainTable = document.getElementById('mainTable');
+            
+            const minW = currentMode === 'monthly' ? '2800px' : (currentMode === 'annual' ? '800px' : '2400px');
+            mainTable.style.minWidth = minW;
+            document.getElementById('studentCount').innerText = `សិស្សសរុប: ${students.length} នាក់`;
+
+            if (students.length === 0) {
+                const totalCols = currentColumns.length + (currentMode === 'semester' ? 8 : 6);
+                tbody.innerHTML = `<tr><td colspan="${totalCols}" class="p-8 text-center text-gray-400">មិនមានទិន្នន័យសិស្សទេ។ សូមទៅកាន់ "បញ្ជីឈ្មោះសិស្ស" ដើម្បីបញ្ចូលសិស្សជាមុនសិន។</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = students.map((s, index) => {
+                const inputs = currentColumns.map(col => {
+                    const val = (s.scores[col.key] === null || s.scores[col.key] === undefined) ? '' : s.scores[col.key];
+                    if (col.isText) {
+                        let optionsHtml = `<option value="">-</option>`;
+                        col.options.forEach(opt => {
+                            optionsHtml += `<option value="${opt}" ${val === opt ? 'selected' : ''}>${opt}</option>`;
+                        });
+                        return `
+                        <td class="p-0 border border-slate-200 relative bg-green-50/30">
+                            <select onchange="updateScoreText(${index}, '${col.key}', this.value)"
+                                class="w-full h-full min-h-[40px] p-1 outline-none text-green-700 font-bold bg-transparent transition-all focus:z-10 relative appearance-none cursor-pointer" style="text-align-last: center;">
+                                ${optionsHtml}
+                            </select>
+                        </td>
+                        `;
+                    } else if (col.readOnly) {
+                        return `
+                        <td class="p-0 border border-slate-200 relative bg-slate-50/80">
+                            <input type="text" readonly
+                                value="${val !== '' ? formatKhmerNumber(val) : '-'}" 
+                                class="w-full h-full min-h-[40px] text-center p-1 outline-none text-slate-600 font-bold bg-transparent cursor-default pointer-events-none">
+                        </td>
+                        `;
+                    } else {
+                        return `
+                        <td class="p-0 border border-slate-200 relative">
+                            <input type="number" 
+                                value="${val}" 
+                                placeholder="-"
+                                oninput="updateScore(${index}, '${col.key}', this.value)"
+                                class="w-full h-full min-h-[40px] text-center p-1 outline-none text-slate-700 font-medium bg-transparent transition-all focus:z-10 relative"
+                                min="0" max="100">
+                        </td>
+                        `;
+                    }
+                }).join('');
+
+                let resultCells = '';
+                if (currentMode === 'monthly') {
+                    resultCells = `
+                        <td class="p-2 text-center font-bold bg-yellow-50 border border-yellow-200 text-slate-800" id="total-${index}">${formatKhmerNumber(s.total)}</td>
+                        <td class="p-2 text-center font-bold bg-yellow-50 border border-yellow-200 text-slate-800" id="avg-${index}">${formatKhmerNumber(s.average)}</td>
+                        <td class="p-2 text-center font-bold bg-yellow-50 border border-yellow-200 text-slate-800 rank-cell" id="rank-${s.id}">${s.rank}</td>
+                        <td class="p-2 text-center font-extrabold border border-yellow-200 grade-cell ${getGradeColor(s.grade)}" id="grade-${index}">${s.grade}</td>
+                    `;
+                } else if (currentMode === 'annual') {
+                    resultCells = `
+                        <td class="p-2 text-center font-bold bg-yellow-50 border border-yellow-200 text-slate-800" id="annAvg-${index}">${formatKhmerNumber(s.annualAverage)}</td>
+                        <td class="p-2 text-center font-bold bg-yellow-50 border border-yellow-200 text-slate-800 rank-cell" id="rank-${s.id}">${s.rank}</td>
+                        <td class="p-2 text-center font-extrabold border border-yellow-200 grade-cell ${getGradeColor(s.grade)}" id="grade-${index}">${s.grade}</td>
+                    `;
+                } else { // semester
+                    resultCells = `
+                        <td class="p-2 text-center font-bold bg-yellow-50 border border-yellow-200 text-slate-800" id="examTotal-${index}">${formatKhmerNumber(s.examTotal)}</td>
+                        <td class="p-2 text-center font-bold bg-yellow-50 border border-yellow-200 text-slate-800" id="examAvg-${index}">${formatKhmerNumber(s.examAverage)}</td>
+                        <td class="p-2 text-center font-bold bg-blue-50 border border-blue-200 text-[#0054a6]" id="monthlyAvg-${index}">${formatKhmerNumber(s.monthlyAverage)}</td>
+                        <td class="p-2 text-center font-bold bg-yellow-50 border border-yellow-200 text-slate-800" id="semAvg-${index}">${formatKhmerNumber(s.semesterAverage)}</td>
+                        <td class="p-2 text-center font-bold bg-yellow-50 border border-yellow-200 text-slate-800 rank-cell" id="rank-${s.id}">${s.rank}</td>
+                        <td class="p-2 text-center font-extrabold border border-yellow-200 grade-cell ${getGradeColor(s.grade)}" id="grade-${index}">${s.grade}</td>
+                    `;
+                }
+
+                return `
+                <tr class="group transition-colors">
+                    <td class="p-2 text-center font-bold text-slate-500 border border-slate-200 sticky-col-1 bg-white group-hover:bg-blue-50">${index + 1}</td>
+                    <td class="p-2 border border-slate-200 sticky-col-2 bg-white group-hover:bg-blue-50 font-bold text-[#0054a6] whitespace-nowrap z-30">
+                        ${s.name}
+                    </td>
+                    ${inputs}
+                    ${resultCells}
+                </tr>
+                `;
+            }).join('');
+        }
+
+        window.handleYearChange = async function() {
+            window.updateMonthOptions();
+            if (currentMode === 'semester') {
+                await window.handleSemesterChange();
+            } else {
+                window.loadData();
+            }
+        }
+
+        window.updateMonthOptions = function() {
+            const yearVal = document.getElementById('yearSelect').value;
+            if (!yearVal || !yearVal.includes('-')) return;
+            
+            const [startYear, endYear] = yearVal.split('-');
+            const monthSelect = document.getElementById('monthSelect');
+            let currentMonthVal = monthSelect.value;
+
+            if (!currentMonthVal) {
+                const currentMonthIndex = new Date().getMonth();
+                const jsMonthToId = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+                currentMonthVal = jsMonthToId[currentMonthIndex];
+            }
+
+            let optionsHTML = '';
+            allMonthsMap.forEach(m => {
+                const y = m.isNextYear ? endYear : startYear;
+                const selected = m.id === currentMonthVal ? 'selected' : '';
+                optionsHTML += `<option value="${m.id}" ${selected}>ខែ${m.label} ឆ្នាំ ${y}</option>`;
+            });
+
+            monthSelect.innerHTML = optionsHTML;
+            
+            if (currentMonthVal) {
+                monthSelect.value = currentMonthVal;
+            }
+        }
+
+        window.switchScoreType = async function(mode) {
+            currentMode = mode;
+            const monthContainer = document.getElementById('monthContainer');
+            const semesterContainer = document.getElementById('semesterContainer');
+            
+            const btnMonthly = document.getElementById('btnMonthly');
+            const btnSemester = document.getElementById('btnSemester');
+            const btnAnnual = document.getElementById('btnAnnual');
+
+            [btnMonthly, btnSemester, btnAnnual].forEach(btn => {
+                btn.classList.add('inactive');
+                btn.classList.remove('active');
+            });
+
+            if (mode === 'monthly') {
+                monthContainer.classList.remove('hidden');
+                semesterContainer.classList.add('hidden');
+                semesterContainer.classList.remove('flex');
+                
+                btnMonthly.classList.add('active'); btnMonthly.classList.remove('inactive');
+                window.loadData();
+            } else if (mode === 'semester') {
+                monthContainer.classList.add('hidden');
+                semesterContainer.classList.remove('hidden');
+                semesterContainer.classList.add('flex');
+
+                btnSemester.classList.add('active'); btnSemester.classList.remove('inactive');
+                await window.handleSemesterChange(); 
+            } else if (mode === 'annual') {
+                monthContainer.classList.add('hidden');
+                semesterContainer.classList.add('hidden');
+                semesterContainer.classList.remove('flex');
+
+                btnAnnual.classList.add('active'); btnAnnual.classList.remove('inactive');
+                window.loadData();
+            }
+        }
+
+        window.handleSemesterChange = async function() {
+            showLoading(true);
+            const year = document.getElementById('yearSelect').value;
+            const sem = document.getElementById('semesterSelect').value;
+            
+            const storageKey = `selected_months_${year}_${sem}`;
+            let foundInCloud = false;
+
+            if (currentUser) {
+                try {
+                    const settingsRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'settings', 'preferences');
+                    const settingsSnap = await getDoc(settingsRef);
+                    if (settingsSnap.exists() && settingsSnap.data()[storageKey]) {
+                        selectedSemesterMonths = settingsSnap.data()[storageKey];
+                        foundInCloud = true;
+                    }
+                } catch (error) {
+                    console.error("Error loading settings from Cloud:", error);
+                }
+            }
+            
+            if (!foundInCloud) {
+                const savedMonths = localStorage.getItem(storageKey);
+                if (savedMonths) {
+                    selectedSemesterMonths = JSON.parse(savedMonths);
+                } else {
+                    selectedSemesterMonths = defaultSemesterMonths[sem];
+                }
+            }
+            
+            updateMonthCountBadge();
+            await window.loadData();
+        }
+
+        window.loadData = async function() {
+            showLoading(true);
+            updateMonthCountBadge();
+            const conf = config[currentMode];
+            currentColumns = conf.columns;
+            renderTableHeader(conf);
+
+            try {
+                let loadedStudents = [];
+                if (currentUser) {
+                    const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
+                    const studentsSnap = await getDocs(studentsRef);
+                    studentsSnap.forEach(doc => {
+                        loadedStudents.push({ id: doc.id, ...doc.data() });
+                    });
+                }
+                
+                if (loadedStudents.length === 0) {
+                    const studentsRaw = localStorage.getItem('students_db') || localStorage.getItem('students');
+                    if (studentsRaw) loadedStudents = JSON.parse(studentsRaw);
+                }
+
+                let parsedScores = {};
+                const docId = getStorageKey();
+                
+                if (currentUser) {
+                    const scoresRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'scores', docId);
+                    const scoresSnap = await getDoc(scoresRef);
+                    if (scoresSnap.exists()) {
+                        parsedScores = scoresSnap.data();
+                    } else {
+                        const oldSnap = await getDoc(doc(db, "scores", docId)).catch(() => null);
+                        if (oldSnap && oldSnap.exists()) parsedScores = oldSnap.data();
+                    }
+                }
+                
+                if (Object.keys(parsedScores).length === 0) {
+                    const localScores = localStorage.getItem(`scores_${docId}`);
+                    if (localScores) parsedScores = JSON.parse(localScores);
+                }
+
+                if (currentMode === 'annual') {
+                    const year = document.getElementById('yearSelect').value;
+                    let sem1Data = {};
+                    let sem2Data = {};
+                    
+                    try {
+                        if (currentUser) {
+                            const s1Snap = await getDoc(doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'scores', `${year}_sem1`));
+                            if(s1Snap.exists()) sem1Data = s1Snap.data();
+                            
+                            const s2Snap = await getDoc(doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'scores', `${year}_sem2`));
+                            if(s2Snap.exists()) sem2Data = s2Snap.data();
+                        }
+                    } catch(e) { console.error(e); }
+                    
+                    if(Object.keys(sem1Data).length === 0) {
+                        const ls = localStorage.getItem(`scores_${year}_sem1`);
+                        if(ls) sem1Data = JSON.parse(ls);
+                    }
+                    if(Object.keys(sem2Data).length === 0) {
+                        const ls = localStorage.getItem(`scores_${year}_sem2`);
+                        if(ls) sem2Data = JSON.parse(ls);
+                    }
+                    
+                    loadedStudents.forEach(s => {
+                        let dbRecord = parsedScores[s.id] || {};
+                        let stScores = dbRecord.hasOwnProperty('scores') ? dbRecord.scores : dbRecord;
+                        
+                        if (stScores['sem1_avg'] === null || stScores['sem1_avg'] === undefined || stScores['sem1_avg'] === "") {
+                            if (sem1Data[s.id] && sem1Data[s.id].results && sem1Data[s.id].results.semesterAverage) {
+                                stScores['sem1_avg'] = sem1Data[s.id].results.semesterAverage;
+                            }
+                        }
+                        if (stScores['sem2_avg'] === null || stScores['sem2_avg'] === undefined || stScores['sem2_avg'] === "") {
+                            if (sem2Data[s.id] && sem2Data[s.id].results && sem2Data[s.id].results.semesterAverage) {
+                                stScores['sem2_avg'] = sem2Data[s.id].results.semesterAverage;
+                            }
+                        }
+                        
+                        if (!parsedScores[s.id]) {
+                            parsedScores[s.id] = { scores: stScores };
+                        } else if (!parsedScores[s.id].scores) {
+                            parsedScores[s.id].scores = stScores;
+                        }
+                    });
+                }
+                
+                allMonthsScoresCache = {};
+                if (currentMode === 'semester') {
+                    const year = document.getElementById('yearSelect').value;
+                    
+                    await Promise.all(selectedSemesterMonths.map(async (month) => {
+                        const mDocId = `${year}_${month}`;
+                        let mData = {};
+                        
+                        if (currentUser) {
+                            const mRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'scores', mDocId);
+                            const mSnap = await getDoc(mRef);
+                            
+                            if (mSnap.exists()) {
+                                mData = mSnap.data();
+                            } else {
+                                const oldSnap = await getDoc(doc(db, "scores", mDocId)).catch(() => null);
+                                if (oldSnap && oldSnap.exists()) mData = oldSnap.data();
+                            }
+                        }
+                        
+                        if (Object.keys(mData).length === 0) {
+                            const localData = localStorage.getItem(`scores_${mDocId}`);
+                            if (localData) mData = JSON.parse(localData);
+                        }
+                        
+                        allMonthsScoresCache[month] = mData;
+                    }));
+                }
+
+                students = loadedStudents.map(s => {
+                    let dbRecord = parsedScores[s.id] || {};
+                    let studentScores = dbRecord.hasOwnProperty('scores') ? dbRecord.scores : dbRecord;
+                    
+                    currentColumns.forEach(col => {
+                        if (studentScores[col.key] === undefined) studentScores[col.key] = null;
+                    });
+                    
+                    return {
+                        id: s.id, name: s.name, gender: s.gender || '',
+                        scores: studentScores,
+                        total: 0, average: 0, examTotal: 0, examAverage: 0,
+                        monthlyAverage: 0, semesterAverage: 0, 
+                        annualTotal: 0, annualAverage: 0,
+                        finalAverageForRank: 0,
+                        rank: 0, grade: 'F'
+                    };
+                });
+
+                students.forEach(s => calculateRow(s));
+                calculateAllRanks();
+                renderTableBody();
+
+            } catch (error) {
+                console.error("Error loading data:", error);
+                document.getElementById('cloudStatus').innerHTML = '<i data-lucide="wifi-off" class="w-3 h-3 text-red-500"></i> Offline Mode';
+                lucide.createIcons();
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        window.updateScoreText = function(index, subject, value) {
+            const student = students[index];
+            student.scores[subject] = value;
+        }
+
+        window.updateScore = function(index, subject, value) {
+            const student = students[index];
+            const numVal = value === '' ? null : parseFloat(value);
+            student.scores[subject] = numVal;
+            
+            calculateRow(student);
+            
+            if (currentMode === 'monthly') {
+                document.getElementById(`total-${index}`).innerText = formatKhmerNumber(student.total);
+                document.getElementById(`avg-${index}`).innerText = formatKhmerNumber(student.average);
+            } else if (currentMode === 'annual') {
+                document.getElementById(`annAvg-${index}`).innerText = formatKhmerNumber(student.annualAverage);
+            } else { // semester
+                document.getElementById(`examTotal-${index}`).innerText = formatKhmerNumber(student.examTotal);
+                document.getElementById(`examAvg-${index}`).innerText = formatKhmerNumber(student.examAverage);
+                document.getElementById(`monthlyAvg-${index}`).innerText = formatKhmerNumber(student.monthlyAverage);
+                document.getElementById(`semAvg-${index}`).innerText = formatKhmerNumber(student.semesterAverage);
+            }
+            
+            const gradeEl = document.getElementById(`grade-${index}`);
+            gradeEl.innerText = student.grade;
+            gradeEl.className = `p-2 text-center font-extrabold border border-yellow-200 grade-cell ${getGradeColor(student.grade)}`;
+
+            calculateAllRanks();
+
+            students.forEach(s => {
+                const rankEl = document.getElementById(`rank-${s.id}`);
+                if (rankEl) {
+                    if (rankEl.innerText != s.rank) {
+                        rankEl.style.backgroundColor = '#fef08a';
+                        setTimeout(() => rankEl.style.backgroundColor = '', 300);
+                    }
+                    rankEl.innerText = s.rank;
+                }
+            });
+        }
+
+        window.saveScores = async function() {
+            const btn = document.querySelector('button[onclick="saveScores()"]');
+            const originalHTML = btn.innerHTML;
+            
+            showLoading(true, "កំពុងរក្សាទុក និងបញ្ជូនសារជូនដំណឹង...");
+            lucide.createIcons();
+
+            const scoresToSave = {};
+            students.forEach(s => { 
+                scoresToSave[s.id] = {
+                    scores: s.scores,
+                    results: {
+                        total: s.total,
+                        average: s.average,
+                        examTotal: s.examTotal,
+                        examAverage: s.examAverage,
+                        monthlyAverage: s.monthlyAverage,
+                        semesterAverage: s.semesterAverage,
+                        annualTotal: s.annualTotal,
+                        annualAverage: s.annualAverage,
+                        rank: s.rank,
+                        grade: s.grade
+                    }
+                }; 
+            });
+            const docId = getStorageKey();
+
+            try {
+                if (currentUser) {
+                    const scoresRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'scores', docId);
+                    await setDoc(scoresRef, scoresToSave, { merge: true });
+
+                    // --- SEND AUTOMATED CONGRATULATION NOTIFICATIONS ---
+                    const notificationsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'notifications');
+                    
+                    // Broadcast General Info
+                    await addDoc(notificationsRef, {
+                        title: "ព័ត៌មានលទ្ធផលសិក្សាថ្មី 📊",
+                        message: "សាលាបានបញ្ចូលពិន្ទុថ្មីរួចរាល់ហើយ។ សូមអាណាព្យាបាលចូលទៅកាន់ Parent Portal ដើម្បីពិនិត្យមើលលទ្ធផលសិក្សារបស់កូនអ្នក។",
+                        type: 'info',
+                        target: 'all',
+                        createdAt: new Date().toISOString()
+                    });
+
+                    // Top 1-5 Congratulations
+                    const topStudents = students.filter(s => s.rank >= 1 && s.rank <= 5);
+                    for (const s of topStudents) {
+                        await addDoc(notificationsRef, {
+                            title: `អបអរសាទរ! ចំណាត់ថ្នាក់លេខ ${s.rank} 🏆`,
+                            message: `សូមអបអរសាទរ និងកោតសរសើរចំពោះកូនអ្នកដែលបានខិតខំប្រឹងប្រែងរៀនសូត្ររហូតទទួលបានចំណាត់ថ្នាក់លេខ ${s.rank} ក្នុងការសិក្សាថ្មីនេះ! សូមបន្តការខិតខំរៀនសូត្របន្ថែមទៀតដើម្បីអនាគតដ៏ភ្លឺស្វាង។`,
+                            type: 'congrats',
+                            target: s.id,
+                            createdAt: new Date().toISOString()
+                        });
+                    }
+                }
+                
+                localStorage.setItem(`scores_${docId}`, JSON.stringify(scoresToSave));
+                
+                showLoading(false);
+                btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> រួចរាល់!';
+                btn.classList.replace('bg-[#0054a6]', 'bg-green-600');
+                btn.classList.replace('hover:bg-[#1e40af]', 'hover:bg-green-700');
+                lucide.createIcons();
+
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.replace('bg-green-600', 'bg-[#0054a6]');
+                    btn.classList.replace('hover:bg-green-700', 'hover:bg-[#1e40af]');
+                    lucide.createIcons();
+                }, 1500);
+            } catch (error) {
+                console.error("Error saving: ", error);
+                showLoading(false);
+                btn.innerHTML = '<i data-lucide="x" class="w-4 h-4"></i> បរាជ័យ!';
+                btn.classList.replace('bg-[#0054a6]', 'bg-red-600');
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.replace('bg-red-600', 'bg-[#0054a6]');
+                    lucide.createIcons();
+                }, 2000);
+            }
+        }
+
+        window.openMonthSelectorModal = function() {
+            const modal = document.getElementById('monthSelectorModal');
+            const content = document.getElementById('modalContent');
+            const grid = document.getElementById('modalMonthsGrid');
+            const semText = document.getElementById('semesterSelect').options[document.getElementById('semesterSelect').selectedIndex].text;
+            const yearText = document.getElementById('yearSelect').value;
+            document.getElementById('modalSubtitle').innerText = `${semText} ឆ្នាំសិក្សា ${yearText}`;
+
+            const [startYear, endYear] = yearText.split('-');
+            let html = '';
+            allMonthsMap.forEach(m => {
+                const isChecked = selectedSemesterMonths.includes(m.id);
+                const year = m.isNextYear ? endYear : startYear;
+                html += `
+                    <label class="cursor-pointer relative group">
+                        <input type="checkbox" value="${m.id}" class="month-card-input peer sr-only" onchange="window.updateLiveCount()" ${isChecked ? 'checked' : ''}>
+                        <div class="month-card-content p-4 border border-slate-200 bg-white rounded-2xl text-center transition-all hover:bg-slate-50 text-slate-600 h-full flex flex-col justify-center items-center gap-1">
+                            <i data-lucide="check-circle-2" class="check-icon hidden absolute top-2 right-2 w-4 h-4 text-[#0054a6]"></i>
+                            <div class="font-bold text-lg kh-moul">${m.label}</div>
+                            <div class="text-xs font-medium opacity-70">${year}</div>
+                        </div>
+                    </label>
+                `;
+            });
+            grid.innerHTML = html;
+            lucide.createIcons();
+            window.updateLiveCount();
+
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { content.classList.remove('scale-95', 'opacity-0'); content.classList.add('scale-100', 'opacity-100'); }, 10);
+        }
+
+        window.closeMonthSelectorModal = function() {
+            const modal = document.getElementById('monthSelectorModal');
+            const content = document.getElementById('modalContent');
+            content.classList.remove('scale-100', 'opacity-100'); content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
+        }
+
+        window.updateLiveCount = function() {
+            const checkedBoxes = document.querySelectorAll('.month-card-input:checked');
+            document.getElementById('liveMonthCount').innerText = checkedBoxes.length;
+        }
+
+        window.applyMonthSelection = async function() {
+            const checkedBoxes = document.querySelectorAll('.month-card-input:checked');
+            const newSelection = Array.from(checkedBoxes).map(cb => cb.value);
+            if (newSelection.length === 0) { alert("សូមជ្រើសរើសយ៉ាងហោចណាស់មួយខែ!"); return; }
+            
+            selectedSemesterMonths = newSelection;
+            
+            const year = document.getElementById('yearSelect').value;
+            const sem = document.getElementById('semesterSelect').value;
+            const storageKey = `selected_months_${year}_${sem}`;
+            
+            localStorage.setItem(storageKey, JSON.stringify(selectedSemesterMonths));
+
+            if (currentUser) {
+                try {
+                    const btn = document.querySelector('button[onclick="applyMonthSelection()"]');
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> កំពុងរក្សាទុក...';
+                    lucide.createIcons();
+
+                    const settingsRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'settings', 'preferences');
+                    await setDoc(settingsRef, {
+                        [storageKey]: selectedSemesterMonths
+                    }, { merge: true });
+
+                    btn.innerHTML = originalHTML;
+                    lucide.createIcons();
+                } catch (error) {
+                    console.error("Error saving settings to Cloud:", error);
+                }
+            }
+
+            window.closeMonthSelectorModal();
+            window.loadData(); 
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            window.updateMonthOptions();
+
+            const initAuth = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    }
+                } catch (error) {
+                    console.error("Auth error:", error);
+                }
+            };
+
+            initAuth().then(() => {
+                onAuthStateChanged(auth, async (user) => {
+                    if (user && !user.isAnonymous) {
+                        currentUser = user;
+                        await loadCustomSubjects(); 
+                        await window.loadData();
+                    } else {
+                        window.location.href = '../index.html';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -4,438 +4,752 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PTEC - ជំនួយការគ្រូបង្រៀនឌីជីថល</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;700&family=Moul&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data:;">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;600;700&family=Moul&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index_style/style.css">
+    
+    <!-- Script to prevent FOUC (Flash of Unstyled Content) in Dark Mode -->
+    <script>
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
     <style>
-        :root { --primary: #0054a6; }
-        body { font-family: 'Kantumruy Pro', sans-serif; background: #f0f4f8; min-height: 100vh; margin: 0; padding: 0; overflow-x: hidden; }
-        .kh-moul { font-family: 'Moul', cursive; }
-        
-        .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 10% 20%, #e0e7ff 0%, transparent 40%), radial-gradient(circle at 90% 80%, #dcfce7 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 50%); animation: moveBg 20s infinite alternate ease-in-out; }
-        @keyframes moveBg { from { transform: scale(1); } to { transform: scale(1.1); } }
-        
-        .card-3d { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 2rem; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); cursor: pointer; }
-        .card-3d:hover { transform: translateY(-10px); background: rgba(255, 255, 255, 0.95); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05); }
-        
-        .app-icon-container { width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; border-radius: 1.25rem; }
+        /* Custom New Animations */
+        .animate-gradient-text {
+            background: linear-gradient(-45deg, #0054a6, #4facfe, #ff2d75, #0054a6);
+            background-size: 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientText 6s ease infinite;
+        }
+        @keyframes gradientText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-        .glowing-wrapper {
+        .card-entrance {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            animation: slideUpScale 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes slideUpScale {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .hover-float-icon {
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .group:hover .hover-float-icon {
+            transform: translateY(-8px) scale(1.15) rotate(5deg);
+        }
+
+        .btn-pulse {
             position: relative;
-            padding: 3px; 
-            border-radius: 1.3rem; 
-            overflow: hidden;
-            background: rgba(255,255,255,0.1); 
+        }
+        .btn-pulse::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            box-shadow: 0 0 0 0 rgba(0, 84, 166, 0.6);
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+            z-index: -1;
+        }
+        @keyframes pulse-ring {
+            70% { box-shadow: 0 0 0 12px rgba(0, 84, 166, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 84, 166, 0); }
         }
 
-        .glowing-wrapper::before {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: conic-gradient(from 0deg at 50% 50%, transparent 0%, #ff2d75 25%, transparent 25%, transparent 50%, #4facfe 75%, transparent 75%, transparent 100%);
-            animation: rotateGlow 4s linear infinite; z-index: 0;
+        /* --- FACE POP ANIMATION (LIVELY BOUNCE) --- */
+        .face-group {
+            transform-origin: center bottom;
+        }
+        .face-group:not(.hidden) {
+            /* ប្រើ cubic-bezier ដើម្បីឱ្យវាលោតយោលតិចៗ (Bounce Effect) */
+            animation: popFace 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        @keyframes popFace {
+            0% { transform: translateY(25px) scale(0.85); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
         }
 
-        .glowing-wrapper::after {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: conic-gradient(from 0deg at 50% 50%, transparent 0%, #ff2d75 25%, transparent 25%, transparent 50%, #4facfe 75%, transparent 75%, transparent 100%);
-            animation: rotateGlow 4s linear infinite; z-index: 0; filter: blur(15px); opacity: 0.5;
+        /* Dark Mode CSS Overrides */
+        .dark body { background: #0f172a; }
+        .dark #page-loader { background: #0f172a; }
+        .dark .bg-animate { 
+            background: radial-gradient(circle at 10% 20%, #1e1b4b 0%, transparent 40%), 
+                        radial-gradient(circle at 90% 80%, #064e3b 0%, transparent 40%), 
+                        radial-gradient(circle at 50% 50%, #451a03 0%, transparent 50%); 
+        }
+        .dark .glowing-inner { 
+            background-color: #1e293b; 
+            border-color: #334155; 
+        }
+        .dark .auth-tab.active { 
+            border-bottom-color: #4facfe; 
+            color: #4facfe; 
+        }
+        .dark .card-3d { 
+            background: rgba(30, 41, 59, 0.85); 
+            border-color: rgba(255, 255, 255, 0.1); 
+        }
+        .dark .card-3d:hover, .dark .card-3d:focus-visible { 
+            background: rgba(30, 41, 59, 1); 
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5); 
         }
 
-        .glowing-inner { position: relative; background-color: white; border-radius: 1.15rem; z-index: 10; width: 100%; height: 100%; }
-
-        @keyframes rotateGlow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .auth-tab.active { border-bottom: 2px solid #0054a6; color: #0054a6; font-weight: bold; }
-        
-        #page-loader { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s; }
+        /* Accessibility: Reduce motion if preferred by user OS */
+        @media (prefers-reduced-motion: reduce) {
+            .animate-gradient-text, .card-entrance, .btn-pulse::before, .face-group:not(.hidden) { transition: none !important; animation: none !important; }
+            .card-entrance { opacity: 1; transform: none; }
+        }
     </style>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
-    <!-- ផ្ទាំងផ្ទុកទិន្នន័យ (Loading) -->
-    <div id="page-loader">
-        <div class="w-16 h-16 border-4 border-[#0054a6] border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="kh-moul text-[#0054a6] animate-pulse">កំពុងរៀបចំប្រព័ន្ធ...</p>
-    </div>
+<body class="dark:text-gray-100 transition-colors duration-300">
+    <a href="#main-content-area" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-[#0054a6] text-white px-4 py-2 rounded-md z-[10000] font-bold shadow-lg">
+        រំលងទៅមាតិកា (Skip to content)
+    </a>
 
-    <div class="bg-animate"></div>
+    <div id="toast-container" class="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none" aria-live="polite" aria-atomic="true"></div>
 
-    <!-- ផ្ទាំង Auth -->
-    <div id="auth-section" class="fixed inset-0 z-[100] hidden items-center justify-center bg-white/60 backdrop-blur-md transition-opacity duration-300">
-        <div class="glowing-wrapper w-full max-w-md mx-4 shadow-2xl">
-            <div class="glowing-inner bg-white p-6 md:p-8 border border-white">
-                <div class="text-center mb-6">
-                    <img src="https://www.ptec.edu.kh/wp-content/uploads/2020/06/cropped-PTEC_Banner-2048x459.png" alt="PTEC Logo" class="h-10 md:h-12 mx-auto mb-4 relative z-20">
-                    <h2 id="auth-title" class="kh-moul text-xl text-[#0054a6]">ចូលគណនីប្រព័ន្ធ</h2>
-                    <p class="text-gray-500 text-sm mt-1">ប្រព័ន្ធជំនួយការគ្រូបង្រៀនឌីជីថល</p>
-                </div>
-
-                <div id="auth-tabs" class="flex border-b border-gray-200 mb-6">
-                    <button id="tab-login" class="flex-1 py-2 text-sm text-gray-500 auth-tab active transition">ចូលគណនី</button>
-                    <button id="tab-register" class="flex-1 py-2 text-sm text-gray-500 auth-tab transition">បង្កើតគណនីថ្មី</button>
-                </div>
-
-                <form id="email-auth-form" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">អុីមែល (Email)</label>
-                        <input type="email" id="email" required placeholder="name@ptec.edu.kh" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0054a6] focus:border-transparent outline-none transition bg-gray-50">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">ពាក្យសម្ងាត់ (Password)</label>
-                        <input type="password" id="password" required placeholder="••••••••" minlength="6" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0054a6] focus:border-transparent outline-none transition bg-gray-50">
-                        <div class="text-right mt-1.5">
-                            <button type="button" id="forgot-password-btn" class="text-xs text-[#0054a6] hover:text-blue-800 hover:underline transition font-medium">ភ្លេចពាក្យសម្ងាត់?</button>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" id="main-auth-btn" class="w-full bg-[#0054a6] hover:bg-blue-800 text-white font-bold py-3 rounded-lg transition shadow-md flex justify-center items-center mt-2">
-                        <span id="btn-text">ចូលគណនី</span>
-                        <i data-lucide="loader-2" id="btn-loader" class="hidden animate-spin ml-2 w-5 h-5"></i>
-                    </button>
-                </form>
-
-                <div id="social-divider" class="flex items-center my-6">
-                    <div class="flex-grow border-t border-gray-300"></div>
-                    <span class="flex-shrink-0 mx-4 text-gray-400 text-sm">ឬ</span>
-                    <div class="flex-grow border-t border-gray-300"></div>
-                </div>
-
-                <div id="social-buttons" class="space-y-3">
-                    <button id="google-login-btn" type="button" class="w-full bg-white border border-gray-300 text-gray-700 font-semibold py-2.5 rounded-lg hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-2">
-                        <svg class="w-5 h-5" viewBox="0 0 24 24">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                        </svg>
-                        ចូលគណនីតាម Google
-                    </button>
-                </div>
-
-                <div id="auth-error" class="text-red-600 text-sm hidden bg-red-50 p-3 rounded-md border border-red-200 mt-4 text-center break-words"></div>
+    <div id="confirm-modal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-300" aria-hidden="true">
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl transform scale-95 transition-transform duration-300 border dark:border-gray-700" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <h3 id="modal-title" class="text-lg font-bold text-gray-900 dark:text-white mb-2">បញ្ជាក់ការចាកចេញ</h3>
+            <p id="modal-desc" class="text-gray-600 dark:text-gray-300 mb-6 text-sm">តើអ្នកពិតជាចង់ចាកចេញពីគណនីនេះមែនទេ?</p>
+            <div class="flex justify-end gap-3">
+                <button id="modal-cancel-btn" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 transition">បោះបង់</button>
+                <button id="modal-confirm-btn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 transition">ចាកចេញ</button>
             </div>
         </div>
     </div>
 
-    <!-- ផ្ទាំងមាតិកាដើម -->
-    <div id="main-content" class="hidden opacity-0 transition-opacity duration-500">
-        <nav class="sticky top-0 z-50 px-4 md:px-8 py-3 bg-white/90 backdrop-blur-lg border-b border-gray-100 shadow-sm relative">
-            <div class="max-w-7xl mx-auto flex justify-between items-center">
-                <!-- លូហ្គោ (Logo) -->
-                <img src="https://www.ptec.edu.kh/wp-content/uploads/2020/06/cropped-PTEC_Banner-2048x459.png" alt="PTEC Logo" class="h-9 md:h-12 w-auto">
+    <div id="page-loader" role="status" aria-label="កំពុងរៀបចំប្រព័ន្ធ" class="dark:bg-[#0f172a]">
+        <div class="w-16 h-16 border-4 border-[#0054a6] dark:border-[#4facfe] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="kh-moul text-[#0054a6] dark:text-[#4facfe] text-lg animate-pulse" id="loader-text">កំពុងរៀបចំប្រព័ន្ធ...</p>
+    </div>
+
+    <div class="bg-animate" aria-hidden="true"></div>
+
+    <main id="auth-section" class="fixed inset-0 z-[100] hidden items-center justify-center bg-white/60 dark:bg-gray-900/80 backdrop-blur-md transition-opacity duration-300 p-4 overflow-y-auto">
+        <div class="glowing-wrapper w-full max-w-md md:max-w-4xl mx-auto shadow-2xl transition-all duration-500 my-8">
+            <div class="glowing-inner bg-white dark:bg-gray-800 p-6 md:p-8 lg:p-10 border border-white dark:border-gray-700 transition-colors duration-300 rounded-2xl md:rounded-3xl">
                 
-                <!-- ម៉ឺនុយសម្រាប់កុំព្យូទ័រ (Desktop Menu) -->
-                <div class="hidden lg:flex items-center gap-4 md:gap-6 text-sm font-bold text-[#0054a6]">
-                    <div class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-800 rounded-full border border-blue-100">
-                        <i data-lucide="user-circle" class="w-4 h-4"></i>
+                <div class="flex flex-col md:flex-row gap-8 md:gap-12 items-center">
+                    
+                    <!-- LEFT COLUMN: Character & Title -->
+                    <div class="w-full md:w-1/2 flex flex-col items-center justify-center text-center order-1 mt-4 md:mt-0">
+                        <img src="https://www.ptec.edu.kh/wp-content/uploads/2020/06/cropped-PTEC_Banner-2048x459.png" alt="PTEC Logo" class="h-10 md:h-14 lg:h-16 mx-auto mb-4 md:mb-6 relative z-20">
+                        <h2 id="auth-title" class="kh-moul text-xl md:text-2xl lg:text-3xl animate-gradient-text">ចូលគណនីប្រព័ន្ធ</h2>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm md:text-base mt-2 mb-4 md:mb-8" id="auth-subtitle">ប្រព័ន្ធជំនួយការគ្រូបង្រៀនឌីជីថល</p>
+
+                        <!-- EXACT GHOSTS RECREATION -->
+                        <div class="flex items-end justify-center gap-2 md:gap-4 mt-8 w-full relative min-h-[160px] md:min-h-[200px]" id="character-container">
+                            
+                            <!-- Spooky Speech Bubble -->
+                            <div id="character-message" class="absolute top-[-20px] md:top-[10px] right-[5%] md:right-[15%] px-4 py-2 bg-white text-gray-900 text-sm md:text-base font-bold rounded-2xl opacity-0 transform translate-y-2 transition-all duration-300 text-center shadow-[4px_4px_0px_rgba(0,0,0,0.1)] border-[3px] border-[#111] z-20 whitespace-nowrap">
+                                <span id="character-message-text">Wrong Password</span>
+                                <!-- Custom Tail matching video -->
+                                <div class="absolute -bottom-[10px] right-[25px] w-0 h-0 border-l-[10px] border-l-transparent border-t-[10px] border-t-[#111] border-r-[10px] border-r-transparent"></div>
+                                <div class="absolute -bottom-[6px] right-[26px] w-0 h-0 border-l-[9px] border-l-transparent border-t-[9px] border-t-white border-r-[9px] border-r-transparent z-10"></div>
+                            </div>
+                            
+                            <!-- Small Ghost (Left) -->
+                            <div id="ghost-left" class="w-20 md:w-28 lg:w-32 transition-all duration-300 transform origin-bottom drop-shadow-md">
+                                <svg viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
+                                    <!-- Cute squiggly body -->
+                                    <path d="M 15 100 C 15 40, 20 20, 50 20 C 80 20, 85 40, 85 100 C 85 105, 78 110, 71 105 C 64 100, 57 100, 50 105 C 43 110, 36 110, 29 105 C 22 100, 15 105, 15 100 Z" fill="white" stroke="#111" stroke-width="4.5" stroke-linejoin="round"/>
+                                    
+                                    <!-- Idle Face -->
+                                    <g id="left-face-idle" class="face-group">
+                                        <path class="eye-blink" d="M 32 48 C 28 38, 42 38, 45 48 C 45 56, 32 56, 32 48 Z" fill="#111"/>
+                                        <path class="eye-blink" d="M 68 48 C 72 38, 58 38, 55 48 C 55 56, 68 56, 68 48 Z" fill="#111"/>
+                                        <circle cx="37" cy="45" r="2.5" fill="white"/>
+                                        <circle cx="63" cy="45" r="2.5" fill="white"/>
+                                        <path d="M 45 68 Q 50 63, 55 68" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                                    </g>
+                                    
+                                    <!-- Email Face (looking down) -->
+                                    <g id="left-face-email" class="face-group hidden">
+                                        <path class="eye-blink" d="M 32 52 C 28 42, 42 42, 45 52 C 45 60, 32 60, 32 52 Z" fill="#111"/>
+                                        <path class="eye-blink" d="M 68 52 C 72 42, 58 42, 55 52 C 55 60, 68 60, 68 52 Z" fill="#111"/>
+                                        <circle cx="37" cy="55" r="2.5" fill="white"/>
+                                        <circle cx="63" cy="55" r="2.5" fill="white"/>
+                                        <path d="M 45 70 Q 50 65, 55 70" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                                    </g>
+                                    
+                                    <!-- Password Face (Peeking through human fingers) -->
+                                    <g id="left-face-password" class="face-group hidden">
+                                        <!-- Left Eye (Peeking wide) -->
+                                        <ellipse cx="37" cy="45" rx="4.5" ry="5.5" fill="#111" />
+                                        <circle cx="38.5" cy="43.5" r="1.5" fill="white" />
+                                        <path d="M 33 37 Q 37 35 41 37" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" />
+
+                                        <!-- Right Eye (Peeking wide) -->
+                                        <ellipse cx="63" cy="45" rx="4.5" ry="5.5" fill="#111" />
+                                        <circle cx="64.5" cy="43.5" r="1.5" fill="white" />
+                                        <path d="M 59 37 Q 63 35 67 37" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" />
+
+                                        <!-- LEFT HAND -->
+                                        <g class="hand-left-small">
+                                            <!-- Arm -->
+                                            <path d="M 15 80 Q 20 60 37 60" fill="none" stroke="#111" stroke-width="9" stroke-linecap="round"/>
+                                            <path d="M 15 80 Q 20 60 37 60" fill="none" stroke="white" stroke-width="5" stroke-linecap="round"/>
+                                            
+                                            <!-- Palm -->
+                                            <path d="M 24 62 C 26 52, 48 52, 50 62 Z" fill="white" stroke="#111" stroke-width="2.5"/>
+                                            
+                                            <!-- Pinky -->
+                                            <path d="M 26 56 L 23 44 A 2.2 2.2 0 0 1 27.5 44 L 28 53" fill="white" stroke="#111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <!-- Ring -->
+                                            <path d="M 29 54 L 28 39 A 2.2 2.2 0 0 1 32.5 39 L 32.5 52" fill="white" stroke="#111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            
+                                            <!-- GAP 32.5 to 41.5 (Lets eye peek through!) -->
+                                            
+                                            <!-- Middle -->
+                                            <path d="M 41.5 54 L 41.5 37 A 2.2 2.2 0 0 1 46 37 L 45 52" fill="white" stroke="#111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <!-- Index -->
+                                            <path d="M 46 54 L 48 41 A 2.2 2.2 0 0 1 52.5 43 L 49.5 54" fill="white" stroke="#111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <!-- Thumb -->
+                                            <path d="M 49.5 56 L 57 52 A 2.2 2.2 0 0 1 58.5 56 L 49.5 60" fill="white" stroke="#111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            
+                                            <path d="M 27 56 Q 37 52 47 56" fill="none" stroke="white" stroke-width="3"/>
+                                        </g>
+
+                                        <!-- RIGHT HAND -->
+                                        <g class="hand-right-small">
+                                            <!-- Arm -->
+                                            <path d="M 85 80 Q 80 60 63 60" fill="none" stroke="#111" stroke-width="9" stroke-linecap="round"/>
+                                            <path d="M 85 80 Q 80 60 63 60" fill="none" stroke="white" stroke-width="5" stroke-linecap="round"/>
+                                            
+                                            <!-- Palm -->
+                                            <path d="M 76 62 C 74 52, 52 52, 50 62 Z" fill="white" stroke="#111" stroke-width="2.5"/>
+                                            
+                                            <!-- Index -->
+                                            <path d="M 54 54 L 52 41 A 2.2 2.2 0 0 0 47.5 43 L 50.5 54" fill="white" stroke="#111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <!-- Middle -->
+                                            <path d="M 58.5 54 L 58.5 37 A 2.2 2.2 0 0 0 54 37 L 55 52" fill="white" stroke="#111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            
+                                            <!-- GAP 58.5 to 67.5 (Lets eye peek through!) -->
+                                            
+                                            <!-- Ring -->
+                                            <path d="M 71 54 L 72 39 A 2.2 2.2 0 0 0 67.5 39 L 67.5 52" fill="white" stroke="#111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <!-- Pinky -->
+                                            <path d="M 74 56 L 77 44 A 2.2 2.2 0 0 0 72.5 44 L 72 53" fill="white" stroke="#111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <!-- Thumb -->
+                                            <path d="M 50.5 56 L 43 52 A 2.2 2.2 0 0 0 41.5 56 L 50.5 60" fill="white" stroke="#111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            
+                                            <path d="M 73 56 Q 63 52 53 56" fill="none" stroke="white" stroke-width="3"/>
+                                        </g>
+                                    </g>
+
+                                    <!-- Error Face (Sad) -->
+                                    <g id="left-face-error" class="face-group hidden">
+                                        <polyline points="32,45 40,50 32,55" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <polyline points="68,45 60,50 68,55" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M 45 68 Q 50 63, 55 68" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                                    </g>
+
+                                    <!-- Success Face -->
+                                    <g id="left-face-success" class="face-group hidden">
+                                        <path d="M 32 48 C 28 38, 42 38, 45 48 C 45 56, 32 56, 32 48 Z" fill="#111"/>
+                                        <path d="M 68 48 C 72 38, 58 38, 55 48 C 55 56, 68 56, 68 48 Z" fill="#111"/>
+                                        <circle cx="37" cy="45" r="2.5" fill="white"/>
+                                        <circle cx="63" cy="45" r="2.5" fill="white"/>
+                                        <path d="M 45 65 Q 50 72, 55 65" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                                    </g>
+                                </svg>
+                            </div>
+
+                            <!-- Large Ghost (Right) -->
+                            <div id="ghost-right" class="w-28 md:w-36 lg:w-44 transition-all duration-300 transform origin-bottom drop-shadow-lg relative">
+                                <svg viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto overflow-visible">
+                                    <!-- Back Arms (For Error state) -->
+                                    <g id="right-arms-error" class="face-group hidden">
+                                        <path d="M 20 70 Q 0 45, 5 25" fill="none" stroke="#111" stroke-width="5" stroke-linecap="round"/>
+                                        <path d="M 100 70 Q 120 45, 115 25" fill="none" stroke="#111" stroke-width="5" stroke-linecap="round"/>
+                                    </g>
+                                    <g id="right-arms-success" class="face-group hidden">
+                                        <path d="M 20 70 Q -5 45, 5 25" fill="none" stroke="#111" stroke-width="5" stroke-linecap="round"/>
+                                        <path d="M 100 70 Q 125 45, 115 25" fill="none" stroke="#111" stroke-width="5" stroke-linecap="round"/>
+                                    </g>
+                                    
+                                    <!-- Big Ghost Body -->
+                                    <path d="M 20 120 C 10 60, 25 25, 60 25 C 95 25, 110 60, 100 120 C 100 125, 92 130, 84 125 C 76 120, 68 120, 60 125 C 52 130, 44 130, 36 125 C 28 120, 20 125, 20 120 Z" fill="white" stroke="#111" stroke-width="4.5" stroke-linejoin="round"/>
+                                    
+                                    <!-- Idle Face -->
+                                    <g id="right-face-idle" class="face-group">
+                                        <ellipse class="eye-blink" cx="45" cy="58" rx="5" ry="9" fill="#111"/>
+                                        <ellipse class="eye-blink" cx="75" cy="58" rx="5" ry="9" fill="#111"/>
+                                        <path d="M 55 78 Q 60 84, 65 78" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                                    </g>
+
+                                    <!-- Email Face (Looking down) -->
+                                    <g id="right-face-email" class="face-group hidden">
+                                        <ellipse class="eye-blink" cx="40" cy="65" rx="5" ry="8" fill="#111"/>
+                                        <ellipse class="eye-blink" cx="70" cy="65" rx="5" ry="8" fill="#111"/>
+                                        <path d="M 50 82 Q 55 88, 60 82" fill="none" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                                    </g>
+
+                                    <!-- Password Face (Peeking through human fingers) -->
+                                    <g id="right-face-password" class="face-group hidden">
+                                        <!-- Left Eye (Peeking wide) -->
+                                        <ellipse cx="45" cy="58" rx="6" ry="7" fill="#111" />
+                                        <circle cx="47" cy="56" r="2" fill="white" />
+                                        <path d="M 40 48 Q 45 45 50 48" fill="none" stroke="#111" stroke-width="2.5" stroke-linecap="round" />
+
+                                        <!-- Right Eye (Peeking wide) -->
+                                        <ellipse cx="75" cy="58" rx="6" ry="7" fill="#111" />
+                                        <circle cx="77" cy="56" r="2" fill="white" />
+                                        <path d="M 70 48 Q 75 45 80 48" fill="none" stroke="#111" stroke-width="2.5" stroke-linecap="round" />
+
+                                        <!-- Left Hand (Covering left eye) -->
+                                        <g class="hand-left">
+                                            <!-- Arm -->
+                                            <path d="M 20 100 Q 25 75 45 75" fill="none" stroke="#111" stroke-width="12" stroke-linecap="round"/>
+                                            <path d="M 20 100 Q 25 75 45 75" fill="none" stroke="white" stroke-width="7" stroke-linecap="round"/>
+                                            
+                                            <!-- Palm base -->
+                                            <path d="M 28 78 C 30 65, 62 65, 64 78 Z" fill="white" stroke="#111" stroke-width="3"/>
+                                            
+                                            <!-- Pinky -->
+                                            <path d="M 30 70 L 26 55 A 3 3 0 0 1 32 55 L 33 65" fill="white" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <!-- Ring Finger -->
+                                            <path d="M 34 68 L 33 48 A 3 3 0 0 1 39 48 L 39 65" fill="white" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            
+                                            <!-- GAP 39 to 51 to let the eye peek through! -->
+                                            
+                                            <!-- Middle Finger -->
+                                            <path d="M 51 68 L 51 45 A 3 3 0 0 1 57 45 L 56 65" fill="white" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <!-- Index Finger -->
+                                            <path d="M 57 68 L 60 50 A 3 3 0 0 1 66 52 L 62 68" fill="white" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <!-- Thumb -->
+                                            <path d="M 62 70 L 72 65 A 3 3 0 0 1 74 71 L 62 76" fill="white" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            
+                                            <!-- Hide intersection lines inside the palm -->
+                                            <path d="M 32 70 Q 45 66 58 70" fill="none" stroke="white" stroke-width="4"/>
+                                        </g>
+
+                                        <!-- Right Hand (Covering right eye) -->
+                                        <g class="hand-right">
+                                            <!-- Arm -->
+                                            <path d="M 100 100 Q 95 75 75 75" fill="none" stroke="#111" stroke-width="12" stroke-linecap="round"/>
+                                            <path d="M 100 100 Q 95 75 75 75" fill="none" stroke="white" stroke-width="7" stroke-linecap="round"/>
+                                            
+                                            <!-- Palm base -->
+                                            <path d="M 92 78 C 90 65, 58 65, 56 78 Z" fill="white" stroke="#111" stroke-width="3"/>
+                                            
+                                            <!-- Index Finger -->
+                                            <path d="M 63 68 L 60 50 A 3 3 0 0 0 54 52 L 58 68" fill="white" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <!-- Middle Finger -->
+                                            <path d="M 69 68 L 69 45 A 3 3 0 0 0 63 45 L 64 65" fill="white" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            
+                                            <!-- GAP 69 to 81 to let the right eye peek through! -->
+                                            
+                                            <!-- Ring Finger -->
+                                            <path d="M 86 68 L 87 48 A 3 3 0 0 0 81 48 L 81 65" fill="white" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <!-- Pinky -->
+                                            <path d="M 90 70 L 94 55 A 3 3 0 0 0 88 55 L 87 65" fill="white" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <!-- Thumb -->
+                                            <path d="M 58 70 L 48 65 A 3 3 0 0 0 46 71 L 58 76" fill="white" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            
+                                            <!-- Hide intersection lines inside the palm -->
+                                            <path d="M 88 70 Q 75 66 62 70" fill="none" stroke="white" stroke-width="4"/>
+                                        </g>
+                                    </g>
+
+                                    <!-- Error Face (Crying wide mouth) -->
+                                    <g id="right-face-error" class="face-group hidden">
+                                        <!-- >< eyes -->
+                                        <polyline points="35,48 45,55 35,62" fill="none" stroke="#111" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <polyline points="85,48 75,55 85,62" fill="none" stroke="#111" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <!-- Wide red mouth -->
+                                        <path d="M 45 78 C 45 60, 75 60, 75 78 C 75 100, 45 100, 45 78 Z" fill="#ea4335" stroke="#111" stroke-width="3.5"/>
+                                        <path d="M 50 85 C 50 76, 70 76, 70 85 C 70 95, 50 95, 50 85 Z" fill="#fca5a5"/>
+                                        <!-- Blue Tear -->
+                                        <path d="M 85 70 C 95 85, 85 92, 80 87 C 75 82, 85 70, 85 70 Z" fill="#3b82f6"/>
+                                    </g>
+
+                                    <!-- Success Face -->
+                                    <g id="right-face-success" class="face-group hidden">
+                                        <path d="M 35 55 Q 45 45, 52 55" fill="none" stroke="#111" stroke-width="4.5" stroke-linecap="round"/>
+                                        <path d="M 68 55 Q 75 45, 85 55" fill="none" stroke="#111" stroke-width="4.5" stroke-linecap="round"/>
+                                        <path d="M 45 75 C 45 70, 75 70, 75 75 C 75 95, 45 95, 45 75 Z" fill="#111" stroke="#111" stroke-width="3.5"/>
+                                    </g>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: Login Form -->
+                    <div class="w-full md:w-1/2 order-2 bg-gray-50 dark:bg-gray-900/50 p-5 md:p-6 lg:p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-inner">
+                        <div id="auth-tabs" class="flex border-b border-gray-200 dark:border-gray-700 mb-6" role="tablist">
+                            <button id="tab-login" role="tab" aria-selected="true" class="flex-1 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 auth-tab active transition focus:outline-none focus-visible:bg-blue-50 dark:focus-visible:bg-gray-700">ចូលគណនី</button>
+                            <button id="tab-register" role="tab" aria-selected="false" class="flex-1 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 auth-tab transition focus:outline-none focus-visible:bg-blue-50 dark:focus-visible:bg-gray-700">បង្កើតថ្មី</button>
+                        </div>
+
+                        <form id="email-auth-form" class="space-y-4" novalidate>
+                            <div>
+                                <label for="email" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">អុីមែល (Email)</label>
+                                <div class="relative">
+                                    <input type="email" id="email" required placeholder="name@ptec.edu.kh" aria-required="true" autocomplete="username" class="w-full pl-4 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#0054a6] outline-none transition bg-white dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 text-base shadow-sm">
+                                    <i data-lucide="check-circle" id="email-valid-icon" class="absolute right-3 top-3.5 w-5 h-5 text-green-500 hidden" aria-hidden="true"></i>
+                                    <i data-lucide="x-circle" id="email-invalid-icon" class="absolute right-3 top-3.5 w-5 h-5 text-red-500 hidden" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="password" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">ពាក្យសម្ងាត់ (Password)</label>
+                                <div class="relative">
+                                    <input type="password" id="password" required placeholder="••••••••" minlength="6" aria-required="true" autocomplete="current-password" class="w-full pl-4 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#0054a6] outline-none transition bg-white dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 text-base shadow-sm">
+                                    <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-[#0054a6] dark:hover:text-[#4facfe] focus:outline-none transition" aria-label="បង្ហាញពាក្យសម្ងាត់">
+                                        <i data-lucide="eye" id="eye-icon" class="w-5 h-5" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                                
+                                <div id="password-strength-container" class="hidden mt-2">
+                                    <div class="flex justify-between items-center mb-1 text-xs">
+                                        <span class="text-gray-500 dark:text-gray-400">កម្រិតសុវត្ថិភាពពាក្យសម្ងាត់៖</span>
+                                        <span id="password-strength-text" class="font-bold text-gray-400">គ្មាន</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 overflow-hidden">
+                                        <div id="password-strength-bar" class="bg-gray-400 h-1.5 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                                    </div>
+                                </div>
+
+                                <div id="forgot-password-container" class="text-right mt-1.5">
+                                    <button type="button" id="forgot-password-btn" class="text-xs text-[#0054a6] dark:text-[#4facfe] hover:underline transition font-medium focus:outline-none rounded px-1 py-1">ភ្លេចពាក្យសម្ងាត់?</button>
+                                </div>
+
+                                <div id="terms-container" class="hidden mt-4 flex items-start bg-blue-50 dark:bg-gray-800 p-3 rounded-lg border border-blue-100 dark:border-gray-700">
+                                    <div class="flex items-center h-5 mt-0.5">
+                                        <input id="terms" type="checkbox" required class="w-4 h-4 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 focus:ring-2 focus:ring-[#0054a6] focus:ring-offset-1 outline-none transition cursor-pointer">
+                                    </div>
+                                    <label for="terms" class="ml-2 text-xs md:text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                                        ខ្ញុំយល់ព្រមតាម <a href="#" class="text-[#0054a6] dark:text-[#4facfe] hover:underline font-bold">លក្ខខណ្ឌនៃការប្រើប្រាស់</a>។
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" id="main-auth-btn" aria-live="polite" class="btn-pulse w-full bg-[#0054a6] hover:bg-blue-800 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 text-white font-bold py-3.5 rounded-lg transition shadow-md flex justify-center items-center mt-4">
+                                <span id="btn-text">ចូលគណនី</span>
+                                <i data-lucide="loader-2" id="btn-loader" class="hidden animate-spin ml-2 w-5 h-5" aria-hidden="true"></i>
+                            </button>
+                        </form>
+
+                        <div id="social-divider" class="flex items-center my-6" aria-hidden="true">
+                            <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                            <span class="flex-shrink-0 mx-4 text-gray-500 dark:text-gray-400 text-xs md:text-sm">ឬ</span>
+                            <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                        </div>
+
+                        <div id="social-buttons" class="space-y-3">
+                            <button id="google-login-btn" type="button" class="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition shadow-sm flex justify-center items-center gap-2">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                </svg>
+                                <span id="google-btn-text">ចូលគណនីតាម Google</span>
+                            </button>
+                        </div>
+
+                        <div id="auth-error" aria-live="assertive" role="alert" class="text-red-700 text-xs md:text-sm hidden bg-red-50 p-3 rounded-md border border-red-200 mt-4 text-center break-words font-medium"></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="main-content" class="hidden opacity-0 transition-opacity duration-500" aria-hidden="true">
+        <!-- ... existing header navigation ... -->
+        <header class="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 shadow-sm relative transition-colors duration-300">
+            <nav class="max-w-7xl mx-auto px-4 md:px-8 py-3 flex justify-between items-center" aria-label="Main Navigation">
+                <a href="#" class="focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0054a6] rounded-md" aria-label="ទំព័រដើម PTEC">
+                    <img src="https://www.ptec.edu.kh/wp-content/uploads/2020/06/cropped-PTEC_Banner-2048x459.png" alt="PTEC Logo" class="h-9 md:h-11 w-auto">
+                </a>
+                
+                <div class="hidden lg:flex items-center gap-4 md:gap-6 text-sm font-bold text-[#0054a6] dark:text-blue-300">
+                    <div class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-gray-800 text-blue-800 dark:text-blue-300 rounded-full border border-blue-100 dark:border-gray-700 transition-colors" aria-label="ព័ត៌មានអ្នកប្រើប្រាស់">
+                        <i data-lucide="user-circle" class="w-4 h-4" aria-hidden="true"></i>
                         <span id="desktop-user-email" class="font-medium text-xs"></span>
                     </div>
 
-                    <a href="#" class="hover:text-blue-800 transition">ទំព័រដើម</a>
-                    <a href="https://www.ptec.edu.kh/" target="_blank" class="flex items-center gap-1.5 hover:text-blue-800 transition">
-                        គេហទំព័រវិទ្យាស្ថាន <i data-lucide="external-link" class="w-4 h-4"></i>
+                    <a href="#" class="hover:text-blue-800 dark:text-gray-200 dark:hover:text-[#4facfe] transition px-2 py-1">ទំព័រដើម</a>
+                    <a href="https://www.ptec.edu.kh/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 hover:text-blue-800 dark:text-gray-200 dark:hover:text-[#4facfe] transition px-2 py-1">
+                        គេហទំព័រវិទ្យាស្ថាន <i data-lucide="external-link" class="w-4 h-4" aria-hidden="true"></i>
                     </a>
                     
-                    <button class="copy-code-btn hidden items-center gap-1.5 bg-[#eff6ff] hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-lg transition shadow-sm border border-blue-100" onclick="copyTeacherId()">
-                        <i data-lucide="copy" class="w-4 h-4"></i> Copy កូដថ្នាក់
+                    <a href="https://ron-raksmey.netlify.app/" target="_blank" class="flex items-center gap-1.5 hover:text-blue-800 dark:text-gray-200 dark:hover:text-[#4facfe] transition px-2 py-1">
+                        <i data-lucide="user" class="w-4 h-4" aria-hidden="true"></i> អំពីអ្នកអភិវឌ្ឍន៍
+                    </a>
+                    
+                    <button class="copy-code-btn hidden items-center gap-1.5 bg-[#eff6ff] dark:bg-gray-800 hover:bg-blue-100 dark:hover:bg-gray-700 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-lg transition border border-blue-200 dark:border-gray-700" onclick="copyTeacherId()" aria-label="ចម្លងលេខកូដថ្នាក់">
+                        <i data-lucide="copy" class="w-4 h-4 copy-icon" aria-hidden="true"></i> <span class="copy-text">Copy កូដថ្នាក់</span>
                     </button>
                     
-                    <button class="mobile-install-btn hidden bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-1.5 px-3 rounded-md shadow-sm items-center gap-1.5 transition-all">
-                        <i data-lucide="download" class="w-4 h-4"></i> <span class="text-xs md:text-sm">App</span>
+                    <button class="mobile-install-btn hidden bg-[#f59e0b] hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md shadow-sm items-center gap-1.5 transition-all" aria-label="ដំឡើងកម្មវិធី">
+                        <i data-lucide="download" class="w-4 h-4" aria-hidden="true"></i> <span class="text-xs md:text-sm">App</span>
                     </button>
 
-                    <button class="logout-btn flex items-center gap-1.5 text-red-600 hover:text-red-800 py-1.5 rounded-md transition font-bold">
-                        <i data-lucide="log-out" class="w-4 h-4"></i> ចាកចេញ
+                    <!-- Theme Toggle Button (Desktop) -->
+                    <button type="button" class="theme-toggle-btn text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2 transition-colors">
+                        <i data-lucide="moon" class="theme-toggle-dark-icon hidden w-5 h-5"></i>
+                        <i data-lucide="sun" class="theme-toggle-light-icon hidden w-5 h-5"></i>
+                    </button>
+
+                    <button class="logout-btn flex items-center gap-1.5 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 py-2 px-3 rounded-md transition font-bold" aria-label="ចាកចេញពីគណនី">
+                        <i data-lucide="log-out" class="w-4 h-4" aria-hidden="true"></i> ចាកចេញ
                     </button>
                 </div>
 
-                <!-- ប៊ូតុងម៉ឺនុយសម្រាប់ទូរសព្ទ (Mobile Hamburger Button) -->
-                <button id="mobile-menu-btn" class="lg:hidden p-2 text-[#0054a6] focus:outline-none bg-blue-50 rounded-lg hover:bg-blue-100 transition">
-                    <i data-lucide="menu" class="w-6 h-6"></i>
-                </button>
-            </div>
+                <div class="flex items-center gap-2 lg:hidden">
+                    <button type="button" class="theme-toggle-btn p-2 text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-gray-800 rounded-lg hover:bg-blue-100 dark:hover:bg-gray-700 transition-colors">
+                        <i data-lucide="moon" class="theme-toggle-dark-icon hidden w-5 h-5"></i>
+                        <i data-lucide="sun" class="theme-toggle-light-icon hidden w-5 h-5"></i>
+                    </button>
+                    <button id="mobile-menu-btn" aria-expanded="false" aria-controls="mobile-menu" aria-label="បើកម៉ឺនុយ" class="p-2 text-[#0054a6] dark:text-[#4facfe] bg-blue-50 dark:bg-gray-800 rounded-lg hover:bg-blue-100 dark:hover:bg-gray-700 transition">
+                        <i data-lucide="menu" class="w-6 h-6" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </nav>
 
-            <!-- ម៉ឺនុយទម្លាក់ចុះសម្រាប់ទូរសព្ទ (Mobile Dropdown Menu) -->
-            <div id="mobile-menu" class="hidden lg:hidden flex-col gap-3 mt-3 pt-3 border-t border-gray-100 text-sm font-bold text-[#0054a6] bg-white absolute left-0 right-0 px-4 pb-4 shadow-lg rounded-b-xl z-50">
-                <div class="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-800 rounded-lg border border-blue-100 mb-2">
-                    <i data-lucide="user-circle" class="w-5 h-5"></i>
+            <div id="mobile-menu" class="hidden lg:hidden flex-col gap-2 mt-1 pt-3 border-t border-gray-100 dark:border-gray-800 text-sm font-bold text-[#0054a6] dark:text-blue-300 bg-white dark:bg-gray-900 absolute left-0 right-0 px-4 pb-5 shadow-xl rounded-b-xl z-50">
+                <div class="flex items-center gap-2 px-3 py-3 bg-blue-50 dark:bg-gray-800 text-blue-800 dark:text-blue-300 rounded-lg border border-blue-100 dark:border-gray-700 mb-2">
+                    <i data-lucide="user-circle" class="w-5 h-5" aria-hidden="true"></i>
                     <span id="mobile-user-email" class="font-medium text-xs break-all">កំពុងផ្ទុក...</span>
                 </div>
 
-                <a href="#" class="flex items-center gap-2 py-2 px-2 hover:bg-gray-50 rounded-md transition">
-                    <i data-lucide="home" class="w-4 h-4"></i> ទំព័រដើម
+                <a href="#" class="flex items-center gap-3 py-3 px-3 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-200 rounded-md transition">
+                    <i data-lucide="home" class="w-5 h-5" aria-hidden="true"></i> ទំព័រដើម
                 </a>
-                <a href="https://www.ptec.edu.kh/" target="_blank" class="flex items-center gap-2 py-2 px-2 hover:bg-gray-50 rounded-md transition">
-                    <i data-lucide="globe" class="w-4 h-4"></i> គេហទំព័រវិទ្យាស្ថាន <i data-lucide="external-link" class="w-3 h-3 ml-auto"></i>
+                <a href="https://www.ptec.edu.kh/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 py-3 px-3 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-200 rounded-md transition">
+                    <i data-lucide="globe" class="w-5 h-5" aria-hidden="true"></i> គេហទំព័រវិទ្យាស្ថាន <i data-lucide="external-link" class="w-4 h-4 ml-auto" aria-hidden="true"></i>
                 </a>
                 
-                <button class="copy-code-btn hidden items-center justify-center gap-1.5 bg-[#eff6ff] text-blue-600 w-full py-2.5 rounded-lg transition border border-blue-100 mt-1" onclick="copyTeacherId()">
-                    <i data-lucide="copy" class="w-4 h-4"></i> Copy កូដថ្នាក់
+                <button class="copy-code-btn hidden items-center justify-center gap-2 bg-[#eff6ff] dark:bg-gray-800 text-blue-700 dark:text-blue-300 w-full py-3.5 rounded-lg transition border border-blue-200 dark:border-gray-700 mt-2">
+                    <i data-lucide="copy" class="w-5 h-5 copy-icon" aria-hidden="true"></i> <span class="copy-text">Copy កូដថ្នាក់</span>
                 </button>
                 
-                <button class="mobile-install-btn hidden bg-[#f59e0b] text-white font-bold w-full py-2.5 rounded-lg shadow-sm items-center justify-center gap-1.5 mt-1 transition-all">
-                    <i data-lucide="download" class="w-4 h-4"></i> ដំឡើងកម្មវិធី (App)
+                <button class="mobile-install-btn hidden bg-[#f59e0b] text-white font-bold w-full py-3.5 rounded-lg shadow-sm items-center justify-center gap-2 mt-2 transition-all">
+                    <i data-lucide="download" class="w-5 h-5" aria-hidden="true"></i> ដំឡើងកម្មវិធី (App)
                 </button>
 
-                <button class="logout-btn flex items-center justify-center gap-2 text-red-600 bg-red-50 hover:bg-red-100 w-full py-2.5 rounded-lg transition font-bold mt-2">
-                    <i data-lucide="log-out" class="w-4 h-4"></i> ចាកចេញ
+                <button class="logout-btn flex items-center justify-center gap-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 w-full py-3.5 rounded-lg transition font-bold mt-3">
+                    <i data-lucide="log-out" class="w-5 h-5" aria-hidden="true"></i> ចាកចេញ
                 </button>
             </div>
-        </nav>
-
-        <header class="pt-8 pb-8 text-center px-6">
-            <h1 class="kh-moul text-2xl md:text-3xl text-[#0054a6] mb-4">ប្រព័ន្ធជំនួយការគ្រូបង្រៀនឌីជីថល</h1>
-            <p class="text-[#0054a6]/80 text-sm md:text-lg font-semibold italic">គ្រប់គ្រងព័ត៌មានសិស្ស និងការបង្រៀន</p>
         </header>
 
-        <main class="max-w-7xl mx-auto px-6 py-4 pb-24">
-            <div id="app-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-                <!-- Grid items generated by JS -->
-            </div>
-        </main>
-    </div>
-
-    <script>
-        const apps = [
-            { name: 'បញ្ចូលព័ត៌មានសិស្ស', icon: 'user-plus', url: 'enrollment_V2.html', color: 'from-blue-500 to-blue-600' },
-            { name: 'បញ្ជីឈ្មោះសិស្ស', icon: 'users', url: 'student-listV2.html', color: 'from-purple-500 to-purple-600' },
-            { name: 'វិភាគអាយុ និងកម្ពស់', icon: 'calendar-days', url: 'student_age_list.html', color: 'from-emerald-500 to-teal-600' },
-            { name: 'ចុះវត្តមានតាមប្លង់តុ', icon: 'layout-grid', url: 'table-layout.html', color: 'from-orange-500 to-orange-600' },
-            { name: 'បញ្ជីវត្តមានប្រចាំខែ', icon: 'calendar-check', url: 'attendance-1.html', color: 'from-pink-500 to-pink-600' },
-            { name: 'បញ្ចូលពិន្ទុ', icon: 'edit-3', url: 'enter-monthly-score.html', color: 'from-green-500 to-emerald-600' },
-            { name: 'តារាងពិន្ទុសរុប', icon: 'table-2', url: 'subject-scores.html', color: 'from-teal-500 to-teal-600' },
-            { name: 'តារាងចំណាត់ថ្នាក់', icon: 'bar-chart-3', url: 'ranking-print.html', color: 'from-purple-600 to-purple-800' },
-            { name: 'វិភាគទិន្នន័យសរុប', icon: 'line-chart', url: 'data_analysing_score_student.html', color: 'from-rose-600 to-pink-700'},
-            { name: 'វិភាគតាមមុខវិជ្ជា', icon: 'target', url: 'new_data_analyse_by_subject.html', color: 'from-blue-600 to-indigo-700' },
-            { name: 'រដ្ឋបាលថ្នាក់រៀន', icon: 'folder-open', url: 'Main_adr.html', color: 'from-blue-700 to-indigo-800' },
-            { name: 'របាយការណ៍មាតាបិតា', icon: 'book-open-check', url: 'parent-report.html', color: 'from-sky-500 to-blue-600' },
-            { name: 'លេខកូដសិស្ស (ឪពុកម្តាយ)', icon: 'key', url: 'student-codes.html', color: 'from-emerald-500 to-teal-600' },
-            { name: 'បញ្ចូលពិន្ទុកិច្ចការផ្ទះ', icon: 'book-marked', url: 'enter-homework-score.html', color: 'from-indigo-500 to-indigo-600' },
-            { name: 'តារាងកិត្តិយស', icon: 'award', url: 'honor-roll.html', color: 'from-rose-500 to-rose-600' },
-            { name: 'បញ្ជីបូកសរុបលទ្ធផលប្រចាំឆ្នាំ', icon: 'pie-chart', url: 'dashborad_score_years.html', color: 'from-cyan-500 to-cyan-600' },
-            { name: 'សៀវភៅតាមដាន', icon: 'book-open', url: 'student-tracking.html', color: 'from-sky-500 to-sky-600' },
-            { name: 'ទាញយកវិញ្ញាបនបត្រ', icon: 'file-badge', url: 'certificate.html', color: 'from-yellow-500 to-orange-500' },
-            { name: 'កាលវិភាគសម្អាតថ្នាក់', icon: 'sparkles', url: 'cleaning-schedule.html', color: 'from-cyan-400 to-blue-500' },
-            { name: 'បញ្ជីសារពើភ័ណ្ឌ', icon: 'package', url: 'inventory.html', color: 'from-amber-500 to-amber-600' },
-            { name: 'បោះពុម្ពកាតសិស្ស', icon: 'contact-2', url: 'id_student.html', color: 'from-indigo-600 to-blue-700' },
-            { name: 'ផ្ញើសារទៅកាន់អាណាព្យាបាល', icon: 'bell', url: 'teacher-notifications.html', color: 'from-red-600 to-blue-700' },
-            { name: 'ព័ត៌មានគណនី', icon: 'user-cog', url: 'profile.html', color: 'from-slate-500 to-slate-600' }
-        ];
-
-        const grid = document.getElementById('app-grid');
-        
-        apps.forEach(app => {
-            const card = document.createElement('div');
-            card.className = 'card-3d group p-4 md:p-6 flex flex-col items-center text-center select-none';
-            card.onclick = () => { window.location.href = app.url; };
-            
-            card.innerHTML = `
-                <div class="mb-3">
-                    <div class="app-icon-container bg-gradient-to-tr ${app.color} shadow-md transition-transform group-hover:scale-110 duration-300">
-                        <i data-lucide="${app.icon}" class="w-7 h-7 md:w-8 md:h-8 text-white"></i>
+        <div id="main-content-area" tabindex="-1" class="outline-none">
+            <section class="pt-8 pb-4 text-center px-6">
+                <!-- ផ្នែកអក្សររត់ (Running Text / Marquee) -->
+                <div class="max-w-2xl mx-auto mb-8 bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-gray-700 marquee-container text-[#0054a6] dark:text-[#4facfe] shadow-sm transition-colors">
+                    <div class="absolute left-0 bg-blue-100 dark:bg-gray-800 z-10 px-4 py-2.5 flex items-center h-full border-r border-blue-200 dark:border-gray-700 shadow-[4px_0_10px_rgba(239,246,255,1)] dark:shadow-[4px_0_10px_rgba(31,41,55,1)] transition-colors">
+                        <i data-lucide="megaphone" class="w-5 h-5 animate-wiggle text-blue-700 dark:text-[#4facfe]" aria-hidden="true"></i>
+                    </div>
+                    <div class="marquee-content py-2.5 text-sm md:text-base font-semibold flex items-center gap-10">
+                        <span>✨ សូមស្វាគមន៍មកកាន់ប្រព័ន្ធជំនួយការគ្រូបង្រៀនឌីជីថល (PTEC)!</span>
+                        <span>🚀 ងាយស្រួលគ្រប់គ្រងទិន្នន័យសិស្សយ៉ាងឆាប់រហ័ស និងសុវត្ថិភាព</span>
+                        <span>📊 មុខងារបញ្ចូលពិន្ទុ និងវត្តមានត្រូវបានរៀបចំយ៉ាងល្អឥតខ្ចោះ</span>
                     </div>
                 </div>
-                <h3 class="text-[11px] md:text-xs font-bold text-slate-800 leading-tight">${app.name}</h3>
-            `;
-            grid.appendChild(card);
-        });
-        
-        lucide.createIcons();
 
-        // មុខងារសម្រាប់បើក/បិទ ម៉ឺនុយលើទូរសព្ទ (Mobile Menu Toggle)
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-        
-        mobileMenuBtn.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-            mobileMenu.classList.toggle('flex');
-        });
-    </script>
+                <!-- ចំណងជើងមាន Icon អណ្តែត (Floating Icons) ជាមួយអក្សរពណ៌ចម្រុះ (Gradient Text) -->
+                <div class="flex items-center justify-center gap-3 md:gap-4 mb-3">
+                    <i data-lucide="sparkles" class="w-6 h-6 md:w-8 md:h-8 text-yellow-500 animate-float" aria-hidden="true"></i>
+                    <h1 class="kh-moul text-2xl md:text-3xl animate-gradient-text">PTEC - ប្រព័ន្ធគ្រប់គ្រងការបង្រៀនឌីជីថល</h1>
+                    <i data-lucide="rocket" class="w-6 h-6 md:w-8 md:h-8 text-blue-500 animate-float-delayed" aria-hidden="true"></i>
+                </div>
+                
+                <p class="text-[#0054a6]/80 dark:text-blue-300/80 text-sm md:text-base font-semibold italic mb-6 transition-colors">គ្រប់គ្រងព័ត៌មានសិស្ស និងការបង្រៀនងាយស្រួល</p>
+                
+                <div class="max-w-md mx-auto relative">
+                    <i data-lucide="search" class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5" aria-hidden="true"></i>
+                    <input type="search" id="app-search" placeholder="ស្វែងរកមុខងារ..." class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:placeholder-gray-400 focus:ring-2 focus:ring-[#0054a6] dark:focus:ring-[#4facfe] outline-none transition shadow-sm text-sm md:text-base">
+                </div>
+            </section>
 
-    <!-- Firebase Authentication & Logic -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, 
-            signInWithEmailAndPassword, 
-            createUserWithEmailAndPassword,
-            GoogleAuthProvider,
-            signInWithPopup,
-            sendPasswordResetEmail,
-            onAuthStateChanged, 
-            signOut 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+            <main class="max-w-7xl mx-auto px-4 md:px-6 py-4 pb-24" aria-label="បញ្ជីកម្មវិធី និងមុខងារ">
+                
+                <!-- ប្រអប់សេចក្តីណែនាំ (Guide Box) -->
+                <div class="mb-6 md:mb-8 card-entrance">
+                    <a href="Introduction/tutorial.html" class="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0054a6] to-[#4facfe] p-1 block shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                        <div class="absolute inset-0 bg-white/10 group-hover:bg-transparent transition-colors duration-300"></div>
+                        <div class="relative bg-white/10 backdrop-blur-sm px-5 py-4 md:px-8 md:py-6 rounded-xl flex items-center justify-between gap-4 border border-white/20">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-white/20 p-3 rounded-full text-white shadow-inner shrink-0 group-hover:scale-110 transition-transform duration-300">
+                                    <i data-lucide="book-open" class="w-6 h-6 md:w-8 md:h-8"></i>
+                                </div>
+                                <div class="text-left text-white">
+                                    <h3 class="kh-moul text-base md:text-xl mb-1 drop-shadow-md">សេចក្តីណែនាំការប្រើប្រាស់</h3>
+                                    <p class="text-blue-50 text-xs md:text-sm font-medium opacity-90">ចុចទីនេះដើម្បីអានសៀវភៅណែនាំអំពីរបៀបបញ្ចូលព័ត៌មាន និងគ្រប់គ្រងទិន្នន័យសិស្ស</p>
+                                </div>
+                            </div>
+                            <div class="bg-white/20 p-2 md:p-3 rounded-full text-white group-hover:translate-x-2 transition-transform duration-300 shadow-sm shrink-0">
+                                <i data-lucide="arrow-right" class="w-4 h-4 md:w-6 md:h-6"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
-            authDomain: "classroom-management-82382.firebaseapp.com",
-            projectId: "classroom-management-82382",
-            storageBucket: "classroom-management-82382.firebasestorage.app",
-            messagingSenderId: "146641865620",
-            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81"
-        };
+                <div id="app-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                </div>
+                
+                <div id="no-results" class="hidden text-center py-10 text-gray-500 dark:text-gray-400 font-medium transition-colors">
+                    <i data-lucide="search-x" class="mx-auto w-10 h-10 mb-3 text-gray-400 dark:text-gray-500" aria-hidden="true"></i>
+                    <span id="no-result-text">រកមិនឃើញមុខងារដែលអ្នកស្វែងរកទេ</span>
+                </div>
+            </main>
+        </div>
+    </div>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        // UI Elements
-        const pageLoader = document.getElementById('page-loader');
-        const authSection = document.getElementById('auth-section');
-        const mainContent = document.getElementById('main-content');
-        const authError = document.getElementById('auth-error');
-        
-        // ប្រើ class ជំនួស ID ព្រោះមានប៊ូតុង ២ (មួយសម្រាប់ Desktop មួយសម្រាប់ Mobile)
-        const copyCodeBtns = document.querySelectorAll('.copy-code-btn');
-        const logoutBtns = document.querySelectorAll('.logout-btn');
-        
-        const desktopUserEmail = document.getElementById('desktop-user-email');
-        const mobileUserEmail = document.getElementById('mobile-user-email');
-
-        let isLoginMode = true;
-        let currentTeacherUid = '';
-
-        const showError = (msg, isSuccess = false) => {
-            authError.textContent = msg;
-            if (isSuccess) {
-                authError.classList.replace('bg-red-50', 'bg-green-50');
-                authError.classList.replace('text-red-600', 'text-green-700');
-            } else {
-                authError.classList.replace('bg-green-50', 'bg-red-50');
-                authError.classList.replace('text-green-700', 'text-red-600');
-            }
-            authError.classList.remove('hidden');
-        };
-        const hideError = () => authError.classList.add('hidden');
-
-        document.getElementById('tab-login').addEventListener('click', () => {
-            isLoginMode = true;
-            document.getElementById('tab-login').classList.add('active');
-            document.getElementById('tab-register').classList.remove('active');
-            document.getElementById('auth-title').textContent = "ចូលគណនីប្រព័ន្ធ";
-            document.getElementById('btn-text').textContent = "ចូលគណនី";
-            hideError();
-        });
-
-        document.getElementById('tab-register').addEventListener('click', () => {
-            isLoginMode = false;
-            document.getElementById('tab-register').classList.add('active');
-            document.getElementById('tab-login').classList.remove('active');
-            document.getElementById('auth-title').textContent = "បង្កើតគណនីថ្មី";
-            document.getElementById('btn-text').textContent = "ចុះឈ្មោះ (Register)";
-            hideError();
-        });
-
-        // Track Authentication State
-        onAuthStateChanged(auth, (user) => {
-            pageLoader.style.display = 'none'; 
+    <!-- Theme Toggle Initialization & Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggleBtns = document.querySelectorAll('.theme-toggle-btn');
             
-            if (user && !user.isAnonymous) {
-                currentTeacherUid = user.uid;
-                
-                // បង្ហាញអ៊ីមែលនៅលើ Navbar
-                desktopUserEmail.textContent = user.email;
-                mobileUserEmail.textContent = user.email;
-                
-                authSection.style.display = 'none';
-                mainContent.classList.remove('hidden');
-                setTimeout(() => mainContent.classList.remove('opacity-0'), 50); 
-                
-                // បង្ហាញប៊ូតុង Copy លេខកូដ ទាំង២
-                copyCodeBtns.forEach(btn => {
-                    btn.classList.remove('hidden');
-                    btn.classList.add('flex');
-                });
+            // Setup icons on load
+            if (document.documentElement.classList.contains('dark')) {
+                document.querySelectorAll('.theme-toggle-light-icon').forEach(icon => icon.classList.remove('hidden'));
             } else {
-                currentTeacherUid = '';
-                
-                mainContent.classList.add('hidden');
-                mainContent.classList.add('opacity-0');
-                authSection.style.display = 'flex';
-                authSection.classList.remove('hidden');
-                
-                // លាក់ប៊ូតុង Copy លេខកូដ ទាំង២
-                copyCodeBtns.forEach(btn => {
-                    btn.classList.add('hidden');
-                    btn.classList.remove('flex');
+                document.querySelectorAll('.theme-toggle-dark-icon').forEach(icon => icon.classList.remove('hidden'));
+            }
+
+            themeToggleBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.theme-toggle-dark-icon').forEach(icon => icon.classList.toggle('hidden'));
+                    document.querySelectorAll('.theme-toggle-light-icon').forEach(icon => icon.classList.toggle('hidden'));
+                    if (document.documentElement.classList.contains('dark')) {
+                        document.documentElement.classList.remove('dark');
+                        localStorage.setItem('color-theme', 'light');
+                    } else {
+                        document.documentElement.classList.add('dark');
+                        localStorage.setItem('color-theme', 'dark');
+                    }
                 });
-            }
-        });
-
-        document.getElementById('email-auth-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            hideError();
-
-            try {
-                if (isLoginMode) await signInWithEmailAndPassword(auth, email, password);
-                else await createUserWithEmailAndPassword(auth, email, password);
-            } catch (error) {
-                showError('អុីមែល ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវឡើយ។');
-            }
-        });
-
-        document.getElementById('google-login-btn').addEventListener('click', async () => {
-            const provider = new GoogleAuthProvider();
-            hideError();
-            try { await signInWithPopup(auth, provider); } 
-            catch (error) { showError('ការចូលដោយប្រើ Google មិនជោគជ័យ។'); }
-        });
-
-        // ដាក់មុខងារ Logout លើប៊ូតុងទាំង២ (Desktop & Mobile)
-        logoutBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                if(confirm('តើអ្នកពិតជាចង់ចាកចេញពីប្រព័ន្ធមែនទេ?')) signOut(auth);
             });
         });
-
-        // --- មុខងារ Copy លេខកូដ (UID) ---
-        window.copyTeacherId = function() {
-            if (!currentTeacherUid) return;
-            copyFallback(currentTeacherUid, "លេខកូដថ្នាក់រៀន");
-            
-            // បិទម៉ឺនុយទូរសព្ទបន្ទាប់ពីចុច Copy រួច
-            const mobileMenu = document.getElementById('mobile-menu');
-            if(!mobileMenu.classList.contains('hidden')){
-                mobileMenu.classList.add('hidden');
-                mobileMenu.classList.remove('flex');
-            }
-        };
-
-        function copyFallback(text, label = "លេខកូដ") {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed";
-            textArea.style.left = "-9999px";
-            document.body.appendChild(textArea);
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                alert(`✅ បានចម្លង${label}៖ ` + text);
-            } catch (err) {
-                alert('បរាជ័យក្នុងការ Copy។ សូម Copy លេខកូដដោយផ្ទាល់។');
-            }
-            document.body.removeChild(textArea);
-        }
-
-        // PWA Install Logic
-        let deferredPrompt;
-        const installBtns = document.querySelectorAll('.mobile-install-btn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtns.forEach(btn => btn.classList.remove('hidden'));
-        });
-
-        const handleInstallClick = async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                installBtns.forEach(btn => btn.classList.add('hidden'));
-            }
-        };
-
-        installBtns.forEach(btn => btn.addEventListener('click', handleInstallClick));
     </script>
+
+    <!-- GHOST ANIMATION INDEPENDENT SCRIPT -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const ghostLeft = document.getElementById('ghost-left');
+            const ghostRight = document.getElementById('ghost-right');
+            const charMessage = document.getElementById('character-message');
+            const charMessageText = document.getElementById('character-message-text');
+
+            const setFaces = (state) => {
+                document.querySelectorAll('.face-group').forEach(el => el.classList.add('hidden'));
+                const leftFace = document.getElementById(`left-face-${state}`) || document.getElementById('left-face-idle');
+                if(leftFace) leftFace.classList.remove('hidden');
+                
+                const rightFace = document.getElementById(`right-face-${state}`) || document.getElementById('right-face-idle');
+                if(rightFace) rightFace.classList.remove('hidden');
+
+                if(state === 'error' || state === 'success') {
+                    const rightArms = document.getElementById(`right-arms-${state}`);
+                    if(rightArms) rightArms.classList.remove('hidden');
+                }
+            };
+
+            const setCharacterState = (state, customMsg = '') => {
+                if (!ghostLeft || !ghostRight) return;
+                
+                if (charMessage) {
+                    if (state === 'error') {
+                        if (charMessageText) charMessageText.textContent = customMsg;
+                        charMessage.style.opacity = '1';
+                        charMessage.style.transform = 'translateY(0)';
+                    } else {
+                        charMessage.style.opacity = '0';
+                        charMessage.style.transform = 'translateY(8px)';
+                    }
+                }
+
+                ghostLeft.style.transform = 'scale(1)';
+                ghostRight.style.transform = 'scale(1)';
+
+                switch(state) {
+                    case 'idle':
+                        setFaces('idle');
+                        break;
+                    case 'email-focus':
+                        setFaces('email');
+                        break;
+                    case 'password-focus':
+                        setFaces('password');
+                        break;
+                    case 'error':
+                        setFaces('error');
+                        ghostLeft.style.transform = 'scale(0.95) rotate(-5deg)';
+                        ghostRight.style.transform = 'scale(1.05) rotate(2deg)';
+                        break;
+                    case 'success':
+                        setFaces('success');
+                        ghostLeft.style.transform = 'scale(0.9) translateY(-5px)';
+                        ghostRight.style.transform = 'scale(1.1) translateY(-10px)';
+                        break;
+                }
+            };
+
+            // បង្កើត Global Function ដើម្បីឱ្យ auth.js អាចហៅប្រើបានពេល Log in ខុស ឬត្រូវ
+            window.setCharacterState = setCharacterState;
+
+            if(emailInput) {
+                emailInput.addEventListener('focus', () => setCharacterState('email-focus'));
+                emailInput.addEventListener('blur', () => setCharacterState('idle'));
+            }
+
+            if(passwordInput) {
+                passwordInput.addEventListener('focus', () => setCharacterState('password-focus'));
+                passwordInput.addEventListener('blur', () => setCharacterState('idle'));
+            }
+
+            // Password Eye Toggle Logic
+            const togglePasswordBtn = document.getElementById('toggle-password');
+            const eyeIcon = document.getElementById('eye-icon');
+            if(togglePasswordBtn) {
+                togglePasswordBtn.addEventListener('click', () => {
+                    const isText = passwordInput.getAttribute('type') === 'text';
+                    passwordInput.setAttribute('type', isText ? 'password' : 'text');
+                    
+                    if (!isText) {
+                        eyeIcon.setAttribute('data-lucide', 'eye-off');
+                        setFaces('idle'); // បើកភ្នែកពេលយើងចុចមើល Password
+                    } else {
+                        eyeIcon.setAttribute('data-lucide', 'eye');
+                        if (document.activeElement === passwordInput) {
+                            setFaces('password'); // បិទភ្នែកវិញ
+                        }
+                    }
+                    if(window.lucide) window.lucide.createIcons({ root: togglePasswordBtn });
+                });
+            }
+        });
+    </script>
+
+    <script type="module" src="index_style/app.js"></script>
+    <script type="module" src="index_style/auth.js"></script>
 </body>
 </html>

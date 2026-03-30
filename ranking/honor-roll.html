@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - តារាងកិត្តិយស (Honor Roll)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    
+    <style>
+        :root { 
+            /* Professional Dark Blue */
+            --primary: #002060; 
+            --secondary: #3b82f6; 
+            --text-color: #002060;
+        }
+        
+        body { 
+            font-family: 'Khmer OS Battambang', 'Battambang', sans-serif; 
+            background: #f0f4f8; 
+            min-height: 100vh; 
+            margin: 0; 
+            color: #1e293b; 
+        }
+        .kh-moul { font-family: 'Khmer OS Muol Light', 'Moul', cursive; }
+        
+        .theme-text { color: var(--text-color) !important; }
+        
+        /* Background Animation */
+        .bg-animate { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; 
+            background: radial-gradient(circle at 10% 20%, #e0e7ff 0%, transparent 40%), 
+                        radial-gradient(circle at 90% 80%, #dcfce7 0%, transparent 40%), 
+                        radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 50%); 
+            animation: moveBg 20s infinite alternate ease-in-out; 
+        }
+        @keyframes moveBg { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            outline: none;
+            background: #f8fafc;
+            font-family: 'Khmer OS Battambang', 'Battambang', sans-serif;
+            transition: all 0.2s;
+            font-weight: 700;
+        }
+        .input-field:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(0, 32, 96, 0.1); }
+
+        /* Loading Overlay */
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Honor Roll Print Styles - A4 Portrait */
+        .print-container {
+            display: none;
+            background-color: white;
+            color: var(--text-color);
+            width: 210mm; /* A4 Portrait */
+            min-height: 297mm;
+            margin: 2rem auto;
+            padding: 20mm 15mm 15mm 15mm;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+            box-sizing: border-box;
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        /* Student Card Styles */
+        .student-card {
+            width: 175px;
+            height: 190px;
+            background: white;
+            border-radius: 12px;
+            border: 2px solid #fbbf24;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        .card-header-bg {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            background-color: var(--text-color);
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            z-index: 0;
+            opacity: 0.9;
+        }
+
+        .student-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: white;
+            padding: 3px;
+            z-index: 1;
+            margin-top: 30px;
+            object-fit: cover;
+            border: none;
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: 8px; right: 8px;
+            width: 28px; height: 28px;
+            background-color: #fbbf24;
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 15px;
+            z-index: 2;
+        }
+
+        .student-name { font-family: 'Khmer OS Muol Light', 'Moul', cursive; font-size: 13px; color: var(--text-color); margin-bottom: 2px; margin-top: 5px; z-index: 1; }
+        .student-avg { font-weight: bold; color: var(--text-color); font-size: 12px; z-index: 1; }
+        .student-grade { font-weight: bold; font-size: 20px; z-index: 1; margin-top: -2px; }
+
+        /* ==================== PRINT STYLES ==================== */
+        @media print {
+            @page { 
+                size: A4 portrait; 
+                margin: 0; 
+            }
+            
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
+            body, html { 
+                background: white !important; 
+                margin: 0 !important; 
+                padding: 0 !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                overflow: hidden !important; 
+            }
+            .no-print { display: none !important; }
+            .preview-mode { background: white !important; padding: 0 !important; }
+            .bg-animate { display: none !important; }
+            
+            .print-container { 
+                display: flex !important; 
+                flex-direction: column;
+                width: 210mm !important; 
+                height: 297mm !important; 
+                padding: 20mm 15mm 15mm 15mm !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+                box-shadow: none !important;
+                overflow: hidden !important;
+                page-break-inside: avoid !important;
+                page-break-after: avoid !important;
+            }
+        }
+
+        .preview-mode { background: #94a3b8; padding-top: 2rem; padding-bottom: 2rem; }
+        
+        /* Layout Grid */
+        .honor-grid {
+            display: grid;
+            grid-template-columns: auto auto;
+            justify-content: center;
+            row-gap: 5px;
+            column-gap: 90px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Pyramid Positions */
+        .pos-1 { grid-column: 1 / span 2; justify-self: center; margin-bottom: 0px; }
+        .pos-2 { grid-column: 1; justify-self: center; }
+        .pos-3 { grid-column: 2; justify-self: center; }
+        .pos-4 { grid-column: 1; justify-self: center; }
+        .pos-5 { grid-column: 2; justify-self: center; }
+        
+    </style>
+</head>
+<body>
+
+    <div class="bg-animate no-print"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="no-print">
+        <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-[#002060] mb-2"></i>
+        <p class="font-bold text-slate-600">កំពុងទាញយកទិន្នន័យពី Database...</p>
+    </div>
+
+    <!-- Selection Screen -->
+    <div id="selectionScreen" class="min-h-screen flex flex-col pt-8 px-4 no-print relative">
+        
+        <div class="max-w-4xl mx-auto w-full">
+            
+            <a href="../index.html" class="inline-flex items-center gap-2 text-[#002060] hover:text-[#001030] font-bold transition mb-6">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i> ត្រឡប់ទៅទំព័រដើម
+            </a>
+
+            <div class="glass-card p-6 md:p-10 text-center">
+                <div class="flex justify-center mb-4">
+                    <div class="p-4 bg-yellow-100 rounded-full text-yellow-600">
+                        <i data-lucide="award" class="w-8 h-8"></i>
+                    </div>
+                </div>
+                <h1 class="kh-moul text-xl md:text-2xl text-[#002060] mb-2">តារាងកិត្តិយស (Honor Roll)</h1>
+                <p class="text-gray-500 font-bold mb-8">សិស្សឆ្នើមទាំង ៥ នាក់ប្រចាំខែ/ឆមាស/ឆ្នាំ</p>
+
+                <!-- Type Selection -->
+                <div class="mb-6 flex justify-center w-full overflow-x-auto pb-2">
+                    <div class="inline-flex bg-gray-100 p-1 rounded-xl whitespace-nowrap">
+                        <button onclick="setType('monthly')" id="btnMonthly" class="px-4 sm:px-6 py-2.5 rounded-lg bg-white shadow text-[#002060] font-bold transition flex items-center gap-2">
+                            <i data-lucide="calendar" class="w-4 h-4"></i> ប្រចាំខែ
+                        </button>
+                        <button onclick="setType('semester')" id="btnSemester" class="px-4 sm:px-6 py-2.5 rounded-lg text-gray-500 font-bold hover:bg-white/50 transition flex items-center gap-2">
+                            <i data-lucide="bookmark" class="w-4 h-4"></i> ប្រចាំឆមាស
+                        </button>
+                        <button onclick="setType('yearly')" id="btnYearly" class="px-4 sm:px-6 py-2.5 rounded-lg text-gray-500 font-bold hover:bg-white/50 transition flex items-center gap-2">
+                            <i data-lucide="award" class="w-4 h-4"></i> ប្រចាំឆ្នាំ
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mb-8">
+                    <!-- Border Select -->
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-2">ស៊ុមលិខិត</label>
+                        <select id="borderSelect" class="input-field cursor-pointer">
+                            <option value="boder_page-0001.jpg">ស៊ុមទី ១ (Border 1)</option>
+                            <option value="boder_page-0002.jpg">ស៊ុមទី ២ (Border 2)</option>
+                            <option value="boder_page-0003.jpg">ស៊ុមទី ៣ (Border 3)</option>
+                            <option value="boder_page-0004.jpg">ស៊ុមទី ៤ (Border 4)</option>
+                        </select>
+                    </div>
+
+                    <!-- Year Select -->
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-2">ឆ្នាំសិក្សា</label>
+                        <select id="yearSelect" class="input-field cursor-pointer" onchange="updateMonthOptions();">
+                            <option value="2025-2026" selected>2025-2026</option>
+                            <option value="2026-2027">2026-2027</option>
+                            <option value="2027-2028">2027-2028</option>
+                            <option value="2028-2029">2028-2029</option>
+                            <option value="2029-2030">2029-2030</option>  
+                        </select>
+                    </div>
+
+                    <!-- Period Select -->
+                    <div id="periodInputGroup">
+                        <label class="block font-bold text-gray-700 mb-2" id="periodLabel">ជ្រើសរើសខែ</label>
+                        <select id="periodSelect" class="input-field cursor-pointer">
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 max-w-md mx-auto">
+                    <button onclick="generateHonorRoll()" class="flex-1 px-8 py-3 bg-[#002060] hover:bg-[#001030] text-white rounded-xl font-bold transition shadow-lg flex items-center justify-center gap-2">
+                        <i data-lucide="eye" class="w-5 h-5"></i> មើលគំរូ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Preview Container -->
+    <div id="printAreaWrapper" class="hidden">
+        
+        <div class="fixed top-4 right-4 flex flex-col gap-3 z-50 no-print">
+            <button onclick="window.print()" class="bg-blue-600 text-white p-3 rounded-full shadow-xl hover:bg-blue-700 hover:scale-105 transition" title="បោះពុម្ភ">
+                <i data-lucide="printer" class="w-6 h-6"></i>
+            </button>
+            <button onclick="closePreview()" class="bg-slate-600 text-white p-3 rounded-full shadow-xl hover:bg-slate-700 hover:scale-105 transition" title="បិទ">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <div id="printContainer" class="print-container flex flex-col items-center theme-text">
+            
+            <div class="w-full relative z-10">
+                <!-- Header Center -->
+                <div class="text-center w-full mb-2 theme-text">
+                    <h3 class="kh-moul text-[13pt] mb-1">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                    <h3 class="kh-moul text-[13pt] mb-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                    <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="h-[12px] w-auto mx-auto mt-1 mb-6" crossorigin="anonymous">
+                </div>
+                
+                <!-- Left Info -->
+                <div class="absolute top-[70px] left-0 text-left font-bold text-[11pt] leading-[1.6] theme-text">
+                    <p id="print_org_1"></p>
+                    <p id="print_org_2"></p>
+                    <p><span id="print_school"></span></p>
+                    <p><span id="print_class"></span></p>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <div class="text-center w-full mt-4 mb-4 theme-text z-10">
+                <h2 class="kh-moul text-[16pt] mb-2 text-[#ff2c2c] tracking-wide drop-shadow-sm">តារាងកិត្តិយស</h2>
+                <h3 class="kh-moul text-[12pt]">
+                    <span id="out_period">ប្រចាំខែ...</span> 
+                </h3>
+            </div>
+
+            <!-- Grid for Top 5 -->
+            <div class="honor-grid w-full flex-1 z-10" id="honorGrid">
+                <!-- JS will populate student cards here -->
+            </div>
+
+            <!-- Footer (Aligned perfectly) -->
+            <div class="w-full px-10 mt-auto mb-0 theme-text z-10">
+                <!-- ថ្ងៃខែឆ្នាំ (ខាងស្តាំ) -->
+                <div class="flex justify-end w-full mb-1">
+                    <div class="text-center w-[350px]">
+                        <p class="mb-1 text-[10pt] font-normal" id="out_lunar_date">ថ្ងៃ................ខែ..........ឆ្នាំ..........ព.ស.២៥៦...</p>
+                        <p class="text-[10pt] font-normal"><span id="out_loc"></span>, <span id="out_solar_date">ថ្ងៃទី........ ខែ........... ឆ្នាំ ២០២...</span></p>
+                    </div>
+                </div>
+                
+                <!-- ហត្ថលេខា (ស្មើគ្នាឆ្វេងស្តាំ) -->
+                <div class="flex justify-between w-full items-start">
+                    <div class="text-center w-[350px] -mb-4">
+                        <p class="text-[12pt] font-normal">បានឃើញ និងឯកភាព</p>
+                        <p class="kh-moul text-[12pt]" id="out_manager">នាយកសាលា</p>
+                    </div>
+                    <div class="text-center w-[350px]">
+                        <p class="mb-1 kh-moul text-[12pt] " >គ្រូបន្ទុកថ្នាក់</p>
+                        <!-- ចន្លោះទំនេរសម្រាប់ស៊ីញ៉េ -->
+                        <p class="kh-moul text-[12pt] mt-[40px]" id="out_teacher" style="margin-left: 3cm;">ឈ្មោះគ្រូ</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Firebase Script and Core Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
+
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+
+        const monthLabels = {
+            'nov': 'វិច្ឆិកា', 'dec': 'ធ្នូ', 'jan': 'មករា', 'feb': 'កុម្ភៈ',
+            'mar': 'មីនា', 'apr': 'មេសា', 'may': 'ឧសភា', 'jun': 'មិថុនា',
+            'jul': 'កក្កដា', 'aug': 'សីហា', 'sep': 'កញ្ញា', 'oct': 'តុលា',
+            'sem1': 'ឆមាសទី១', 'sem2': 'ឆមាសទី២', 'annual': 'ប្រចាំឆ្នាំ'
+        };
+
+        let currentType = 'monthly';
+        let classConfig = {};
+
+        // --- 2. INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            window.updateMonthOptions();
+
+            const initAuth = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    }
+                } catch (error) {
+                    console.error("Auth error:", error);
+                }
+            };
+
+            initAuth().then(() => {
+                onAuthStateChanged(auth, async (user) => {
+                    if (user && !user.isAnonymous) {
+                        currentUser = user;
+                        await loadClassConfig();
+                    } else {
+                        window.location.href = '../index.html';
+                    }
+                });
+            });
+        });
+
+        function showLoading(show) {
+            const el = document.getElementById('loadingOverlay');
+            if (el) el.style.display = show ? 'flex' : 'none';
+        }
+
+        async function loadClassConfig() {
+            let profile = {};
+            
+            if (currentUser) {
+                try {
+                    const profileRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'profile', 'data');
+                    const profileSnap = await getDoc(profileRef);
+                    if (profileSnap.exists()) {
+                        profile = profileSnap.data();
+                    }
+                } catch (error) {
+                    console.error("Error loading profile data:", error);
+                }
+            }
+
+            if (Object.keys(profile).length === 0) {
+                profile = JSON.parse(localStorage.getItem('teacherProfile') || '{}');
+            }
+            
+            classConfig = {
+                org1: profile.management_unit_1 || "មន្ទីរអប់រំ យុវជន និងកីឡា", 
+                org2: profile.management_unit_2 || "ការិយាល័យអប់រំ យុវជន និងកីឡា",
+                school: profile.school_name_admin || "សាលាបឋមសិក្សា",
+                className: profile.class_name || "១២ ក", 
+                teacher: profile.homeroom_teacher || "ឈ្មោះគ្រូ", 
+                managerRole: profile.manager_role || "នាយកសាលា", 
+                location: profile.province_for_date || "ភ្នំពេញ"
+            };
+        }
+
+        window.setType = function(type) {
+            currentType = type;
+            const btnMonthly = document.getElementById('btnMonthly');
+            const btnSemester = document.getElementById('btnSemester');
+            const btnYearly = document.getElementById('btnYearly');
+            const label = document.getElementById('periodLabel');
+            const periodInputGroup = document.getElementById('periodInputGroup');
+
+            [btnMonthly, btnSemester, btnYearly].forEach(btn => {
+                btn.classList.remove('bg-white', 'shadow', 'text-[#002060]');
+                btn.classList.add('text-gray-500', 'hover:bg-white/50');
+            });
+
+            if (type === 'monthly') {
+                btnMonthly.classList.add('bg-white', 'shadow', 'text-[#002060]');
+                btnMonthly.classList.remove('text-gray-500', 'hover:bg-white/50');
+                periodInputGroup.style.display = 'block';
+                label.innerText = 'ជ្រើសរើសខែ';
+                window.updateMonthOptions();
+            } else if (type === 'semester') {
+                btnSemester.classList.add('bg-white', 'shadow', 'text-[#002060]');
+                btnSemester.classList.remove('text-gray-500', 'hover:bg-white/50');
+                periodInputGroup.style.display = 'block';
+                label.innerText = 'ជ្រើសរើសឆមាស';
+                window.updateMonthOptions();
+            } else if (type === 'yearly') {
+                btnYearly.classList.add('bg-white', 'shadow', 'text-[#002060]');
+                btnYearly.classList.remove('text-gray-500', 'hover:bg-white/50');
+                periodInputGroup.style.display = 'none'; 
+            }
+        }
+
+        window.updateMonthOptions = function() {
+            if (currentType === 'yearly') return; 
+            
+            const yearVal = document.getElementById('yearSelect').value;
+            if (!yearVal || !yearVal.includes('-')) return;
+            const [startYear, endYear] = yearVal.split('-');
+            const periodSelect = document.getElementById('periodSelect');
+            
+            let currentMonthVal = periodSelect.value;
+            
+            // Auto-select current real-world month if nothing is selected
+            if (!currentMonthVal || periodSelect.options.length === 0) {
+                const currentMonthIndex = new Date().getMonth();
+                const jsMonthToId = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+                currentMonthVal = jsMonthToId[currentMonthIndex];
+            }
+            
+            let optionsHTML = '';
+            
+            if (currentType === 'monthly') {
+                const months = [
+                    { value: 'nov', label: 'ខែវិច្ឆិកា', year: startYear },
+                    { value: 'dec', label: 'ខែធ្នូ', year: startYear },
+                    { value: 'jan', label: 'ខែមករា', year: endYear },
+                    { value: 'feb', label: 'ខែកុម្ភៈ', year: endYear },
+                    { value: 'mar', label: 'ខែមីនា', year: endYear },
+                    { value: 'apr', label: 'ខែមេសា', year: endYear },
+                    { value: 'may', label: 'ខែឧសភា', year: endYear },
+                    { value: 'jun', label: 'ខែមិថុនា', year: endYear },
+                    { value: 'jul', label: 'ខែកក្កដា', year: endYear },
+                    { value: 'aug', label: 'ខែសីហា', year: endYear },
+                    { value: 'sep', label: 'ខែកញ្ញា', year: endYear },
+                    { value: 'oct', label: 'ខែតុលា', year: endYear }
+                ];
+                months.forEach(m => {
+                    const selected = (m.value === currentMonthVal) ? 'selected' : '';
+                    optionsHTML += `<option value="${m.value}" ${selected}>${m.label} ឆ្នាំ ${m.year}</option>`;
+                });
+            } else {
+                const sem2Selected = currentMonthVal === 'sem2' ? 'selected' : '';
+                optionsHTML = `
+                    <option value="sem1" ${currentMonthVal !== 'sem2' ? 'selected' : ''}>ឆមាសទី១</option>
+                    <option value="sem2" ${sem2Selected}>ឆមាសទី២</option>
+                `;
+            }
+
+            periodSelect.innerHTML = optionsHTML;
+        }
+
+        function formatNum(num) {
+            if (num === null || num === undefined || isNaN(num)) return '0';
+            let n = parseFloat(num);
+            if (Number.isInteger(n)) return n.toString(); 
+            return n.toFixed(2).replace('.', ',');
+        }
+
+        function calculateGrade(avg) {
+            if (avg >= 9.0) return 'A';
+            if (avg >= 8.0) return 'B';
+            if (avg >= 7.0) return 'C';
+            if (avg >= 6.0) return 'D';
+            if (avg >= 5.0) return 'E';
+            return 'F';
+        }
+
+        function getGradeColor(grade) {
+            if (grade === 'A') return '#dc2626'; // Red
+            if (grade === 'B') return '#ea580c'; // Orange
+            if (grade === 'C') return '#ca8a04'; // Yellow
+            if (grade === 'D') return '#16a34a'; // Green
+            if (grade === 'E') return '#2563eb'; // Blue
+            return '#475569'; // Slate for F
+        }
+
+        function getRankColor(rank) {
+            const r = parseInt(rank);
+            if (r === 1) return '#fbbf24'; // លេខ១ ពណ៌មាស (Gold)
+            if (r === 2) return '#94a3b8'; // លេខ២ ពណ៌ប្រាក់ (Silver)
+            if (r === 3) return '#d97706'; // លេខ៣ ពណ៌សំរឹទ្ធ (Bronze)
+            if (r === 4) return '#3b82f6'; // លេខ៤ ពណ៌ខៀវ (Blue)
+            if (r === 5) return '#10b981'; // លេខ៥ ពណ៌បៃតង (Green)
+            return '#64748b'; // ចាប់ពីលេខ៦ទៅ ពណ៌ប្រផេះ (Default)
+        }
+
+        // --- 4. GENERATE HONOR ROLL ---
+        window.generateHonorRoll = async function() {
+            showLoading(true);
+            try {
+                const year = document.getElementById('yearSelect').value;
+                const period = document.getElementById('periodSelect').value;
+                
+                // 1. Fetch Students
+                let allStudents = [];
+                if (currentUser) {
+                    const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
+                    const studentsSnap = await getDocs(studentsRef);
+                    studentsSnap.forEach(doc => allStudents.push({ id: doc.id, ...doc.data() }));
+                }
+
+                if (allStudents.length === 0) {
+                    const storedStudents = localStorage.getItem('students_db') || localStorage.getItem('students');
+                    if (storedStudents) allStudents = JSON.parse(storedStudents);
+                }
+
+                if (allStudents.length === 0) {
+                    alert("មិនមានទិន្នន័យសិស្សទេ!");
+                    showLoading(false);
+                    return;
+                }
+
+                // 2. Fetch the direct score document which contains calculated 'results'
+                let docId = '';
+                if (currentType === 'yearly') {
+                    docId = `${year}_annual`;
+                } else {
+                    docId = `${year}_${period}`;
+                }
+
+                let scoreData = {};
+                if (currentUser) {
+                    const sRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'scores', docId);
+                    const sSnap = await getDoc(sRef);
+                    if (sSnap.exists()) {
+                        scoreData = sSnap.data();
+                    } else {
+                        // Check legacy non-user scoped fallback
+                        const oldSnap = await getDoc(doc(db, "scores", docId)).catch(()=>null);
+                        if (oldSnap && oldSnap.exists()) scoreData = oldSnap.data();
+                    }
+                }
+                
+                // Fallback to local storage if Cloud is empty
+                if (Object.keys(scoreData).length === 0) {
+                    scoreData = JSON.parse(localStorage.getItem(`scores_${docId}`) || '{}');
+                }
+
+                // 3. Extract the pre-calculated results or fallback to manual calculation
+                let rankedStudents = allStudents.map(s => {
+                    let sData = scoreData[s.id] || {};
+                    let results = sData.results;
+                    
+                    let avg = 0;
+                    let grade = 'F';
+                    let rank = 0;
+
+                    if (results && Object.keys(results).length > 0) {
+                        if (currentType === 'monthly') {
+                            avg = parseFloat(results.average || 0);
+                        } else if (currentType === 'semester') {
+                            avg = parseFloat(results.semesterAverage || 0);
+                        } else if (currentType === 'yearly') {
+                            avg = parseFloat(results.annualAverage || 0);
+                        }
+                        grade = results.grade || calculateGrade(avg);
+                        rank = parseInt(results.rank) || 0;
+                    } else {
+                        // FALLBACK: Auto-calculate if data was saved in older version (no 'results' object)
+                        let rawScores = sData.hasOwnProperty('scores') ? sData.scores : sData;
+                        let sum = 0;
+                        let count = 0;
+                        for (let key in rawScores) {
+                            let val = parseFloat(rawScores[key]);
+                            if (!isNaN(val) && rawScores[key] !== null && rawScores[key] !== '') {
+                                sum += val;
+                                count++;
+                            }
+                        }
+                        if (count > 0) {
+                            avg = sum / count;
+                        }
+                        grade = calculateGrade(avg);
+                    }
+
+                    if (isNaN(avg)) avg = 0;
+
+                    return {
+                        ...s,
+                        average: avg,
+                        grade: grade,
+                        rank: rank
+                    };
+                });
+
+                // Sort by Average DESC
+                rankedStudents.sort((a, b) => b.average - a.average);
+
+                // Calculate fallback ranks and fix potential missing ranks from DB
+                let currentRank = 1;
+                for (let i = 0; i < rankedStudents.length; i++) {
+                    if (i > 0 && rankedStudents[i].average < rankedStudents[i-1].average) {
+                        currentRank = i + 1;
+                    }
+                    if (!rankedStudents[i].rank) {
+                        rankedStudents[i].rank = currentRank;
+                    }
+                }
+
+                // Get Top 5 (Exclude those with 0 average)
+                const top5 = rankedStudents.filter(s => s.average > 0).slice(0, 5);
+
+                if (top5.length === 0) {
+                    alert("មិនទាន់មានទិន្នន័យពិន្ទុគ្រប់គ្រាន់សម្រាប់គណនាចំណាត់ថ្នាក់ទេ ឬសិស្សមិនមានពិន្ទុ។ \nសូមប្រាកដថាអ្នកបានចុច 'រក្សាទុក' ក្នុងបញ្ជីពិន្ទុរួចហើយ។");
+                    showLoading(false);
+                    return;
+                }
+
+                // Populate Information to Print Template
+                document.getElementById('print_org_1').textContent = classConfig.org1 || '';
+                document.getElementById('print_org_2').textContent = classConfig.org2 || '';
+                document.getElementById('print_school').textContent = classConfig.school || '';
+                document.getElementById('print_class').textContent = classConfig.className || '';
+                
+                let periodText = '';
+                if (currentType === 'yearly') {
+                    periodText = 'ប្រចាំឆ្នាំ';
+                } else if (currentType === 'semester') {
+                    periodText = `ប្រចាំ${monthLabels[period]}`;
+                } else {
+                    periodText = `ប្រចាំខែ${monthLabels[period]}`;
+                }
+
+                document.getElementById('out_period').textContent = periodText;
+                
+                document.getElementById('out_manager').textContent = classConfig.managerRole || 'នាយកសាលា';
+                document.getElementById('out_teacher').textContent = classConfig.teacher || 'ឈ្មោះគ្រូ';
+                
+                // Generate Auto Date in Khmer
+                const today = new Date();
+                const khmerMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+                const khDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+                const toKh = num => num.toString().split('').map(d => khDigits[d] || d).join('');
+                
+                let lunarStr = "ថ្ងៃ................ខែ..........ឆ្នាំ..........ព.ស.២៥៦...";
+                if (typeof momentkh !== 'undefined') {
+                    try {
+                        const khmerDateObj = momentkh.fromDate(today);
+                        lunarStr = momentkh.format(khmerDateObj).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                    } catch (e) { console.error("Error formatting khmer date", e); }
+                }
+                
+                document.getElementById('out_lunar_date').textContent = lunarStr;
+                document.getElementById('out_loc').textContent = classConfig.location || '....................';
+                document.getElementById('out_solar_date').textContent = `ថ្ងៃទី${toKh(today.getDate())} ខែ${khmerMonths[today.getMonth()]} ឆ្នាំ${toKh(today.getFullYear())}`;
+
+                // Set Border Image Selected from Dropdown
+                const selectedBorder = document.getElementById('borderSelect').value;
+                document.getElementById('printContainer').style.backgroundImage = `url('${selectedBorder}')`;
+
+                // 4. Render Cards
+                const grid = document.getElementById('honorGrid');
+                grid.innerHTML = '';
+
+                const positionClasses = ['pos-1', 'pos-2', 'pos-3', 'pos-4', 'pos-5'];
+
+                top5.forEach((student, index) => {
+                    const photoUrl = student.photo || `https://api.dicebear.com/7.x/notionists/svg?seed=${student.id}`;
+                    
+                    const card = document.createElement('div');
+                    card.className = `student-card ${positionClasses[index]}`;
+                    
+                    card.innerHTML = `
+                        <div class="card-header-bg"></div>
+                        <div class="rank-badge" style="background-color: ${getRankColor(student.rank)}">${student.rank}</div>
+                        <img src="${photoUrl}" class="student-photo" onerror="this.src='https://api.dicebear.com/7.x/notionists/svg?seed=error'">
+                        <div class="z-10 flex flex-col items-center mt-2 w-full px-2">
+                            <h4 class="student-name w-full truncate text-center" title="${student.name}">${student.name}</h4>
+                            <p class="text-[11px] text-gray-500 font-bold mb-1">មធ្យមភាគ: <span class="student-avg">${formatNum(student.average)}</span></p>
+                            <p class="student-grade" style="color: ${getGradeColor(student.grade)}">${student.grade}</p>
+                        </div>
+                    `;
+                    
+                    grid.appendChild(card);
+                });
+
+                // Show Preview
+                document.getElementById('selectionScreen').classList.add('hidden');
+                const printWrapper = document.getElementById('printAreaWrapper');
+                printWrapper.classList.remove('hidden');
+                document.body.classList.add('preview-mode');
+
+            } catch (err) {
+                console.error(err);
+                alert('មានបញ្ហាក្នុងការទាញយកទិន្នន័យពី Database។ សូមព្យាយាមម្ដងទៀត។');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        window.closePreview = function() {
+            document.getElementById('selectionScreen').classList.remove('hidden');
+            document.getElementById('printAreaWrapper').classList.add('hidden');
+            document.body.classList.remove('preview-mode');
+        }
+
+    </script>
+</body>
+</html>

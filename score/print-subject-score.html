@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ប្រព័ន្ធបង្កើតតារាងស្រង់ពិន្ទុសិស្ស (Excel)</title>
+    <!-- បណ្ណាល័យ Tailwind CSS សម្រាប់រចនា UI ឱ្យទាន់សម័យ -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- បណ្ណាល័យសម្រាប់បង្កើតឯកសារ Excel ដែលមាន Style -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&display=swap');
+        
+        @font-face {
+            font-family: 'Khmer OS Battambang';
+            src: local('Khmer OS Battambang'); 
+        }
+        @font-face {
+            font-family: 'Tacteing';
+            src: local('Tacteing'); 
+        }
+
+        body {
+            /* ប្រើប្រាស់ហ្វុង Khmer OS Battambang ជាចម្បង */
+            font-family: 'Khmer OS Battambang', 'Battambang', sans-serif;
+            background-color: #f0f4f8;
+        }
+
+        .battambang-font {
+            font-family: 'Khmer OS Battambang', 'Battambang', sans-serif;
+        }
+        
+        /* សម្រាប់បង្វិលអក្សរបញ្ឈរ ៩០ដឺក្រេ លើអេក្រង់ */
+        .vertical-text {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-gray-100">
+        <h1 class="text-2xl md:text-3xl font-bold text-center battambang-font mb-8 text-blue-800">
+            ប្រព័ន្ធទាញយកតារាងស្រង់ពិន្ទុសិស្សប្រចាំខែ
+        </h1>
+        
+        <!-- ផ្ទាំងបញ្ចូលព័ត៌មាន -->
+        <div class="bg-blue-50 p-6 rounded-xl border border-blue-100 mb-8">
+            <h2 class="text-lg font-bold mb-4 text-blue-900 border-b border-blue-200 pb-2 battambang-font">១. កំណត់ព័ត៌មានទូទៅនៃសាលា</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1 battambang-font">ការិយាល័យអប់រំ / មន្ទីរ</label>
+                    <input type="text" id="officeName" value="ការិយាល័យអប់រំ យុវជន និងកីឡារដ្ឋបាលស្រុកកំពង់ត្របែក" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none battambang-font">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1 battambang-font">ឈ្មោះសាលា</label>
+                    <input type="text" id="schoolName" value="សាលាបឋមសិក្សាភូមិធំថ្មី" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none battambang-font">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1 battambang-font">ចំណងជើងតារាង</label>
+                    <input type="text" id="tableTitle" value="តារាងស្រង់ពិន្ទុប្រចាំខែសីហា" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none battambang-font">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1 battambang-font">ថ្នាក់ទី</label>
+                    <input type="text" id="className" value="១ «ខ»" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none battambang-font">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1 battambang-font">ឆ្នាំសិក្សា</label>
+                    <input type="text" id="academicYear" value="២០២៥-២០២៦" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none battambang-font">
+                </div>
+            </div>
+
+            <h2 class="text-lg font-bold mt-6 mb-4 text-blue-900 border-b border-blue-200 pb-2 battambang-font">២. ស្ថិតិសិស្ស</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1 battambang-font">សិស្សសរុប (នាក់)</label>
+                    <input type="number" id="totalStudents" value="40" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none battambang-font">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1 battambang-font">ប្រុស (នាក់)</label>
+                    <input type="number" id="maleStudents" value="23" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none battambang-font">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1 battambang-font">ស្រី (នាក់)</label>
+                    <input type="number" id="femaleStudents" value="17" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none battambang-font">
+                </div>
+            </div>
+        </div>
+
+        <!-- ប៊ូតុងទាញយក -->
+        <div class="flex flex-col items-center mt-8">
+            <button id="downloadBtn" onclick="generateExcel()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-xl shadow-lg transition transform hover:scale-105 hover:shadow-xl flex items-center gap-3 text-lg battambang-font">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                ទាញយកតារាង Excel ឥឡូវនេះ
+            </button>
+            <p class="text-sm text-gray-500 mt-4 battambang-font">ឯកសារនឹងចេញមកជាទម្រង់ <span class="font-bold">តាងរាងស្រង់ពិន្ទុសិស្ស.xlsx</span> ត្រឹមត្រូវ ១០០%។</p>
+        </div>
+
+        <!-- ទីតាំងសម្រាប់បង្ហាញតារាងលើអេក្រង់ (Preview) -->
+        <div id="tablePreviewContainer" class="mt-12 w-full"></div>
+    </div>
+
+    <script>
+        // រក្សាទុកទិន្នន័យពេលវាយបញ្ចូល ដើម្បីកុំឱ្យបាត់ពេល Refresh
+        function saveSettings() {
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                localStorage.setItem('scoreSheet_' + input.id, input.value);
+            });
+        }
+
+        // ទាញទិន្នន័យចាស់មកបង្ហាញវិញពេលបើកទំព័រ
+        function loadSettings() {
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                const saved = localStorage.getItem('scoreSheet_' + input.id);
+                if (saved) input.value = saved;
+            });
+        }
+
+        window.onload = () => {
+            loadSettings();
+            renderPreview(); // បង្ហាញតារាងពេលបើកដំបូង
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', () => {
+                    saveSettings();
+                    renderPreview(); // ធ្វើបច្ចុប្បន្នភាពតារាងពេលវាយបញ្ចូល
+                });
+            });
+        };
+
+        // អនុវត្តមុខងារបង្ហាញតារាងលើអេក្រង់
+        function renderPreview() {
+            const numStudents = parseInt(document.getElementById("totalStudents").value) || 40;
+            let tbodyHtml = '';
+            for(let i = 1; i <= numStudents; i++) {
+                tbodyHtml += `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="border border-gray-400 px-2 py-1 text-center">${i}</td>
+                        <td class="border border-gray-400 px-2 py-1"></td>
+                        <td class="border border-gray-400 px-2 py-1" colspan="2"></td>
+                        <td class="border border-gray-400 px-2 py-1"></td>
+                        ${'<td class="border border-gray-400 px-2 py-1"></td>'.repeat(21)}
+                    </tr>
+                `;
+            }
+
+            const tableHtml = `
+                <div class="bg-white border rounded-xl shadow-sm p-4">
+                    <h3 class="text-center font-bold battambang-font mb-4 text-lg text-gray-800">មើលជារូបរាងតារាង (Preview)</h3>
+                    <div class="overflow-x-auto pb-4">
+                        <table class="w-full border-collapse border border-gray-500 text-xs text-center battambang-font" style="min-width: 1200px;">
+                            <thead class="bg-blue-50 font-bold">
+                                <tr>
+                                    <th class="border border-gray-500 px-1 py-2" rowspan="2">ល.រ</th>
+                                    <th class="border border-gray-500 px-1 py-2" rowspan="2">អត្តលេខ</th>
+                                    <th class="border border-gray-500 px-1 py-2" colspan="2" rowspan="2">គោត្តនាម និងនាម</th>
+                                    <th class="border border-gray-500 px-1 py-2" rowspan="2">ភេទ</th>
+                                    <th class="border border-gray-500 px-1 py-2" colspan="4">ភាសាខ្មែរ</th>
+                                    <th class="border border-gray-500 px-1 py-2" colspan="5">គណិតវិទ្យា</th>
+                                    <th class="border border-gray-500 px-1 py-2 vertical-text" rowspan="2">វិទ្យាសាស្ត្រ</th>
+                                    <th class="border border-gray-500 px-1 py-2 vertical-text" rowspan="2">សិក្សាសង្គម</th>
+                                    <th class="border border-gray-500 px-1 py-2" colspan="3">អប់រំកាយ សុខភាព សិល្បៈ</th>
+                                    <th class="border border-gray-500 px-1 py-2 vertical-text" rowspan="2">អប់រំបំណិនជីវិត</th>
+                                    <th class="border border-gray-500 px-1 py-2 vertical-text" rowspan="2">ភាសាបរទេស</th>
+                                    <th class="border border-gray-500 px-1 py-2" colspan="3">លទ្ធផលប្រចាំខែ</th>
+                                    <th class="border border-gray-500 px-1 py-2 vertical-text" rowspan="2">និទ្ទេស</th>
+                                    <th class="border border-gray-500 px-1 py-2 vertical-text" rowspan="2">អវត្តមាន</th>
+                                </tr>
+                                <tr>
+                                    <th class="border border-gray-500 px-1 py-4 vertical-text h-32">សមត្ថភាពស្តាប់</th>
+                                    <th class="border border-gray-500 px-1 py-4 vertical-text h-32">សមត្ថភាពសរសេរ</th>
+                                    <th class="border border-gray-500 px-1 py-4 vertical-text h-32">សមត្ថភាពអាន</th>
+                                    <th class="border border-gray-500 px-1 py-4 vertical-text h-32">សមត្ថភាពនិយាយ</th>
+                                    <th class="border border-gray-500 px-1 py-4 vertical-text h-32">ចំនួន</th>
+                                    <th class="border border-gray-500 px-1 py-4 vertical-text h-32">រង្វាស់រង្វាល់</th>
+                                    <th class="border border-gray-500 px-1 py-4 vertical-text h-32">ធរណីមាត្រ</th>
+                                    <th class="border border-gray-500 px-1 py-4 vertical-text h-32">ពីជគណិត</th>
+                                    <th class="border border-gray-500 px-1 py-4 vertical-text h-32">ស្ថិតិ</th>
+                                    <th class="border border-gray-500 px-1 py-4 vertical-text h-32">គេហវិទ្យា-អប់រំសិល្បៈ</th>
+                                    <th class="border border-gray-500 px-1 py-4 vertical-text h-32">អប់រំកាយ-កីឡា</th>
+                                    <th class="border border-gray-500 px-1 py-4 vertical-text h-32">សុខភាព-អនាម័យ</th>
+                                    <th class="border border-gray-500 px-1 py-4 vertical-text h-32">ពិន្ទុសរុប</th>
+                                    <th class="border border-gray-500 px-1 py-4 vertical-text h-32">មធ្យមភាគ</th>
+                                    <th class="border border-gray-500 px-1 py-4 vertical-text h-32">ចំណាត់ថ្នាក់</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tbodyHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            document.getElementById("tablePreviewContainer").innerHTML = tableHtml;
+        }
+
+        // អនុវត្តមុខងារទាញយក Excel
+        function generateExcel() {
+            const btn = document.getElementById('downloadBtn');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> កំពុងរៀបចំឯកសារ...`;
+            btn.disabled = true;
+
+            setTimeout(() => {
+                try {
+                    const numStudents = parseInt(document.getElementById("totalStudents").value) || 40;
+                    // កំណត់ចំនួនជួរដេកសរុប = 10 (ក្បាលលើ) + ចំនួនសិស្ស + 10 (ហត្ថលេខាខាងក្រោម)
+                    const totalRows = 10 + numStudents + 10; 
+                    const wsData = Array.from({ length: totalRows }, () => Array(26).fill(""));
+
+                    // ==============================
+                    // ១. ផ្នែកក្បាលលើ (Header)
+                    // ==============================
+                    // សញ្ញាជាតិ និង បាវចនា (ខាងស្តាំដៃ ជួរទី 20 ឬ Column U)
+                    wsData[0][20] = "ព្រះរាជាណាចក្រកម្ពុជា";
+                    wsData[1][20] = "ជាតិ សាសនា ព្រះមហាក្សត្រ";
+                    wsData[2][20] = "6"; // លេខ 6 នេះពេលដាក់ហ្វុង Tacteing នឹងចេញជារូបសញ្ញាជាតិ
+
+                    // ព័ត៌មានសាលា (ខាងឆ្វេងដៃ)
+                    wsData[3][0] = document.getElementById("officeName").value;
+                    wsData[4][0] = document.getElementById("schoolName").value;
+                    
+                    // ចំណងជើងធំកណ្តាល
+                    wsData[5][0] = document.getElementById("tableTitle").value;
+
+                    // ព័ត៌មានថ្នាក់ ឆ្នាំសិក្សា និងសិស្ស (រៀបទីតាំងតាមការ Merge ថ្មីអោយត្រូវ ១០០%)
+                    wsData[7][0] = "ថ្នាក់ទី " + document.getElementById("className").value;
+                    wsData[7][4] = "ឆ្នាំសិក្សា " + document.getElementById("academicYear").value;
+                    wsData[7][13] = "សិស្សសរុប";
+                    wsData[7][16] = document.getElementById("totalStudents").value;
+                    wsData[7][17] = "នាក់";
+                    wsData[7][18] = "ប្រុស";
+                    wsData[7][20] = document.getElementById("maleStudents").value;
+                    wsData[7][21] = "នាក់";
+                    wsData[7][22] = "ស្រី";
+                    wsData[7][23] = document.getElementById("femaleStudents").value;
+                    wsData[7][24] = "នាក់";
+
+                    // ==============================
+                    // ២. ផ្នែកចំណងជើងតារាង (Table Headers)
+                    // ==============================
+                    wsData[8] = ["ល.រ", "អត្តលេខ", "គោត្តនាម និងនាម", "", "ភេទ", "ភាសាខ្មែរ", "", "", "", "គណិតវិទ្យា", "", "", "", "", "វិទ្យាសាស្ត្រ", "សិក្សាសង្គម", "អប់រំកាយ សុខភាព សិល្បៈ", "", "", "អប់រំបំណិនជីវិត", "ភាសាបរទេស", "លទ្ធផលប្រចាំខែ", "", "", "និទ្ទេស", "អវត្តមាន"];
+                    wsData[9] = ["", "", "", "", "", "សមត្ថភាពស្តាប់", "សមត្ថភាពសរសេរ", "សមត្ថភាពអាន", "សមត្ថភាពនិយាយ", "ចំនួន", "រង្វាស់រង្វាល់", "ធរណីមាត្រ", "ពីជគណិត", "ស្ថិតិ", "", "", "គេហវិទ្យា-អប់រំសិល្បៈ", "អប់រំកាយ-កីឡា", "សុខភាព-អនាម័យ", "", "", "ពិន្ទុសរុប", "មធ្យមភាគ", "ចំណាត់ថ្នាក់", "", ""];
+
+                    // បង្កើតលេខរៀងសិស្សស្វ័យប្រវត្តិ
+                    let startRow = 10;
+                    for(let i = 0; i < numStudents; i++) {
+                        wsData[startRow + i][0] = i + 1; // ល.រ
+                    }
+
+                    // ==============================
+                    // ៣. ផ្នែកហត្ថលេខាខាងក្រោម (Footer)
+                    // ==============================
+                    let endRow = startRow + numStudents;
+                    wsData[endRow + 2][20] = "ថ្ងៃ...................ខែ.............ឆ្នាំ.............ព.ស.............";
+                    wsData[endRow + 3][0] = "បានឃើញ និងឯកភាព";
+                    wsData[endRow + 3][20] = "ធ្វើនៅ........................ថ្ងៃទី.........ខែ.............ឆ្នាំ២០២...";
+                    wsData[endRow + 4][0] = "នាយកសាលា";
+                    wsData[endRow + 4][20] = "គ្រូបន្ទុកថ្នាក់";
+
+                    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+                    // ==============================
+                    // ៤. កំណត់ Merged Cells
+                    // ==============================
+                    ws['!merges'] = [
+                        // បញ្ចូលគ្នាសញ្ញាជាតិ
+                        { s: { r: 0, c: 20 }, e: { r: 0, c: 25 } },
+                        { s: { r: 1, c: 20 }, e: { r: 1, c: 25 } },
+                        { s: { r: 2, c: 20 }, e: { r: 2, c: 25 } },
+                        
+                        // បញ្ចូលគ្នាព័ត៌មានសាលាខាងឆ្វេង
+                        { s: { r: 3, c: 0 }, e: { r: 3, c: 8 } },
+                        { s: { r: 4, c: 0 }, e: { r: 4, c: 8 } },
+
+                        // ចំណងជើងកណ្តាល
+                        { s: { r: 5, c: 0 }, e: { r: 5, c: 25 } },
+                        
+                        // បញ្ចូលគ្នាព័ត៌មានថ្នាក់ និងឆ្នាំសិក្សា
+                        { s: { r: 7, c: 0 }, e: { r: 7, c: 3 } }, // ថ្នាក់ទី
+                        { s: { r: 7, c: 4 }, e: { r: 7, c: 12 } }, // ឆ្នាំសិក្សា
+                        { s: { r: 7, c: 13 }, e: { r: 7, c: 15 } }, // សិស្សសរុប
+                        { s: { r: 7, c: 18 }, e: { r: 7, c: 19 } }, // ប្រុស
+
+                        // បញ្ចូលគ្នាក្បាលតារាង (Headers Merge)
+                        { s: { r: 8, c: 0 }, e: { r: 9, c: 0 } },   // ល.រ
+                        { s: { r: 8, c: 1 }, e: { r: 9, c: 1 } },   // អត្តលេខ
+                        { s: { r: 8, c: 2 }, e: { r: 9, c: 3 } },   // គោត្តនាម និងនាម (Merge C & D តែលើ Header ទេ)
+                        { s: { r: 8, c: 4 }, e: { r: 9, c: 4 } },   // ភេទ
+                        { s: { r: 8, c: 5 }, e: { r: 8, c: 8 } },   // ភាសាខ្មែរ
+                        { s: { r: 8, c: 9 }, e: { r: 8, c: 13 } },  // គណិតវិទ្យា
+                        { s: { r: 8, c: 14 }, e: { r: 9, c: 14 } }, // វិទ្យាសាស្ត្រ
+                        { s: { r: 8, c: 15 }, e: { r: 9, c: 15 } }, // សិក្សាសង្គម
+                        { s: { r: 8, c: 16 }, e: { r: 8, c: 18 } }, // អប់រំកាយ
+                        { s: { r: 8, c: 19 }, e: { r: 9, c: 19 } }, // បំណិនជីវិត
+                        { s: { r: 8, c: 20 }, e: { r: 9, c: 20 } }, // ភាសាបរទេស
+                        { s: { r: 8, c: 21 }, e: { r: 8, c: 23 } }, // លទ្ធផលប្រចាំខែ
+                        { s: { r: 8, c: 24 }, e: { r: 9, c: 24 } }, // និទ្ទេស
+                        { s: { r: 8, c: 25 }, e: { r: 9, c: 25 } }, // អវត្តមាន
+
+                        // បញ្ចូលគ្នាផ្នែកហត្ថលេខា
+                        { s: { r: endRow + 2, c: 20 }, e: { r: endRow + 2, c: 25 } },
+                        { s: { r: endRow + 3, c: 20 }, e: { r: endRow + 3, c: 25 } },
+                        { s: { r: endRow + 4, c: 20 }, e: { r: endRow + 4, c: 25 } },
+                        { s: { r: endRow + 3, c: 0 }, e: { r: endRow + 3, c: 3 } },
+                        { s: { r: endRow + 4, c: 0 }, e: { r: endRow + 4, c: 3 } },
+                    ];
+
+                    // បញ្ចូលគ្នា(Merge) ក្រឡាឈ្មោះសិស្ស (C & D) គ្រប់ជួរទិន្នន័យ
+                    for(let i = 0; i < numStudents; i++) {
+                        ws['!merges'].push({ s: { r: startRow + i, c: 2 }, e: { r: startRow + i, c: 3 } });
+                    }
+
+                    // ==============================
+                    // ៥. កំណត់កម្ពស់ជួរដេក (Row Heights)
+                    // ==============================
+                    ws['!rows'] = [];
+                    ws['!rows'][2] = { hpt: 45 }; // ផ្តល់កម្ពស់គ្រប់គ្រាន់សម្រាប់ Font Tacteing ទំហំ 40
+                    ws['!rows'][8] = { hpt: 30 }; 
+                    ws['!rows'][9] = { hpt: 120 }; // កម្ពស់ខ្ពស់សម្រាប់អក្សរដែលត្រូវបង្វិល 90 ដឺក្រេ
+
+                    // ==============================
+                    // ៦. កំណត់រចនាបថ និង ហ្វុង (Styling & Fonts)
+                    // ==============================
+                    for (let R = 0; R <= wsData.length; ++R) {
+                        for (let C = 0; C < 26; ++C) {
+                            let cellRef = XLSX.utils.encode_cell({ c: C, r: R });
+                            if (!ws[cellRef]) ws[cellRef] = { t: "s", v: "" };
+
+                            // Default Style ប្រើ Khmer OS Battambang
+                            let cellStyle = {
+                                font: { name: "Khmer OS Battambang", sz: 10 },
+                                alignment: { vertical: "center", horizontal: "center", wrapText: true }
+                            };
+
+                            // សញ្ញាជាតិ
+                            if (R === 0 || R === 1) {
+                                if (C >= 20) {
+                                    cellStyle.font = { name: "Khmer OS Battambang", sz: 11, bold: true };
+                                    cellStyle.alignment.horizontal = "center";
+                                }
+                            }
+                            if (R === 2 && C >= 20) {
+                                // ប្រើហ្វុង Tacteing ទំហំ 40 សម្រាប់លេខ 6
+                                cellStyle.font = { name: "Tacteing", sz: 40 };
+                                cellStyle.alignment.horizontal = "center";
+                            }
+                            
+                            // ឈ្មោះមន្ទីរ និង សាលា
+                            if (R === 3 || R === 4) {
+                                if (C === 0) {
+                                    cellStyle.font = { name: "Khmer OS Battambang", sz: 11, bold: true };
+                                    cellStyle.alignment.horizontal = "left";
+                                }
+                            }
+                            
+                            // ចំណងជើង
+                            if (R === 5) {
+                                cellStyle.font = { name: "Khmer OS Battambang", sz: 14, bold: true };
+                                cellStyle.alignment.horizontal = "center";
+                            }
+                            
+                            // ព័ត៌មានថ្នាក់
+                            if (R === 7) {
+                                cellStyle.alignment.horizontal = "left";
+                                if (C === 0 || C === 4) cellStyle.font = { name: "Khmer OS Battambang", sz: 11, bold: true };
+                            }
+
+                            // ក្បាលតារាង (Headers)
+                            if (R === 8 || R === 9) {
+                                cellStyle.font = { name: "Khmer OS Battambang", sz: 9, bold: true };
+                                cellStyle.border = {
+                                    top: { style: "thin" }, bottom: { style: "thin" },
+                                    left: { style: "thin" }, right: { style: "thin" }
+                                };
+                                
+                                // បង្វិលអក្សរ 90 ដឺក្រេ សម្រាប់ជួរឈរខ្លីៗ
+                                if (R === 9 && ((C >= 5 && C <= 13) || (C >= 16 && C <= 18) || (C >= 21 && C <= 23))) {
+                                    cellStyle.alignment.textRotation = 90;
+                                }
+                                if (R === 8 && (C === 14 || C === 15 || C === 19 || C === 20 || C === 24 || C === 25)) {
+                                    cellStyle.alignment.textRotation = 90;
+                                }
+                            }
+
+                            // ទិន្នន័យសិស្ស (Body)
+                            if (R >= 10 && R < endRow) {
+                                cellStyle.border = {
+                                    top: { style: "thin" }, bottom: { style: "thin" },
+                                    left: { style: "thin" }, right: { style: "thin" }
+                                };
+                                // ឈ្មោះសិស្សតម្រឹមឆ្វេង
+                                if (C === 2 || C === 3) cellStyle.alignment.horizontal = "left";
+                            }
+
+                            // ហត្ថលេខា
+                            if (R >= endRow + 2) {
+                                if (C === 0 || C >= 20) {
+                                    cellStyle.font = { name: "Khmer OS Battambang", sz: 11, bold: true };
+                                }
+                                if (R === endRow + 2) cellStyle.font = { name: "Khmer OS Battambang", sz: 10 }; 
+                                if (R === endRow + 3 && C >= 20) cellStyle.font = { name: "Khmer OS Battambang", sz: 10 }; 
+                            }
+
+                            ws[cellRef].s = cellStyle;
+                        }
+                    }
+
+                    // ==============================
+                    // ៧. កំណត់ទំហំជួរឈរ (Column Widths)
+                    // ==============================
+                    ws['!cols'] = [
+                        { wch: 4 },    // A: ល.រ
+                        { wch: 6 },    // B: អត្តលេខ
+                        { wch: 8 },    // C: ត្រកូល
+                        { wch: 8 },    // D: នាម
+                        { wch: 4 },    // E: ភេទ
+                        { wch: 4.5 }, { wch: 4.5 }, { wch: 4.5 }, { wch: 4.5 }, // F-I: ខ្មែរ
+                        { wch: 4.5 }, { wch: 4.5 }, { wch: 4.5 }, { wch: 4.5 }, { wch: 4.5 }, // J-N: គណិត
+                        { wch: 5.5 },  // O: វិទ្យាសាស្ត្រ
+                        { wch: 5.5 },  // P: សង្គម
+                        { wch: 4.5 }, { wch: 4.5 }, { wch: 4.5 }, // Q-S: កីឡា
+                        { wch: 5.5 },  // T: បំណិន
+                        { wch: 5.5 },  // U: អង់គ្លេស
+                        { wch: 5.5 }, { wch: 5.5 }, { wch: 5.5 }, // V-X: លទ្ធផល
+                        { wch: 4.5 },  // Y: និទ្ទេស
+                        { wch: 4.5 }   // Z: អវត្តមាន
+                    ];
+
+                    // បង្កើតនិងទាញយកឯកសារ Excel
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+                    
+                    // ប្រើប្រាស់ឈ្មោះពិតប្រាកដដែលអ្នកចង់បាន
+                    XLSX.writeFile(wb, "តាងរាងស្រង់ពិន្ទុសិស្ស.xlsx");
+                    
+                } catch (error) {
+                    console.error(error);
+                    alert("សុំទោស! មានបញ្ហាក្នុងការទាញយក Excel។");
+                }
+
+                // ត្រឡប់ប៊ូតុងទៅសភាពដើមវិញ
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 300); // រង់ចាំ 300ms ដើម្បីបង្ហាញ Loading Effect
+        }
+    </script>
+</body>
+</html>

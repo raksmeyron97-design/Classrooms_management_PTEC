@@ -56,7 +56,7 @@
             flex-direction: column;
             page-break-after: always;
             padding-bottom: 5mm;
-            min-height: 180mm; /* កំណត់កម្ពស់អប្បបរមាដើម្បីឱ្យ margin-top: auto ដំណើរការបានល្អ */
+            min-height: 180mm;
         }
         .print-section:last-child {
             page-break-after: auto;
@@ -66,7 +66,6 @@
         .report-table th, .report-table td { border: 1px solid #000; padding: 4px; text-align: center; vertical-align: middle; }
         .report-table th { background-color: #f3f4f6 !important; font-family: 'Moul', cursive; font-weight: normal; font-size: 10pt; }
         
-        /* ប្រើប្រាស់ margin-top: auto ដើម្បីរុញហត្ថលេខាទៅបាតទំព័រជានិច្ច */
         .signature-container { width: 100%; margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; padding-top: 15px; page-break-inside: avoid; }
         .sig-col-left { text-align: center; }
         .sig-col-right { text-align: center; padding-left: 20mm; }
@@ -108,7 +107,7 @@
                         </div>
                         <div>
                             <h1 class="kh-moul text-xl md:text-2xl text-[#0054a6]">បញ្ជីរាប់ និងវិភាគអាយុ-កម្ពស់សិស្ស</h1>
-                            <p class="text-sm text-gray-500 mt-1" id="loadingText">កំពុងទាញយកទិន្នន័យ...</p>
+                            <p class="text-sm text-gray-500 mt-1" id="loadingText">កំពុងផ្ទៀងផ្ទាត់គណនី...</p>
                         </div>
                     </div>
                     
@@ -146,7 +145,7 @@
                 <div class="stats-table-wrapper mb-12" id="tableContainer">
                     <table class="stats-table" id="mainTable">
                         <tbody>
-                            <tr><td class="p-6 text-center text-gray-400 font-bold">កំពុងផ្ទៀងផ្ទាត់គណនី និងវិភាគទិន្នន័យ...</td></tr>
+                            <tr><td class="p-6 text-center text-gray-400 font-bold">កំពុងទាញយកទិន្នន័យ សូមរង់ចាំ...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -408,9 +407,10 @@
 
     <!-- Firebase Integration & Logic -->
     <script type="module">
+        // ផ្លាស់ប្តូរការនាំចូល: លុប signInAnonymously ចេញ
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
@@ -458,23 +458,26 @@
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
-                } else if (!auth.currentUser) {
-                    await signInAnonymously(auth);
                 }
+                // លុប signInAnonymously ចេញទាំងស្រុង មិនឱ្យវាបង្កើតគណនីថ្មីដោយអូតូទេ
             } catch (error) { console.error("Auth error:", error); }
         };
 
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             Chart.defaults.font.family = "'Battambang', cursive";
+            
             initAuth().then(() => {
                 onAuthStateChanged(auth, async (user) => {
-                    if (user) {
+                    // លក្ខខណ្ឌថ្មី: បើមាន User នឹងមិនមែនជាគណនីអនាមិក ទើបឱ្យដំណើរការ
+                    if (user && !user.isAnonymous) {
                         currentUser = user;
                         await loadProfileDataAsConfig();
                         loadDataFromFirestore();
                     } else {
-                        document.getElementById('loadingText').textContent = "សូមចូលគណនី!";
+                        // បើគ្មាន User ឬជាគណនីអនាមិក បញ្ជូនត្រឡប់ទៅទំព័រ Login (index.html)
+                        document.getElementById('loadingText').textContent = "កំពុងបញ្ជូនលោកគ្រូទៅទំព័រចូលគណនី...";
+                        window.location.href = "index.html";
                     }
                 });
             });

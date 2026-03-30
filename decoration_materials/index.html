@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ជំនួយការគ្រូបង្រៀន - Poster Splitter Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;700;900&display=swap');
+        body { font-family: 'Kantumruy Pro', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .app-gradient { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+        .preview-container { background-color: #f1f5f9; background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 20px 20px; }
+        
+        #loadingOverlay { display: none; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(5px); }
+        #cropModal { display: none; background: rgba(0, 0, 0, 0.95); }
+        
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; background: #2563eb; cursor: pointer; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen pb-20 lg:pb-8">
+
+<div id="loadingOverlay" class="fixed inset-0 z-[120] flex flex-col items-center justify-center transition-opacity px-4">
+    <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl border border-slate-100 flex flex-col items-center w-full max-w-sm text-center">
+        <div class="relative w-16 h-16 mb-4">
+            <div class="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+            <i data-lucide="cpu" class="absolute inset-0 m-auto w-6 h-6 text-blue-600 animate-pulse"></i>
+        </div>
+        <h3 class="font-black text-slate-800 text-lg mb-1" id="loadingTitle">កំពុងដំណើរការ...</h3>
+        <p class="text-xs text-slate-500 font-bold" id="loadingDesc">សូមរង់ចាំបន្តិច</p>
+        <div id="progressContainer" class="w-full mt-6 hidden">
+            <div class="w-full bg-slate-100 rounded-full h-3 mb-2 overflow-hidden">
+                <div id="progressBar" class="bg-blue-600 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <p id="progressText" class="text-[10px] font-bold text-slate-400">0%</p>
+        </div>
+    </div>
+</div>
+
+<div id="cropModal" class="fixed inset-0 z-[110] flex-col p-4 md:p-8">
+    <div class="flex justify-between items-center text-white mb-4">
+        <div>
+            <h3 class="font-black text-lg md:text-xl">កាត់តម្រឹមរូបភាព</h3>
+            <p class="text-xs text-blue-400 font-bold mt-1">ទំហំកាត់ត្រូវបាន Lock ឱ្យត្រូវនឹងទំហំ Canvas ដែលអ្នកបានកំណត់</p>
+        </div>
+        <button onclick="cancelCrop()" class="p-2.5 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors text-gray-300">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+    </div>
+    <div class="flex-grow relative bg-black/50 rounded-2xl overflow-hidden mb-4 border border-gray-800 shadow-inner">
+        <img id="cropImage" class="max-w-full block" src="" alt="Crop Area">
+    </div>
+    <div class="flex gap-3 justify-end pb-safe">
+        <button onclick="rotateCropView()" class="px-5 py-3.5 bg-gray-800 text-white font-bold rounded-xl flex items-center gap-2">
+            <i data-lucide="rotate-cw" class="w-4 h-4"></i> បង្វិល
+        </button>
+        <button onclick="applyCrop()" class="flex-1 md:flex-none px-8 py-3.5 bg-blue-600 text-white font-black rounded-xl shadow-lg flex items-center justify-center gap-2">
+            <i data-lucide="check" class="w-5 h-5"></i> យល់ព្រម
+        </button>
+    </div>
+</div>
+
+<div class="max-w-[1600px] mx-auto p-3 sm:p-4 lg:p-8">
+    <header class="mb-4 lg:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 md:p-5 rounded-[2rem] shadow-sm border border-slate-200 gap-4">
+        <div class="flex items-center gap-4">
+        
+        <div class="shrink-0 relative">
+            <img src="poster.png" alt="Poster Splitter Logo" class="w-12 h-12 md:w-16 md:h-16 object-cover rounded-2xl shadow-md border border-slate-100" onerror="this.style.display='none'">
+        </div>
+        
+        <div>
+            <h1 class="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tight">បំបែកសន្លឹក Poster</h1>
+            <p class="text-[11px] text-blue-600 font-bold uppercase tracking-widest mt-0.5">CM Canvas Engine Pro</p>
+        </div>
+        <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            
+            <button id="ptec-install-btn" class="hidden w-full sm:w-auto flex justify-center items-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-xs font-black rounded-2xl shadow-lg shadow-emerald-200 transition-all hover:-translate-y-1">
+                <span class="text-base">📥</span> ដំឡើងកម្មវិធី
+            </button>
+            
+            <button onclick="window.openDonationModal()" class="w-full sm:w-auto flex justify-center items-center gap-2 px-5 py-3 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white text-xs font-black rounded-2xl shadow-lg shadow-pink-200 transition-all hover:-translate-y-1">
+                <span class="text-base">💖</span> គាំទ្រអ្នកបង្កើត
+            </button>
+
+        </div>
+     </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+        
+        <aside class="lg:col-span-4 xl:col-span-3 flex flex-col gap-4 lg:gap-6">
+            <div class="bg-white p-5 lg:p-6 rounded-[2rem] lg:rounded-[2.5rem] shadow-sm border border-slate-200 space-y-6">
+                
+                <section class="space-y-4">
+                    <label class="flex items-center gap-2 text-[11px] font-black text-slate-800 uppercase mb-3 tracking-widest bg-slate-100 w-fit px-3 py-1 rounded-lg">
+                        <span class="bg-blue-600 text-white w-5 h-5 flex items-center justify-center rounded-md">1</span> ទំហំ Canvas សរុប
+                    </label>
+                    
+                    <select id="targetSize" onchange="updateState()" class="w-full p-3.5 bg-blue-50 border border-blue-200 rounded-2xl text-xs font-black text-blue-800 outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="size_cm" selected>កំណត់ទំហំ Canvas ផ្ទាល់ (cm) 📏</option>
+                        <option value="sheets">កំណត់តាមចំនួនសន្លឹក (Columns x Rows)</option>
+                        <option value="a0">ខ្នាតស្តង់ដារ A0</option>
+                        <option value="a1">ខ្នាតស្តង់ដារ A1</option>
+                        <option value="a2">ខ្នាតស្តង់ដារ A2</option>
+                    </select>
+
+                    <div id="targetCmGrid" class="grid grid-cols-2 gap-3 p-4 bg-blue-600 rounded-2xl shadow-inner text-white">
+                        <div>
+                            <span class="text-[10px] font-black text-blue-200 uppercase mb-1 block">ទទឹងសរុប (cm)</span>
+                            <div class="relative">
+                                <input type="number" id="targetW_cm" value="60" min="5" step="1" oninput="updateState()" class="w-full p-2.5 bg-white/10 border border-white/20 rounded-xl text-center font-black text-lg outline-none focus:border-white focus:bg-white/20 transition-all text-white">
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-black text-blue-200 uppercase mb-1 block">កម្ពស់សរុប (cm)</span>
+                            <div class="relative">
+                                <input type="number" id="targetH_cm" value="90" min="5" step="1" oninput="updateState()" class="w-full p-2.5 bg-white/10 border border-white/20 rounded-xl text-center font-black text-lg outline-none focus:border-white focus:bg-white/20 transition-all text-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="customGrid" class="hidden grid grid-cols-2 gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                        <div>
+                            <span class="text-[9px] font-black text-slate-500 uppercase mb-1 block">ទទឹងសន្លឹក</span>
+                            <input type="number" id="customCols" value="3" min="1" max="20" oninput="updateState()" class="w-full p-2.5 border border-slate-200 rounded-xl text-center font-black outline-none">
+                        </div>
+                        <div>
+                            <span class="text-[9px] font-black text-slate-500 uppercase mb-1 block">កម្ពស់សន្លឹក</span>
+                            <input type="number" id="customRows" value="3" min="1" max="20" oninput="updateState()" class="w-full p-2.5 border border-slate-200 rounded-xl text-center font-black outline-none">
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="border-slate-100">
+
+                <section class="space-y-4">
+                    <label class="flex items-center gap-2 text-[11px] font-black text-slate-800 uppercase mb-3 tracking-widest bg-slate-100 w-fit px-3 py-1 rounded-lg">
+                        <span class="bg-blue-600 text-white w-5 h-5 flex items-center justify-center rounded-md">2</span> ក្រដាស និងឯកសារ
+                    </label>
+
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">ក្រដាសសម្រាប់ព្រីន (Printer Paper)</p>
+                        <select id="paperInHand" onchange="updateState()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-blue-500">
+                            <option value="a4">ក្រដាស A4</option>
+                            <option value="a3">ក្រដាស A3</option>
+                            <option value="a2">ក្រដាស A2</option>
+                            <option value="a1">ក្រដាស A1</option>
+                            <option value="a0">ក្រដាស A0</option>
+                        </select>
+                        
+                        <div class="flex gap-2 mt-2">
+                            <button id="orientP" onclick="setOrientation('p')" class="flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg border border-blue-500 bg-blue-50 text-blue-700 transition-all">បញ្ឈរ (Portrait)</button>
+                            <button id="orientL" onclick="setOrientation('l')" class="flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition-all">ផ្តេក (Landscape)</button>
+                        </div>
+                    </div>
+
+                    <div class="relative group mt-4">
+                        <input type="file" id="fileInput" accept=".pdf, .png, .jpg, .jpeg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                        <div class="border-2 border-dashed border-slate-200 rounded-2xl p-5 text-center group-hover:border-blue-500 group-hover:bg-blue-50 transition-all duration-300">
+                            <i data-lucide="image-plus" class="w-6 h-6 text-blue-500 mx-auto mb-2"></i>
+                            <p class="text-[11px] font-black text-slate-700 uppercase">បញ្ចូលរូបភាព / PDF</p>
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="border-slate-100">
+
+                <div class="space-y-5">
+                    <label class="flex items-center gap-2 text-[11px] font-black text-slate-800 uppercase mb-2 tracking-widest bg-slate-100 w-fit px-3 py-1 rounded-lg">
+                        <span class="bg-blue-600 text-white w-5 h-5 flex items-center justify-center rounded-md">3</span> កាត់តម្រឹមគែម
+                    </label>
+
+                    <div>
+                        <div class="flex justify-between items-center text-[10px] font-bold mb-2 uppercase text-slate-600">
+                            <span>ទុកគែមសន្លឹក (Margin)</span> 
+                            <span id="marginVal" class="bg-slate-100 px-2 py-0.5 rounded text-blue-700 font-black">10mm</span>
+                        </div>
+                        <input type="range" id="marginInput" min="5" max="30" value="10" oninput="updateState()" class="w-full h-2 bg-slate-200 rounded-lg appearance-none">
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center text-[10px] font-bold mb-2 uppercase text-slate-600">
+                            <span>គែមជាន់គ្នា (Overlap)</span> 
+                            <span id="overlapVal" class="bg-slate-100 px-2 py-0.5 rounded text-blue-700 font-black">5mm</span>
+                        </div>
+                        <input type="range" id="overlapInput" min="0" max="25" value="5" oninput="updateState()" class="w-full h-2 bg-slate-200 rounded-lg appearance-none">
+                    </div>
+                </div>
+
+                <div class="hidden lg:block">
+                    <button id="generateBtnDesktop" disabled onclick="generatePDF()" class="w-full py-4 bg-blue-600 text-white rounded-[1.5rem] font-black shadow-xl shadow-blue-200 hover:bg-blue-700 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i data-lucide="printer" class="w-5 h-5"></i> ទាញយក PDF សម្រាប់ព្រីន
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="lg:col-span-8 xl:col-span-9 flex flex-col gap-4 lg:gap-6">
+            <div class="bg-white p-4 lg:p-6 rounded-[2rem] lg:rounded-[2.5rem] shadow-sm border border-slate-200 flex-grow flex flex-col min-h-[400px] lg:min-h-[600px]">
+                
+                <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
+                    <h2 class="text-[11px] lg:text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                        <span class="relative flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span></span>
+                        មើលលទ្ធផលសាកល្បង
+                    </h2>
+                    
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button id="reCropBtn" onclick="triggerCropMode()" disabled class="flex-1 sm:flex-none justify-center items-center gap-2 px-4 py-2 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-xl transition-all text-[11px] font-black border border-orange-200 shadow-sm disabled:opacity-50 hidden md:flex">
+                            <i data-lucide="crop" class="w-4 h-4"></i> កាត់ម្ដងទៀត
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="previewArea" class="preview-container flex-grow border-2 border-slate-200 rounded-[1.5rem] lg:rounded-[2rem] flex items-center justify-center overflow-auto p-6 relative">
+                    <div id="canvasWrapper" class="relative shadow-xl mx-auto flex items-center justify-center">
+                        <canvas id="previewCanvas" class="hidden bg-white max-w-full"></canvas>
+                    </div>
+                    
+                    <div id="placeholder" class="text-center select-none absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm rounded-[1.5rem] z-10">
+                        <div class="bg-blue-50 p-4 rounded-full mb-3">
+                            <i data-lucide="ruler" class="w-8 h-8 text-blue-500"></i>
+                        </div>
+                        <p class="font-black uppercase text-[10px] tracking-widest text-slate-700">សូមបញ្ចូលឯកសារដើម្បីបង្ហាញរូបភាព</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
+                <div class="bg-indigo-50 p-4 rounded-2xl lg:rounded-3xl border border-indigo-100 shadow-sm">
+                    <p class="text-[9px] font-bold text-indigo-500 uppercase tracking-wider mb-1">ទំហំ Canvas កំណត់</p>
+                    <p id="statSize" class="text-sm lg:text-base font-black text-indigo-900">-</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl lg:rounded-3xl border border-slate-200 shadow-sm">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">ចំនួនក្រដាសសរុប</p>
+                    <p id="statSheets" class="text-sm lg:text-base font-black text-slate-800">-</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl lg:rounded-3xl border border-slate-200 shadow-sm">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">សន្លឹក (ទទឹង x កម្ពស់)</p>
+                    <p id="statGrid" class="text-sm lg:text-base font-black text-slate-800">-</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl lg:rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">ភ្ជាប់ទំព័រណែនាំ</p>
+                        <p class="text-sm font-black text-green-600">មាន (Yes)</p>
+                    </div>
+                    <input type="checkbox" id="includeGuide" checked class="w-5 h-5 text-green-500 rounded cursor-pointer">
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-40 pb-safe">
+    <div class="max-w-[1600px] mx-auto flex gap-3">
+        <button onclick="triggerCropMode()" id="reCropBtnMobile" disabled class="px-4 bg-orange-50 text-orange-600 rounded-xl font-bold flex items-center justify-center disabled:opacity-50">
+            <i data-lucide="crop" class="w-5 h-5"></i>
+        </button>
+        <button id="generateBtnMobile" disabled onclick="generatePDF()" class="flex-1 py-3.5 bg-blue-600 text-white rounded-xl font-black shadow-lg flex items-center justify-center gap-2 disabled:opacity-50">
+            <i data-lucide="printer" class="w-5 h-5"></i> ទាញយក PDF
+        </button>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const { jsPDF } = window.jspdf;
+    
+    let cropper = null;
+    let rawImageDataURL = null;
+
+    let posterState = { 
+        img: null, rotation: 0, 
+        paperType: 'a4', paperW: 210, paperH: 297, // mm
+        orientation: 'p', 
+        cols: 1, rows: 1, 
+        margin: 10, overlap: 5, 
+        totalW: 600, totalH: 900 // Default Canvas mm
+    };
+
+    const SIZES = { a4: [210, 297], a3: [297, 420], a2: [420, 594], a1: [594, 841], a0: [841, 1189] };
+
+    function setOrientation(o) {
+        posterState.orientation = o;
+        const btnP = document.getElementById('orientP');
+        const btnL = document.getElementById('orientL');
+        
+        if(o === 'p') {
+            btnP.className = "flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg border border-blue-500 bg-blue-50 text-blue-700 transition-all";
+            btnL.className = "flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition-all";
+        } else {
+            btnL.className = "flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg border border-blue-500 bg-blue-50 text-blue-700 transition-all";
+            btnP.className = "flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition-all";
+        }
+        updateState();
+    }
+
+    function updateState() {
+        const target = document.getElementById('targetSize').value;
+        const inHand = document.getElementById('paperInHand').value;
+        posterState.paperType = inHand;
+        
+        // Setup Paper
+        posterState.paperW = SIZES[inHand][0];
+        posterState.paperH = SIZES[inHand][1];
+        
+        let actualW = posterState.orientation === 'l' ? posterState.paperH : posterState.paperW;
+        let actualH = posterState.orientation === 'l' ? posterState.paperW : posterState.paperH;
+
+        posterState.margin = parseInt(document.getElementById('marginInput').value);
+        posterState.overlap = parseInt(document.getElementById('overlapInput').value);
+        
+        document.getElementById('marginVal').innerText = posterState.margin + 'mm';
+        document.getElementById('overlapVal').innerText = posterState.overlap + 'mm';
+
+        const usableW = actualW - (posterState.margin * 2);
+        const usableH = actualH - (posterState.margin * 2);
+        const advanceX = usableW - posterState.overlap;
+        const advanceY = usableH - posterState.overlap;
+
+        const cmGrid = document.getElementById('targetCmGrid');
+        const customGrid = document.getElementById('customGrid');
+        cmGrid.classList.add('hidden'); customGrid.classList.add('hidden');
+
+        if (target === 'size_cm') {
+            cmGrid.classList.remove('hidden');
+            let cmW = parseFloat(document.getElementById('targetW_cm').value) || 60;
+            let cmH = parseFloat(document.getElementById('targetH_cm').value) || 90;
+            
+            posterState.totalW = cmW * 10;
+            posterState.totalH = cmH * 10;
+            
+            // Calculate required sheets based on canvas size
+            posterState.cols = Math.ceil((posterState.totalW - posterState.overlap) / advanceX);
+            posterState.rows = Math.ceil((posterState.totalH - posterState.overlap) / advanceY);
+            if(posterState.cols < 1) posterState.cols = 1;
+            if(posterState.rows < 1) posterState.rows = 1;
+
+        } else if (target === 'sheets') {
+            customGrid.classList.remove('hidden');
+            posterState.cols = parseInt(document.getElementById('customCols').value) || 1;
+            posterState.rows = parseInt(document.getElementById('customRows').value) || 1;
+            
+            posterState.totalW = (posterState.cols * usableW) - ((posterState.cols - 1) * posterState.overlap);
+            posterState.totalH = (posterState.rows * usableH) - ((posterState.rows - 1) * posterState.overlap);
+            
+        } else {
+            // Standard A0, A1, A2 targets
+            posterState.totalW = SIZES[target][0];
+            posterState.totalH = SIZES[target][1];
+            
+            // គណនាចំនួនសន្លឹកដោយស្វ័យប្រវត្តិ
+            posterState.cols = Math.ceil((posterState.totalW - posterState.overlap) / advanceX);
+            posterState.rows = Math.ceil((posterState.totalH - posterState.overlap) / advanceY);
+            if(posterState.cols < 1) posterState.cols = 1;
+            if(posterState.rows < 1) posterState.rows = 1;
+        }
+
+        // Stats Update
+        document.getElementById('statSize').innerText = `${(posterState.totalW/10).toFixed(1)} x ${(posterState.totalH/10).toFixed(1)} cm`;
+        document.getElementById('statSheets').innerText = `${posterState.cols * posterState.rows} សន្លឹក`;
+        document.getElementById('statGrid').innerText = `${posterState.cols} ទទឹង x ${posterState.rows} កម្ពស់`;
+
+        if (posterState.img) {
+            document.getElementById('generateBtnDesktop').disabled = false;
+            document.getElementById('generateBtnMobile').disabled = false;
+            document.getElementById('reCropBtn').disabled = false;
+            document.getElementById('reCropBtnMobile').disabled = false;
+            drawPosterPreview();
+        }
+    }
+
+    function drawPosterPreview() {
+        const canvas = document.getElementById('previewCanvas');
+        if (!canvas || !posterState.img) return;
+        const ctx = canvas.getContext('2d');
+        
+        document.getElementById('placeholder').classList.add('hidden');
+        canvas.classList.remove('hidden');
+        
+        const container = document.getElementById('previewArea');
+        // Fit canvas nicely in view
+        const scale = Math.min((container.clientWidth - 40) / posterState.totalW, (container.clientHeight - 40) / posterState.totalH);
+        
+        canvas.width = posterState.totalW * scale; 
+        canvas.height = posterState.totalH * scale;
+        
+        ctx.fillStyle = "white"; 
+        ctx.fillRect(0,0, canvas.width, canvas.height);
+        ctx.drawImage(posterState.img, 0, 0, canvas.width, canvas.height);
+        
+        let actualW = posterState.orientation === 'l' ? posterState.paperH : posterState.paperW;
+        let actualH = posterState.orientation === 'l' ? posterState.paperW : posterState.paperH;
+
+        const usableW_scale = (actualW - posterState.margin * 2) * scale;
+        const usableH_scale = (actualH - posterState.margin * 2) * scale;
+        const overlap_scale = posterState.overlap * scale;
+        const advanceX_scale = usableW_scale - overlap_scale;
+        const advanceY_scale = usableH_scale - overlap_scale;
+
+        ctx.lineWidth = Math.max(1.5, 2 * scale / 5);
+        ctx.font = `bold ${Math.max(14, 25 * scale / 5)}px 'Kantumruy Pro', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        for(let r=0; r<posterState.rows; r++) {
+            for(let c=0; c<posterState.cols; c++) {
+                const x = c * advanceX_scale; 
+                const y = r * advanceY_scale;
+                
+                // Draw Paper Boundaries showing exactly where they fall
+                ctx.strokeStyle = "rgba(37, 99, 235, 0.8)";
+                ctx.setLineDash([8, 6]);
+                ctx.strokeRect(x, y, usableW_scale, usableH_scale);
+                
+                const centerX = x + usableW_scale/2;
+                const centerY = y + usableH_scale/2;
+                
+                // Draw Number only if the center is within the canvas
+                if (centerX < canvas.width && centerY < canvas.height) {
+                    const sheetNum = (r * posterState.cols) + c + 1;
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, Math.max(15, 20 * scale / 5), 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = "#1e40af";
+                    ctx.fillText(sheetNum, centerX, centerY + 1);
+                }
+            }
+        }
+    }
+
+    // --- Core Action Functions ---
+    function showLoading(title, desc, showProgress = false) {
+        document.getElementById('loadingTitle').innerText = title;
+        document.getElementById('loadingDesc').innerText = desc;
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        document.getElementById('progressContainer').style.display = showProgress ? 'block' : 'none';
+    }
+    function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+    function updateProgress(percent) {
+        document.getElementById('progressBar').style.width = `${percent}%`;
+        document.getElementById('progressText').innerText = `${Math.round(percent)}%`;
+    }
+
+    function initCropper(imageSrc) {
+        rawImageDataURL = imageSrc;
+        const cropImg = document.getElementById('cropImage');
+        cropImg.src = imageSrc;
+        document.getElementById('cropModal').style.display = 'flex';
+        
+        if (cropper) cropper.destroy();
+        
+        setTimeout(() => {
+            // MAGIC FEATURE: Lock the crop ratio to exactly what the Canvas size needs!
+            const targetRatio = posterState.totalW / posterState.totalH;
+            
+            cropper = new Cropper(cropImg, {
+                aspectRatio: targetRatio, // <-- Pro feature locks dimension
+                viewMode: 1, dragMode: 'move', autoCropArea: 0.95,
+                guides: true, center: true, highlight: false,
+                cropBoxMovable: true, cropBoxResizable: true,
+            });
+            hideLoading();
+        }, 100);
+    }
+
+    function cancelCrop() {
+        document.getElementById('cropModal').style.display = 'none';
+        if (cropper) cropper.destroy();
+        if (!posterState.img) document.getElementById('fileInput').value = '';
+    }
+
+    function rotateCropView() { if (cropper) cropper.rotate(90); }
+
+    function applyCrop() {
+        if (!cropper) return;
+        showLoading("កំពុងកំណត់រូបភាព...", "រៀបចំចូលផ្ទាំង Canvas");
+        setTimeout(() => {
+            const canvas = cropper.getCroppedCanvas({ imageSmoothingEnabled: true, imageSmoothingQuality: 'high' });
+            const croppedImg = new Image();
+            croppedImg.onload = () => { 
+                posterState.img = croppedImg; 
+                document.getElementById('cropModal').style.display = 'none';
+                updateState(); 
+                hideLoading(); 
+            };
+            croppedImg.src = canvas.toDataURL('image/jpeg', 0.95);
+        }, 50);
+    }
+
+    function triggerCropMode() {
+        if (rawImageDataURL) {
+            showLoading("រៀបចំផ្ទាំងកាត់...", "សូមរង់ចាំបន្តិច");
+            // Make sure ratio is updated if user changed CM inputs
+            initCropper(rawImageDataURL);
+        }
+    }
+
+    document.getElementById('fileInput').onchange = async (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        showLoading("កំពុងអានឯកសារ...", "សូមរង់ចាំបន្តិច");
+        try {
+            if (file.type === 'application/pdf') {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                const page = await pdf.getPage(1);
+                const viewport = page.getViewport({ scale: 3.0 }); 
+                const canv = document.createElement('canvas');
+                const context = canv.getContext('2d');
+                canv.width = viewport.width; canv.height = viewport.height;
+                await page.render({ canvasContext: context, viewport: viewport }).promise;
+                initCropper(canv.toDataURL('image/jpeg', 1.0));
+            } else {
+                const reader = new FileReader();
+                reader.onload = (ev) => initCropper(ev.target.result);
+                reader.readAsDataURL(file);
+            }
+        } catch (err) { hideLoading(); }
+    };
+
+    async function generatePDF() {
+        if (!posterState.img) return;
+        showLoading("កំពុងបង្កើត PDF...", "ដំណើរការប្រព័ន្ធកាត់ឆ្លាតវៃ", true);
+        await new Promise(r => setTimeout(r, 100));
+
+        let actualW = posterState.orientation === 'l' ? posterState.paperH : posterState.paperW;
+        let actualH = posterState.orientation === 'l' ? posterState.paperW : posterState.paperH;
+
+        const doc = new jsPDF({ orientation: posterState.orientation, unit: 'mm', format: [actualW, actualH] });
+        const includeGuide = document.getElementById('includeGuide').checked;
+        const totalSheets = posterState.rows * posterState.cols;
+        let sheetsProcessed = 0;
+
+        if (includeGuide) {
+            doc.setFillColor(240, 249, 255);
+            doc.rect(0, 0, actualW, actualH, 'F');
+            doc.setTextColor(30, 58, 138); doc.setFontSize(22);
+            doc.text("Poster Layout Guide", actualW/2, 25, { align: 'center' });
+            doc.setFontSize(10); doc.setTextColor(71, 85, 105);
+            doc.text(`Target Size: ${posterState.totalW/10} x ${posterState.totalH/10} cm | Papers: ${totalSheets}`, actualW/2, 35, { align: 'center' });
+            
+            const mapW = actualW - 30; const mapH = actualH - 60;
+            const mapScale = Math.min(mapW / posterState.totalW, mapH / posterState.totalH);
+            
+            const mapStartX = (actualW - (posterState.totalW * mapScale)) / 2;
+            const mapStartY = 45;
+            
+            // Draw Target Canvas Bounds (Red Dashed)
+            doc.setDrawColor(220, 38, 38);
+            doc.setLineDashPattern([2, 2], 0);
+            doc.rect(mapStartX, mapStartY, posterState.totalW * mapScale, posterState.totalH * mapScale, 'D');
+            
+            const advanceX_map = (actualW - 2*posterState.margin - posterState.overlap) * mapScale;
+            const advanceY_map = (actualH - 2*posterState.margin - posterState.overlap) * mapScale;
+            const tileW_map = (actualW - 2*posterState.margin) * mapScale;
+            const tileH_map = (actualH - 2*posterState.margin) * mapScale;
+
+            doc.setDrawColor(59, 130, 246); doc.setLineWidth(0.3); doc.setLineDashPattern([], 0);
+            for(let r=0; r<posterState.rows; r++) {
+                for(let c=0; c<posterState.cols; c++) {
+                    const x = mapStartX + c * advanceX_map;
+                    const y = mapStartY + r * advanceY_map;
+                    doc.setFillColor(255, 255, 255);
+                    doc.rect(x, y, tileW_map, tileH_map, 'FD');
+                    doc.setFontSize(8); doc.setTextColor(30, 58, 138);
+                    doc.text(`${r * posterState.cols + c + 1}`, x + tileW_map/2, y + tileH_map/2 + 1, { align: 'center' });
+                }
+            }
+        }
+
+        const usableW_mm = actualW - (posterState.margin * 2);
+        const usableH_mm = actualH - (posterState.margin * 2);
+        const scaleX_px = posterState.img.width / posterState.totalW;
+        const scaleY_px = posterState.img.height / posterState.totalH;
+
+        const cropCanvas = document.createElement('canvas');
+        const cCtx = cropCanvas.getContext('2d', { willReadFrequently: true });
+
+        for(let r=0; r<posterState.rows; r++) {
+            for(let c=0; c<posterState.cols; c++) {
+                if (includeGuide || r > 0 || c > 0) doc.addPage([actualW, actualH], posterState.orientation);
+
+                const sourceX_mm = c * (usableW_mm - posterState.overlap);
+                const sourceY_mm = r * (usableH_mm - posterState.overlap);
+
+                const sx = sourceX_mm * scaleX_px;
+                const sy = sourceY_mm * scaleY_px;
+                const sWidth = usableW_mm * scaleX_px;
+                const sHeight = usableH_mm * scaleY_px;
+
+                cropCanvas.width = sWidth; cropCanvas.height = sHeight;
+                cCtx.fillStyle = 'white'; cCtx.fillRect(0,0, cropCanvas.width, cropCanvas.height);
+                cCtx.drawImage(posterState.img, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
+                const tileImgData = cropCanvas.toDataURL('image/jpeg', 0.95);
+
+                doc.addImage(tileImgData, 'JPEG', posterState.margin, posterState.margin, usableW_mm, usableH_mm);
+
+                doc.setDrawColor(220, 38, 38); doc.setLineWidth(0.3);
+                const m = posterState.margin; const lineLen = Math.min(5, m-1);
+                doc.line(m, m, m, m - lineLen); doc.line(m, m, m - lineLen, m);
+                doc.line(actualW-m, m, actualW-m, m - lineLen); doc.line(actualW-m, m, actualW-m + lineLen, m);
+                doc.line(m, actualH-m, m, actualH-m + lineLen); doc.line(m, actualH-m, m - lineLen, actualH-m);
+                doc.line(actualW-m, actualH-m, actualW-m, actualH-m + lineLen); doc.line(actualW-m, actualH-m, actualW-m + lineLen, actualH-m);
+
+                doc.setFontSize(7); doc.setTextColor(150, 150, 150);
+                doc.text(`S: ${r * posterState.cols + c + 1} | C:${c+1}, R:${r+1} | Canvas: ${posterState.totalW/10}x${posterState.totalH/10}cm`, m, m - 2);
+
+                sheetsProcessed++;
+                updateProgress((sheetsProcessed / totalSheets) * 100);
+                await new Promise(res => setTimeout(res, 5));
+            }
+        }
+        doc.save(`Poster_Split_${posterState.totalW/10}x${posterState.totalH/10}cm.pdf`);
+        hideLoading();
+    };
+
+    // ⭐ មុខងារថ្មី៖ ចាប់យកឯកសារពី URL ពេលគ្រូចុចពីបណ្ណាល័យ
+    window.addEventListener('DOMContentLoaded', async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const fileUrl = urlParams.get('file');
+
+        if (fileUrl) {
+            showLoading("កំពុងនាំចូលឯកសារ...", "ប្រព័ន្ធកំពុងទាញយកឯកសារពីបណ្ណាល័យ");
+            try {
+                const response = await fetch(fileUrl);
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const isPdf = fileUrl.toLowerCase().endsWith('.pdf');
+                
+                if (isPdf) {
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    const page = await pdf.getPage(1);
+                    const viewport = page.getViewport({ scale: 3.0 }); 
+                    const canv = document.createElement('canvas');
+                    const context = canv.getContext('2d');
+                    canv.width = viewport.width; 
+                    canv.height = viewport.height;
+                    
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+                    
+                    // លោតរំលងផ្ទាំង Crop ហើយបង្ហាញរូបភាពដើមតែម្តង
+                    rawImageDataURL = canv.toDataURL('image/jpeg', 1.0);
+                    posterState.img = new Image();
+                    posterState.img.onload = () => { 
+                        updateState(); 
+                        hideLoading(); 
+                    };
+                    posterState.img.src = rawImageDataURL;
+                } else {
+                    const blob = new Blob([arrayBuffer]);
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        // លោតរំលងផ្ទាំង Crop សម្រាប់រូបភាពធម្មតា
+                        rawImageDataURL = e.target.result;
+                        posterState.img = new Image();
+                        posterState.img.onload = () => { 
+                            updateState(); 
+                            hideLoading(); 
+                        };
+                        posterState.img.src = rawImageDataURL;
+                    };
+                    reader.readAsDataURL(blob);
+                }
+            } catch (err) {
+                console.error("កំហុសក្នុងការទាញយក:", err);
+                hideLoading();
+                alert("មិនអាចទាញយកឯកសារដោយស្វ័យប្រវត្តិបានទេ។ សូមបញ្ចូលឯកសារដោយខ្លួនឯង (Upload)។");
+            }
+        }
+    });
+
+    updateState();
+</script>
+<script src="pwa-install.js"></script>
+</body>
+</html>

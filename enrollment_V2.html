@@ -25,9 +25,9 @@
         
         /* Auto-complete Suggestions List */
         .suggestions-list { 
-            position: absolute; width: 100%; background: white; border: 1px solid #d1d5db; 
-            border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 50; 
-            margin-top: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
+            position: absolute; top: 100%; left: 0; right: 0; width: 100%; background: white; border: 1px solid #d1d5db; 
+            border-radius: 6px; max-height: 250px; overflow-y: auto; z-index: 500; 
+            margin-top: 4px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); 
             display: none; 
         }
         .suggestion-item { padding: 8px 12px; cursor: pointer; font-size: 13px; transition: background 0.2s; border-bottom: 1px solid #f3f4f6; }
@@ -47,6 +47,7 @@
         }
         .mockup-input:focus { border-color: #5a67d8; box-shadow: 0 0 0 2px rgba(90, 103, 216, 0.2); }
         .mockup-input:disabled { background-color: #f3f4f6; cursor: not-allowed; opacity: 0.7; }
+        .mockup-input.readonly-input { background-color: #f8fafc; color: #475569; font-weight: bold; }
         
         .mockup-label {
             font-size: 13px;
@@ -185,11 +186,15 @@
                             <input id="grade" type="text" placeholder="ឧ. ១២ក" class="mockup-input">
                         </div>
                         <div class="flex flex-col">
-                            <label class="mockup-label">ឈ្មោះសិស្ស*</label>
-                            <input id="studentName" type="text" placeholder="ឈ្មោះសិស្ស" class="mockup-input">
+                            <label class="mockup-label">ឈ្មោះសិស្ស (ខ្មែរ)*</label>
+                            <input id="studentName" type="text" placeholder="គោត្តនាម និងនាម" class="mockup-input">
                         </div>
 
                         <!-- Row 2: Basic Info (Cont.) -->
+                        <div class="flex flex-col">
+                            <label class="mockup-label">ឈ្មោះសិស្សជាអក្សរឡាតាំង</label>
+                            <input id="latinName" type="text" placeholder="Latin Name" class="mockup-input">
+                        </div>
                         <div class="flex flex-col">
                             <label class="mockup-label">ភេទ*</label>
                             <select id="gender" class="mockup-input bg-white cursor-pointer">
@@ -203,13 +208,17 @@
                             <input type="date" id="dob" class="mockup-input">
                         </div>
                         <div class="flex flex-col">
+                            <label class="mockup-label">អាយុ (ឆ្នាំ)</label>
+                            <input type="number" id="age" placeholder="អាយុគណនាស្វ័យប្រវត្តិ" class="mockup-input readonly-input" readonly tabindex="-1">
+                        </div>
+                        <div class="flex flex-col md:col-span-2">
                             <label class="mockup-label">លេខទូរស័ព្ទអាណាព្យាបាល</label>
                             <input id="phone" type="text" placeholder="លេខទូរស័ព្ទ" class="mockup-input">
                         </div>
 
                         <!-- Section: Birth Place -->
                         <div class="md:col-span-2 lg:col-span-3 section-header mt-2">
-                            <i data-lucide="map-pin" class="w-4 h-4"></i> ទីកន្លែងកំណើត
+                            <i data-lucide="map-pin" class="w-4 h-4 text-emerald-600"></i> ទីកន្លែងកំណើត
                         </div>
 
                         <div class="flex flex-col relative">
@@ -235,7 +244,7 @@
 
                         <!-- Section: Current Place -->
                         <div class="md:col-span-2 lg:col-span-3 section-header mt-2">
-                            <i data-lucide="map-pin" class="w-4 h-4 text-blue-600"></i> ទីកន្លែងបច្ចុប្បន្ន
+                            <i data-lucide="home" class="w-4 h-4 text-blue-600"></i> អាសយដ្ឋានសព្វថ្ងៃ
                         </div>
 
                         <div class="flex flex-col relative">
@@ -259,33 +268,101 @@
                             <ul id="curr-village-list" class="suggestions-list"></ul>
                         </div>
 
+                        <!-- Section: Status & Scholarships (NEW) -->
+                        <div class="md:col-span-2 lg:col-span-3 section-header mt-2">
+                            <i data-lucide="award" class="w-4 h-4 text-orange-600"></i> ស្ថានភាព និងអាហារូបករណ៍
+                        </div>
+
+                        <div class="flex flex-col">
+                            <label class="mockup-label">សិស្សថ្មី</label>
+                            <select id="isNewStudent" class="mockup-input cursor-pointer border-orange-200">
+                                <option value="បាទ/ចាស">បាទ/ចាស</option>
+                                <option value="ទេ">ទេ</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="mockup-label">សិស្សត្រួតថ្នាក់</label>
+                            <select id="isRepeater" class="mockup-input cursor-pointer border-orange-200">
+                                <option value="ទេ">ទេ</option>
+                                <option value="បាទ/ចាស">បាទ/ចាស</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="mockup-label">ស្ថានភាពគ្រួសារ (កំព្រា)</label>
+                            <select id="orphanStatus" class="mockup-input cursor-pointer border-orange-200">
+                                <option value="ទេ">ទេ</option>
+                                <option value="កំព្រាឪពុក">កំព្រាឪពុក</option>
+                                <option value="កំព្រាម្តាយ">កំព្រាម្តាយ</option>
+                                <option value="កំព្រាទាំងពីរ">កំព្រាទាំងពីរ</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="mockup-label">ពិការភាព</label>
+                            <select id="isDisabled" class="mockup-input cursor-pointer border-orange-200">
+                                <option value="ទេ">ទេ</option>
+                                <option value="បាទ/ចាស">បាទ/ចាស</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="mockup-label">ប័ណ្ណក្រីក្រ</label>
+                            <select id="poorStatus" class="mockup-input cursor-pointer border-orange-200">
+                                <option value="គ្មាន">គ្មាន</option>
+                                <option value="ក្រ១">ក្រ១</option>
+                                <option value="ក្រ២">ក្រ២</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="mockup-label">សិស្សសមធម៌</label>
+                            <select id="isEquity" class="mockup-input cursor-pointer border-orange-200">
+                                <option value="ទេ">ទេ</option>
+                                <option value="បាទ/ចាស">បាទ/ចាស</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="mockup-label">អាហារូបករណ៍</label>
+                            <select id="isScholarship" class="mockup-input cursor-pointer border-orange-200">
+                                <option value="ទេ">ទេ</option>
+                                <option value="បាទ/ចាស">បាទ/ចាស</option>
+                            </select>
+                        </div>
+
                         <!-- Section: Parents Info -->
                         <div class="md:col-span-2 lg:col-span-3 section-header mt-2">
-                            <i data-lucide="users" class="w-4 h-4"></i> ព័ត៌មានអាណាព្យាបាល
+                            <i data-lucide="users" class="w-4 h-4 text-pink-600"></i> ព័ត៌មានឪពុកម្តាយ និងអាណាព្យាបាល
                         </div>
 
                         <div class="flex flex-col">
                             <label class="mockup-label">ឈ្មោះឪពុក</label>
-                            <input type="text" id="fatherName" placeholder="ឈ្មោះឪពុក" class="mockup-input">
+                            <input type="text" id="fatherName" placeholder="ឈ្មោះឪពុក" class="mockup-input border-pink-100">
                         </div>
                         <div class="flex flex-col">
                             <label class="mockup-label">មុខរបរឪពុក</label>
-                            <input type="text" id="fatherJob" placeholder="មុខរបរ" class="mockup-input">
+                            <input type="text" id="fatherJob" placeholder="មុខរបរ" class="mockup-input border-pink-100">
                         </div>
-                        <div class="hidden lg:block"></div> <!-- Empty spacer for grid alignment -->
+                        <div class="hidden lg:block"></div>
 
                         <div class="flex flex-col">
                             <label class="mockup-label">ឈ្មោះម្តាយ</label>
-                            <input type="text" id="motherName" placeholder="ឈ្មោះម្តាយ" class="mockup-input">
+                            <input type="text" id="motherName" placeholder="ឈ្មោះម្តាយ" class="mockup-input border-pink-100">
                         </div>
                         <div class="flex flex-col">
                             <label class="mockup-label">មុខរបរម្តាយ</label>
-                            <input type="text" id="motherJob" placeholder="មុខរបរ" class="mockup-input">
+                            <input type="text" id="motherJob" placeholder="មុខរបរ" class="mockup-input border-pink-100">
+                        </div>
+                        <div class="hidden lg:block"></div>
+                        
+                        <div class="flex flex-col">
+                            <label class="mockup-label">ឈ្មោះអាណាព្យាបាល (ក្រៅពីឪពុកម្តាយ)</label>
+                            <input type="text" id="guardianName" placeholder="ឈ្មោះអាណាព្យាបាល" class="mockup-input border-pink-200">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="mockup-label">មុខរបរអាណាព្យាបាល</label>
+                            <input type="text" id="guardianJob" placeholder="មុខរបរ" class="mockup-input border-pink-200">
                         </div>
 
                         <!-- Section: Additional Info -->
                         <div class="md:col-span-2 lg:col-span-3 section-header mt-2">
-                            <i data-lucide="file-text" class="w-4 h-4"></i> ព័ត៌មានបន្ថែមផ្សេងៗ
+                            <i data-lucide="file-text" class="w-4 h-4 text-purple-600"></i> ព័ត៌មានបន្ថែមផ្សេងៗ
                         </div>
 
                         <div class="flex flex-col">
@@ -294,11 +371,11 @@
                         </div>
                         <div class="flex flex-col">
                             <label class="mockup-label text-purple-700">លក្ខណៈពិសេស</label>
-                            <input type="text" id="specialFeatures" placeholder="ឧ. កូនភ្លោះ, ពិការភាព..." class="mockup-input border-purple-200">
+                            <input type="text" id="specialFeatures" placeholder="លក្ខណៈផ្សេងៗ..." class="mockup-input border-purple-200">
                         </div>
-                        <div class="flex flex-col md:col-span-2 lg:col-span-3">
+                        <div class="flex flex-col">
                             <label class="mockup-label text-purple-700">សេចក្តីផ្សេងៗ</label>
-                            <textarea id="otherRemarks" placeholder="ព័ត៌មានបន្ថែមផ្សេងៗ..." class="mockup-input border-purple-200" rows="2"></textarea>
+                            <input type="text" id="otherRemarks" placeholder="ព័ត៌មានបន្ថែមផ្សេងៗ..." class="mockup-input border-purple-200">
                         </div>
 
                     </div>
@@ -307,7 +384,7 @@
                 <!-- Notice Info -->
                 <div class="mt-6 p-3 bg-blue-50 rounded-lg text-[12px] text-blue-800 flex items-start gap-2 border border-blue-100">
                     <i data-lucide="info" class="w-4 h-4 flex-shrink-0 mt-0.5"></i>
-                    <span>បញ្ជាក់: ចំពោះព័ត៌មានដែលមានសញ្ញា * ត្រូវតែបំពេញឱ្យបានគ្រប់ជ្រុងជ្រោយ។ ទិន្នន័យទីតាំងត្រូវបានទាញចេញពីឯកសារមេ (Data.csv)។</span>
+                    <span>បញ្ជាក់: ចំពោះព័ត៌មានដែលមានសញ្ញា * ត្រូវតែបំពេញឱ្យបានគ្រប់ជ្រុងជ្រោយ។ អាយុនឹងត្រូវបានគណនាដោយស្វ័យប្រវត្តិ។</span>
                 </div>
 
                 <!-- Action Buttons matching Image Mockup -->
@@ -316,7 +393,7 @@
                         <i data-lucide="save" class="w-4 h-4"></i> រក្សាទុក
                     </button>
                     
-                    <a href="https://docs.google.com/spreadsheets/d/1hdwKWafuPC_oIV-CBay_BKz1Hjgd7JEE/export?format=xlsx" class="bg-[#2653e7] hover:bg-[#1d40b8] text-white px-6 py-2.5 rounded text-[13px] font-bold flex items-center gap-2 shadow-sm transition-colors cursor-pointer">
+                    <a href="https://docs.google.com/spreadsheets/d/1hdwKWafuPC_oIV-CBay_BKz1Hjgd7JEE/export?format=xlsx" class="bg-[#2653e7] hover:bg-[#1d40b8] text-white px-6 py-2.5 rounded text-[13px] font-bold flex items-center gap-2 shadow-sm transition-colors cursor-pointer" target="_blank">
                         <i data-lucide="download" class="w-4 h-4"></i> <span>ទាញយកគំរូ Excel</span>
                     </a>
 
@@ -360,7 +437,6 @@
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
             authDomain: "classroom-management-82382.firebaseapp.com",
@@ -371,7 +447,6 @@
             measurementId: "G-PX867PB723"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -379,11 +454,9 @@
         const PTEC_APP_ID = "ptec-app";
         let currentUser = null;
 
-        // System variables
         let locationMaster = {};
-        let currentPhotoBase64 = ''; // Stores final base64 or URL for the student
+        let currentPhotoBase64 = ''; 
 
-        // Elements for Birth Place
         const provinceInput = document.getElementById('province-input');
         const districtInput = document.getElementById('district-input');
         const communeInput = document.getElementById('commune-input');
@@ -394,7 +467,6 @@
         const communeList = document.getElementById('commune-list');
         const villageList = document.getElementById('village-list');
 
-        // Elements for Current Place
         const currProvinceInput = document.getElementById('curr-province-input');
         const currDistrictInput = document.getElementById('curr-district-input');
         const currCommuneInput = document.getElementById('curr-commune-input');
@@ -410,24 +482,37 @@
         const photoPreview = document.getElementById('photoPreview');
         const defaultIcon = document.getElementById('defaultIcon');
 
+        // Age Calculation Logic
+        document.getElementById('dob').addEventListener('change', function() {
+            if(this.value) {
+                const dobDate = new Date(this.value);
+                const today = new Date();
+                let age = today.getFullYear() - dobDate.getFullYear();
+                const m = today.getMonth() - dobDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
+                    age--;
+                }
+                document.getElementById('age').value = age >= 0 ? age : '';
+            } else {
+                document.getElementById('age').value = '';
+            }
+        });
+
         // =======================
-        // Authentication Check
+        // Authentication Logic
         // =======================
         loadingText.textContent = "កំពុងផ្ទៀងផ្ទាត់គណនី...";
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
                 loadingText.textContent = "កំពុងទាញយកទិន្នន័យទីតាំង...";
-                loadCSVData(); // Load data once logged in
+                loadCSVData(); 
             } else {
-                alert('សូមចូលគណនីជាមុនសិន!');
+                // ប្រសិនបើរកមិនឃើញគណនីដែលបាន Login ទេ វានឹងលោតសារប្រាប់ ហើយបញ្ជូនទៅកាន់ index.html
+                alert('អ្នកមិនទាន់បានចូលគណនីទេ។ សូមចូលគណនីជាមុនសិន!');
                 window.location.href = 'index.html';
             }
         });
-
-        // =======================
-        // Photo & Avatar Logic
-        // =======================
 
         window.openAvatarModal = function() {
             document.getElementById('avatarModal').style.display = 'flex';
@@ -437,7 +522,6 @@
             const grid = document.getElementById('avatar-grid');
             grid.innerHTML = '';
             
-            // Expanded seeds for more variety of Avatars
             const seeds = {
                 notionists: [1, 3, 6, 9, 10, 13, 15, 17, 18, 19, 20, 23, 29, 52, 54, 58, 59, 64, 65, 68, 74, 75, 84],
                 micah: [4, 14, 69, 102, 124, 169, 232, 267, 309, 312, 343, 347, 352, 379],
@@ -473,7 +557,6 @@
             }
         };
 
-        // Handle File Input (Local Photo)
         document.getElementById('photoInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -490,9 +573,6 @@
             }
         });
 
-        // =======================
-        // Excel Import Logic (Firebase Version)
-        // =======================
         window.importFromExcel = async function(input) {
             if (!currentUser) return;
             const file = input.files[0];
@@ -515,11 +595,10 @@
                             return;
                         }
 
-                        // Save to Firestore using Batch
                         const batch = writeBatch(db);
                         newStudents.forEach(student => {
                             const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students', student.id.toString());
-                            batch.set(docRef, student);
+                            batch.set(docRef, student, { merge: true });
                         });
                         
                         await batch.commit();
@@ -537,6 +616,12 @@
             };
             reader.readAsArrayBuffer(file);
         };
+
+        function isTruthy(val) {
+            if(!val) return false;
+            const s = String(val).toLowerCase().trim();
+            return s === 'x' || s === 'v' || s === 'បាទ' || s === 'ចាស' || s === 'បាទ/ចាស' || s === 'yes' || s === 'true' || s === '1';
+        }
 
         function formatStudentData(data) {
             const getVal = (possibleKeys) => {
@@ -570,39 +655,71 @@
                 }
             }
 
-            let fJob = getVal(['Father Job', 'Father Occupation', 'មុខរបរឪពុក', 'មុខរបរ']);
-            let mJob = getVal(['Mother Job', 'Mother Occupation', 'មុខរបរម្តាយ', 'មុខរបរ_1']);
+            // Boolean parsing for new columns
+            const isNew = isTruthy(getVal(['សិស្សថ្មី', 'New Student'])) ? 'បាទ/ចាស' : 'ទេ';
+            const isRepeater = isTruthy(getVal(['ស.ត្រួត', 'សិស្សត្រួត', 'ស.ត្រួត(សិស្សត្រួត)'])) ? 'បាទ/ចាស' : 'ទេ';
+            const isEquity = isTruthy(getVal(['ស.ធម៌', 'សិស្សសមធម៌', 'ស.ធម៌(សិស្សសមធម៌)'])) ? 'បាទ/ចាស' : 'ទេ';
+            const isScholarship = isTruthy(getVal(['អ.រូបករណ៍', 'អាហារូបករណ៍', 'Scholarship'])) ? 'បាទ/ចាស' : 'ទេ';
+            const isDisabled = isTruthy(getVal(['ស.ពិការ', 'សិស្សពិការ', 'ស.ពិការ(សិស្សពិការ)'])) ? 'បាទ/ចាស' : 'ទេ';
+            
+            // Complex statuses
+            let orphan = 'ទេ';
+            const orphanRaw = getVal(['ស.កំព្រា', 'សិស្សកំព្រា', 'ស.កំព្រា(សិស្សកំព្រា)']);
+            if (orphanRaw) {
+                const s = String(orphanRaw).trim();
+                if(s.includes('ឪពុក')) orphan = 'កំព្រាឪពុក';
+                else if(s.includes('ម្តាយ') || s.includes('ម្ដាយ')) orphan = 'កំព្រាម្តាយ';
+                else if(s.includes('ទាំងពីរ')) orphan = 'កំព្រាទាំងពីរ';
+                else if(isTruthy(s)) orphan = 'កំព្រាទាំងពីរ'; // Default fallback
+            }
+
+            let poor = 'គ្មាន';
+            if (isTruthy(getVal(['ក្រ១', 'Poor 1', 'ក្រ 1']))) poor = 'ក្រ១';
+            else if (isTruthy(getVal(['ក្រ២', 'Poor 2', 'ក្រ 2']))) poor = 'ក្រ២';
 
             return {
-                id: getVal(['ID', 'Student ID', 'អត្តលេខ']),
+                id: getVal(['ID', 'Student ID', 'អត្តលេខ', 'អ.ល']),
                 grade: getVal(['Grade', 'Class', 'ថ្នាក់', 'ថ្នាក់ទី']),
                 name: getVal(['Name', 'Student Name', 'ឈ្មោះ', 'ឈ្មោះសិស្ស', 'គោត្តនាម និងនាម']), 
+                latinName: getVal(['Latin Name', 'ឈ្មោះសិស្សជាអក្សរឡាតាំង', 'ឈ្មោះឡាតាំង']),
                 gender: gender,
                 dob: dob,
-                province: getVal(['Province', 'City', 'ខេត្ត', 'រាជធានី', 'ខេត្ត/ក្រុង']),
+                age: getVal(['Age', 'អាយុ']),
+                province: getVal(['Province', 'City', 'ខេត្ត', 'រាជធានី', 'ខេត្ត/ក្រុង', 'ទីកន្លែងកំណើត']),
                 district: getVal(['District', 'Khan', 'ស្រុក', 'ខណ្ឌ', 'ស្រុក/ខណ្ឌ']),
                 commune: getVal(['Commune', 'Sangkat', 'ឃុំ', 'សង្កាត់', 'ឃុំ/សង្កាត់']),
                 village: getVal(['Village', 'Phum', 'ភូមិ']),
-                currProvince: getVal(['Current Province', 'ខេត្តបច្ចុប្បន្ន', 'ខេត្ត/ក្រុង_1']),
+                currProvince: getVal(['Current Province', 'ខេត្តបច្ចុប្បន្ន', 'ខេត្ត/ក្រុង_1', 'អាសយដ្ឋានសព្វថ្ងៃ']),
                 currDistrict: getVal(['Current District', 'ស្រុកបច្ចុប្បន្ន', 'ស្រុក/ខណ្ឌ_1']),
                 currCommune: getVal(['Current Commune', 'ឃុំបច្ចុប្បន្ន', 'ឃុំ/សង្កាត់_1']),
                 currVillage: getVal(['Current Village', 'ភូមិបច្ចុប្បន្ន', 'ភូមិ_1']),
-                ethnicity: getVal(['Ethnicity', 'ជនជាតិដើមភាគតិច']),
+                
+                // Statuses
+                isNewStudent: isNew,
+                isRepeater: isRepeater,
+                orphanStatus: orphan,
+                poorStatus: poor,
+                isEquity: isEquity,
+                isScholarship: isScholarship,
+                isDisabled: isDisabled,
+                
+                ethnicity: getVal(['Ethnicity', 'ជនជាតិភាគតិច', 'ជនជាតិដើមភាគតិច']),
                 specialFeatures: getVal(['Special Features', 'លក្ខណៈពិសេស']),
-                otherRemarks: getVal(['Others', 'Remarks', 'សេចក្តីផ្សេងៗ']),
-                father: getVal(['Father Name', 'Father', 'ឈ្មោះឪពុក']),
-                fatherJob: fJob,
-                mother: getVal(['Mother Name', 'Mother', 'ឈ្មោះម្តាយ']),
-                motherJob: mJob,
-                phone: getVal(['Phone', 'Tel', 'លេខទូរស័ព្ទ']),
+                otherRemarks: getVal(['Others', 'Remarks', 'សេចក្តីផ្សេងៗ', 'ផ្សេងៗ']),
+                
+                father: getVal(['Father Name', 'Father', 'ឈ្មោះឪពុក', 'ឈ្មោះឪពុក និង មុខរបរ']),
+                fatherJob: getVal(['Father Job', 'Father Occupation', 'មុខរបរឪពុក']),
+                mother: getVal(['Mother Name', 'Mother', 'ឈ្មោះម្តាយ', 'ឈ្មោះម្តាយ និង មុខរបរ']),
+                motherJob: getVal(['Mother Job', 'Mother Occupation', 'មុខរបរម្តាយ']),
+                guardianName: getVal(['Guardian Name', 'អាណាព្យាបាល', 'អាណាព្យាបាល និងមុខរបរ']),
+                guardianJob: getVal(['Guardian Job', 'មុខរបរអាណាព្យាបាល']),
+                
+                phone: getVal(['Phone', 'Tel', 'លេខទូរស័ព្ទ', 'លេខទូរសព្ទអាណាព្យាបាល']),
                 photo: `https://api.dicebear.com/7.x/notionists/svg?seed=${getVal(['ID', 'Student ID', 'អត្តលេខ'])}`,
                 createdAt: new Date().toISOString()
             };
         }
 
-        // =======================
-        // CSV Location Logic
-        // =======================
         function parseCSVLine(line) {
             const delimiter = line.includes(';') ? ';' : ',';
             return line.split(delimiter).map(s => s.trim());
@@ -634,7 +751,7 @@
                 }
 
                 initAutocomplete();
-                await checkForEditMode(); // Check if we are editing an existing student
+                await checkForEditMode(); 
                 loadingOverlay.style.display = 'none';
             } catch (error) {
                 console.error('Error:', error);
@@ -647,23 +764,27 @@
             const showList = () => {
                 const data = getData(); 
                 const filter = input.value.toLowerCase();
-                listElement.innerHTML = '';
                 
                 const filteredData = data.filter(item => item.toLowerCase().includes(filter));
                 
                 if (filteredData.length > 0) {
-                    listElement.style.display = 'block';
+                    listElement.innerHTML = ''; // Clear items
                     filteredData.forEach(item => {
                         const li = document.createElement('li');
                         li.className = 'suggestion-item';
                         li.textContent = item;
-                        li.onclick = () => {
+                        
+                        // Use mousedown instead of click to prevent the input from losing focus early
+                        li.addEventListener('mousedown', (e) => {
+                            e.preventDefault(); 
                             input.value = item;
                             listElement.style.display = 'none';
                             if (onSelect) onSelect(item);
-                        };
+                        });
+                        
                         listElement.appendChild(li);
                     });
+                    listElement.style.display = 'block';
                 } else {
                     listElement.style.display = 'none';
                 }
@@ -671,8 +792,10 @@
 
             input.addEventListener('input', showList);
             input.addEventListener('focus', showList);
+            input.addEventListener('click', showList); // Added to show list when re-clicking an active input
 
-            document.addEventListener('click', (e) => {
+            // Use mousedown instead of click for document to accurately catch outside clicks before blur happens
+            document.addEventListener('mousedown', (e) => {
                 if (!input.contains(e.target) && !listElement.contains(e.target)) {
                     listElement.style.display = 'none';
                 }
@@ -738,13 +861,9 @@
             input.disabled = true;
         }
 
-        // =======================
-        // Edit Mode Logic (Firebase Version)
-        // =======================
         async function checkForEditMode() {
-            // Check if student list page passed an ID
             const editStudentId = localStorage.getItem('editStudentId'); 
-            const legacyEditIndex = localStorage.getItem('editStudentIndex'); // Fallback if list page hasn't been updated yet
+            const legacyEditIndex = localStorage.getItem('editStudentIndex'); 
             
             if (editStudentId && currentUser) {
                 loadingText.textContent = "កំពុងទាញយកទិន្នន័យសិស្ស...";
@@ -760,7 +879,6 @@
                     console.error("Error fetching student:", error);
                 }
             } else if (legacyEditIndex !== null) {
-                // Warning if the user comes from an old localstorage based list page
                 console.warn("កំពុងប្រើប្រាស់ LocalStorage Index។ សូមធ្វើបច្ចុប្បន្នភាពទំព័រ student-list.html ទៅកាន់ Firebase");
                 const localStudents = JSON.parse(localStorage.getItem('students') || '[]');
                 if(localStudents[legacyEditIndex]) {
@@ -779,16 +897,21 @@
         }
 
         function populateFormWithData(student) {
-            document.getElementById('studentId').value = student.id || '';
-            document.getElementById('studentId').readOnly = true; // Protect ID from change during edit
+            const displayId = student.id || student.studentId || student.ID || student['អត្តលេខ'] || '';
+            document.getElementById('studentId').value = displayId;
+            document.getElementById('studentId').readOnly = true; 
             document.getElementById('studentId').classList.add('bg-gray-100');
             
             document.getElementById('grade').value = student.grade || '';
-            document.getElementById('studentName').value = student.name || '';
+            
+            const displayName = student.name || student.studentName || student.khmerName || student.fullName || student.Name || student['ឈ្មោះ'] || student['ឈ្មោះសិស្ស'] || student['គោត្តនាម និងនាម'] || '';
+            document.getElementById('studentName').value = displayName;
+            
+            document.getElementById('latinName').value = student.latinName || '';
             document.getElementById('gender').value = student.gender || '';
             document.getElementById('dob').value = student.dob || '';
+            document.getElementById('age').value = student.age || '';
             
-            // Birth Place
             document.getElementById('province-input').value = student.province || '';
             document.getElementById('district-input').value = student.district || '';
             document.getElementById('commune-input').value = student.commune || '';
@@ -798,7 +921,6 @@
             if(student.district) document.getElementById('commune-input').disabled = false;
             if(student.commune) document.getElementById('village-input').disabled = false;
 
-            // Current Place
             document.getElementById('curr-province-input').value = student.currProvince || '';
             document.getElementById('curr-district-input').value = student.currDistrict || '';
             document.getElementById('curr-commune-input').value = student.currCommune || '';
@@ -808,7 +930,15 @@
             if(student.currDistrict) document.getElementById('curr-commune-input').disabled = false;
             if(student.currCommune) document.getElementById('curr-village-input').disabled = false;
 
-            // Other Fields
+            // Select Statuses
+            document.getElementById('isNewStudent').value = student.isNewStudent || 'បាទ/ចាស';
+            document.getElementById('isRepeater').value = student.isRepeater || 'ទេ';
+            document.getElementById('orphanStatus').value = student.orphanStatus || 'ទេ';
+            document.getElementById('isDisabled').value = student.isDisabled || 'ទេ';
+            document.getElementById('poorStatus').value = student.poorStatus || 'គ្មាន';
+            document.getElementById('isEquity').value = student.isEquity || 'ទេ';
+            document.getElementById('isScholarship').value = student.isScholarship || 'ទេ';
+
             document.getElementById('ethnicity').value = student.ethnicity || '';
             document.getElementById('specialFeatures').value = student.specialFeatures || '';
             document.getElementById('otherRemarks').value = student.otherRemarks || '';
@@ -817,6 +947,8 @@
             document.getElementById('fatherJob').value = student.fatherJob || '';
             document.getElementById('motherName').value = student.mother || '';
             document.getElementById('motherJob').value = student.motherJob || '';
+            document.getElementById('guardianName').value = student.guardianName || '';
+            document.getElementById('guardianJob').value = student.guardianJob || '';
             document.getElementById('phone').value = student.phone || '';
 
             if (student.photo) {
@@ -824,9 +956,6 @@
             }
         }
 
-        // =======================
-        // Form Submission Logic (Firebase Version)
-        // =======================
         document.getElementById('enrollmentForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -853,9 +982,11 @@
             const studentData = {
                 id: studentId,
                 grade: grade,
-                name: studentName,
+                name: studentName, 
+                latinName: document.getElementById('latinName').value,
                 gender: gender,
                 dob: dob,
+                age: document.getElementById('age').value,
                 province: document.getElementById('province-input').value,
                 district: document.getElementById('district-input').value,
                 commune: document.getElementById('commune-input').value,
@@ -864,6 +995,16 @@
                 currDistrict: document.getElementById('curr-district-input').value,
                 currCommune: document.getElementById('curr-commune-input').value,
                 currVillage: document.getElementById('curr-village-input').value,
+                
+                // Statuses
+                isNewStudent: document.getElementById('isNewStudent').value,
+                isRepeater: document.getElementById('isRepeater').value,
+                orphanStatus: document.getElementById('orphanStatus').value,
+                isDisabled: document.getElementById('isDisabled').value,
+                poorStatus: document.getElementById('poorStatus').value,
+                isEquity: document.getElementById('isEquity').value,
+                isScholarship: document.getElementById('isScholarship').value,
+
                 ethnicity: document.getElementById('ethnicity').value,
                 specialFeatures: document.getElementById('specialFeatures').value,
                 otherRemarks: document.getElementById('otherRemarks').value,
@@ -871,6 +1012,8 @@
                 fatherJob: document.getElementById('fatherJob').value,
                 mother: document.getElementById('motherName').value,
                 motherJob: document.getElementById('motherJob').value,
+                guardianName: document.getElementById('guardianName').value,
+                guardianJob: document.getElementById('guardianJob').value,
                 phone: document.getElementById('phone').value,
                 photo: currentPhotoBase64,
                 updatedAt: new Date().toISOString()
@@ -883,11 +1026,9 @@
             lucide.createIcons();
             
             try {
-                // Save to Firestore specific document path using Student ID
                 const docRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students', studentId.toString());
-                await setDoc(docRef, studentData);
+                await setDoc(docRef, studentData, { merge: true });
 
-                // Clear temporary edit pointers
                 localStorage.removeItem('editStudentId');
                 localStorage.removeItem('editStudentIndex');
 
@@ -899,7 +1040,7 @@
                 
                 setTimeout(() => {
                     toast.remove();
-                    window.location.href = 'student-list.html';
+                    window.location.href = 'student-list.html'; // Or student-listV2.html based on your routing
                 }, 1500);
 
             } catch (error) {
@@ -911,7 +1052,6 @@
             }
         });
 
-        // Initialize App
         lucide.createIcons();
         generateAvatarGrid();
     </script>

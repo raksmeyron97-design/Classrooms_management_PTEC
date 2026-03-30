@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>សម្ភារៈតុបតែងថ្នាក់ - PTEC</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;600;700&family=Moul&display=swap" rel="stylesheet">
+    
+    <style>
+        /* style.css */
+        body {
+            font-family: 'Kantumruy Pro', sans-serif;
+        }
+        .kh-moul {
+            font-family: 'Moul', cursive;
+        }
+
+        /* Custom New Animations */
+        .animate-gradient-text {
+            background: linear-gradient(-45deg, #0054a6, #4facfe, #ff2d75, #0054a6);
+            background-size: 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientText 6s ease infinite;
+        }
+        @keyframes gradientText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .card-entrance {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            animation: slideUpScale 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes slideUpScale {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Material Card Image Hover Effect */
+        .material-img-wrapper {
+            overflow: hidden;
+        }
+        .material-img-wrapper img {
+            transition: transform 0.5s ease;
+        }
+        .group:hover .material-img-wrapper img {
+            transform: scale(1.08);
+        }
+
+        /* Dark Mode Overrides */
+        .dark body { background: #0f172a; }
+    </style>
+    
+    <script>
+        // ការពារការលោតពណ៌ (FOUC) ពេល Load Page
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="dark:text-gray-100 transition-colors duration-300 bg-gray-50 dark:bg-[#0f172a]">
+
+    <!-- Header / Navigation -->
+    <header class="sticky top-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 shadow-sm transition-colors duration-300">
+        <nav class="max-w-7xl mx-auto px-4 md:px-8 py-3 flex justify-between items-center">
+            <!-- ប្តូរ href ទៅកាន់ index.html ដើម្បីអាចត្រឡប់ទៅទំព័រដើមវិញបាន -->
+            <a href="../index.html" class="flex items-center gap-2">
+                <i data-lucide="arrow-left" class="w-5 h-5 text-[#0054a6] dark:text-[#4facfe]"></i>
+                <span class="font-bold text-[#0054a6] dark:text-[#4facfe]">ត្រឡប់ក្រោយ</span>
+            </a>
+            
+            <div class="flex items-center gap-4 text-sm font-bold text-[#0054a6] dark:text-blue-300">
+                <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-gray-800 rounded-full border border-blue-100 dark:border-gray-700">
+                    <i data-lucide="user-circle" class="w-4 h-4"></i>
+                    <!-- កន្លែងនេះនឹងត្រូវបាន Update ដោយស្វ័យប្រវត្តិពី Firebase -->
+                    <span id="desktop-user-email" class="font-medium text-xs">កំពុងផ្ទុក...</span>
+                </div>
+                <button type="button" class="theme-toggle-btn text-gray-500 dark:text-gray-400 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                    <i data-lucide="moon" class="theme-toggle-dark-icon hidden w-5 h-5"></i>
+                    <i data-lucide="sun" class="theme-toggle-light-icon hidden w-5 h-5"></i>
+                </button>
+                <button class="logout-btn hidden md:flex items-center gap-1.5 text-red-600 hover:text-red-800 dark:text-red-400 transition font-bold">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> ចាកចេញ
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 md:px-8 py-8 relative">
+        <div class="text-center mb-10">
+            <h1 class="kh-moul text-2xl md:text-4xl mb-3 animate-gradient-text">សម្ភារៈតុបតែងថ្នាក់រៀន (PDF)</h1>
+            <p class="text-gray-500 dark:text-gray-400 mb-6">ទាញយកឯកសារសម្រាប់បោះពុម្ព និងតុបតែងថ្នាក់រៀនរបស់អ្នក</p>
+            
+            <div class="max-w-md mx-auto relative">
+                <i data-lucide="search" class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"></i>
+                <input type="search" id="search-material" placeholder="ស្វែងរកសម្ភារៈតុបតែង..." class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#0054a6] outline-none shadow-sm">
+            </div>
+        </div>
+
+        <!-- Grid សម្រាប់បង្ហាញកាតសម្ភារៈ -->
+        <div id="materials-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Cards នឹងត្រូវបានបង្កើតនៅទីនេះដោយ app.js -->
+        </div>
+
+        <div id="no-results" class="hidden text-center py-12 text-gray-500">
+            <i data-lucide="file-question" class="mx-auto w-12 h-12 mb-3 opacity-50"></i>
+            <p>រកមិនឃើញឯកសារដែលអ្នកស្វែងរកទេ</p>
+        </div>
+
+        <!-- ផ្ទាំង Modal សម្រាប់បង្ហាញពេលចុចលើរូបភាព -->
+        <div id="material-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto m-4 flex flex-col md:flex-row relative">
+                
+                <!-- ប៊ូតុងបិទ Modal -->
+                <button id="close-modal" class="absolute top-4 right-4 z-10 bg-gray-100/80 hover:bg-gray-200 dark:bg-gray-700/80 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-full p-2 backdrop-blur-sm transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+
+                <!-- ផ្នែកខាងឆ្វេង៖ រូបភាព Preview ធំ -->
+                <div class="md:w-1/2 bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700">
+                    <img id="modal-image" src="" alt="Preview" class="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm">
+                </div>
+
+                <!-- ផ្នែកខាងស្តាំ៖ ប្រអប់ទាញយកទាំង ៣ -->
+                <div class="md:w-1/2 p-8 flex flex-col justify-center">
+                    <h2 id="modal-title" class="kh-moul text-2xl mb-2 text-[#0054a6] dark:text-[#4facfe]">ចំណងជើង</h2>
+                    <p id="modal-size" class="text-gray-500 dark:text-gray-400 mb-8 flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-4 h-4"></i> ទំហំឯកសារ
+                    </p>
+
+                    <div class="bg-blue-50/50 dark:bg-gray-700/30 p-6 rounded-xl border border-blue-100 dark:border-gray-600">
+                        <h3 class="font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                            <i data-lucide="download-cloud" class="w-5 h-5 text-[#0054a6] dark:text-[#4facfe]"></i> 
+                            ជ្រើសរើសទំហំទាញយក
+                        </h3>
+                        
+                        <div id="dynamic-download-container" class="flex flex-col gap-3">
+                            <!-- ប៊ូតុងទាញយកនឹងត្រូវបានបង្កើតដោយស្វ័យប្រវត្តិពីឯកសារ app.js -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ភ្ជាប់ឯកសារ Javascript -->
+    <script src="app.js"></script>
+
+    <!-- ផ្នែកទាញយកព័ត៌មាន User (Firebase Auth) -->
+    <script type="module">
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        // ទាញយក app Config ពីឯកសារដែលអ្នកមានស្រាប់ (ដូចក្នុង auth.js ដែរ)
+        import { app } from "./index_style/firebase-config.js"; 
+        // សម្គាល់: ប្រសិនបើឯកសារ firebase-config.js របស់អ្នកមិនស្ថិតក្នុង folder នេះទេ សូមកែប្រែ path ខាងលើឲ្យត្រូវទីតាំង។
+
+        const auth = getAuth(app);
+        const userEmailDesktop = document.getElementById('desktop-user-email');
+        const logoutBtns = document.querySelectorAll('.logout-btn');
+
+        // ត្រួតពិនិត្យការ Log In
+        onAuthStateChanged(auth, (user) => {
+            if (user && !user.isAnonymous) {
+                // ប្រសិនបើមាន User គឺបង្ហាញ Email
+                if (userEmailDesktop) {
+                    userEmailDesktop.textContent = user.email;
+                }
+            } else {
+                // ប្រសិនបើមិនទាន់ Log In ទេ ឲ្យត្រឡប់ទៅទំព័រដើមវិញ
+                window.location.href = 'index.html';
+            }
+        });
+
+        // មុខងារសម្រាប់ពេលចុច Logout
+        logoutBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (confirm('តើអ្នកពិតជាចង់ចាកចេញពីគណនីនេះមែនទេ?')) {
+                    signOut(auth).then(() => {
+                        window.location.href = 'index.html';
+                    }).catch((error) => {
+                        console.error('Logout failed:', error);
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

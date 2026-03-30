@@ -1,0 +1,208 @@
+:root { --primary: #0054a6; }
+body { 
+    font-family: 'Kantumruy Pro', sans-serif; 
+    background: #f0f4f8; 
+    min-height: 100vh; 
+    margin: 0; 
+    padding: 0; 
+    overflow-x: hidden; 
+}
+.kh-moul { font-family: 'Moul', cursive; }
+
+/* Background Animation */
+.bg-animate { 
+    position: fixed; 
+    top: -5%; left: -5%; width: 110%; height: 110%; z-index: -1; 
+    background: radial-gradient(circle at 10% 20%, #e0e7ff 0%, transparent 40%), 
+                radial-gradient(circle at 90% 80%, #dcfce7 0%, transparent 40%), 
+                radial-gradient(circle at 50% 50%, #fef3c7 0%, transparent 50%); 
+    animation: moveBg 25s infinite alternate ease-in-out; 
+}
+
+@keyframes moveBg { 
+    0% { transform: scale(1) translate(0, 0) rotate(0deg); } 
+    50% { transform: scale(1.05) translate(2%, 1%) rotate(1deg); } 
+    100% { transform: scale(1.1) translate(-1%, -2%) rotate(-1deg); } 
+}
+
+/* Accessibility: Reduce motion if preferred by user OS */
+@media (prefers-reduced-motion: reduce) {
+    .bg-animate, .glowing-wrapper::before, .glowing-wrapper::after { animation: none !important; transform: none !important; }
+    .card-3d, .skeleton-pulse, .toast-enter, .toast-exit { transition: none !important; animation: none !important; }
+    .card-3d:hover, .card-3d:focus-visible { transform: none !important; }
+    .card-entrance { animation: none !important; opacity: 1 !important; transform: none !important; }
+    .hover-float-icon, .group:hover .hover-float-icon { transition: none !important; transform: none !important; }
+}
+
+/* 3D Card Hover & Focus */
+.card-3d { 
+    background: rgba(255, 255, 255, 0.85); 
+    backdrop-filter: blur(10px); 
+    border: 1px solid rgba(255, 255, 255, 0.6); 
+    border-radius: 1.5rem; 
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); 
+    cursor: pointer; 
+    display: flex;
+    text-decoration: none;
+}
+.card-3d:hover { 
+    transform: perspective(1000px) translateY(-8px) rotateX(3deg) rotateY(-3deg); 
+    background: rgba(255, 255, 255, 1); 
+    box-shadow: 0 15px 30px rgba(0, 84, 166, 0.12),
+                0 5px 15px rgba(0, 0, 0, 0.05); 
+}
+/* Custom Focus Visible for Accessibility */
+.card-3d:focus-visible {
+    transform: perspective(1000px) translateY(-8px) rotateX(3deg) rotateY(-3deg); 
+    background: rgba(255, 255, 255, 1);
+    outline: 3px solid var(--primary);
+    outline-offset: 3px;
+    box-shadow: 0 15px 30px rgba(0, 84, 166, 0.15),
+                0 5px 15px rgba(0, 0, 0, 0.05); 
+}
+
+/* App Card Entrance Animation */
+.card-entrance {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+    animation: slideUpScale 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes slideUpScale {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Hover Float Icon Animation */
+.hover-float-icon {
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.group:hover .hover-float-icon {
+    transform: translateY(-8px) scale(1.15) rotate(5deg);
+}
+
+.app-icon-container { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 1.25rem; }
+
+/* Glowing Auth Box */
+.glowing-wrapper {
+    position: relative; padding: 3px; border-radius: 1.3rem; overflow: hidden; background: rgba(255,255,255,0.1); 
+}
+.glowing-wrapper::before, .glowing-wrapper::after {
+    content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    /* Added more colors for a multicolor effect */
+    background: conic-gradient(
+        from 0deg at 50% 50%, 
+        transparent 0%, 
+        #ff2d75 15%, #ff8c00 25%, transparent 35%, 
+        transparent 50%, 
+        #4facfe 65%, #c084fc 75%, transparent 85%
+    );
+    animation: rotateGlow 8s linear infinite; 
+    z-index: 0;
+}
+/* Softer blur and added opacity pulse */
+.glowing-wrapper::after { 
+    filter: blur(22px); 
+    opacity: 0.6; 
+    animation: rotateGlow 8s linear infinite, pulseOpacity 4s ease-in-out infinite alternate;
+}
+.glowing-inner { position: relative; background-color: white; border-radius: 1.15rem; z-index: 10; width: 100%; height: 100%; }
+
+@keyframes rotateGlow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes pulseOpacity { 0% { opacity: 0.4; } 100% { opacity: 0.85; } }
+
+.auth-tab.active { border-bottom: 3px solid #0054a6; color: #0054a6; font-weight: 700; }
+
+/* Utilities */
+#page-loader { 
+    position: fixed; inset: 0; background: white; z-index: 9999; 
+    display: flex; flex-direction: column; justify-content: center; align-items: center; 
+    /* Combined fade and slide transition */
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
+}
+#page-loader.hidden {
+    opacity: 0;
+    transform: translateY(-20px);
+    pointer-events: none;
+}
+
+@keyframes slideInUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes fadeOutSlide { from { transform: translateY(0); opacity: 1; } to { transform: translateY(15px); opacity: 0; } }
+
+/* Tuned timings with snappy spring-like bezier curves */
+.toast-enter { animation: slideInUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.toast-exit { animation: fadeOutSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+.skeleton-pulse { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* --- New Animations for Running Text & Icons --- */
+.marquee-container {
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-radius: 0.75rem;
+}
+.marquee-content {
+    display: inline-flex;
+    animation: marquee 20s linear infinite;
+    padding-left: 100%;
+}
+.marquee-content:hover {
+    animation-play-state: paused;
+}
+@keyframes marquee {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-100%, 0); }
+}
+
+.animate-float {
+    animation: floatIcon 3s ease-in-out infinite;
+}
+.animate-float-delayed {
+    animation: floatIcon 3s ease-in-out infinite;
+    animation-delay: 1.5s;
+}
+@keyframes floatIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+.animate-wiggle {
+    animation: wiggle 2s linear infinite;
+}
+@keyframes wiggle {
+    0%, 7%, 15%, 100% { transform: rotate(0deg); }
+    3% { transform: rotate(-15deg); }
+    11% { transform: rotate(15deg); }
+}
+
+/* ជួសជុលបញ្ហាកាត់ក្បាល និងជើងអក្សរខ្មែរពេលប្រើ background-clip (Gradient Text Fix) */
+.animate-gradient-text {
+    padding-top: 0.25em;
+    padding-bottom: 0.35em;
+    line-height: 1.5;
+}
+
+/* --- EYE BLINK ANIMATION (NEW) --- */
+.eye-blink {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: blink 1s infinite;
+}
+@keyframes blink {
+    0%, 95%, 98%, 100% { transform: scaleY(1); }
+    96%, 99% { transform: scaleY(0.1); }
+}
+
+/* --- FACE POP ANIMATION (NEW) --- */
+.face-group {
+    transform-origin: center;
+}
+.face-group:not(.hidden) {
+    animation: popFace 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes popFace {
+    0% { transform: translateY(20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}

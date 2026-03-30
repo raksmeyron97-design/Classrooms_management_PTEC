@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>របាយការណ៍អវត្តមានប្រចាំឆ្នាំ - PTEC</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&family=Moul&display=swap');
+
+        :root {
+            --primary-font: 'Hanuman', serif;
+            --title-font: 'Moul', cursive;
+            --blue-color: #1e3a8a;
+            --red-color: #dc2626;
+            --border-color: #1e3a8a;
+        }
+
+        body {
+            font-family: var(--primary-font);
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        #printArea {
+            width: 100%;
+            max-width: 297mm;
+            margin: auto;
+        }
+
+        .page-container {
+            width: 297mm;
+            height: 209mm; /* A4 Landscape */
+            padding: 10mm 12mm;
+            margin: 0 auto;
+            box-sizing: border-box;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            color: var(--blue-color);
+            position: relative;
+            overflow: hidden;
+            page-break-inside: avoid;
+        }
+
+        .page-container:not(:last-child) { margin-bottom: 30px; }
+
+        .kh-moul { font-family: var(--title-font); font-weight: normal; }
+
+        /* Header Layout */
+        .admin-header { text-align: center; margin-bottom: 5px; color: black; }
+        .report-header-img { height: 25px; width: auto; margin: 5px auto 0 auto; display: block; }
+        
+        .org-info { line-height: 1.3; text-align: left; font-size: 11pt; font-weight: bold; margin-bottom: 5px; color: var(--blue-color); }
+        .org-info p { margin: 0; }
+        .title-section { width: 100%; text-align: center; margin-bottom: 10px; }
+        .info-row { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; font-size: 11pt; font-weight: bold; margin-bottom: 5px; }
+
+        .main-title {
+            color: var(--red-color);
+            font-size: 14pt;
+            margin: 0 0 5px 0;
+            display: inline-block;
+            border-bottom: 1.5px solid var(--red-color);
+            padding-bottom: 2px;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            border: 1.5pt solid var(--border-color);
+        }
+
+        th, td {
+            border: 0.8pt solid var(--border-color);
+            text-align: center;
+            vertical-align: middle;
+            padding: 2px;
+            font-size: 9pt; /* Adjusted slightly to fit 12 months */
+            height: 20px;
+            color: var(--blue-color);
+        }
+
+        th { font-weight: bold; }
+
+        .vertical-wrapper {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vertical-text {
+            display: block;
+            white-space: nowrap;
+            transform: translate(-50%, -50%) rotate(-90deg); 
+            width: 60px;
+            text-align: center;
+            font-size: 8.5pt;
+            font-weight: bold;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+        }
+
+        .id-col { width: 35px; }
+        .name-col { width: 120px; text-align: left; padding-left: 5px; font-weight: bold; white-space: nowrap; overflow: hidden; }
+        .gender-col { width: 25px; }
+        .note-col { width: 45px; }
+        
+        .female-row td { background-color: #C2DFFF !important; }
+        .female-text { color: var(--red-color) !important; font-weight: bold; }
+        
+        .number-row th { font-size: 8pt; background-color: #f8fafc; color: var(--blue-color); }
+        .bg-gray { background-color: #f8fafc; }
+
+        /* Signature Section */
+        .signature-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .sig-box { text-align: center; color: var(--blue-color); font-weight: bold;}
+        .role { font-family: var(--title-font); font-size: 11pt; margin-top: 5px; margin-bottom: 50px; display: block; }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ddd;
+            flex-wrap: wrap;
+        }
+
+        input { padding: 8px; font-family: var(--primary-font); border: 1px solid #ccc; border-radius: 4px; outline: none; font-weight: bold; color: var(--blue-color);}
+        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; font-family: var(--primary-font); transition: 0.3s; }
+        button:hover { opacity: 0.9; }
+
+        @media print {
+            @page { size: A4 landscape; margin: 0; }
+            .controls { display: none; }
+            body { padding: 0; margin: 0; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .container { box-shadow: none !important; padding: 0; margin: 0; max-width: 100%; border: none; }
+            .page-container { margin: 0 !important; border: none !important; page-break-after: always; }
+            .page-container:last-child { page-break-after: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="controls">
+        <button onclick="window.close()" style="background: #475569; color: white;">ត្រឡប់ក្រោយ</button>
+        
+        <label>ឆ្នាំសិក្សា៖</label>
+        <input type="text" id="academicYearInput" value="២០២៥-២០២៦" style="width: 120px; text-align: center;">
+        
+        <label>ចំនួនសិស្សសរុប៖</label>
+        <input type="number" id="studentCount" value="0" readonly style="width: 60px; background: #f1f5f9;">
+        
+        <button onclick="exportExcel()" style="background: #16a34a; color: white;">ទាញយក Excel</button>
+        <button id="btnDownload" onclick="downloadPDF()" style="background: #d93025; color: white;">ទាញយក PDF</button>
+        <button onclick="window.print()" style="background: #1a73e8; color: white;">បោះពុម្ព</button>
+    </div>
+
+    <div id="printArea"></div>
+</div>
+
+<script>
+    const khDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+    function toKhmerNum(num) { 
+        if(num === null || num === undefined || num === '') return '';
+        return num.toString().split('').map(d => khDigits[d] || d).join(''); 
+    }
+
+    const academicMonths = [
+        { name: 'តុលា', m: '10', sem: 1 }, 
+        { name: 'វិច្ឆិកា', m: '11', sem: 1 }, 
+        { name: 'ធ្នូ', m: '12', sem: 1 },
+        { name: 'មករា', m: '01', sem: 1 }, 
+        { name: 'កុម្ភៈ', m: '02', sem: 1 }, 
+        { name: 'មីនា', m: '03', sem: 1 },
+        { name: 'មេសា', m: '04', sem: 2 }, 
+        { name: 'ឧសភា', m: '05', sem: 2 }, 
+        { name: 'មិថុនា', m: '06', sem: 2 },
+        { name: 'កក្កដា', m: '07', sem: 2 }, 
+        { name: 'សីហា', m: '08', sem: 2 }, 
+        { name: 'កញ្ញា', m: '09', sem: 2 }
+    ];
+
+    let customData = null;
+    let appSettings = {};
+    let yearlyStats = {};
+
+    function calculateYearlyStats(students, attendance) {
+        let stats = {};
+        if(!students || !attendance) return stats;
+
+        students.forEach(s => {
+            stats[s.uid] = {
+                months: {},
+                sem1: { L: 0, A: 0 },
+                sem2: { L: 0, A: 0 },
+                year: { L: 0, A: 0 }
+            };
+            academicMonths.forEach(am => { stats[s.uid].months[am.m] = { L: 0, A: 0 }; });
+        });
+
+        for (const [dateString, records] of Object.entries(attendance)) {
+            let monthStr = null;
+
+            // ដំណោះស្រាយទី១: កាត់យកខែពីអត្ថបទផ្ទាល់ជៀសវាងបញ្ហា Date Object
+            if (dateString.includes('-')) {
+                const parts = dateString.split('-');
+                if (parts[0].length === 4) monthStr = parts[1]; // ទម្រង់ YYYY-MM-DD
+                else if (parts[2].length === 4) monthStr = parts[1]; // ទម្រង់ DD-MM-YYYY
+            } else if (dateString.includes('/')) {
+                const parts = dateString.split('/');
+                if (parts[0].length === 4) monthStr = parts[1]; // ទម្រង់ YYYY/MM/DD
+                else if (parts[2].length === 4) monthStr = parts[1]; // ទម្រង់ DD/MM/YYYY
+            }
+
+            // ដំណោះស្រាយទី២ (បម្រុង): ប្រសិនបើមិនអាចកាត់បាន ប្រើ Date
+            if (!monthStr || isNaN(parseInt(monthStr))) {
+                let d = new Date(dateString);
+                if (!isNaN(d.getTime())) {
+                    monthStr = String(d.getMonth() + 1).padStart(2, '0');
+                } else {
+                    continue; // រំលងប្រសិនបើថ្ងៃខែមិនត្រឹមត្រូវ
+                }
+            }
+
+            const acMonth = academicMonths.find(am => am.m === monthStr);
+            if (!acMonth) continue;
+
+            for (const [uid, record] of Object.entries(records)) {
+                if (stats[uid]) {
+                    if (record.status === 'L') {
+                        stats[uid].months[monthStr].L++;
+                        acMonth.sem === 1 ? stats[uid].sem1.L++ : stats[uid].sem2.L++;
+                        stats[uid].year.L++;
+                    } else if (record.status === 'A') {
+                        stats[uid].months[monthStr].A++;
+                        acMonth.sem === 1 ? stats[uid].sem1.A++ : stats[uid].sem2.A++;
+                        stats[uid].year.A++;
+                    }
+                }
+            }
+        }
+        return stats;
+    }
+
+    function createPage(startIdx, endIdx, isFirst, isLast, data) {
+        const className = data?.className || appSettings.className || "........";
+        const org1 = data?.org1 || appSettings.unit1 || "មន្ទីរអប់រំ យុវជន និងកីឡា..................";
+        const org2 = data?.org2 || appSettings.unit2 || "ការិយាល័យអប់រំ យុវជន និងកីឡា..................";
+        const school = data?.school || appSettings.schoolName || "..................";
+        
+        const students = data?.students || [];
+        const acYear = document.getElementById('academicYearInput').value;
+        const totalStu = students.length;
+        const femaleStu = students.filter(s => s.gender === 'ស្រី').length;
+        
+        let html = `<div class="page-container">`;
+        
+        if (isFirst) {
+            html += `
+                <div class="admin-header">
+                    <h3 class="kh-moul" style="font-size: 13pt; margin:0;">ព្រះរាជាណាចក្រកម្ពុជា</h3>
+                    <h3 class="kh-moul" style="font-size: 13pt; margin:0;">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                    <img src="https://lh3.googleusercontent.com/d/1BnGzoisjHxGRiMbsrP-rZ1F9zvSfdtAh" class="report-header-img" crossorigin="anonymous">
+                </div>
+                <div class="org-info">
+                    <p style="font-size: 11pt;">${org1}</p>
+                    <p style="font-size: 11pt;">${org2}</p>
+                    <p style="font-size: 11pt;">${school}</p>
+                </div>
+                <div class="title-section">
+                    <h2 class="kh-moul main-title">ចំនួនសរុបអវត្តមានសិស្សប្រចាំឆ្នាំ</h2>
+                    <div class="info-row" style="margin-top: 5px;">
+                        <span style="font-size: 11pt; color: #166534;"> ${className}</span>
+                        <span style="font-size: 11pt; color: #166534;">សិស្សសរុប៖ ${toKhmerNum(totalStu)} នាក់ / ស្រី ${toKhmerNum(femaleStu)} នាក់</span>
+                        <span style="font-size: 11pt; color: var(--blue-color);">ឆ្នាំសិក្សា ${acYear}</span>
+                    </div>
+                </div>`;
+        } else {
+            html += `<div style="height: 50px;"></div>`;
+        }
+
+        // --- Table Header ---
+        html += `<table><thead>
+            <tr>
+                <th rowspan="3" class="id-col"><div class="vertical-wrapper"><span class="vertical-text">ល.រ</span></div></th>
+                <th rowspan="3" class="id-col"><div class="vertical-wrapper"><span class="vertical-text">អត្តលេខ</span></div></th>
+                <th rowspan="3" class="name-col" style="text-align: center;">គោត្តនាម និងនាម</th>
+                <th rowspan="3" class="gender-col"><div class="vertical-wrapper"><span class="vertical-text">ភេទ</span></div></th>
+                <th colspan="24" class="bg-gray">អវត្តមានប្រចាំខែ</th>
+                <th colspan="6" class="bg-gray">អវត្តមានប្រចាំឆមាស</th>
+                <th colspan="3" class="bg-gray">សរុបប្រចាំឆ្នាំ</th>
+                <th rowspan="3" class="note-col"><div class="vertical-wrapper"><span class="vertical-text">ផ្សេងៗ</span></div></th>
+            </tr>
+            <tr>`;
+        
+        // Months row (12 months)
+        academicMonths.forEach(m => {
+            html += `<th colspan="2">ខែ ${m.name}</th>`;
+        });
+        html += `<th colspan="3">ឆមាសទី១</th><th colspan="3">ឆមាសទី២</th><th colspan="3">ប្រចាំឆ្នាំ</th></tr><tr>`;
+
+        // L/A Row
+        for(let i=0; i<12; i++) html += `<th>ច្ប</th><th>អច្ប</th>`; // 12 months
+        html += `<th>ច្ប</th><th>អច្ប</th><th>សរុប</th>`; // Sem 1
+        html += `<th>ច្ប</th><th>អច្ប</th><th>សរុប</th>`; // Sem 2
+        html += `<th>ច្ប</th><th>អច្ប</th><th>សរុប</th>`; // Year
+
+        // Numbers Row (1 to 38 columns)
+        html += `</tr><tr class="number-row">`;
+        for(let i=1; i<=38; i++) {
+            html += `<th>${i}</th>`;
+        }
+        html += `</tr></thead><tbody>`;
+
+        // --- Table Body ---
+        for (let i = startIdx; i <= endIdx; i++) {
+            const student = students[i-1];
+            if (!student) continue;
+
+            const st = yearlyStats[student.uid] || { months:{}, sem1:{L:0,A:0}, sem2:{L:0,A:0}, year:{L:0,A:0} };
+            const isFemale = student.gender === 'ស្រី';
+            const rowClass = isFemale ? 'female-row' : '';
+            const genderClass = isFemale ? 'female-text' : '';
+            const genderSymbol = isFemale ? 'ស' : 'ប';
+            const disp = (v) => v > 0 ? toKhmerNum(v) : '';
+
+            html += `<tr class="${rowClass}">
+                <td>${toKhmerNum(i)}</td>
+                <td>${student.uid}</td>
+                <td class="name-col ${genderClass}">${student.name}</td>
+                <td class="${genderClass}">${genderSymbol}</td>`;
+            
+            // 12 Months (24 cols)
+            academicMonths.forEach(am => {
+                const mData = st.months[am.m] || {L:0, A:0};
+                html += `<td>${disp(mData.L)}</td><td>${disp(mData.A)}</td>`;
+            });
+
+            // Sem 1
+            html += `<td>${disp(st.sem1.L)}</td><td>${disp(st.sem1.A)}</td><td>${disp(st.sem1.L + st.sem1.A)}</td>`;
+            // Sem 2
+            html += `<td>${disp(st.sem2.L)}</td><td>${disp(st.sem2.A)}</td><td>${disp(st.sem2.L + st.sem2.A)}</td>`;
+            // Year
+            html += `<td>${disp(st.year.L)}</td><td>${disp(st.year.A)}</td><td>${disp(st.year.L + st.year.A)}</td>`;
+            
+            // Note
+            html += `<td></td></tr>`;
+        }
+        html += `</tbody></table>`;
+
+        // --- Footer ---
+        if (isLast) {
+            const managerRole = appSettings.managerRole || "នាយកសាលា";
+            const teacherName = data?.teacher || appSettings.teacherName || "..................";
+            
+            let lunarStr = "ថ្ងៃ................ខែ..........ឆ្នាំ..........";
+            const today = new Date();
+            if (typeof momentkh !== 'undefined') {
+                try {
+                    lunarStr = momentkh.format(momentkh.fromDate(today)).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                } catch (e) {}
+            }
+            const locationStr = appSettings.location ? `${appSettings.location}, ` : "";
+            const solarStr = `${locationStr}ថ្ងៃទី${toKhmerNum(today.getDate())} ខែ${academicMonths[5].name} ឆ្នាំ${toKhmerNum(today.getFullYear())}`;
+
+            html += `
+                <div class="signature-section">
+                    <div class="sig-box">
+                        <p style="margin-bottom: 2px;">បានឃើញ និងឯកភាព</p>
+                        <p class="role">${managerRole}</p>
+                    </div>
+                    <div class="sig-box">
+                        <p style="margin-bottom: 2px;">${lunarStr}</p>
+                        <p style="margin-bottom: 5px;">${solarStr}</p>
+                        <p class="role">គ្រូបន្ទុកថ្នាក់</p>
+                        <p class="kh-moul" style="margin-top:40px;">${teacherName}</p>
+                    </div>
+                </div>`;
+        }
+
+        html += `</div>`;
+        return html;
+    }
+
+    function render() {
+        const printArea = document.getElementById('printArea');
+        printArea.innerHTML = "";
+        const students = customData?.students || [];
+        const total = students.length;
+        
+        document.getElementById('studentCount').value = total;
+        
+        if (total === 0) {
+            printArea.innerHTML = `<div class="page-container" style="justify-content:center; align-items:center;">មិនមានទិន្នន័យសិស្សទេ</div>`;
+            return;
+        }
+
+        const maxRowsFirstPage = 13;      
+        const maxRowsOtherPage = 22;      
+        const maxRowsLastPageSig = 15;   
+        
+        let current = 1;
+        let pageNum = 1;
+
+        while (current <= total) {
+            let isFirst = (pageNum === 1);
+            let remaining = total - current + 1;
+            
+            let limitNoSig = isFirst ? maxRowsFirstPage : maxRowsOtherPage;
+            let end;
+            let isLast = false;
+
+            if (remaining <= maxRowsLastPageSig) {
+                end = current + remaining - 1;
+                isLast = true;
+            } else {
+                end = current + limitNoSig - 1;
+                if (end >= total) {
+                    end = total;
+                    isLast = true;
+                }
+            }
+            
+            printArea.innerHTML += createPage(current, end, isFirst, isLast, customData);
+            
+            if (isLast) break;
+            current = end + 1;
+            pageNum++;
+        }
+    }
+
+    function init() {
+        try { appSettings = JSON.parse(localStorage.getItem('app_settings')) || {}; } catch(e){}
+        const rawData = localStorage.getItem('temp_report_data');
+        if (rawData) {
+            customData = JSON.parse(rawData);
+            if(customData.year) {
+                let y1 = parseInt(customData.year);
+                document.getElementById('academicYearInput').value = toKhmerNum(y1) + "-" + toKhmerNum(y1+1);
+            }
+            yearlyStats = calculateYearlyStats(customData.students, customData.attendance);
+        }
+        render();
+    }
+
+    // Add event listener to reload stats if input manually changed
+    document.getElementById('academicYearInput').addEventListener('change', () => {
+        if(customData) {
+            yearlyStats = calculateYearlyStats(customData.students, customData.attendance);
+            render();
+        }
+    });
+
+    // --- Excel Export (SheetJS) ---
+    window.exportExcel = function() {
+        const students = customData?.students || [];
+        if (students.length === 0) return alert("មិនមានទិន្នន័យដើម្បីទាញយកទេ!");
+
+        const className = customData?.className || appSettings.className || "........";
+        const org1 = customData?.org1 || appSettings.unit1 || "មន្ទីរអប់រំ យុវជន និងកីឡា..................";
+        const org2 = customData?.org2 || appSettings.unit2 || "ការិយាល័យអប់រំ យុវជន និងកីឡា..................";
+        const school = customData?.school || appSettings.schoolName || "..................";
+        
+        const acYear = document.getElementById('academicYearInput').value;
+
+        const totalCols = 38; 
+        const ws_data = [];
+        const merges = [];
+
+        // Styles
+        const BORDER = { top: {style: 'thin', color: {rgb: "FF1E3A8A"}}, bottom: {style: 'thin', color: {rgb: "FF1E3A8A"}}, left: {style: 'thin', color: {rgb: "FF1E3A8A"}}, right: {style: 'thin', color: {rgb: "FF1E3A8A"}} };
+        const FONT_NORMAL = { name: 'Khmer OS Battambang', sz: 10, color: {rgb: "FF1E3A8A"} };
+        const FONT_BOLD = { name: 'Khmer OS Battambang', sz: 10, bold: true, color: {rgb: "FF1E3A8A"} };
+        const FONT_RED = { name: 'Khmer OS Battambang', sz: 10, bold: true, color: {rgb: "FFDC2626"} };
+        const FONT_MOUL = { name: 'Khmer OS Moul Light', sz: 12, color: {rgb: "FFDC2626"} };
+        const ALIGN_C = { vertical: 'center', horizontal: 'center' };
+        const ALIGN_LEFT = { vertical: 'center', horizontal: 'left' };
+        
+        const emptyCell = (style) => ({ v: '', t: 's', s: style || {} });
+
+        // Header Title
+        let r0 = Array(totalCols).fill(null).map(() => emptyCell());
+        r0[0] = { v: 'ព្រះរាជាណាចក្រកម្ពុជា', t: 's', s: { font: { name: 'Khmer OS Moul Light', sz: 11, color: {rgb: "FF1E3A8A"} }, alignment: ALIGN_C } };
+        ws_data.push(r0); merges.push({s:{r:0, c:0}, e:{r:0, c:totalCols-1}});
+
+        let r1 = Array(totalCols).fill(null).map(() => emptyCell());
+        r1[0] = { v: 'ជាតិ សាសនា ព្រះមហាក្សត្រ', t: 's', s: { font: { name: 'Khmer OS Moul Light', sz: 11, color: {rgb: "FF1E3A8A"} }, alignment: ALIGN_C } };
+        ws_data.push(r1); merges.push({s:{r:1, c:0}, e:{r:1, c:totalCols-1}});
+
+        let r2 = Array(totalCols).fill(null).map(() => emptyCell());
+        r2[0] = { v: org1, t: 's', s: { font: FONT_BOLD, alignment: ALIGN_LEFT } };
+        ws_data.push(r2); merges.push({s:{r:2, c:0}, e:{r:2, c:8}});
+
+        let r3 = Array(totalCols).fill(null).map(() => emptyCell());
+        r3[0] = { v: org2, t: 's', s: { font: FONT_BOLD, alignment: ALIGN_LEFT } };
+        ws_data.push(r3); merges.push({s:{r:3, c:0}, e:{r:3, c:8}});
+
+        let r4 = Array(totalCols).fill(null).map(() => emptyCell());
+        r4[0] = { v: school, t: 's', s: { font: FONT_BOLD, alignment: ALIGN_LEFT } };
+        ws_data.push(r4); merges.push({s:{r:4, c:0}, e:{r:4, c:8}});
+
+        ws_data.push(Array(totalCols).fill(null).map(() => emptyCell()));
+
+        let r6 = Array(totalCols).fill(null).map(() => emptyCell());
+        r6[0] = { v: 'ចំនួនសរុបអវត្តមានសិស្សប្រចាំឆ្នាំ', t: 's', s: { font: FONT_MOUL, alignment: ALIGN_C } };
+        ws_data.push(r6); merges.push({s:{r:6, c:0}, e:{r:6, c:totalCols-1}});
+
+        let r7 = Array(totalCols).fill(null).map(() => emptyCell());
+        r7[0] = { v: `ថ្នាក់ទី : ${className}`, t: 's', s: { font: {name: 'Khmer OS Battambang', sz: 11, bold:true, color:{rgb:"FF166534"}}, alignment: ALIGN_LEFT } };
+        r7[8] = { v: `សិស្សសរុប : ${toKhmerNum(students.length)} នាក់ / ស្រី ${toKhmerNum(students.filter(s=>s.gender==='ស្រី').length)} នាក់`, t: 's', s: { font: {name: 'Khmer OS Battambang', sz: 11, bold:true, color:{rgb:"FF166534"}}, alignment: ALIGN_C } };
+        r7[totalCols-5] = { v: `ឆ្នាំសិក្សា ${acYear}`, t: 's', s: { font: {name: 'Khmer OS Battambang', sz: 11, bold:true, color:{rgb:"FF1E3A8A"}}, alignment: { vertical: 'center', horizontal: 'right' } } };
+        ws_data.push(r7);
+        merges.push({s:{r:7, c:0}, e:{r:7, c:3}});
+        merges.push({s:{r:7, c:8}, e:{r:7, c:20}});
+        merges.push({s:{r:7, c:totalCols-5}, e:{r:7, c:totalCols-1}});
+
+        ws_data.push(Array(totalCols).fill(null).map(() => emptyCell())); 
+
+        // Table Headers
+        let startRow = 9;
+        const TH_ST = { font: FONT_BOLD, alignment: ALIGN_C, border: BORDER, fill: { fgColor: { rgb: "FFF8FAFC" } } };
+        const TH_VERT = { ...TH_ST, alignment: { textRotation: 90, vertical: 'center', horizontal: 'center' } };
+
+        let th1 = Array(totalCols).fill(null).map(() => emptyCell(TH_ST));
+        let th2 = Array(totalCols).fill(null).map(() => emptyCell(TH_ST));
+        let th3 = Array(totalCols).fill(null).map(() => emptyCell(TH_ST));
+        let th4 = Array(totalCols).fill(null).map(() => emptyCell({ ...TH_ST, font: {name:'Arial', sz:8, color:{rgb:"FF1E3A8A"}} }));
+
+        // Row 1 setup
+        th1[0] = { v: 'ល.រ', t: 's', s: TH_VERT }; merges.push({s:{r:startRow, c:0}, e:{r:startRow+2, c:0}});
+        th1[1] = { v: 'អត្តលេខ', t: 's', s: TH_VERT }; merges.push({s:{r:startRow, c:1}, e:{r:startRow+2, c:1}});
+        th1[2] = { v: 'គោត្តនាម និងនាម', t: 's', s: TH_ST }; merges.push({s:{r:startRow, c:2}, e:{r:startRow+2, c:2}});
+        th1[3] = { v: 'ភេទ', t: 's', s: TH_VERT }; merges.push({s:{r:startRow, c:3}, e:{r:startRow+2, c:3}});
+        
+        th1[4] = { v: 'អវត្តមានប្រចាំខែ', t: 's', s: TH_ST }; merges.push({s:{r:startRow, c:4}, e:{r:startRow, c:27}});
+        th1[28] = { v: 'អវត្តមានប្រចាំឆមាស', t: 's', s: TH_ST }; merges.push({s:{r:startRow, c:28}, e:{r:startRow, c:33}});
+        th1[34] = { v: 'សរុបប្រចាំឆ្នាំ', t: 's', s: TH_ST }; merges.push({s:{r:startRow, c:34}, e:{r:startRow, c:36}});
+        th1[37] = { v: 'ផ្សេងៗ', t: 's', s: TH_VERT }; merges.push({s:{r:startRow, c:37}, e:{r:startRow+2, c:37}});
+
+        // Row 2 setup
+        let colIdx = 4;
+        academicMonths.forEach(m => {
+            th2[colIdx] = { v: `ខែ ${m.name}`, t: 's', s: TH_ST };
+            merges.push({s:{r:startRow+1, c:colIdx}, e:{r:startRow+1, c:colIdx+1}});
+            colIdx += 2;
+        });
+        th2[28] = { v: 'ឆមាសទី១', t: 's', s: TH_ST }; merges.push({s:{r:startRow+1, c:28}, e:{r:startRow+1, c:30}});
+        th2[31] = { v: 'ឆមាសទី២', t: 's', s: TH_ST }; merges.push({s:{r:startRow+1, c:31}, e:{r:startRow+1, c:33}});
+        th2[34] = { v: 'ប្រចាំឆ្នាំ', t: 's', s: TH_ST }; merges.push({s:{r:startRow+1, c:34}, e:{r:startRow+1, c:36}});
+
+        // Row 3 setup
+        colIdx = 4;
+        for(let i=0; i<12; i++) { th3[colIdx] = {v:'ច្ប', t:'s', s:TH_ST}; th3[colIdx+1] = {v:'អច្ប', t:'s', s:TH_ST}; colIdx+=2; }
+        th3[colIdx] = {v:'ច្ប', t:'s', s:TH_ST}; th3[colIdx+1] = {v:'អច្ប', t:'s', s:TH_ST}; th3[colIdx+2] = {v:'សរុប', t:'s', s:TH_ST}; colIdx+=3; // Sem 1
+        th3[colIdx] = {v:'ច្ប', t:'s', s:TH_ST}; th3[colIdx+1] = {v:'អច្ប', t:'s', s:TH_ST}; th3[colIdx+2] = {v:'សរុប', t:'s', s:TH_ST}; colIdx+=3; // Sem 2
+        th3[colIdx] = {v:'ច្ប', t:'s', s:TH_ST}; th3[colIdx+1] = {v:'អច្ប', t:'s', s:TH_ST}; th3[colIdx+2] = {v:'សរុប', t:'s', s:TH_ST}; // Year
+
+        // Row 4 (Numbers) setup
+        for(let i=0; i<38; i++) { th4[i] = { v: i+1, t: 'n', s: th4[i].s }; }
+
+        ws_data.push(th1, th2, th3, th4);
+
+        // Base Data Styles
+        const TD_ST = { font: FONT_NORMAL, alignment: ALIGN_C, border: BORDER };
+        const TD_ST_F = { ...TD_ST, fill: {fgColor: {rgb:"FFC2DFFF"}} }; 
+        
+        const TD_NAME = { font: FONT_BOLD, alignment: {vertical:'center', horizontal:'left'}, border: BORDER };
+        const TD_NAME_F = { font: FONT_RED, alignment: {vertical:'center', horizontal:'left'}, border: BORDER, fill: {fgColor: {rgb:"FFC2DFFF"}} };
+        
+        const TD_GENDER_F = { font: FONT_RED, alignment: ALIGN_C, border: BORDER, fill: {fgColor: {rgb:"FFC2DFFF"}} };
+        const TD_BOLD_F = { font: FONT_BOLD, alignment: ALIGN_C, border: BORDER, fill: {fgColor: {rgb:"FFC2DFFF"}} };
+
+        students.forEach((student, i) => {
+            const st = yearlyStats[student.uid] || { months:{}, sem1:{L:0,A:0}, sem2:{L:0,A:0}, year:{L:0,A:0} };
+            const isF = student.gender === 'ស្រី';
+            
+            const baseSt = isF ? TD_ST_F : TD_ST;
+            const boldSt = isF ? TD_BOLD_F : { ...TD_ST, font:FONT_BOLD };
+            
+            let row = Array(totalCols).fill(null).map(() => emptyCell(baseSt));
+            
+            row[0] = { v: i + 1, t: 'n', s: baseSt };
+            row[1] = { v: student.uid, t: 's', s: baseSt };
+            row[2] = { v: student.name, t: 's', s: isF ? TD_NAME_F : TD_NAME };
+            row[3] = { v: isF ? 'ស' : 'ប', t: 's', s: isF ? TD_GENDER_F : baseSt };
+
+            let c = 4;
+            const val = (num) => num > 0 ? num : '';
+            academicMonths.forEach(am => {
+                const md = st.months[am.m] || {L:0,A:0};
+                row[c++] = { v: val(md.L), t: md.L>0?'n':'s', s: baseSt };
+                row[c++] = { v: val(md.A), t: md.A>0?'n':'s', s: baseSt };
+            });
+
+            // Sem 1
+            row[c++] = { v: val(st.sem1.L), t: st.sem1.L>0?'n':'s', s: baseSt };
+            row[c++] = { v: val(st.sem1.A), t: st.sem1.A>0?'n':'s', s: baseSt };
+            row[c++] = { v: val(st.sem1.L+st.sem1.A), t: (st.sem1.L+st.sem1.A)>0?'n':'s', s: boldSt };
+            // Sem 2
+            row[c++] = { v: val(st.sem2.L), t: st.sem2.L>0?'n':'s', s: baseSt };
+            row[c++] = { v: val(st.sem2.A), t: st.sem2.A>0?'n':'s', s: baseSt };
+            row[c++] = { v: val(st.sem2.L+st.sem2.A), t: (st.sem2.L+st.sem2.A)>0?'n':'s', s: boldSt };
+            // Year
+            row[c++] = { v: val(st.year.L), t: st.year.L>0?'n':'s', s: baseSt };
+            row[c++] = { v: val(st.year.A), t: st.year.A>0?'n':'s', s: baseSt };
+            row[c++] = { v: val(st.year.L+st.year.A), t: (st.year.L+st.year.A)>0?'n':'s', s: boldSt };
+
+            ws_data.push(row);
+        });
+
+        // Generate Excel Workbook
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(ws_data);
+        ws['!merges'] = merges;
+        
+        let cols = [{ wch: 4 }, { wch: 10 }, { wch: 16 }, { wch: 4 }]; 
+        for(let i=0; i<24; i++) cols.push({ wch: 4 }); // 12 Months
+        for(let i=0; i<6; i++) cols.push({ wch: 4 }); // Sems
+        for(let i=0; i<3; i++) cols.push({ wch: 5 }); // Year
+        cols.push({ wch: 8 }); // Note
+        ws['!cols'] = cols;
+
+        XLSX.utils.book_append_sheet(wb, ws, "Yearly Report");
+        XLSX.writeFile(wb, `របាយការណ៍ប្រចាំឆ្នាំ_${className}_${acYear}.xlsx`);
+    }
+
+    async function downloadPDF() {
+        const btn = document.getElementById('btnDownload');
+        const originalText = btn.innerText;
+        btn.innerText = "កំពុងទាញយក...";
+        btn.disabled = true;
+
+        const pages = document.querySelectorAll('.page-container');
+        pages.forEach(p => { p.style.marginBottom = '0'; });
+
+        const opt = {
+            margin:       0,
+            filename:     `របាយការណ៍អវត្តមានប្រចាំឆ្នាំ_${document.getElementById('academicYearInput').value}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, logging: false },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        };
+
+        html2pdf().set(opt).from(document.getElementById('printArea')).save().then(() => {
+            pages.forEach(p => { p.style.marginBottom = ''; }); 
+            btn.innerText = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>

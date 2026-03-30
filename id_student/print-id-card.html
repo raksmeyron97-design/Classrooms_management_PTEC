@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - បោះពុម្ពកាតសិស្ស</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body { 
+            font-family: 'Battambang', cursive; 
+            background-color: #f3f4f6; 
+            color: #1f2937;
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 0; 
+            -webkit-font-smoothing: antialiased;
+        }
+        .kh-moul { font-family: 'Moul', cursive; font-weight: normal; }
+        
+        /* Loading Overlay */
+        #loadingOverlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+
+        /* Card Setup (A6 format scaled for A4 printing) */
+        .student-card {
+            width: 100mm;
+            height: 140mm;
+            position: relative;
+            background-color: white;
+            box-sizing: border-box;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin: 0 auto;
+        }
+
+        .card-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            z-index: 0;
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Grid container for cards on screen */
+        #cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100mm, 1fr));
+            gap: 1.5rem;
+            padding: 1.5rem;
+            justify-items: center;
+        }
+
+        /* --- Print Specific Styles (Fixes 4 cards per A4 page) --- */
+        @media print {
+            @page { 
+                size: A4 portrait; 
+                margin: 4mm; /* Tight margin to ensure 2x2 grid fits perfectly */
+            }
+            
+            body { 
+                background-color: white !important; 
+                margin: 0 !important; 
+                padding: 0 !important; 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; /* Ensure background prints */
+            }
+            
+            .no-print { display: none !important; }
+            #loadingOverlay { display: none !important; }
+            
+            /* Override tailwind container limiting width */
+            .container {
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Force 2 columns Grid for printing */
+            #cards-container {
+                display: grid !important;
+                grid-template-columns: 100mm 100mm !important; /* Exactly 2 columns */
+                gap: 2mm !important; /* Slight gap for cutlines */
+                padding: 0 !important;
+                justify-content: center !important;
+                align-content: start !important;
+            }
+
+            .student-card {
+                width: 100mm !important;
+                height: 140mm !important;
+                box-shadow: none !important;
+                border: 1px dashed #9ca3af !important; /* Clear cutline reference */
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                margin: 0 !important;
+            }
+
+            /* Force page break after every 4th card to ensure exactly 4 per A4 page */
+            .student-card:nth-child(4n) {
+                page-break-after: always !important;
+                break-after: page !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="w-16 h-16 border-4 border-[#322a83] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="kh-moul text-[#322a83] text-lg animate-pulse" id="loading-text">កំពុងរៀបចំទិន្នន័យកាតសិស្ស...</p>
+    </div>
+
+    <!-- Navigation Bar (No Print) -->
+    <nav class="bg-indigo-900 text-white p-4 shadow-lg sticky top-0 z-50 no-print">
+        <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <a href="index.html" class="hover:text-indigo-200 transition-colors p-2 -ml-2 rounded-full hover:bg-white/10">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </a>
+                <h1 class="kh-moul text-lg">បោះពុម្ពកាតសិស្ស</h1>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto text-sm">
+                <!-- Upload Signature & Zoom Controls -->
+                <div class="bg-white/10 flex items-center rounded overflow-hidden shadow-inner">
+                    <label class="cursor-pointer hover:bg-white/20 px-3 py-2 flex items-center gap-2 transition-colors border-r border-white/20">
+                        <i data-lucide="pen-tool" class="w-4 h-4"></i> <span class="hidden sm:inline">ហត្ថលេខា</span>
+                        <input type="file" accept="image/*" class="hidden" onchange="uploadSignature(event)">
+                    </label>
+                    <button onclick="zoomSignature(0.1)" class="hover:bg-white/20 px-3 py-2 transition-colors flex items-center" title="ពង្រីក (Zoom In)">
+                        <i data-lucide="zoom-in" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="zoomSignature(-0.1)" class="hover:bg-white/20 px-3 py-2 transition-colors flex items-center" title="បង្រួម (Zoom Out)">
+                        <i data-lucide="zoom-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded font-bold shadow-md flex items-center gap-2 transition-colors ml-auto text-white">
+                    <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ព (Print)
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container for Cards -->
+    <div class="container mx-auto max-w-5xl my-8 print:my-0 print:max-w-none">
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-gray-500 bg-white rounded-xl shadow-sm no-print">
+            <i data-lucide="inbox" class="w-16 h-16 mb-4 opacity-50"></i>
+            <p class="text-lg font-bold">មិនមានទិន្នន័យសិស្សសម្រាប់បោះពុម្ពទេ</p>
+        </div>
+
+        <!-- Cards Grid -->
+        <div id="cards-container">
+            <!-- Cards will be injected here via JavaScript -->
+        </div>
+    </div>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81",
+            measurementId: "G-PX867PB723"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const PTEC_APP_ID = "ptec-app";
+        
+        let currentUser = null;
+        let profileData = {};
+        let studentsData = [];
+
+        // Signature State
+        let signatureImageSrc = '';
+        let signatureScale = 1;
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        lucide.createIcons();
+
+        // Check Auth
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) { console.error("Auth error:", error); }
+        };
+
+        initAuth().then(() => {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUser = user;
+                    loadAllData();
+                } else {
+                    alert('សូមចូលគណនីជាមុនសិន!');
+                }
+            });
+        });
+
+        // Load Both Profile and Students
+        async function loadAllData() {
+            try {
+                // 1. Fetch Profile (School Info)
+                const profileRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'profile', 'data');
+                const profileSnap = await getDoc(profileRef);
+                if (profileSnap.exists()) {
+                    profileData = profileSnap.data();
+                }
+
+                // 2. Fetch Students
+                const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
+                const studentsSnap = await getDocs(studentsRef);
+                studentsData = [];
+                studentsSnap.forEach((doc) => {
+                    studentsData.push(doc.data());
+                });
+
+                // Sort students alphabetically or by ID
+                studentsData.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+                renderCards();
+            } catch (error) {
+                console.error("Error loading data:", error);
+                alert("មានបញ្ហាក្នុងការទាញយកទិន្នន័យ។");
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        // --- Helper Functions ---
+        const khNumbers = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
+        function toKhmerNum(str) {
+            if (!str) return '';
+            return str.toString().split('').map(char => {
+                if (char >= '0' && char <= '9') return khNumbers[parseInt(char)];
+                return char;
+            }).join('');
+        }
+
+        function formatKhmerDate(dateStr) {
+            if (!dateStr || dateStr === '-') return '-';
+            const parts = dateStr.split('-');
+            if(parts.length !== 3) return toKhmerNum(dateStr);
+            const year = parts[0];
+            const month = parseInt(parts[1], 10);
+            const day = parseInt(parts[2], 10);
+            const khMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+            return `${toKhmerNum(day)} ${khMonths[month-1]} ${toKhmerNum(year)}`;
+        }
+
+        function formatLocationShort(s) {
+            const clean = (str, regex) => str ? str.replace(regex, '').trim() : '';
+            let v = clean(s.village, /^(ភូមិទី|ភូមិ)\s*/);
+            let c = clean(s.commune, /^(ឃុំ\/សង្កាត់|សង្កាត់|ឃុំ)\s*/);
+            let d = clean(s.district, /^(ស្រុក\/ខណ្ឌ|ក្រុង\/ស្រុក\/ខណ្ឌ|ខណ្ឌ|ស្រុក|ក្រុង)\s*/);
+            let p = clean(s.province, /^(ខេត្ត\/ក្រុង|រាជធានី\/ខេត្ត|រាជធានី|ខេត្ត)\s*/);
+            
+            let parts = [];
+            if(v) parts.push(`${v}`);
+            if(c) parts.push(`${c}`);
+            if(d) parts.push(`${d}`);
+            if(p) parts.push(`${p}`);
+            return parts.join(' ') || '-';
+        }
+
+        function getCurrentKhmerDate() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = d.getMonth() + 1;
+            const day = d.getDate();
+            const khMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
+            return `ថ្ងៃទី${toKhmerNum(day)} ខែ${khMonths[month-1]} ឆ្នាំ${toKhmerNum(year)}`;
+        }
+
+        // Render Cards HTML
+        function renderCards() {
+            const container = document.getElementById('cards-container');
+            const emptyState = document.getElementById('emptyState');
+
+            if (studentsData.length === 0) {
+                emptyState.style.display = 'flex';
+                return;
+            }
+
+            container.innerHTML = '';
+            
+            // Background Image directly from the local folder
+            const bgImageSrc = "Id_student.png";
+
+            studentsData.forEach(student => {
+                // Formatting data
+                const managementUnit1 = profileData.management_unit_1 || ''; 
+                const schoolName = profileData.school_name_admin || 'វិទ្យាល័យកំពង់ស្ពឺ';
+                const academicYear = toKhmerNum(profileData.academic_year || '២០២៤-២០២៥');
+                const className = profileData.class_name || '១២ "A"';
+                const director = profileData.manager_role || 'នាយកវិទ្យាល័យ';
+                const provinceDate = profileData.province_for_date || 'កំពង់ស្ពឺ';
+                
+                const dob = formatKhmerDate(student.dob);
+                const pob = formatLocationShort(student);
+                const father = student.father || '-';
+                const mother = student.mother || '-';
+                
+                const photoHtml = student.photo 
+                    ? `<img src="${student.photo}" class="w-full h-full object-cover">` 
+                    : `<span class="text-[#0000ff] text-[10px] font-sans font-bold tracking-widest">3 X 4</span>`;
+
+                const cardHTML = `
+                    <div class="student-card">
+                        <!-- Background Frame -->
+                        <img src="${bgImageSrc}" class="card-bg template-bg" onerror="this.style.display='none'">
+                        
+                        <div class="card-content">
+                            <!-- Management Unit 1 -->
+                            <div class="absolute w-full text-center text-[#ff0000] kh-moul text-[12px] left-[5%] top-[21%] px-4 leading-tight">
+                                ${managementUnit1}
+                            </div>
+
+                            <!-- Academic Year -->
+                            <div class="absolute w-full text-center text-black kh-moul text-[15px] left-[13%] top-[31.5%] tracking-wide">
+                                ${academicYear}
+                            </div>
+                            
+                            <!-- Grade -->
+                            <div class="absolute w-full text-center text-[#000080] kh-moul text-[16px] top-[36%]">
+                                ${className}
+                            </div>
+
+                            <!-- Student Name -->
+                            <div class="absolute text-[#ff0000] kh-moul text-[14px] top-[41%] left-[43%] whitespace-nowrap">
+                                ${student.name || '-'}
+                            </div>
+                            
+                            <!-- Gender -->
+                            <div class="absolute text-[#ff0000] kh-moul text-[14px] top-[41%] left-[80%]">
+                                ${student.gender || '-'}
+                            </div>
+
+                            <!-- DOB -->
+                            <div class="absolute text-[#ff0000] kh-moul text-[14px] top-[45.9%] left-[43%] whitespace-nowrap">
+                                ${dob}
+                            </div>
+
+                            <!-- POB -->
+                            <div class="absolute text-[#ff0000] text-[11px] top-[51.2%] left-[40%] w-[57%] leading-[1.6] line-clamp-2">
+                                ${pob}
+                            </div>
+
+                            <!-- Father Name -->
+                            <div class="absolute text-[#ff0000] kh-moul text-[13px] top-[55.7%] left-[29%] w-[25%] truncate">
+                                ${father}
+                            </div>
+
+                            <!-- Mother Name -->
+                            <div class="absolute text-[#ff0000] kh-moul text-[13px] top-[55.7%] left-[70%] w-[22%] truncate">
+                                ${mother}
+                            </div>
+
+                            <!-- School Name -->
+                            <div class="absolute text-[#000080] kh-moul text-[15px] top-[60%] left-[37%] w-[55%] line-clamp-1">
+                                ${schoolName}
+                            </div>
+
+                            <!-- Lunar Date -->
+                            <div class="absolute w-[55%] text-center text-black text-[10px] top-[66.5%] left-[37%]">
+                                ថ្ងៃពុធ ១៤រោច ខែពិសាខ ឆ្នាំរោង ឆស័ក ព.ស.២៥៦៨
+                            </div>
+
+                            <!-- Date -->
+                            <div class="absolute w-[55%] text-center text-black text-[11px] top-[70.5%] left-[37%]">
+                                ${provinceDate} ថ្ងៃទី១១ ខែមីនា ឆ្នាំ២០២៦
+                            </div>
+                            
+                            <!-- Director -->
+                            <div class="absolute w-[55%] text-center text-black kh-moul text-[14px] top-[75.5%] left-[37%] z-20">
+                                ${director}
+                            </div>
+
+                            <!-- Uploadable Signature Layer -->
+                            <div class="absolute w-[55%] h-[15%] flex items-center justify-center top-[78%] left-[37%] z-10 pointer-events-none">
+                                <img src="${signatureImageSrc}" class="director-signature object-contain origin-center transition-transform duration-200 ${signatureImageSrc ? '' : 'hidden'}" style="transform: scale(${signatureScale}); max-width: 100%; max-height: 100%;">
+                            </div>
+
+                            <!-- Photo Box -->
+                            <div class="absolute left-[11%] bottom-[12%] w-[24mm] h-[32mm] border-[1.5px] border-[#0000ff] bg-white flex items-center justify-center overflow-hidden z-20">
+                                ${photoHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHTML);
+            });
+        }
+
+        // --- Signature Upload & Zoom Handlers ---
+        window.uploadSignature = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    signatureImageSrc = e.target.result;
+                    renderCards(); // Re-render to show the new signature on all cards
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        window.zoomSignature = function(delta) {
+            signatureScale += delta;
+            if (signatureScale < 0.2) signatureScale = 0.2; // Min limit
+            if (signatureScale > 5.0) signatureScale = 5.0; // Max limit
+            
+            const signs = document.querySelectorAll('.director-signature');
+            signs.forEach(sign => {
+                sign.style.transform = `scale(${signatureScale})`;
+            });
+        };
+    </script>
+</body>
+</html>

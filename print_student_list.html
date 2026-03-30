@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTEC - បោះពុម្ពបញ្ជីជីវប្រវត្តិសិស្ស</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Moul&family=Kantumruy+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SheetJS with Style Support -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <!-- Moment KH for Lunar Date -->
+    <script src="https://cdn.jsdelivr.net/gh/ThyrithSor/momentkh@3.0.3/momentkh.js"></script>
+
+    <style>
+        :root {
+            --primary: #0f172a;
+            --border-color: #1e293b;
+        }
+
+        body { 
+            font-family: 'Battambang', cursive; 
+            background: #f1f5f9; 
+            color: #0f172a;
+        }
+        .kh-moul { font-family: 'Moul', cursive; }
+        .kh-kantumruy { font-family: 'Kantumruy Pro', sans-serif; }
+
+        /* Print Specific Styles */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 5mm; /* Very tight margin for wide table */
+            }
+            body { background: white; margin: 0; padding: 0; font-size: 8pt; }
+            .no-print { display: none !important; }
+            .print-container { width: 100%; box-shadow: none !important; border: none !important; padding: 0 !important; max-width: none; margin: 0 !important; }
+            
+            /* Ensure background colors print */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            .table-container { overflow: visible !important; }
+        }
+
+        /* Report Table Styling - Extremely Dense for Biographical Data */
+        .report-table { width: 100%; border-collapse: collapse; font-size: 9px; } /* Small font for print */
+        .report-table th, .report-table td {
+            border: 1px solid var(--border-color);
+            padding: 2px 3px;
+            text-align: center;
+            vertical-align: middle;
+            word-break: break-word;
+        }
+        .report-table th {
+            background-color: #f8fafc;
+            color: #1e3a8a;
+            font-weight: bold;
+        }
+        
+        /* Vertical Text for Headers to save space */
+        .vertical-text {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            white-space: nowrap;
+            height: 90px;
+            text-align: left;
+            padding: 2px;
+            font-weight: bold;
+            font-size: 8.5px;
+        }
+
+        .header-section { margin-bottom: 15px; }
+        
+        /* Loading Spinner */
+        #loadingOverlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.9);
+            z-index: 50; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+        }
+        
+        /* Specific column widths to force layout */
+        .w-no { width: 20px; }
+        .w-id { width: 45px; }
+        .w-name { width: 110px; text-align: left !important; padding-left: 4px !important; }
+        .w-sex { width: 25px; }
+        .w-dob { width: 60px; }
+        .w-loc { width: 45px; font-size: 8px; } /* Villages/Communes need to be small */
+        .w-parent { width: 60px; font-size: 8px; }
+        .w-job { width: 40px; font-size: 8px; }
+        .w-phone { width: 55px; font-size: 8px; }
+        .w-status { width: 20px; }
+        .w-other { width: 50px; font-size: 8px; }
+    </style>
+</head>
+<body>
+
+    <!-- Loading -->
+    <div id="loadingOverlay">
+        <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-blue-600 mb-3"></i>
+        <p class="font-bold text-slate-700 font-kantumruy" id="loadingText">កំពុងរៀបចំទិន្នន័យបញ្ជីឈ្មោះ...</p>
+    </div>
+
+    <!-- Control Panel (No Print) -->
+    <div class="no-print bg-white shadow-md border-b border-slate-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <a href="student-listV2.html" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 transition">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </a>
+                <h1 class="text-lg font-bold text-blue-800 kh-moul mt-1">បោះពុម្ពបញ្ជីជីវប្រវត្តិសិស្ស</h1>
+            </div>
+
+            <div class="flex gap-2 ml-auto">
+                <button onclick="exportExcel()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> ទាញយក Excel
+                </button>
+                <button onclick="window.print()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm transition">
+                    <i data-lucide="printer" class="w-4 h-4"></i> បោះពុម្ព
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- A4 Print Container (Landscape) -->
+    <div class="max-w-[297mm] mx-auto bg-white min-h-[210mm] mt-6 shadow-xl border border-slate-200 p-[8mm] print-container mb-10" id="reportArea">
+        
+        <!-- Header Section matching the screenshot -->
+        <div class="header-section relative">
+            
+            <!-- Left Header: Administrative Structure -->
+            <div class="text-[11px] kh-moul text-black leading-relaxed max-w-[50%]">
+                <div id="print_mu1">មន្ទីរអប់រំ យុវជន និងកីឡា...</div>
+                <div id="print_mu2">ការិយាល័យអប់រំ យុវជន និងកីឡា...</div>
+                <div id="print_school">សាលាបឋមសិក្សា...</div>
+                <div class="mt-1 font-sans font-bold">លេខកូដសាលា៖ <span id="print_school_code">...</span></div>
+            </div>
+
+            <!-- Right Header: Nation -->
+            <div class="absolute top-0 right-0 text-center">
+                <h2 class="kh-moul text-[13px] text-black tracking-wide">ព្រះរាជាណាចក្រកម្ពុជា</h2>
+                <h3 class="kh-moul text-[13px] text-black mt-1 tracking-wider">ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+                <div class="flex justify-center mt-1">
+                    <span class="text-[10px]">❧❧❧ ❖ ☙☙☙</span>
+                </div>
+            </div>
+
+            <!-- Center Title -->
+            <div class="text-center mt-4">
+                <h1 class="kh-moul text-lg text-black">បញ្ជីហៅឈ្មោះសិស្ស</h1>
+                <h2 class="kh-moul text-base text-black mt-1">ផ្នែកជីវប្រវត្តិសង្ខេបរបស់សិស្ស</h2>
+            </div>
+
+            <!-- Class & Teacher Info Bar -->
+            <div class="flex justify-between items-end mt-4 text-[11px] font-bold text-black px-2">
+                <div><span id="print_class" class="text-blue-800">...</span> <span class="ml-2">ឆ្នាំសិក្សា <span id="print_year" class="text-blue-800">...</span></span></div>
+                <div>ឈ្មោះគ្រូ៖ <span id="print_teacher" class="text-blue-800 kh-moul">...</span></div>
+                <div>សិស្សសរុប៖ <span id="stat_total" class="text-blue-800">០</span> នាក់</div>
+                <div>ស្រី៖ <span id="stat_female" class="text-blue-800">០</span> នាក់</div>
+            </div>
+        </div>
+
+        <!-- Dense Data Table -->
+        <div class="table-container w-full overflow-x-auto mt-2">
+            <table class="report-table" id="dataTable">
+                <thead id="tableHead">
+                    <!-- Complex Header generation -->
+                    <tr>
+                        <th rowspan="2" class="w-no">ល.រ</th>
+                        <th rowspan="2" class="w-id">អត្តលេខ</th>
+                        <th rowspan="2" class="w-name">គោត្តនាម និងនាម</th>
+                        <th rowspan="2" class="w-sex">ភេទ</th>
+                        <th rowspan="2" class="w-dob">ថ្ងៃខែឆ្នាំកំណើត</th>
+                        
+                        <th colspan="4" class="bg-blue-50/50">ទីកន្លែងកំណើត</th>
+                        <th colspan="4" class="bg-green-50/50">ទីលំនៅបច្ចុប្បន្ន</th>
+                        
+                        <th colspan="2" class="bg-orange-50/50">ឪពុក</th>
+                        <th colspan="2" class="bg-orange-50/50">ម្តាយ</th>
+                        <th colspan="2" class="bg-orange-50/50">អាណាព្យាបាល</th>
+                        
+                        <th rowspan="2" class="w-phone">លេខទូរសព្ទ</th>
+                        
+                        <th colspan="10" class="bg-purple-50/50">ស្ថានភាព និងលក្ខណៈសិស្ស</th>
+                    </tr>
+                    <tr>
+                        <!-- Birth Place -->
+                        <th class="w-loc bg-blue-50/50">ភូមិ</th><th class="w-loc bg-blue-50/50">ឃុំ/សង្កាត់</th><th class="w-loc bg-blue-50/50">ស្រុក/ខណ្ឌ</th><th class="w-loc bg-blue-50/50">ខេត្ត/ក្រុង</th>
+                        <!-- Current Address -->
+                        <th class="w-loc bg-green-50/50">ភូមិ</th><th class="w-loc bg-green-50/50">ឃុំ/សង្កាត់</th><th class="w-loc bg-green-50/50">ស្រុក/ខណ្ឌ</th><th class="w-loc bg-green-50/50">ខេត្ត/ក្រុង</th>
+                        <!-- Parents -->
+                        <th class="w-parent bg-orange-50/50">ឈ្មោះ</th><th class="w-job bg-orange-50/50">មុខរបរ</th>
+                        <th class="w-parent bg-orange-50/50">ឈ្មោះ</th><th class="w-job bg-orange-50/50">មុខរបរ</th>
+                        <th class="w-parent bg-orange-50/50">ឈ្មោះ</th><th class="w-job bg-orange-50/50">មុខរបរ</th>
+                        <!-- Statuses (Vertical) -->
+                        <th class="w-status bg-purple-50/50"><div class="vertical-text">សិស្សថ្មី</div></th>
+                        <th class="w-status bg-purple-50/50"><div class="vertical-text">សិស្សត្រួតថ្នាក់</div></th>
+                        <th class="w-status bg-purple-50/50"><div class="vertical-text">សិស្សកំព្រា</div></th>
+                        <th class="w-status bg-purple-50/50"><div class="vertical-text">សិស្សពិការ</div></th>
+                        <th class="w-status bg-purple-50/50"><div class="vertical-text text-red-600">ក្រ១</div></th>
+                        <th class="w-status bg-purple-50/50"><div class="vertical-text text-red-600">ក្រ២</div></th>
+                        <th class="w-status bg-purple-50/50"><div class="vertical-text">សមធម៌</div></th>
+                        <th class="w-status bg-purple-50/50"><div class="vertical-text">អាហារូបករណ៍</div></th>
+                        <th class="w-other bg-purple-50/50">ជនជាតិ<br>ភាគតិច</th>
+                        <th class="w-other bg-purple-50/50">ផ្សេងៗ</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data injected via JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Signatures -->
+        <div class="mt-8 flex justify-between text-[11px] font-bold text-black px-8">
+            <!-- Left Signature -->
+            <div class="text-center">
+                <p class="mb-1">បានឃើញ និងឯកភាព</p>
+                <p class="kh-moul mt-2" id="sign_role">នាយកសាលា</p>
+                <div class="h-20"></div>
+            </div>
+
+            <!-- Right Signature -->
+            <div class="text-center">
+                <!-- Auto Date Fields -->
+                <p class="mb-1 font-moul" id="sig-lunar">ថ្ងៃ...........ខែ.........ឆ្នាំ...........ព.ស ២៥៦...</p>
+                <p class="mb-1 font-moul" id="sig-solar">ធ្វើនៅ..............ថ្ងៃទី.......ខែ...........ឆ្នាំ២០២...</p>
+                
+                <p class="kh-moul mt-3">គ្រូបន្ទុកថ្នាក់</p>
+                <div class="h-16"></div>
+                <p class="kh-moul text-blue-800" style="margin-left: 2cm;" id="sign_teacher_bottom">ឈ្មោះគ្រូ</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBU50HJrekgHWwwyLq5CTRwhjHkGJAAAfs",
+            authDomain: "classroom-management-82382.firebaseapp.com",
+            projectId: "classroom-management-82382",
+            storageBucket: "classroom-management-82382.firebasestorage.app",
+            messagingSenderId: "146641865620",
+            appId: "1:146641865620:web:ce693b7b064afd5d1bdd81"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const PTEC_APP_ID = "ptec-app";
+        let currentUser = null;
+        let studentsData = [];
+        let profileData = {};
+
+        // Utilities
+        const khDigits = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
+        const toKhNum = (n) => n.toString().split('').map(d => khDigits[d] || d).join('');
+        const khMonths = ['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'];
+
+        function updateDates(province = '.........') {
+            const today = new Date();
+            document.getElementById('sig-solar').innerText = `ធ្វើនៅ ${province}, ថ្ងៃទី ${toKhNum(today.getDate())} ខែ ${khMonths[today.getMonth()]} ឆ្នាំ ${toKhNum(today.getFullYear())}`;
+            if (typeof momentkh !== 'undefined') {
+                try {
+                    const m = momentkh.fromDate(today);
+                    document.getElementById('sig-lunar').innerText = momentkh.format(m).replace('ពុទ្ធសករាជ', 'ព.ស.');
+                } catch(e) {}
+            }
+        }
+
+        // Helper functions from student-listV2.html
+        function getStudentName(s) {
+            if (s.name) return s.name;
+            if (s.studentName) return s.studentName;
+            if (s['ឈ្មោះ']) return s['ឈ្មោះ'];
+            if (s['គោត្តនាម និងនាម']) return s['គោត្តនាម និងនាម'];
+            for (let k of Object.keys(s)) {
+                let cleanKey = k.toLowerCase().replace(/[\s\u200B-\u200D\uFEFF]+/g, '');
+                if (['name', 'studentname', 'khmername', 'fullname', 'ឈ្មោះ', 'ឈ្មោះសិស្ស', 'គោត្តនាមនិងនាម'].includes(cleanKey)) return s[k];
+            }
+            return '';
+        }
+
+        function getStudentId(s) {
+            if (s.id) return s.id;
+            if (s.studentId) return s.studentId;
+            if (s.ID) return s.ID;
+            if (s['អត្តលេខ']) return s['អត្តលេខ'];
+            return '-';
+        }
+
+        function formatDateDisplay(dobStr) {
+            if(!dobStr || dobStr === '-') return '-';
+            const parts = dobStr.split('-');
+            if(parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return dobStr;
+        }
+        
+        function cleanText(str) {
+            return str ? str.trim() : '';
+        }
+        
+        // Remove prefixes like "ភូមិ", "ឃុំ" for tighter table display if needed, but original requests usually want them. We will keep them or trim slightly.
+        function trimPrefix(str, prefixRegex) {
+            if(!str) return '';
+            return str.replace(prefixRegex, '').trim();
+        }
+
+        async function loadData() {
+            if (!currentUser) return;
+            const loadingText = document.getElementById('loadingText');
+
+            try {
+                // 1. Fetch Profile Info
+                loadingText.innerText = "កំពុងទាញយកព័ត៌មានសាលា...";
+                const profileRef = doc(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'profile', 'data');
+                const profileSnap = await getDoc(profileRef);
+                let provinceName = '.........';
+                
+                if (profileSnap.exists()) {
+                    profileData = profileSnap.data();
+                    document.getElementById('print_mu1').innerText = profileData.management_unit_1 || '.............................';
+                    document.getElementById('print_mu2').innerText = profileData.management_unit_2 || '.............................';
+                    document.getElementById('print_school').innerText = profileData.school_name_admin || '.............................';
+                    document.getElementById('print_school_code').innerText = profileData.school_code || '...........';
+                    
+                    document.getElementById('print_class').innerText = profileData.class_name || '.............';
+                    document.getElementById('print_year').innerText = profileData.academic_year || '២០២..-២០២..';
+                    
+                    const teacherName = profileData.homeroom_teacher || 'ឈ្មោះគ្រូ';
+                    document.getElementById('print_teacher').innerText = teacherName;
+                    document.getElementById('sign_teacher_bottom').innerText = teacherName;
+                    document.getElementById('sign_role').innerText = profileData.manager_role || 'នាយកសាលា';
+                    
+                    if (profileData.province_for_date) provinceName = profileData.province_for_date;
+                }
+                updateDates(provinceName);
+
+                // 2. Fetch Students
+                loadingText.innerText = "កំពុងទាញយកបញ្ជីសិស្ស...";
+                studentsData = [];
+                const studentsRef = collection(db, 'artifacts', PTEC_APP_ID, 'users', currentUser.uid, 'students');
+                const studentsSnap = await getDocs(studentsRef);
+                
+                studentsSnap.forEach(doc => { 
+                    studentsData.push({ dbId: doc.id, ...doc.data() }); 
+                });
+
+                // Sort by creation or ID to maintain order
+                studentsData.sort((a, b) => {
+                    const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                    return timeA - timeB;
+                });
+
+                renderTable();
+
+            } catch (error) {
+                console.error("Error loading data:", error);
+                alert("មានបញ្ហាក្នុងការទាញយកទិន្នន័យ។ សូមព្យាយាមម្តងទៀត។");
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            const total = studentsData.length;
+            const female = studentsData.filter(s => s.gender === 'ស្រី' || s.gender === 'F').length;
+            
+            document.getElementById('stat_total').innerText = total;
+            document.getElementById('stat_female').innerText = female;
+
+            if (total === 0) {
+                tbody.innerHTML = `<tr><td colspan="31" class="py-8 text-center text-slate-500">មិនមានទិន្នន័យសិស្សទេ សូមបញ្ចូលទិន្នន័យសិស្សជាមុនសិន។</td></tr>`;
+                return;
+            }
+
+            const checkMark = '<span class="text-green-600 font-bold">✓</span>';
+
+            studentsData.forEach((s, index) => {
+                const tr = document.createElement('tr');
+                
+                // Helper to render boolean columns
+                const renderTick = (val, matchStr = 'បាទ/ចាស') => {
+                    return (val === matchStr || val === '✓' || val === true || val === 'ក្រ១' || val === 'ក្រ២') ? checkMark : '';
+                };
+
+                // Fallbacks for current address if split fields don't exist
+                let cVill = cleanText(s.currVillage);
+                let cCom = cleanText(s.currCommune);
+                let cDis = cleanText(s.currDistrict);
+                let cPro = cleanText(s.currProvince);
+                
+                if(!cVill && !cCom && !cDis && !cPro && s.currentAddress) {
+                    // Try to extract from single string if possible, or just dump in first cell
+                    cVill = s.currentAddress;
+                }
+
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td class="font-mono text-blue-700 font-bold text-[8px]">${getStudentId(s)}</td>
+                    <td class="w-name font-bold text-blue-900">${getStudentName(s)}</td>
+                    <td>${s.gender === 'ស្រី' || s.gender === 'F' ? 'ស' : 'ប'}</td>
+                    <td>${formatDateDisplay(s.dob)}</td>
+                    
+                    <!-- POB -->
+                    <td class="text-[8px] text-slate-700">${trimPrefix(s.village, /^(ភូមិទី|ភូមិ)\s*/)}</td>
+                    <td class="text-[8px] text-slate-700">${trimPrefix(s.commune, /^(ឃុំ\/សង្កាត់|សង្កាត់|ឃុំ)\s*/)}</td>
+                    <td class="text-[8px] text-slate-700">${trimPrefix(s.district, /^(ស្រុក\/ខណ្ឌ|ខណ្ឌ|ស្រុក|ក្រុង)\s*/)}</td>
+                    <td class="text-[8px] text-slate-700">${trimPrefix(s.province, /^(ខេត្ត\/ក្រុង|រាជធានី\/ខេត្ត|រាជធានី|ខេត្ត)\s*/)}</td>
+                    
+                    <!-- Curr Addr -->
+                    <td class="text-[8px] text-slate-700">${trimPrefix(cVill, /^(ភូមិទី|ភូមិ)\s*/)}</td>
+                    <td class="text-[8px] text-slate-700">${trimPrefix(cCom, /^(ឃុំ\/សង្កាត់|សង្កាត់|ឃុំ)\s*/)}</td>
+                    <td class="text-[8px] text-slate-700">${trimPrefix(cDis, /^(ស្រុក\/ខណ្ឌ|ខណ្ឌ|ស្រុក|ក្រុង)\s*/)}</td>
+                    <td class="text-[8px] text-slate-700">${trimPrefix(cPro, /^(ខេត្ត\/ក្រុង|រាជធានី\/ខេត្ត|រាជធានី|ខេត្ត)\s*/)}</td>
+                    
+                    <!-- Father -->
+                    <td class="text-[8px] text-slate-800">${cleanText(s.father) || '-'}</td>
+                    <td class="text-[8px] text-slate-600">${cleanText(s.fatherJob) || '-'}</td>
+                    
+                    <!-- Mother -->
+                    <td class="text-[8px] text-slate-800">${cleanText(s.mother) || '-'}</td>
+                    <td class="text-[8px] text-slate-600">${cleanText(s.motherJob) || '-'}</td>
+                    
+                    <!-- Guardian -->
+                    <td class="text-[8px] text-slate-800">${cleanText(s.guardianName) || '-'}</td>
+                    <td class="text-[8px] text-slate-600">${cleanText(s.guardianJob) || '-'}</td>
+                    
+                    <td class="text-[8px]">${cleanText(s.phone) || '-'}</td>
+                    
+                    <!-- Statuses -->
+                    <td>${renderTick(s.isNewStudent)}</td>
+                    <td>${renderTick(s.isRepeater)}</td>
+                    <td>${renderTick(s.orphanStatus)}</td>
+                    <td>${renderTick(s.isDisabled)}</td>
+                    <td>${s.poorStatus === 'ក្រ១' ? checkMark : ''}</td>
+                    <td>${s.poorStatus === 'ក្រ២' ? checkMark : ''}</td>
+                    <td>${renderTick(s.isEquity)}</td>
+                    <td>${renderTick(s.isScholarship)}</td>
+                    
+                    <td class="text-[8px]">${cleanText(s.ethnicity) || '-'}</td>
+                    <td class="text-[8px] text-slate-500">${cleanText(s.otherRemarks) || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- Export to Excel ---
+        window.exportExcel = function() {
+            if (studentsData.length === 0) {
+                alert("មិនមានទិន្នន័យដើម្បីទាញយកទេ!");
+                return;
+            }
+
+            const ws_data = [];
+            const merges = [];
+            const className = profileData.class_name || 'Class';
+            const year = profileData.academic_year || 'Year';
+
+            // Styles
+            const BORDER = {
+                top: { style: 'thin', color: { rgb: 'FF000000' } },
+                bottom: { style: 'thin', color: { rgb: 'FF000000' } },
+                left: { style: 'thin', color: { rgb: 'FF000000' } },
+                right: { style: 'thin', color: { rgb: 'FF000000' } }
+            };
+            const FONT_NORMAL = { name: 'Khmer OS Battambang', sz: 9 };
+            const FONT_BOLD = { name: 'Khmer OS Battambang', sz: 9, bold: true };
+            const FONT_MOUL = { name: 'Khmer OS Moul Light', sz: 11 };
+            const ALIGN_CENTER = { vertical: 'center', horizontal: 'center' };
+            const ALIGN_LEFT = { vertical: 'center', horizontal: 'left' };
+            
+            const TH_STYLE = { font: FONT_BOLD, alignment: ALIGN_CENTER, border: BORDER, fill: { fgColor: { rgb: 'FFEFF6FF' } } };
+            const TH_VERT = { ...TH_STYLE, alignment: { textRotation: 90, vertical: 'center', horizontal: 'center' } };
+            const TD_STYLE = { font: FONT_NORMAL, alignment: ALIGN_CENTER, border: BORDER };
+            const TD_LEFT = { font: FONT_NORMAL, alignment: ALIGN_LEFT, border: BORDER };
+
+            const emptyCell = (style) => ({ v: '', t: 's', s: style || {} });
+            
+            // Total Columns based on our HTML table
+            const totalCols = 31; 
+
+            // Headers
+            let r0 = Array(totalCols).fill(null).map(() => emptyCell());
+            r0[0] = { v: 'ព្រះរាជាណាចក្រកម្ពុជា', t: 's', s: { font: FONT_MOUL, alignment: ALIGN_CENTER } };
+            ws_data.push(r0); merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: totalCols - 1 } });
+
+            let r1 = Array(totalCols).fill(null).map(() => emptyCell());
+            r1[0] = { v: 'ជាតិ សាសនា ព្រះមហាក្សត្រ', t: 's', s: { font: FONT_MOUL, alignment: ALIGN_CENTER } };
+            ws_data.push(r1); merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: totalCols - 1 } });
+
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell()));
+            
+            let r3 = Array(totalCols).fill(null).map(() => emptyCell());
+            r3[0] = { v: 'បញ្ជីហៅឈ្មោះសិស្ស និងជីវប្រវត្តិសង្ខេប', t: 's', s: { font: { name: 'Khmer OS Moul Light', sz: 14 }, alignment: ALIGN_CENTER } };
+            ws_data.push(r3); merges.push({ s: { r: 3, c: 0 }, e: { r: 3, c: totalCols - 1 } });
+            
+            let r4 = Array(totalCols).fill(null).map(() => emptyCell());
+            r4[0] = { v: `សាលា៖ ${profileData.school_name_admin || ''} | ${className} | ឆ្នាំសិក្សា៖ ${year}`, t: 's', s: { font: FONT_BOLD, alignment: ALIGN_CENTER } };
+            ws_data.push(r4); merges.push({ s: { r: 4, c: 0 }, e: { r: 4, c: totalCols - 1 } });
+
+            ws_data.push(Array(totalCols).fill(null).map(() => emptyCell()));
+
+            // Table Header Rows
+            let startRow = 6;
+            let tr1 = Array(totalCols).fill(null).map(() => emptyCell(TH_STYLE));
+            let tr2 = Array(totalCols).fill(null).map(() => emptyCell(TH_STYLE));
+
+            // Row 1 setup
+            tr1[0] = { v: 'ល.រ', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 0 }, e: { r: startRow + 1, c: 0 } });
+            tr1[1] = { v: 'អត្តលេខ', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 1 }, e: { r: startRow + 1, c: 1 } });
+            tr1[2] = { v: 'គោត្តនាម និងនាម', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 2 }, e: { r: startRow + 1, c: 2 } });
+            tr1[3] = { v: 'ភេទ', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 3 }, e: { r: startRow + 1, c: 3 } });
+            tr1[4] = { v: 'ថ្ងៃខែឆ្នាំកំណើត', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 4 }, e: { r: startRow + 1, c: 4 } });
+            
+            tr1[5] = { v: 'ទីកន្លែងកំណើត', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 5 }, e: { r: startRow, c: 8 } });
+            tr1[9] = { v: 'ទីលំនៅបច្ចុប្បន្ន', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 9 }, e: { r: startRow, c: 12 } });
+            
+            tr1[13] = { v: 'ឪពុក', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 13 }, e: { r: startRow, c: 14 } });
+            tr1[15] = { v: 'ម្តាយ', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 15 }, e: { r: startRow, c: 16 } });
+            tr1[17] = { v: 'អាណាព្យាបាល', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 17 }, e: { r: startRow, c: 18 } });
+            
+            tr1[19] = { v: 'លេខទូរសព្ទ', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 19 }, e: { r: startRow + 1, c: 19 } });
+            
+            tr1[20] = { v: 'ស្ថានភាព និងលក្ខណៈសិស្ស', t: 's', s: TH_STYLE }; merges.push({ s: { r: startRow, c: 20 }, e: { r: startRow, c: 29 } });
+
+            // Row 2 setup
+            tr2[5] = { v: 'ភូមិ', t: 's', s: TH_STYLE }; tr2[6] = { v: 'ឃុំ', t: 's', s: TH_STYLE }; tr2[7] = { v: 'ស្រុក', t: 's', s: TH_STYLE }; tr2[8] = { v: 'ខេត្ត', t: 's', s: TH_STYLE };
+            tr2[9] = { v: 'ភូមិ', t: 's', s: TH_STYLE }; tr2[10] = { v: 'ឃុំ', t: 's', s: TH_STYLE }; tr2[11] = { v: 'ស្រុក', t: 's', s: TH_STYLE }; tr2[12] = { v: 'ខេត្ត', t: 's', s: TH_STYLE };
+            
+            tr2[13] = { v: 'ឈ្មោះ', t: 's', s: TH_STYLE }; tr2[14] = { v: 'មុខរបរ', t: 's', s: TH_STYLE };
+            tr2[15] = { v: 'ឈ្មោះ', t: 's', s: TH_STYLE }; tr2[16] = { v: 'មុខរបរ', t: 's', s: TH_STYLE };
+            tr2[17] = { v: 'ឈ្មោះ', t: 's', s: TH_STYLE }; tr2[18] = { v: 'មុខរបរ', t: 's', s: TH_STYLE };
+            
+            const statuses = ['សិស្សថ្មី', 'ត្រួតថ្នាក់', 'កំព្រា', 'ពិការ', 'ក្រ១', 'ក្រ២', 'សមធម៌', 'អាហារូបករណ៍', 'ជនជាតិភាគតិច', 'ផ្សេងៗ'];
+            for(let i=0; i<statuses.length; i++){
+                tr2[20+i] = { v: statuses[i], t: 's', s: TH_VERT };
+            }
+
+            ws_data.push(tr1, tr2);
+
+            // Data Rows
+            const check = '✓';
+            const renderExcelTick = (val, matchStr = 'បាទ/ចាស') => { return (val === matchStr || val === '✓' || val === true || val === 'ក្រ១' || val === 'ក្រ២') ? check : ''; };
+
+            studentsData.forEach((s, i) => {
+                let row = Array(totalCols).fill(null).map(() => emptyCell(TD_STYLE));
+                
+                row[0] = { v: i + 1, t: 'n', s: TD_STYLE };
+                row[1] = { v: getStudentId(s), t: 's', s: TD_STYLE };
+                row[2] = { v: getStudentName(s), t: 's', s: TD_LEFT };
+                row[3] = { v: s.gender === 'ស្រី' || s.gender === 'F' ? 'ស' : 'ប', t: 's', s: TD_STYLE };
+                row[4] = { v: formatDateDisplay(s.dob), t: 's', s: TD_STYLE };
+                
+                row[5] = { v: trimPrefix(s.village, /^(ភូមិទី|ភូមិ)\s*/), t: 's', s: TD_STYLE };
+                row[6] = { v: trimPrefix(s.commune, /^(ឃុំ\/សង្កាត់|សង្កាត់|ឃុំ)\s*/), t: 's', s: TD_STYLE };
+                row[7] = { v: trimPrefix(s.district, /^(ស្រុក\/ខណ្ឌ|ខណ្ឌ|ស្រុក|ក្រុង)\s*/), t: 's', s: TD_STYLE };
+                row[8] = { v: trimPrefix(s.province, /^(ខេត្ត\/ក្រុង|រាជធានី\/ខេត្ត|រាជធានី|ខេត្ត)\s*/), t: 's', s: TD_STYLE };
+                
+                let cVill = cleanText(s.currVillage);
+                if(!cVill && !cleanText(s.currCommune) && s.currentAddress) cVill = s.currentAddress;
+                row[9] = { v: trimPrefix(cVill, /^(ភូមិទី|ភូមិ)\s*/), t: 's', s: TD_STYLE };
+                row[10] = { v: trimPrefix(s.currCommune, /^(ឃុំ\/សង្កាត់|សង្កាត់|ឃុំ)\s*/), t: 's', s: TD_STYLE };
+                row[11] = { v: trimPrefix(s.currDistrict, /^(ស្រុក\/ខណ្ឌ|ខណ្ឌ|ស្រុក|ក្រុង)\s*/), t: 's', s: TD_STYLE };
+                row[12] = { v: trimPrefix(s.currProvince, /^(ខេត្ត\/ក្រុង|រាជធានី\/ខេត្ត|រាជធានី|ខេត្ត)\s*/), t: 's', s: TD_STYLE };
+                
+                row[13] = { v: cleanText(s.father), t: 's', s: TD_STYLE }; row[14] = { v: cleanText(s.fatherJob), t: 's', s: TD_STYLE };
+                row[15] = { v: cleanText(s.mother), t: 's', s: TD_STYLE }; row[16] = { v: cleanText(s.motherJob), t: 's', s: TD_STYLE };
+                row[17] = { v: cleanText(s.guardianName), t: 's', s: TD_STYLE }; row[18] = { v: cleanText(s.guardianJob), t: 's', s: TD_STYLE };
+                
+                row[19] = { v: cleanText(s.phone), t: 's', s: TD_STYLE };
+                
+                row[20] = { v: renderExcelTick(s.isNewStudent), t: 's', s: TD_STYLE };
+                row[21] = { v: renderExcelTick(s.isRepeater), t: 's', s: TD_STYLE };
+                row[22] = { v: renderExcelTick(s.orphanStatus), t: 's', s: TD_STYLE };
+                row[23] = { v: renderExcelTick(s.isDisabled), t: 's', s: TD_STYLE };
+                row[24] = { v: s.poorStatus === 'ក្រ១' ? check : '', t: 's', s: TD_STYLE };
+                row[25] = { v: s.poorStatus === 'ក្រ២' ? check : '', t: 's', s: TD_STYLE };
+                row[26] = { v: renderExcelTick(s.isEquity), t: 's', s: TD_STYLE };
+                row[27] = { v: renderExcelTick(s.isScholarship), t: 's', s: TD_STYLE };
+                row[28] = { v: cleanText(s.ethnicity), t: 's', s: TD_STYLE };
+                row[29] = { v: cleanText(s.otherRemarks), t: 's', s: TD_STYLE };
+
+                ws_data.push(row);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            ws['!merges'] = merges;
+            
+            // Column widths
+            let cols = [
+                { wch: 4 }, { wch: 10 }, { wch: 20 }, { wch: 5 }, { wch: 12 }, // ID, Name, Sex, DOB
+                { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, // POB
+                { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, // Curr Loc
+                { wch: 15 }, { wch: 10 }, { wch: 15 }, { wch: 10 }, { wch: 15 }, { wch: 10 }, // Parents
+                { wch: 12 } // Phone
+            ];
+            for(let i=20; i<totalCols; i++) cols.push({ wch: 5 }); // Statuses
+            ws['!cols'] = cols;
+
+            let rows = [];
+            rows[7] = { hpt: 60 }; // Make header row 2 taller for vertical text
+            ws['!rows'] = rows;
+
+            XLSX.utils.book_append_sheet(wb, ws, "Students");
+            XLSX.writeFile(wb, `បញ្ជីជីវប្រវត្តិសិស្ស_${className}_${year}.xlsx`);
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    await loadData();
+                } else {
+                    try {
+                        await signInAnonymously(auth);
+                    } catch (e) {
+                        console.error(e);
+                        document.getElementById('loadingOverlay').style.display = 'none';
+                        alert("មិនអាចភ្ជាប់ទៅកាន់ប្រព័ន្ធបានទេ!");
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

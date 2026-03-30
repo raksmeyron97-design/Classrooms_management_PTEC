@@ -3,505 +3,688 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>រដ្ឋបាលថ្នាក់រៀន - General Admin</title>
-    
+    <title>PTEC - សៀវភៅណែនាំបញ្ចូលព័ត៌មានសិស្ស</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Moul&family=Siemreap&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;600;700&family=Moul&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Script to prevent FOUC (Flash of Unstyled Content) in Dark Mode -->
+    <script>
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Kantumruy Pro', 'sans-serif'],
+                        display: ['Moul', 'cursive'],
+                    },
+                    colors: {
+                        primary: '#0054a6',
+                        secondary: '#4facfe',
+                    },
+                    animation: {
+                        blob: "blob 7s infinite",
+                        float: "float 4s ease-in-out infinite",
+                    },
+                    keyframes: {
+                        blob: {
+                            "0%": { transform: "translate(0px, 0px) scale(1)" },
+                            "33%": { transform: "translate(30px, -50px) scale(1.1)" },
+                            "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
+                            "100%": { transform: "translate(0px, 0px) scale(1)" },
+                        },
+                        float: {
+                            "0%, 100%": { transform: "translateY(0)" },
+                            "50%": { transform: "translateY(-12px)" },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
     <style>
-        body {
-            font-family: 'Siemreap', sans-serif;
-            background-color: #f3f4f6;
+        body { 
+            line-height: 1.8; 
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
-        .font-moul {
-            font-family: 'Moul', serif;
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        
+        .kbd-key { 
+            background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+            border: 1px solid #cbd5e1; 
+            border-bottom: 2px solid #94a3b8; 
+            border-radius: 6px; 
+            padding: 2px 8px; 
+            font-weight: 600; 
+            color: #475569; 
+            font-size: 0.85em; 
+            display: inline-block; 
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+        .dark .kbd-key {
+            background: linear-gradient(180deg, #1e293b, #0f172a);
+            border-color: #334155;
+            border-bottom-color: #475569;
+            color: #cbd5e1;
         }
         
-        /* Custom Input Styling for Forms */
-        .form-input {
-            width: 100%;
-            border: none;
-            background: transparent;
-            outline: none;
+        .section-box { 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 24px; 
+            border-radius: 24px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            margin-bottom: 32px; 
+            border: 1px solid rgba(255, 255, 255, 0.6); 
+            position: relative; 
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease, background-color 0.3s ease;
+        }
+        .dark .section-box {
+            background: rgba(30, 41, 59, 0.85);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .section-box:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.01);
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.9);
+        }
+        .dark .section-box:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        @media (min-width: 768px) {
+            .section-box { padding: 40px; border-radius: 32px; margin-bottom: 48px; }
+        }
+
+        @keyframes border-spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+
+        .hero-icon-wrapper {
+            position: relative;
             padding: 4px;
-        }
-        .form-input:focus {
-            background-color: #eef2ff;
-        }
-        .dotted-input {
-            border-bottom: 1px dotted #000;
+            border-radius: 50%;
+            overflow: hidden;
             display: inline-block;
-            min-width: 50px;
+            box-shadow: 0 10px 25px -5px rgba(0, 84, 166, 0.3);
+            transition: box-shadow 0.3s ease;
+        }
+        .dark .hero-icon-wrapper { box-shadow: 0 10px 25px -5px rgba(79, 172, 254, 0.2); }
+        .group:hover .hero-icon-wrapper { box-shadow: 0 15px 35px -5px rgba(0, 84, 166, 0.5); }
+        .dark .group:hover .hero-icon-wrapper { box-shadow: 0 15px 35px -5px rgba(79, 172, 254, 0.4); }
+        
+        .hero-icon-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: conic-gradient(transparent, #0054a6, transparent 30%);
+            animation: border-spin 4s linear infinite;
+        }
+        .dark .hero-icon-wrapper::before {
+            background: conic-gradient(transparent, #4facfe, transparent 30%);
         }
         
-        /* Table Styling */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        .hero-icon-inner {
+            background: white;
+            border-radius: 50%;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        th, td {
-            border: 1px solid #000;
-            padding: 4px;
-            text-align: center;
+        .dark .hero-icon-inner { background: #1e293b; }
+
+        .blob {
+            position: absolute;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.6;
         }
-        th {
-            background-color: #f9fafb;
-            font-weight: bold;
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+
+        .image-wrapper { 
+            position: relative; 
+            width: 100%; 
+            height: auto; 
+            display: block; 
+            border-radius: 20px; 
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+        }
+        .image-wrapper:hover {
+            transform: translateY(-8px) scale(1.02); 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+        }
+        .dark .image-wrapper:hover {
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
+        }
+        .image-wrapper img { 
+            width: 100%; 
+            height: auto; 
+            display: block; 
+            object-fit: contain; 
+            border-radius: 16px; 
         }
 
-        /* Iframe container styling */
-        .iframe-container {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
+        .pointer-container { position: absolute; z-index: 10; pointer-events: none; }
+        
+        .pointer-down { display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.25)); animation: bounce-down 2.5s infinite; transform-origin: bottom center; }
+        .pointer-down-box { 
+            padding: 8px 14px; border-radius: 12px; font-weight: 700; font-size: 13px; color: white; text-align: center; white-space: nowrap; line-height: 1.4; 
+            border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(4px); box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);
+        }
+        .pointer-down-arrow { width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 12px solid; }
+
+        .pointer-right { display: flex; align-items: center; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.25)); animation: bounce-right 2.5s infinite; transform-origin: right center; }
+        .pointer-right-box { 
+            padding: 8px 14px; border-radius: 12px; font-weight: 700; font-size: 13px; color: white; text-align: center; white-space: nowrap; line-height: 1.4; 
+            border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(4px); box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);
+        }
+        .pointer-right-arrow { width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 12px solid; }
+
+        @keyframes bounce-down { 0%, 100% { transform: translate(-50%, -10%); } 50% { transform: translate(-50%, 5%); } }
+        @keyframes bounce-right { 0%, 100% { transform: translate(-10%, -50%); } 50% { transform: translate(5%, -50%); } }
+
+        @media (max-width: 1024px) {
+            .pointer-down-box, .pointer-right-box { font-size: 11px; padding: 6px 12px; max-width: 120px; white-space: normal; }
+        }
+        @media (max-width: 767px) {
+            .pointer-down-box, .pointer-right-box { font-size: 9px; padding: 4px 8px; max-width: 90px; border-radius: 8px; }
+            .pointer-down-arrow { border-left-width: 6px; border-right-width: 6px; border-top-width: 8px; }
+            .pointer-right-arrow { border-top-width: 6px; border-bottom-width: 6px; border-left-width: 8px; }
+        }
+        @media (max-width: 479px) {
+            .pointer-down-box, .pointer-right-box { font-size: 8px; padding: 3px 6px; max-width: 75px; border-radius: 6px; }
+            .pointer-down-arrow { border-left-width: 5px; border-right-width: 5px; border-top-width: 6px; }
+            .pointer-right-arrow { border-top-width: 5px; border-bottom-width: 5px; border-left-width: 6px; }
         }
 
-        /* Print Styling */
-        @media print {
-            body { background-color: white; }
-            #sidebar, #topbar, .no-print { display: none !important; }
-            #main-content { margin: 0; padding: 0; width: 100%; height: 100%; overflow: visible; }
-            .print-page { 
-                box-shadow: none !important; 
-                margin: 0 !important; 
-                padding: 0 !important;
-                width: 100%;
-            }
-            .form-input { border: none !important; background: transparent !important; }
-            input::placeholder, textarea::placeholder { color: transparent; }
+        /* PTEC Gradient Text Animation */
+        .animate-gradient-text {
+            background: linear-gradient(-45deg, #0054a6, #4facfe, #ff2d75, #0054a6);
+            background-size: 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientText 6s ease infinite;
+        }
+        .dark .animate-gradient-text {
+            background: linear-gradient(-45deg, #4facfe, #0054a6, #ff2d75, #4facfe);
+            background-size: 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        @keyframes gradientText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Intersection Observer Animations */
+        .reveal-up { opacity: 0; transform: translateY(40px); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .reveal-left { opacity: 0; transform: translateX(-30px); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .reveal-scale { opacity: 0; transform: scale(0.95); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .reveal-visible { opacity: 1; transform: translate(0) scale(1); }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+            .reveal-up, .reveal-left, .reveal-scale { opacity: 1 !important; transform: none !important; }
+            .section-box:hover, .image-wrapper:hover { transform: none !important; }
         }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden text-gray-800">
+<body class="bg-slate-50 dark:bg-[#0f172a] text-slate-800 dark:text-gray-100 transition-colors duration-300 p-4 sm:p-6 md:p-8 lg:p-12 min-h-screen relative font-sans">
 
-    <aside id="sidebar" class="w-72 bg-blue-900 text-white flex flex-col h-full shadow-2xl z-10 shrink-0">
-        <div class="p-6 text-center border-b border-blue-800">
-            <h1 class="text-xl font-moul leading-relaxed text-yellow-400">រដ្ឋបាលថ្នាក់រៀន</h1>
-            <p id="sidebar-subtitle" class="text-sm mt-2 opacity-80">ប្រព័ន្ធគ្រប់គ្រង</p>
-        </div>
-        <div class="flex-1 overflow-y-auto py-4">
-            <ul id="menu-list" class="space-y-1 px-3">
-                </ul>
-        </div>
-        <div id="sidebar-footer" class="p-4 border-t border-blue-800 text-sm text-center opacity-60">
-            ឆ្នាំសិក្សា ២០២៥-២០២៦
-        </div>
-    </aside>
+    <!-- Theme Toggle Button -->
+    <div class="fixed top-4 right-4 md:top-6 md:right-6 z-50">
+        <button type="button" class="theme-toggle-btn p-2.5 text-gray-500 dark:text-gray-400 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-full shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary transition-all hover:scale-110" aria-label="Toggle Dark Mode">
+            <i data-lucide="moon" class="theme-toggle-dark-icon hidden w-5 h-5"></i>
+            <i data-lucide="sun" class="theme-toggle-light-icon hidden w-5 h-5"></i>
+        </button>
+    </div>
 
-    <main class="flex-1 flex flex-col h-full relative">
-        <header id="topbar" class="bg-white shadow-sm h-16 flex items-center justify-between px-6 z-10">
-            <h2 id="current-form-title" class="text-lg font-bold text-gray-700 font-moul mt-1">សូមស្វាគមន៍</h2>
-            <div class="space-x-2" id="action-buttons">
-                <button onclick="saveData()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow transition duration-200">
-                    <i class="fas fa-save mr-2"></i>រក្សាទុក
-                </button>
-                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition duration-200">
-                    <i class="fas fa-print mr-2"></i>បោះពុម្ព
-                </button>
+    <!-- Ambient Background Blobs -->
+    <div class="blob w-[30rem] h-[30rem] bg-blue-200/50 dark:bg-blue-900/20 top-0 left-0 rounded-full mix-blend-multiply dark:mix-blend-screen animate-blob"></div>
+    <div class="blob w-[30rem] h-[30rem] bg-indigo-200/50 dark:bg-indigo-900/20 top-40 right-0 rounded-full mix-blend-multiply dark:mix-blend-screen animate-blob animation-delay-2000"></div>
+    <div class="blob w-[30rem] h-[30rem] bg-emerald-200/50 dark:bg-emerald-900/20 bottom-0 left-20 rounded-full mix-blend-multiply dark:mix-blend-screen animate-blob animation-delay-4000"></div>
+
+    <div class="max-w-5xl mx-auto relative z-10">
+        
+        <!-- Header Section -->
+        <header class="text-center mb-12 md:mb-16 relative pt-8">
+            <a href="../../enrollment_V2.html" class="group inline-block mb-6 relative cursor-pointer animate-float focus:outline-none focus:ring-4 focus:ring-blue-300 rounded-full reveal-scale">
+                <div class="hero-icon-wrapper transform transition-transform duration-300">
+                    <div class="hero-icon-inner w-20 h-20 md:w-28 md:h-28">
+                        <i data-lucide="user-plus" class="w-10 h-10 md:w-14 md:h-14 text-primary dark:text-secondary group-hover:scale-110 transition-transform duration-300 drop-shadow-sm"></i>
+                    </div>
+                </div>
+                <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-300 whitespace-nowrap z-20">
+                     <span class="text-xs font-bold text-blue-700 dark:text-blue-200 bg-blue-50 dark:bg-blue-900/80 px-3 py-1.5 rounded-full border border-blue-200 dark:border-blue-700 shadow-md backdrop-blur-sm">ចូលទៅកាន់ប្រព័ន្ធ</span>
+                </div>
+            </a>
+            
+            <h1 class="font-display text-3xl md:text-5xl lg:text-6xl animate-gradient-text mb-4 leading-normal drop-shadow-sm reveal-up" style="transition-delay: 100ms;">Introduction To Enrollment</h1>
+            
+            <p class="text-lg md:text-xl text-slate-600 dark:text-gray-300 font-medium max-w-2xl mx-auto mb-8 reveal-up" style="transition-delay: 200ms;">
+                សៀវភៅណែនាំងាយស្រួលយល់សម្រាប់ការគ្រប់គ្រងទិន្នន័យសិស្ស
+            </p>
+
+            <!-- Pinging Badge -->
+            <div class="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/70 dark:bg-gray-800/70 border border-white dark:border-gray-700 backdrop-blur-md shadow-sm reveal-up hover:shadow-md transition-shadow cursor-default" style="transition-delay: 300ms;">
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-primary dark:bg-secondary"></span>
+                </span>
+                <p class="text-slate-700 dark:text-gray-200 text-sm md:text-lg font-bold">
+                    ប្រព័ន្ធគ្រប់គ្រង និងបញ្ចូលទិន្នន័យសិស្ស (ជំនាន់ ២.០)
+                </p>
             </div>
         </header>
 
-        <div id="main-content" class="flex-1 overflow-y-auto p-8 bg-gray-200">
-            <div id="form-container" class="bg-white mx-auto shadow-lg rounded h-full relative">
-                <div id="welcome-screen" class="flex flex-col items-center justify-center h-full opacity-50 text-center p-10">
-                    <i class="fas fa-book-open text-6xl mb-4 text-blue-300"></i>
-                    <h3 class="text-2xl font-moul mb-2">ប្រព័ន្ធគ្រប់គ្រងឯកសារថ្នាក់រៀន</h3>
-                    <p>សូមជ្រើសរើសសៀវភៅនៅបញ្ជីខាងឆ្វេង។</p>
+        <!-- Section 1 -->
+        <section class="section-box border-t-4 border-t-indigo-500 dark:border-t-indigo-400 reveal-up">
+            <div class="flex items-center gap-4 mb-6 md:mb-8">
+                <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 border border-indigo-100 dark:border-indigo-800/50 shadow-sm reveal-scale">
+                    <i data-lucide="file-edit" class="w-7 h-7 md:w-8 md:h-8"></i>
+                </div>
+                <div class="reveal-left">
+                    <span class="text-[10px] md:text-xs font-bold tracking-wider text-indigo-600 dark:text-indigo-400 uppercase bg-indigo-100 dark:bg-indigo-900/40 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-800/50">ផ្នែកទី ១</span>
+                    <h2 class="text-xl md:text-3xl font-bold text-slate-800 dark:text-white mt-1 md:mt-2">ការបំពេញព័ត៌មានមូលដ្ឋាន</h2>
                 </div>
             </div>
-        </div>
-
-        <div id="toast" class="absolute bottom-5 right-5 bg-green-500 text-white px-6 py-3 rounded shadow-lg transform transition-all duration-300 translate-y-20 opacity-0 z-50">
-            <i class="fas fa-check-circle mr-2"></i> រក្សាទុកបានជោគជ័យ!
-        </div>
-    </main>
-
-    <script>
-        // Get Settings Function - CLEARED DEFAULT DATA as requested
-        function getSettings() {
-            const defaultSettings = {
-                unit1: '', // Was: District Office
-                unit2: '', // Was: Cluster
-                schoolName: '', // Was: School Name
-                location: '', 
-                className: '', 
-                teacherName: '', // Was: Teacher Name
-                managerRole: 'នាយកសាលា',
-                academicYear: '២០២៥-២០២៦'
-            };
-            const saved = localStorage.getItem('app_settings');
-            return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
-        }
-
-        // Define all forms structure
-        const formsData = [
-            {
-                id: 'external_attendance',
-                icon: 'fa-calendar-check',
-                title: '១. សៀវភៅសម្រង់វត្តមាន (Attendance)',
-                type: 'iframe',
-                src: '1_adr.html' // Linking to your other file
-            },
-            {
-                id: 'f1',
-                icon: 'fa-calendar-alt',
-                title: '២. សម្រង់អត្ថបទប្រចាំថ្ងៃ',
-                render: () => `
-                    <div class="print-page p-[2cm] max-w-[21cm] mx-auto min-h-[29.7cm] bg-white">
-                        ${renderHeader('សៀវភៅសម្រង់អត្ថបទប្រចាំថ្ងៃ')}
-                        <div class="mb-4 mt-6 leading-loose">
-                            ថ្ងៃ <input type="text" class="form-input dotted-input w-24 text-center" id="f1_day"> 
-                            ខែ <input type="text" class="form-input dotted-input w-24 text-center" id="f1_month"> 
-                            ឆ្នាំ <input type="text" class="form-input dotted-input w-24 text-center" id="f1_year"> 
-                            ស័ក ព.ស ២៥<input type="text" class="form-input dotted-input w-16 text-center" id="f1_buddhist_year"><br>
-                            ត្រូវនឹងថ្ងៃទី <input type="text" class="form-input dotted-input w-16 text-center" id="f1_date"> 
-                            ខែ <input type="text" class="form-input dotted-input w-32 text-center" id="f1_g_month"> 
-                            ឆ្នាំ ២០២<input type="text" class="form-input dotted-input w-16 text-center" id="f1_g_year">
-                        </div>
-                        ${generateTable('f1', ['ម៉ោង', 'ខ្លឹមសារ'], 5, [10, 90])}
-                    </div>
-                `
-            },
-            {
-                id: 'f2',
-                icon: 'fa-weight',
-                title: '៣. តាមដានទម្ងន់ កម្ពស់សិស្ស',
-                render: () => `
-                    <div class="print-page p-[2cm] max-w-[21cm] mx-auto min-h-[29.7cm] bg-white">
-                        ${renderHeader('សៀវភៅតាមដានទម្ងន់ កម្ពស់សិស្ស')}
-                        ${generateTable('f2', ['ល.រ', 'ឈ្មោះសិស្ស', 'ភេទ', 'កម្ពស់', 'ទម្ងន់'], 20, [10, 40, 10, 20, 20])}
-                    </div>
-                `
-            },
-            {
-                id: 'f3',
-                icon: 'fa-box-open',
-                title: '៤. ទទួល និងចែកសម្ភារៈ',
-                render: () => `
-                    <div class="print-page p-[2cm] max-w-[21cm] mx-auto min-h-[29.7cm] bg-white">
-                        ${renderHeader('សៀវភៅទទួល និងចែកសម្ភារៈ')}
-                        ${generateTable('f3', ['ល.រ', 'បរិយាយ', 'ចំនួន', 'ឯកតា', 'ថ្ងៃខែឆ្នាំទទួល', 'ហត្ថលេខា'], 10, [10, 30, 15, 15, 15, 15])}
-                        ${renderFooterSignatures()}
-                    </div>
-                `
-            },
-            {
-                id: 'f4',
-                icon: 'fa-comment-dots',
-                title: '៥. សៀវភៅអនុសាសន៍',
-                render: () => {
-                    const s = getSettings();
-                    return `
-                    <div class="print-page p-[2cm] max-w-[21cm] mx-auto min-h-[29.7cm] bg-white">
-                        ${renderHeader('សៀវភៅអនុសាសន៍')}
-                        <div class="mt-6 space-y-4">
-                            <div>
-                                <span class="font-bold">ក្រុមអធិការកិច្ច</span>
-                                <textarea id="f4_inspectors" class="w-full border border-gray-300 rounded mt-2 p-2 focus:outline-none focus:border-blue-500" rows="3" placeholder="ឈ្មោះអ្នកចុះអធិការកិច្ច..."></textarea>
-                            </div>
-                            <div>
-                                <span class="font-bold">ចំណុចល្អ</span>
-                                <textarea id="f4_good" class="w-full border border-gray-300 rounded mt-2 p-2 focus:outline-none focus:border-blue-500" rows="5"></textarea>
-                            </div>
-                            <div>
-                                <span class="font-bold">ចំណុចកែលម្អ</span>
-                                <textarea id="f4_improve" class="w-full border border-gray-300 rounded mt-2 p-2 focus:outline-none focus:border-blue-500" rows="5"></textarea>
-                            </div>
-                        </div>
-                        <div class="mt-8 flex justify-between text-center leading-loose">
-                            <div>
-                                <span class="font-bold">ក្រុមអធិការកិច្ច</span><br><br><br><br>
-                                <input type="text" id="f4_sign1" class="form-input dotted-input w-40 text-center">
-                            </div>
-                            <div>
-                                ថ្ងៃ <input type="text" id="f4_d1" class="form-input dotted-input w-12 text-center"> ខែ <input type="text" id="f4_m1" class="form-input dotted-input w-16 text-center"> ឆ្នាំ <input type="text" id="f4_y1" class="form-input dotted-input w-16 text-center"> ស័ក ព.ស២៥<input type="text" id="f4_ps" class="form-input dotted-input w-8 text-center"><br>
-                                ${s.location} ថ្ងៃទី <input type="text" id="f4_d2" class="form-input dotted-input w-12 text-center"> ខែ <input type="text" id="f4_m2" class="form-input dotted-input w-16 text-center"> ឆ្នាំ២០២<input type="text" id="f4_y2" class="form-input dotted-input w-8 text-center"><br>
-                                <span class="font-bold">បានឃើញ និងព្យាយាមអនុវត្ត</span><br>
-                                <span class="font-bold">គ្រូប្រចាំថ្នាក់</span><br><br><br>
-                                <span class="font-moul">${s.teacherName}</span>
-                            </div>
-                        </div>
-                    </div>
-                    `;
-                }
-            },
-            {
-                id: 'settings',
-                icon: 'fa-cog',
-                title: 'ការកំណត់ទូទៅ (Settings)',
-                render: () => {
-                    const s = getSettings();
-                    return `
-                        <div class="p-8 h-full bg-white overflow-y-auto">
-                            <div class="text-center font-moul text-2xl mt-4 mb-8 text-blue-900">ការកំណត់ព័ត៌មានទូទៅ</div>
-                            <div class="max-w-2xl mx-auto bg-gray-50 p-8 rounded shadow-sm border border-gray-200">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div class="col-span-2">
-                                        <label class="font-bold text-gray-700">អង្គភាពគ្រប់គ្រង ១ (ឧ. ការិយាល័យ...):</label>
-                                        <input type="text" id="setting_unit1" value="${s.unit1}" placeholder="បញ្ចូលឈ្មោះការិយាល័យ..." class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
-                                    </div>
-                                    <div class="col-span-2">
-                                        <label class="font-bold text-gray-700">អង្គភាពគ្រប់គ្រង ២ (ឧ. កម្រង...):</label>
-                                        <input type="text" id="setting_unit2" value="${s.unit2}" placeholder="បញ្ចូលឈ្មោះកម្រង..." class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
-                                    </div>
-                                    <div class="col-span-2">
-                                        <label class="font-bold text-gray-700">ឈ្មោះសាលា:</label>
-                                        <input type="text" id="setting_schoolName" value="${s.schoolName}" placeholder="បញ្ចូលឈ្មោះសាលា..." class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
-                                    </div>
-                                    <div>
-                                        <label class="font-bold text-gray-700">ទីតាំង (សម្រាប់សរសេរថ្ងៃខែ):</label>
-                                        <input type="text" id="setting_location" value="${s.location}" placeholder="ឧ. ភ្នំពេញ" class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
-                                    </div>
-                                    <div>
-                                        <label class="font-bold text-gray-700">ឈ្មោះថ្នាក់:</label>
-                                        <input type="text" id="setting_className" value="${s.className}" placeholder="ឧ. ថ្នាក់ទី១ ក" class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
-                                    </div>
-                                    <div>
-                                        <label class="font-bold text-gray-700">ឈ្មោះគ្រូបន្ទុកថ្នាក់:</label>
-                                        <input type="text" id="setting_teacherName" value="${s.teacherName}" placeholder="ឈ្មោះលោកគ្រូ/អ្នកគ្រូ..." class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
-                                    </div>
-                                    <div>
-                                        <label class="font-bold text-gray-700">តួនាទីអ្នកគ្រប់គ្រង (ឧ. នាយកសាលា):</label>
-                                        <input type="text" id="setting_managerRole" value="${s.managerRole}" class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
-                                    </div>
-                                    <div class="col-span-2">
-                                        <label class="font-bold text-gray-700">ឆ្នាំសិក្សា:</label>
-                                        <input type="text" id="setting_academicYear" value="${s.academicYear}" class="w-full border p-2 rounded mt-1 bg-white focus:outline-blue-500">
-                                    </div>
-                                </div>
-                                <div class="text-center mt-8">
-                                    <button onclick="saveData()" class="bg-blue-600 text-white px-8 py-3 rounded shadow hover:bg-blue-700 font-bold transition">
-                                        <i class="fas fa-save mr-2"></i>រក្សាទុកការកំណត់
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-        ];
-
-        let currentFormId = null;
-
-        // UI Components Generators
-        function renderHeader(bookTitle) {
-            const s = getSettings();
-            return `
-                <div class="text-center font-moul mb-6 leading-loose">
-                    <span class="text-xl">ព្រះរាជាណាចក្រកម្ពុជា</span><br>
-                    <span class="text-lg">ជាតិ សាសនា ព្រះមហាក្សត្រ</span>
-                </div>
-                <div class="flex justify-between items-start text-sm md:text-base leading-relaxed mb-6">
-                    <div>
-                        ${s.unit1}<br>
-                        ${s.unit2}<br>
-                        ${s.schoolName}
-                    </div>
-                    <div class="text-right">
-                        ${s.className}<br>
-                        ${s.teacherName}<br>
-                        ឆ្នាំសិក្សា ${s.academicYear}
-                    </div>
-                </div>
-                <div class="text-center font-moul text-xl mt-8 mb-4">
-                    ${bookTitle}
-                </div>
-            `;
-        }
-
-        function renderFooterSignatures() {
-            const s = getSettings();
-            return `
-                <div class="mt-12 flex justify-between text-center leading-loose">
-                    <div>
-                        <br><br>
-                        <span class="font-bold">បានឃើញ និងឯកភាព</span><br>
-                        <span class="font-bold">${s.managerRole}</span>
-                    </div>
-                    <div>
-                        ថ្ងៃ <input type="text" class="form-input dotted-input w-10 text-center"> ខែ <input type="text" class="form-input dotted-input w-16 text-center"> ឆ្នាំ <input type="text" class="form-input dotted-input w-10 text-center"> ស័ក ព.ស២៥<input type="text" class="form-input dotted-input w-8 text-center"><br>
-                        ${s.location} ថ្ងៃទី <input type="text" class="form-input dotted-input w-10 text-center"> ខែ <input type="text" class="form-input dotted-input w-16 text-center"> ឆ្នាំ២០២<input type="text" class="form-input dotted-input w-8 text-center"><br>
-                        <span class="font-bold">គ្រូប្រចាំថ្នាក់</span><br><br><br>
-                        <span class="font-moul">${s.teacherName}</span>
-                    </div>
-                </div>
-            `;
-        }
-
-        function generateTable(formId, headers, rowCount, widths, hasTotalRow = false) {
-            let html = `<table><thead><tr>`;
-            headers.forEach((h, i) => {
-                html += `<th style="width: ${widths[i]}%;">${h}</th>`;
-            });
-            html += `</tr></thead><tbody>`;
             
-            for (let i = 1; i <= rowCount; i++) {
-                html += `<tr>`;
-                headers.forEach((_, colIndex) => {
-                    let val = colIndex === 0 ? textToKhmerNum(i) : ''; // Auto fill number for first col
-                    let inputType = 'text';
-                    html += `<td><input type="${inputType}" id="${formId}_r${i}_c${colIndex}" value="${val}" class="form-input text-center"></td>`;
-                });
-                html += `</tr>`;
-            }
-
-            if(hasTotalRow) {
-                html += `<tr class="font-bold bg-gray-50">`;
-                html += `<td colspan="${headers.length - 1}" class="text-right pr-4">សរុប</td>`;
-                html += `<td><input type="text" id="${formId}_total" class="form-input text-center font-bold"></td>`;
-                html += `</tr>`;
-            }
-
-            html += `</tbody></table>`;
-            return html;
-        }
-
-        function textToKhmerNum(num) {
-            const khmerNums = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
-            return num.toString().split('').map(n => khmerNums[parseInt(n)]).join('');
-        }
-
-        function updateSidebarInfo() {
-            const s = getSettings();
-            document.getElementById('sidebar-subtitle').innerText = s.className ? `${s.className}` : "សូមបំពេញព័ត៌មាន";
-            document.getElementById('sidebar-footer').innerText = `ឆ្នាំសិក្សា ${s.academicYear}`;
-            document.title = `រដ្ឋបាលថ្នាក់រៀន`;
-        }
-
-        // App Logic
-        function initApp() {
-            updateSidebarInfo();
-            const menuList = document.getElementById('menu-list');
+            <p class="text-sm md:text-lg font-medium text-slate-600 dark:text-gray-300 mb-6 reveal-up">ដើម្បីបញ្ចូលសិស្សថ្មី លោកអ្នកត្រូវបំពេញព័ត៌មានសំខាន់ៗមួយចំនួន។ សូមកត់សម្គាល់ថា ប្រអប់ដែលមានសញ្ញាផ្កាយ <strong class="text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/30 px-2 py-0.5 rounded border border-rose-100 dark:border-rose-800/50">(*)</strong> គឺជាព័ត៌មានចាំបាច់ដែលមិនអាចរំលងបាន៖</p>
             
-            formsData.forEach(form => {
-                // Add separator before settings
-                if(form.id === 'settings') {
-                    const hr = document.createElement('div');
-                    hr.className = "border-t border-blue-800 my-2";
-                    menuList.appendChild(hr);
-                }
-
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <button onclick="loadForm('${form.id}')" id="menu-${form.id}" class="w-full text-left px-4 py-3 rounded-lg hover:bg-blue-800 transition flex items-center group">
-                        <i class="fas ${form.icon} w-6 text-center ${form.id === 'settings' ? 'text-gray-400' : 'text-blue-300'} group-hover:text-white transition"></i>
-                        <span class="ml-3 text-sm truncate">${form.title}</span>
-                    </button>
-                `;
-                menuList.appendChild(li);
-            });
-
-            // Try to load last selected form, or leave welcome screen
-            const lastForm = localStorage.getItem('lastForm');
-            if (lastForm) {
-                loadForm(lastForm);
-            }
-        }
-
-        function loadForm(id) {
-            // Update active menu state
-            document.querySelectorAll('[id^="menu-"]').forEach(btn => btn.classList.remove('bg-blue-800', 'border-l-4', 'border-yellow-400'));
-            const activeBtn = document.getElementById(`menu-${id}`);
-            if(activeBtn) activeBtn.classList.add('bg-blue-800', 'border-l-4', 'border-yellow-400');
-
-            const formDef = formsData.find(f => f.id === id);
-            currentFormId = id;
-            localStorage.setItem('lastForm', id);
-
-            document.getElementById('current-form-title').innerText = formDef.title;
-
-            const container = document.getElementById('form-container');
-            const actionButtons = document.getElementById('action-buttons');
-
-            // Handle Iframe vs Normal Form
-            if (formDef.type === 'iframe') {
-                // Render Iframe
-                container.innerHTML = `<iframe src="${formDef.src}" class="iframe-container" title="${formDef.title}"></iframe>`;
-                // Hide Save/Print buttons for iframe (since iframe has its own)
-                actionButtons.style.display = 'none';
-                container.style.backgroundColor = 'transparent';
-                container.style.boxShadow = 'none';
-            } else {
-                // Render Template
-                container.innerHTML = formDef.render();
-                actionButtons.style.display = 'block';
-                container.style.backgroundColor = 'white';
-                container.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
-                restoreFormData();
-            }
-        }
-
-        function saveData() {
-            if (!currentFormId) return;
-            
-            // Handle Settings Save
-            if (currentFormId === 'settings') {
-                const s = {
-                    unit1: document.getElementById('setting_unit1').value,
-                    unit2: document.getElementById('setting_unit2').value,
-                    schoolName: document.getElementById('setting_schoolName').value,
-                    location: document.getElementById('setting_location').value,
-                    className: document.getElementById('setting_className').value,
-                    teacherName: document.getElementById('setting_teacherName').value,
-                    managerRole: document.getElementById('setting_managerRole').value,
-                    academicYear: document.getElementById('setting_academicYear').value
-                };
-                localStorage.setItem('app_settings', JSON.stringify(s));
-                updateSidebarInfo();
-                showToast();
-                return;
-            }
-
-            // Handle Normal Form Save
-            const container = document.getElementById('form-container');
-            const inputs = container.querySelectorAll('input, textarea');
-            const data = {};
-            
-            inputs.forEach(input => {
-                if(input.id) {
-                    data[input.id] = input.value;
-                }
-            });
-
-            localStorage.setItem(`data_${currentFormId}`, JSON.stringify(data));
-            showToast();
-        }
-
-        function restoreFormData() {
-            if (!currentFormId || currentFormId === 'settings') return; // Settings are rendered directly with values
-            
-            const savedData = localStorage.getItem(`data_${currentFormId}`);
-            if (savedData) {
-                const data = JSON.parse(savedData);
-                const container = document.getElementById('form-container');
-                const inputs = container.querySelectorAll('input, textarea');
+            <div class="image-wrapper mb-8 border-4 border-white dark:border-gray-800 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] bg-slate-50 dark:bg-gray-900 reveal-scale">
+                <img src="1_enrollment.png" alt="Basic Info" onerror="this.onerror=null; this.src='https://placehold.co/800x400/1e293b/94a3b8?text=1_enrollment.png'">
                 
-                inputs.forEach(input => {
-                    if(input.id && data[input.id] !== undefined) {
-                        input.value = data[input.id];
+                <div class="pointer-container top-[25%] left-[37%]">
+                    <div class="pointer-down">
+                        <div class="pointer-down-box bg-indigo-600 dark:bg-indigo-500">១. បញ្ចូលអត្តលេខ</div>
+                        <div class="pointer-down-arrow border-t-indigo-600 dark:border-t-indigo-500"></div>
+                    </div>
+                </div>
+                <div class="pointer-container top-[25%] left-[57%]">
+                    <div class="pointer-down">
+                        <div class="pointer-down-box bg-indigo-600 dark:bg-indigo-500">២. បញ្ចូលថ្នាក់ទី</div>
+                        <div class="pointer-down-arrow border-t-indigo-600 dark:border-t-indigo-500"></div>
+                    </div>
+                </div>
+                <div class="pointer-container top-[25%] left-[77%]">
+                    <div class="pointer-down">
+                        <div class="pointer-down-box bg-indigo-600 dark:bg-indigo-500">៣. បញ្ចូលឈ្មោះសិស្ស</div>
+                        <div class="pointer-down-arrow border-t-indigo-600 dark:border-t-indigo-500"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-indigo-50/80 to-blue-50/80 dark:from-indigo-900/20 dark:to-blue-900/20 p-5 md:p-6 rounded-2xl border border-indigo-100/50 dark:border-indigo-800/50 reveal-up">
+                <ul class="list-disc pl-5 md:pl-8 space-y-3 md:space-y-4 text-sm md:text-base text-slate-700 dark:text-gray-300 stagger-container">
+                    <li><strong class="text-indigo-700 dark:text-indigo-400">អត្តលេខ*:</strong> ជាលេខសម្គាល់សិស្ស (Student ID)។ ឧទាហរណ៍៖ ០០១, ០០២...</li>
+                    <li><strong class="text-indigo-700 dark:text-indigo-400">ថ្នាក់ទី*:</strong> បញ្ចូលកម្រិតថ្នាក់ដែលសិស្សកំពុងរៀន ឧទាហរណ៍៖ <kbd class="kbd-key text-[12px] md:text-[14px]">១ក</kbd>។</li>
+                    <li><strong class="text-indigo-700 dark:text-indigo-400">ឈ្មោះសិស្ស* និង ភេទ*:</strong> វាយបញ្ចូលឈ្មោះពេញ និងជ្រើសរើសភេទ (ប្រុស/ស្រី) ពីបញ្ជីទម្លាក់ចុះ។</li>
+                    <li><strong class="text-indigo-700 dark:text-indigo-400">ថ្ងៃខែឆ្នាំកំណើត*:</strong> ចុចលើប្រអប់ដើម្បីជ្រើសរើសថ្ងៃខែឆ្នាំកំណើតចេញពីប្រតិទិន។</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Section 2 -->
+        <section class="section-box border-t-4 border-t-emerald-500 dark:border-t-emerald-400 reveal-up">
+            <div class="flex items-center gap-4 mb-6 md:mb-8">
+                <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 border border-emerald-100 dark:border-emerald-800/50 shadow-sm reveal-scale">
+                    <i data-lucide="image" class="w-7 h-7 md:w-8 md:h-8"></i>
+                </div>
+                <div class="reveal-left">
+                    <span class="text-[10px] md:text-xs font-bold tracking-wider text-emerald-600 dark:text-emerald-400 uppercase bg-emerald-100 dark:bg-emerald-900/40 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800/50">ផ្នែកទី ២</span>
+                    <h2 class="text-xl md:text-3xl font-bold text-slate-800 dark:text-white mt-1 md:mt-2">ការកំណត់រូបថតតំណាង (Profile Photo)</h2>
+                </div>
+            </div>
+            
+            <p class="text-sm md:text-lg font-medium text-slate-600 dark:text-gray-300 mb-6 reveal-up">ប្រព័ន្ធផ្តល់ជម្រើស ៣ យ៉ាងក្នុងការកំណត់រូបថតឱ្យសិស្ស ដែលមានទីតាំងនៅខាងឆ្វេងដៃបំផុត៖</p>
+
+            <div class="image-wrapper mb-8 border-4 border-white dark:border-gray-800 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] bg-slate-50 dark:bg-gray-900 reveal-scale">
+                <img src="1_enrollment.png" alt="Avatar Selection" onerror="this.onerror=null; this.src='https://placehold.co/800x400/1e293b/94a3b8?text=1_enrollment.png'">
+                
+                <div class="pointer-container top-[53%] left-[5%]">
+                    <div class="pointer-right">
+                        <div class="pointer-right-box bg-emerald-600 dark:bg-emerald-500">១. ជ្រើសរូបតុក្កតាស្រាប់ៗ</div>
+                        <div class="pointer-right-arrow border-l-emerald-600 dark:border-l-emerald-500"></div>
+                    </div>
+                </div>
+                <div class="pointer-container top-[59%] left-[5%]">
+                    <div class="pointer-right">
+                        <div class="pointer-right-box bg-blue-600 dark:bg-blue-500">២. ជ្រើសរូបផ្ទាល់ពីទូរស័ព្ទ</div>
+                        <div class="pointer-right-arrow border-l-blue-600 dark:border-l-blue-500"></div>
+                    </div>
+                </div>
+                <div class="pointer-container top-[65%] left-[5%]">
+                    <div class="pointer-right">
+                        <div class="pointer-right-box bg-slate-800 dark:bg-slate-700">៣. ទាញយករូបពី URL</div>
+                        <div class="pointer-right-arrow border-l-slate-800 dark:border-l-slate-700"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-5 md:gap-8 items-center">
+                <div class="space-y-4">
+                    <div tabindex="0" class="bg-white/80 dark:bg-slate-800/80 p-4 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all transform hover:-translate-y-1 group reveal-left" style="transition-delay: 100ms;">
+                        <h3 class="font-bold text-emerald-700 dark:text-emerald-400 mb-2 border-b border-slate-100 dark:border-slate-700 pb-2 text-base md:text-lg flex items-center gap-2">
+                            <i data-lucide="bot" class="w-5 h-5 group-hover:scale-125 group-hover:rotate-12 group-focus:scale-125 transition-transform"></i> ១. ជ្រើសរូបតុក្កតា (Avatars)
+                        </h3>
+                        <p class="text-sm md:text-base text-slate-600 dark:text-gray-300">ចុចប៊ូតុងនេះ ផ្ទាំងមួយនឹងលោតឡើងបង្ហាញរូបតុក្កតាដ៏ស្រស់ស្អាតជាច្រើន (បង្កើតដោយ AI) ដើម្បីយកមកធ្វើជារូបតំណាងសិស្សបានយ៉ាងឆាប់រហ័ស។</p>
+                    </div>
+                    <div tabindex="0" class="bg-white/80 dark:bg-slate-800/80 p-4 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all transform hover:-translate-y-1 group reveal-left" style="transition-delay: 200ms;">
+                        <h3 class="font-bold text-blue-700 dark:text-blue-400 mb-2 border-b border-slate-100 dark:border-slate-700 pb-2 text-base md:text-lg flex items-center gap-2">
+                            <i data-lucide="upload-cloud" class="w-5 h-5 group-hover:-translate-y-1 group-hover:scale-110 group-focus:-translate-y-1 transition-transform"></i> ២. ជ្រើសរូបផ្ទាល់ (Upload)
+                        </h3>
+                        <p class="text-sm md:text-base text-slate-600 dark:text-gray-300">ទាញយករូបថតពីក្នុងទូរស័ព្ទ ឬកុំព្យូទ័រ។ <span class="text-rose-500 dark:text-rose-400 italic block mt-2 bg-rose-50 dark:bg-rose-900/30 px-2 py-1 rounded inline-block text-xs md:text-sm">*ទំហំមិនត្រូវលើសពី 2MB។</span></p>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center p-2 relative group reveal-scale" style="transition-delay: 300ms;">
+                    <div class="absolute inset-0 bg-emerald-200 dark:bg-emerald-600 blur-2xl opacity-20 rounded-full group-hover:opacity-40 transition-opacity"></div>
+                    <img src="2_enrollment.png" alt="Avatar Grid" class="w-full max-w-sm rounded-2xl border-4 border-white dark:border-gray-800 shadow-lg transform md:rotate-2 group-hover:rotate-0 group-hover:scale-105 transition-all duration-500 relative z-10" onerror="this.onerror=null; this.src='https://placehold.co/400x300/1e293b/94a3b8?text=2_enrollment.png'">
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3 -->
+        <section class="section-box border-t-4 border-t-amber-500 dark:border-t-amber-400 reveal-up">
+            <div class="flex items-center gap-4 mb-6 md:mb-8">
+                <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 border border-amber-100 dark:border-amber-800/50 shadow-sm reveal-scale">
+                    <i data-lucide="map-pin" class="w-7 h-7 md:w-8 md:h-8"></i>
+                </div>
+                <div class="reveal-left">
+                    <span class="text-[10px] md:text-xs font-bold tracking-wider text-amber-600 dark:text-amber-400 uppercase bg-amber-100 dark:bg-amber-900/40 px-3 py-1 rounded-full border border-amber-200 dark:border-amber-800/50">ផ្នែកទី ៣</span>
+                    <h2 class="text-xl md:text-3xl font-bold text-slate-800 dark:text-white mt-1 md:mt-2">ការបញ្ចូលទីតាំងភូមិសាស្ត្រឆ្លាតវៃ</h2>
+                </div>
+            </div>
+            
+            <p class="text-sm md:text-lg font-medium text-slate-600 dark:text-gray-300 mb-6 reveal-up">នៅពេលលោកអ្នកបំពេញទីកន្លែងកំណើត ឬទីកន្លែងបច្ចុប្បន្ន លោកអ្នកមិនចាំបាច់វាយអត្ថបទវែងៗនោះទេ៖</p>
+
+            <div class="image-wrapper mb-8 border-4 border-white dark:border-gray-800 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] bg-slate-50 dark:bg-gray-900 reveal-scale">
+                <img src="3_enrollment.png" alt="Smart Location" onerror="this.onerror=null; this.src='https://placehold.co/800x400/1e293b/94a3b8?text=3_enrollment.png'">
+                
+                <div class="pointer-container top-[21%] left-[37%]">
+                    <div class="pointer-down">
+                        <div class="pointer-down-box bg-amber-600 dark:bg-amber-500">វាយអក្សរ១-២តួ ទីនេះមុខគេ</div>
+                        <div class="pointer-down-arrow border-t-amber-600 dark:border-t-amber-500"></div>
+                    </div>
+                </div>
+                
+                <div class="pointer-container top-[21%] left-[56%] opacity-95">
+                    <div class="pointer-down">
+                        <div class="pointer-down-box bg-slate-700 dark:bg-slate-600">វានឹងទម្លាក់ជម្រើសស្វ័យប្រវត្តិ</div>
+                        <div class="pointer-down-arrow border-t-slate-700 dark:border-t-slate-600"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-amber-50/80 to-orange-50/80 dark:from-amber-900/20 dark:to-orange-900/20 p-5 md:p-6 rounded-2xl border border-amber-100 dark:border-amber-800/50 flex flex-col sm:flex-row items-start gap-4 md:gap-6 reveal-up">
+                <div class="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm shrink-0 hidden sm:block border border-amber-100 dark:border-amber-700 transform hover:rotate-12 transition-transform cursor-default">
+                    <i data-lucide="search" class="w-8 h-8 text-amber-500 dark:text-amber-400"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-amber-900 dark:text-amber-400 mb-3 text-base md:text-xl flex items-center gap-2">
+                        <i data-lucide="search" class="w-5 h-5 text-amber-500 sm:hidden"></i>
+                        ប្រព័ន្ធទាញទិន្នន័យស្វ័យប្រវត្តិ (Autocomplete)
+                    </h3>
+                    <ul class="list-disc pl-5 mt-2 text-sm md:text-base text-slate-700 dark:text-gray-300 space-y-3 stagger-container">
+                        <li><strong>របៀបប្រើប្រាស់៖</strong> គ្រាន់តែវាយបញ្ចូលអក្សរ ១ ឬ ២ តួ នៅត្រង់ប្រអប់ <strong class="bg-amber-100 dark:bg-amber-900/40 px-1.5 py-0.5 rounded text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">រាជធានី/ខេត្ត</strong> នោះបញ្ជីឈ្មោះខេត្តនឹងលោតទម្លាក់ចុះមក។</li>
+                        <li><strong>ភាពប្រទាក់ក្រឡា (Cascading):</strong> បន្ទាប់ពីជ្រើសរើស ខេត្ត រួច ប្រអប់ <strong class="bg-amber-100 dark:bg-amber-900/40 px-1.5 py-0.5 rounded text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">ស្រុក/ខណ្ឌ</strong> នឹងបង្ហាញតែឈ្មោះស្រុកណាដែលនៅក្នុងខេត្តនោះប៉ុណ្ណោះ។</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4 -->
+        <section class="section-box border-t-4 border-t-sky-500 dark:border-t-sky-400 reveal-up">
+            <div class="flex items-center gap-4 mb-6 md:mb-8">
+                <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-sky-50 dark:bg-sky-900/30 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0 border border-sky-100 dark:border-sky-800/50 shadow-sm reveal-scale">
+                    <i data-lucide="file-spreadsheet" class="w-7 h-7 md:w-8 md:h-8"></i>
+                </div>
+                <div class="reveal-left">
+                    <span class="text-[10px] md:text-xs font-bold tracking-wider text-sky-600 dark:text-sky-400 uppercase bg-sky-100 dark:bg-sky-900/40 px-3 py-1 rounded-full border border-sky-200 dark:border-sky-800/50">ផ្នែកទី ៤ (សំខាន់)</span>
+                    <h2 class="text-xl md:text-3xl font-bold text-slate-800 dark:text-white mt-1 md:mt-2">ការនាំចូល និងទាញយកឯកសារ Excel</h2>
+                </div>
+            </div>
+            
+            <p class="text-sm md:text-lg font-medium text-slate-600 dark:text-gray-300 mb-6 reveal-up">ដើម្បីសន្សំពេលវេលា ប្រព័ន្ធអនុញ្ញាតឱ្យលោកអ្នកបញ្ចូលសិស្សរាប់រយនាក់ក្នុងពេលតែមួយតាមរយៈឯកសារ Excel៖</p>
+            
+            <div class="image-wrapper mb-8 border-4 border-white dark:border-gray-800 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] bg-slate-50 dark:bg-gray-900 reveal-scale">
+                <img src="5_enrollment.png" alt="Excel Import Export" onerror="this.onerror=null; this.src='https://placehold.co/800x400/1e293b/94a3b8?text=5_enrollment.png'">
+                
+                <div class="pointer-container top-[79%] left-[31%]">
+                    <div class="pointer-down">
+                        <div class="pointer-down-box bg-[#2653e7] dark:bg-blue-600">១. ទាញយកគំរូសិន</div>
+                        <div class="pointer-down-arrow border-t-[#2653e7] dark:border-t-blue-600"></div>
+                    </div>
+                </div>
+                
+                <div class="pointer-container top-[79%] left-[48%]">
+                    <div class="pointer-down">
+                        <div class="pointer-down-box bg-[#df4b06] dark:bg-orange-600">២. នាំចូលឯកសារ</div>
+                        <div class="pointer-down-arrow border-t-[#df4b06] dark:border-t-orange-600"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-5">
+                <div tabindex="0" class="bg-gradient-to-br from-blue-50/80 to-indigo-50/80 dark:from-blue-900/20 dark:to-indigo-900/20 p-5 md:p-6 rounded-2xl border border-blue-100 dark:border-blue-800/50 shadow-sm relative overflow-hidden group hover:shadow-xl hover:-translate-y-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 reveal-up" style="transition-delay: 100ms;">
+                    <i data-lucide="download-cloud" class="w-24 h-24 absolute -bottom-4 -right-4 text-blue-500 dark:text-blue-400 opacity-10 dark:opacity-5 group-hover:scale-125 group-hover:-translate-y-2 transition-transform duration-500"></i>
+                    <h3 class="font-bold text-blue-900 dark:text-blue-300 mb-3 text-base md:text-xl flex items-center gap-2">
+                        <span class="bg-blue-600 dark:bg-blue-500 text-white w-6 h-6 rounded-full inline-flex items-center justify-center text-sm shadow-md group-hover:animate-bounce">1</span> 
+                        ទាញយកគំរូ Excel
+                    </h3>
+                    <p class="text-sm md:text-base text-slate-700 dark:text-gray-300 relative z-10">ចុចលើប៊ូតុងពណ៌ខៀវខាងក្រោមគេបង្អស់ លោកអ្នកនឹងទទួលបាន File គំរូ។ សូមវាយបញ្ចូលទិន្នន័យសិស្សចូលក្នុង File នោះ រួច Save។</p>
+                </div>
+
+                <div tabindex="0" class="bg-gradient-to-br from-orange-50/80 to-red-50/80 dark:from-orange-900/20 dark:to-red-900/20 p-5 md:p-6 rounded-2xl border border-orange-100 dark:border-orange-800/50 shadow-sm relative overflow-hidden group hover:shadow-xl hover:-translate-y-2 focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all duration-300 reveal-up" style="transition-delay: 200ms;">
+                    <i data-lucide="upload-cloud" class="w-24 h-24 absolute -bottom-4 -right-4 text-orange-500 dark:text-orange-400 opacity-10 dark:opacity-5 group-hover:scale-125 group-hover:-translate-y-2 transition-transform duration-500"></i>
+                    <h3 class="font-bold text-orange-900 dark:text-orange-300 mb-3 text-base md:text-xl flex items-center gap-2">
+                        <span class="bg-orange-500 dark:bg-orange-500 text-white w-6 h-6 rounded-full inline-flex items-center justify-center text-sm shadow-md group-hover:animate-bounce">2</span> 
+                        នាំចូលទិន្នន័យ (Import)
+                    </h3>
+                    <p class="text-sm md:text-base text-slate-700 dark:text-gray-300 relative z-10">ចុចលើប៊ូតុងពណ៌ទឹកក្រូច រួចជ្រើសរើស File ដែលអ្នកបានរៀបចំ។ ប្រព័ន្ធនឹងអានទិន្នន័យ និងរក្សាទុកចូលក្នុង Database ដោយស្វ័យប្រវត្តិ។</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5 -->
+        <section class="section-box border-t-4 border-t-teal-500 dark:border-t-teal-400 reveal-up">
+            <div class="flex items-center gap-4 mb-6 md:mb-8">
+                <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center text-teal-600 dark:text-teal-400 shrink-0 border border-teal-100 dark:border-teal-800/50 shadow-sm reveal-scale">
+                    <i data-lucide="database" class="w-7 h-7 md:w-8 md:h-8"></i>
+                </div>
+                <div class="reveal-left">
+                    <span class="text-[10px] md:text-xs font-bold tracking-wider text-teal-600 dark:text-teal-400 uppercase bg-teal-100 dark:bg-teal-900/40 px-3 py-1 rounded-full border border-teal-200 dark:border-teal-800/50">ផ្នែកទី ៥</span>
+                    <h2 class="text-xl md:text-3xl font-bold text-slate-800 dark:text-white mt-1 md:mt-2">ការរក្សាទុក និងកែប្រែទិន្នន័យ</h2>
+                </div>
+            </div>
+            
+            <div class="image-wrapper mb-8 border-4 border-white dark:border-gray-800 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] bg-slate-50 dark:bg-gray-900 reveal-scale">
+                <img src="5_enrollment.png" alt="Save Data" onerror="this.onerror=null; this.src='https://placehold.co/800x400/1e293b/94a3b8?text=5_enrollment.png'">
+                
+                <div class="pointer-container top-[79%] left-[18%]">
+                    <div class="pointer-down">
+                        <div class="pointer-down-box bg-[#10b981] dark:bg-teal-600">ចុចរក្សាទុកទិន្នន័យ</div>
+                        <div class="pointer-down-arrow border-t-[#10b981] dark:border-t-teal-600"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-5">
+                <div tabindex="0" class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex gap-4 group hover:-translate-y-2 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all duration-300 reveal-up" style="transition-delay: 100ms;">
+                    <div class="w-12 h-12 bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-teal-500 dark:group-hover:bg-teal-600 group-hover:text-white group-hover:scale-110 transition-all duration-300">
+                        <i data-lucide="cloud-lightning" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 dark:text-white mb-1 text-base group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">ការរក្សាទុក (Cloud Storage)</h3>
+                        <p class="text-sm text-slate-600 dark:text-gray-300">ទិន្នន័យនឹងត្រូវរក្សាទុកទៅក្នុង Cloud Database (Firebase) ដោយមានសុវត្ថិភាពខ្ពស់ ដែលអាចបើកមើលពីឧបករណ៍ណាក៏បាន។</p>
+                    </div>
+                </div>
+
+                <div tabindex="0" class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex gap-4 group hover:-translate-y-2 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 reveal-up" style="transition-delay: 200ms;">
+                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-blue-500 dark:group-hover:bg-blue-600 group-hover:text-white group-hover:rotate-90 transition-all duration-500">
+                        <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 dark:text-white mb-1 text-base group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">កែប្រែទិន្នន័យ (Edit Mode)</h3>
+                        <p class="text-sm text-slate-600 dark:text-gray-300">នៅពេលអ្នកចូលកែប្រែសិស្ស ប៊ូតុងរក្សាទុកនឹងប្តូរឈ្មោះទៅជា <strong class="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded text-xs border border-blue-200 dark:border-blue-800">ធ្វើបច្ចុប្បន្នភាព</strong> ដោយស្វ័យប្រវត្តិ។</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6 -->
+        <section class="section-box border-t-4 border-t-rose-500 dark:border-t-rose-400 reveal-up">
+            <div class="flex items-center gap-4 mb-6 md:mb-8">
+                <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0 border border-rose-100 dark:border-rose-800/50 shadow-sm reveal-scale">
+                    <i data-lucide="video" class="w-7 h-7 md:w-8 md:h-8"></i>
+                </div>
+                <div class="reveal-left">
+                    <span class="text-[10px] md:text-xs font-bold tracking-wider text-rose-600 dark:text-rose-400 uppercase bg-rose-100 dark:bg-rose-900/40 px-3 py-1 rounded-full border border-rose-200 dark:border-rose-800/50">ផ្នែកទី ៦</span>
+                    <h2 class="text-xl md:text-3xl font-bold text-slate-800 dark:text-white mt-1 md:mt-2">វីដេអូណែនាំការប្រើប្រាស់</h2>
+                </div>
+            </div>
+            
+            <p class="text-sm md:text-lg font-medium text-slate-600 dark:text-gray-300 mb-6 reveal-up">ដើម្បីកាន់តែងាយយល់ និងឃើញការអនុវត្តផ្ទាល់ សូមទស្សនាវីដេអូនៅខាងក្រោមនេះ៖</p>
+            
+            <div class="p-2 md:p-3 bg-slate-800 dark:bg-slate-900 rounded-2xl md:rounded-3xl shadow-[0_15px_40px_-10px_rgba(225,29,72,0.2)] dark:shadow-[0_15px_40px_-10px_rgba(225,29,72,0.4)] ring-4 ring-rose-100 dark:ring-rose-900/50 reveal-scale hover:shadow-[0_25px_50px_-12px_rgba(225,29,72,0.3)] transition-shadow duration-300">
+                <div class="relative w-full rounded-xl md:rounded-2xl overflow-hidden bg-black" style="padding-top: 56.25%;">
+                    <iframe class="absolute top-0 left-0 w-full h-full" 
+                            src="https://www.youtube.com/embed/dwI_qpm0PQ4?list=RDdwI_qpm0PQ4" 
+                            title="YouTube video player" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-20 pb-16 text-center relative z-10">
+            <div class="w-20 h-1.5 bg-gradient-to-r from-blue-400 to-indigo-500 mx-auto rounded-full mb-8 shadow-sm reveal-scale"></div>
+            
+            <h3 class="font-display text-3xl md:text-4xl text-slate-800 dark:text-white mb-4 flex justify-center items-center gap-3 reveal-up">
+                <i data-lucide="party-popper" class="w-8 h-8 text-blue-500 animate-bounce"></i> រួចរាល់ហើយ!
+            </h3>
+            <p class="text-slate-500 dark:text-gray-400 mb-12 max-w-2xl mx-auto text-sm md:text-base reveal-up" style="transition-delay: 100ms;">ប្រព័ន្ធត្រូវបានរចនាឡើងដើម្បីជួយសម្រួលការងារលោកគ្រូអ្នកគ្រូក្នុងការគ្រប់គ្រងទិន្នន័យសិស្សឱ្យកាន់តែមានភាពងាយស្រួល និងរហ័ស។</p>
+            
+            <!-- Card Footer -->
+            <a href="https://ron-raksmey.netlify.app/" target="_blank" rel="noopener noreferrer" class="inline-block bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-8 rounded-3xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] border border-white dark:border-slate-700 max-w-sm w-full relative overflow-hidden group hover:shadow-2xl hover:-translate-y-2 focus:outline-none focus:ring-4 focus:ring-indigo-300 dark:focus:ring-indigo-600 transition-all duration-300 cursor-pointer reveal-scale" style="transition-delay: 200ms;">
+                <!-- Top Gradient Line -->
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 group-hover:h-2 transition-all"></div>
+                
+                <div class="flex flex-col items-center">
+                    <div class="w-28 h-28 rounded-full border-4 border-white dark:border-slate-700 shadow-lg overflow-hidden mb-5 relative group-hover:scale-110 group-hover:rounded-xl group-focus:scale-110 group-focus:rounded-xl transition-all duration-500 bg-slate-100 dark:bg-slate-900">
+                        <img src="RON-RAKSMEY.png" alt="Profile" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://placehold.co/150x150/1e293b/94a3b8?text=Profile'">
+                    </div>
+                    
+                    <p class="text-[11px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-bold mb-2 flex items-center gap-1 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
+                        <i data-lucide="code-2" class="w-3 h-3"></i> Developed By
+                    </p>
+                    <h4 class="font-display text-xl text-slate-800 dark:text-white mb-1 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors">គរុនិស្សិត រុន រស្មី</h4>
+                    <span class="text-xs text-slate-500 dark:text-gray-400 mt-2 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 px-4 py-1.5 rounded-full font-medium shadow-sm group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/50 group-hover:border-indigo-200 dark:group-hover:border-indigo-700 transition-colors">
+                        <i data-lucide="graduation-cap" class="w-3.5 h-3.5 inline-block mb-0.5 text-slate-400 dark:text-gray-500 mr-1 group-hover:text-indigo-500 dark:group-hover:text-indigo-400"></i> ជំនាន់ទី៤
+                    </span>
+                </div>
+            </a>
+            
+            <div class="mt-12 text-sm text-slate-400 dark:text-slate-500 font-medium reveal-up" style="transition-delay: 300ms;">
+                &copy; 2026 PTEC System. រក្សាសិទ្ធិគ្រប់យ៉ាង។
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Initialization Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Lucide Icons
+            lucide.createIcons();
+
+            // Theme Toggle Logic
+            const themeToggleBtns = document.querySelectorAll('.theme-toggle-btn');
+            
+            // Setup icons on initial load based on html class
+            if (document.documentElement.classList.contains('dark')) {
+                document.querySelectorAll('.theme-toggle-light-icon').forEach(icon => icon.classList.remove('hidden'));
+            } else {
+                document.querySelectorAll('.theme-toggle-dark-icon').forEach(icon => icon.classList.remove('hidden'));
+            }
+
+            themeToggleBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Toggle visibility of icons
+                    document.querySelectorAll('.theme-toggle-dark-icon').forEach(icon => icon.classList.toggle('hidden'));
+                    document.querySelectorAll('.theme-toggle-light-icon').forEach(icon => icon.classList.toggle('hidden'));
+                    
+                    // Toggle dark class on html and update local storage
+                    if (document.documentElement.classList.contains('dark')) {
+                        document.documentElement.classList.remove('dark');
+                        localStorage.setItem('color-theme', 'light');
+                    } else {
+                        document.documentElement.classList.add('dark');
+                        localStorage.setItem('color-theme', 'dark');
                     }
                 });
-            }
-        }
+            });
 
-        function showToast() {
-            const toast = document.getElementById('toast');
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
+            // Intersection Observer for Scroll Reveals
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.15 
+            };
 
-        // Initialize on load
-        window.onload = initApp;
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('reveal-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
 
+            const revealElements = document.querySelectorAll('.reveal-up, .reveal-left, .reveal-scale');
+            revealElements.forEach(el => observer.observe(el));
+
+            const staggerContainers = document.querySelectorAll('.stagger-container');
+            staggerContainers.forEach(container => {
+                const listItems = container.querySelectorAll('li');
+                listItems.forEach((item, index) => {
+                    item.classList.add('reveal-left');
+                    item.style.transitionDelay = `${index * 150}ms`;
+                    observer.observe(item);
+                });
+            });
+        });
     </script>
 </body>
 </html>
